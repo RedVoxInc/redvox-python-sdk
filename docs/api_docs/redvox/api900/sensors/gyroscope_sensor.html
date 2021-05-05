@@ -91,7 +91,7 @@ class GyroscopeSensor(XyzUnevenlySampledSensor):
 <dl>
 <dt id="redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor"><code class="flex name class">
 <span>class <span class="ident">GyroscopeSensor</span></span>
-<span>(</span><span>unevenly_sampled_channel: typing.Union[<a title="redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel" href="unevenly_sampled_channel.html#redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel">UnevenlySampledChannel</a>, NoneType] = None)</span>
+<span>(</span><span>unevenly_sampled_channel: Union[<a title="redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel" href="unevenly_sampled_channel.html#redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel">UnevenlySampledChannel</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Initializes this class.
@@ -152,7 +152,7 @@ X, Y, and Z payload components.</p>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor.set_payload_values"><code class="name flex">
-<span>def <span class="ident">set_payload_values</span></span>(<span>self, x_values: typing.Union[typing.List[float], numpy.ndarray], y_values: typing.Union[typing.List[float], numpy.ndarray], z_values: typing.Union[typing.List[float], numpy.ndarray]) ‑> <a title="redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor" href="#redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor">GyroscopeSensor</a></span>
+<span>def <span class="ident">set_payload_values</span></span>(<span>self, x_values: Union[List[float], numpy.ndarray], y_values: Union[List[float], numpy.ndarray], z_values: Union[List[float], numpy.ndarray]) ‑> <a title="redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor" href="#redvox.api900.sensors.gyroscope_sensor.GyroscopeSensor">GyroscopeSensor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets this channel's payload with the provided equal length x, y, and z payload values.

@@ -669,7 +669,7 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.api1000.common.common.sampling_rate_statistics"><code class="name flex">
-<span>def <span class="ident">sampling_rate_statistics</span></span>(<span>timestamps: numpy.ndarray) ‑> typing.Tuple[float, float]</span>
+<span>def <span class="ident">sampling_rate_statistics</span></span>(<span>timestamps: numpy.ndarray) ‑> Tuple[float, float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculates the mean sample rate in Hz and standard deviation of the sampling rate.
@@ -707,7 +707,7 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 </details>
 </dd>
 <dt id="redvox.api1000.common.common.validate_sample_payload"><code class="name flex">
-<span>def <span class="ident">validate_sample_payload</span></span>(<span>sample_payload: <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a>, payload_name: typing.Union[str, NoneType] = None, payload_unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="#redvox.api1000.common.common.Unit">Unit</a>, NoneType] = None) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_sample_payload</span></span>(<span>sample_payload: <a title="redvox.api1000.common.common.SamplePayload" href="#redvox.api1000.common.common.SamplePayload">SamplePayload</a>, payload_name: Union[str, NoneType] = None, payload_unit: Union[<a title="redvox.api1000.common.common.Unit" href="#redvox.api1000.common.common.Unit">Unit</a>, NoneType] = None) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates the sample payload.
@@ -750,7 +750,7 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 </details>
 </dd>
 <dt id="redvox.api1000.common.common.validate_summary_statistics"><code class="name flex">
-<span>def <span class="ident">validate_summary_statistics</span></span>(<span>stats: <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_summary_statistics</span></span>(<span>stats: <a title="redvox.api1000.common.common.SummaryStatistics" href="#redvox.api1000.common.common.SummaryStatistics">SummaryStatistics</a>) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates the stats.
@@ -773,7 +773,7 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 </details>
 </dd>
 <dt id="redvox.api1000.common.common.validate_timing_payload"><code class="name flex">
-<span>def <span class="ident">validate_timing_payload</span></span>(<span>timing_payload: <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_timing_payload</span></span>(<span>timing_payload: <a title="redvox.api1000.common.common.TimingPayload" href="#redvox.api1000.common.common.TimingPayload">TimingPayload</a>) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates the timing payload.
@@ -813,7 +813,7 @@ def validate_timing_payload(timing_payload: TimingPayload) -&gt; List[str]:
 <dl>
 <dt id="redvox.api1000.common.common.SamplePayload"><code class="flex name class">
 <span>class <span class="ident">SamplePayload</span></span>
-<span>(</span><span>proto: typing.Union[src.redvox_api_m.redvox_api_m_pb2.SamplePayload, src.redvox_api_m.redvox_api_m_pb2.DoubleSamplePayload])</span>
+<span>(</span><span>proto: Union[src.redvox_api_m.redvox_api_m_pb2.SamplePayload, src.redvox_api_m.redvox_api_m_pb2.DoubleSamplePayload])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A class for managing sensor samples and the corresponding statistics.</p></div>

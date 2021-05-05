@@ -749,7 +749,7 @@ TimeSyncData object if not given
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.validate_sensors"><code class="name flex">
-<span>def <span class="ident">validate_sensors</span></span>(<span>wrapped_packets: typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]) ‑> bool</span>
+<span>def <span class="ident">validate_sensors</span></span>(<span>wrapped_packets: List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Examine all sample rates and mach time zeros to ensure that sensor settings do not change
@@ -796,7 +796,7 @@ TimeSyncData object if not given
 <dl>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData"><code class="flex name class">
 <span>class <span class="ident">TimeSyncData</span></span>
-<span>(</span><span>wrapped_packets: typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>] = None)</span>
+<span>(</span><span>wrapped_packets: List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stores latencies, revised start times, time sync server offsets, and difference in adjusted machine time and
@@ -1256,7 +1256,7 @@ Assuming all packets have been processed and all bad packets are marked with a 0
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData.get_latency_mean"><code class="name flex">
-<span>def <span class="ident">get_latency_mean</span></span>(<span>self) ‑> typing.Union[float, NoneType]</span>
+<span>def <span class="ident">get_latency_mean</span></span>(<span>self) ‑> Union[float, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the mean of all latencies, and None if the latencies are invalid.
@@ -1277,7 +1277,7 @@ Assuming all packets have been processed and all bad packets are marked with a 0
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData.get_latency_std_dev"><code class="name flex">
-<span>def <span class="ident">get_latency_std_dev</span></span>(<span>self) ‑> typing.Union[float, NoneType]</span>
+<span>def <span class="ident">get_latency_std_dev</span></span>(<span>self) ‑> Union[float, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the standard deviation (std_dev) of all latencies, and None if the latencies are invalid.
@@ -1298,7 +1298,7 @@ Assuming all packets have been processed and all bad packets are marked with a 0
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData.get_offset_mean"><code class="name flex">
-<span>def <span class="ident">get_offset_mean</span></span>(<span>self) ‑> typing.Union[float, NoneType]</span>
+<span>def <span class="ident">get_offset_mean</span></span>(<span>self) ‑> Union[float, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the mean of all offsets, and 0.0 if the offsets or latencies are invalid.
@@ -1319,7 +1319,7 @@ Assuming all packets have been processed and all bad packets are marked with a 0
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData.get_offset_std_dev"><code class="name flex">
-<span>def <span class="ident">get_offset_std_dev</span></span>(<span>self) ‑> typing.Union[float, NoneType]</span>
+<span>def <span class="ident">get_offset_std_dev</span></span>(<span>self) ‑> Union[float, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the standard deviation (std_dev) of all offsets, and 0.0 if the offsets or latencies are invalid.
@@ -1360,7 +1360,7 @@ Assuming all packets have been processed and all bad packets are marked with a 0
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData.get_time_sync_data"><code class="name flex">
-<span>def <span class="ident">get_time_sync_data</span></span>(<span>self, wrapped_packets: typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>])</span>
+<span>def <span class="ident">get_time_sync_data</span></span>(<span>self, wrapped_packets: List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets the time statistics between machine, time server, and acquisition server for the packets given.

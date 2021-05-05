@@ -490,7 +490,7 @@ def read_directory(directory_path: str) -&gt; typing.Dict[str, typing.List[Wrapp
 </details>
 </dd>
 <dt id="redvox.api900.reader.read_directory"><code class="name flex">
-<span>def <span class="ident">read_directory</span></span>(<span>directory_path: str) ‑> typing.Dict[str, typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]]</span>
+<span>def <span class="ident">read_directory</span></span>(<span>directory_path: str) ‑> Dict[str, List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads .rdvxz files from a directory and returns a dictionary from redvox_id -&gt; a list of sorted wrapped redvox
@@ -635,7 +635,7 @@ packets that belong to that device.
 </details>
 </dd>
 <dt id="redvox.api900.reader.read_rdvxz_file_range"><code class="name flex">
-<span>def <span class="ident">read_rdvxz_file_range</span></span>(<span>directory: str, start_timestamp_utc_s: typing.Union[int, NoneType] = None, end_timestamp_utc_s: typing.Union[int, NoneType] = None, redvox_ids: typing.Union[typing.List[str], NoneType] = None, structured_layout: bool = False, concat_continuous_segments: bool = True) ‑> typing.Dict[str, typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]]</span>
+<span>def <span class="ident">read_rdvxz_file_range</span></span>(<span>directory: str, start_timestamp_utc_s: Union[int, NoneType] = None, end_timestamp_utc_s: Union[int, NoneType] = None, redvox_ids: Union[List[str], NoneType] = None, structured_layout: bool = False, concat_continuous_segments: bool = True) ‑> Dict[str, List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads a range of .rdvxz files from a given directory.</p>

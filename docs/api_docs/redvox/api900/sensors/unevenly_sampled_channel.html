@@ -122,7 +122,7 @@ class UnevenlySampledChannel(interleaved_channel.InterleavedChannel):
 <dl>
 <dt id="redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel"><code class="flex name class">
 <span>class <span class="ident">UnevenlySampledChannel</span></span>
-<span>(</span><span>channel: typing.Union[api900_pb2.UnevenlySampledChannel, NoneType] = None)</span>
+<span>(</span><span>channel: Union[api900_pb2.UnevenlySampledChannel, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An unevenly sampled channel is an interleaved channel that contains sampled payload which includes a list of
@@ -250,7 +250,7 @@ corresponding timestamps for each sample.</p>
 </details>
 </dd>
 <dt id="redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel.set_timestamps_microseconds_utc"><code class="name flex">
-<span>def <span class="ident">set_timestamps_microseconds_utc</span></span>(<span>self, timestamps: typing.Union[typing.List[int], numpy.ndarray])</span>
+<span>def <span class="ident">set_timestamps_microseconds_utc</span></span>(<span>self, timestamps: Union[List[int], numpy.ndarray])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>set the timestamps in microseconds from utc

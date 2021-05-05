@@ -422,6 +422,9 @@ class InterleavedChannelTests(ArraysTestCase):
             self.mic_channel.get_payload(api900_pb2.MICROPHONE),
             numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 
+    def test_get_payload_single_len(self):
+        self.assertEqual(10, len(self.mic_channel.get_payload(api900_pb2.MICROPHONE),))
+
     def test_get_payload_interleaved(self):
         self.assertArraysEqual(
             self.gps_channel.get_payload(api900_pb2.LATITUDE),
@@ -901,6 +904,9 @@ not have a method with the specified name.</p></div>
             self.mic_channel.get_payload(api900_pb2.MICROPHONE),
             numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 
+    def test_get_payload_single_len(self):
+        self.assertEqual(10, len(self.mic_channel.get_payload(api900_pb2.MICROPHONE),))
+
     def test_get_payload_interleaved(self):
         self.assertArraysEqual(
             self.gps_channel.get_payload(api900_pb2.LATITUDE),
@@ -1301,6 +1307,19 @@ not have a method with the specified name.</p></div>
     self.assertArraysEqual(
         self.mic_channel.get_payload(api900_pb2.MICROPHONE),
         numpy.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_payload_single_len"><code class="name flex">
+<span>def <span class="ident">test_get_payload_single_len</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_payload_single_len(self):
+    self.assertEqual(10, len(self.mic_channel.get_payload(api900_pb2.MICROPHONE),))</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_value_mean_dne"><code class="name flex">
@@ -2967,6 +2986,7 @@ not have a method with the specified name.</p></div>
 <li><code><a title="redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_payload_interleaved" href="#redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_payload_interleaved">test_get_payload_interleaved</a></code></li>
 <li><code><a title="redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_payload_interleaved_dne" href="#redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_payload_interleaved_dne">test_get_payload_interleaved_dne</a></code></li>
 <li><code><a title="redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_payload_single" href="#redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_payload_single">test_get_payload_single</a></code></li>
+<li><code><a title="redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_payload_single_len" href="#redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_payload_single_len">test_get_payload_single_len</a></code></li>
 <li><code><a title="redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_value_mean_dne" href="#redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_value_mean_dne">test_get_value_mean_dne</a></code></li>
 <li><code><a title="redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_value_mean_multi" href="#redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_value_mean_multi">test_get_value_mean_multi</a></code></li>
 <li><code><a title="redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_value_mean_single" href="#redvox.tests.api900.test_reader_utils.InterleavedChannelTests.test_get_value_mean_single">test_get_value_mean_single</a></code></li>

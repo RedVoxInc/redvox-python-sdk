@@ -153,7 +153,7 @@ class TimeSynchronizationSensor:
 <dl>
 <dt id="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor"><code class="flex name class">
 <span>class <span class="ident">TimeSynchronizationSensor</span></span>
-<span>(</span><span>unevenly_sampled_channel: typing.Union[<a title="redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel" href="unevenly_sampled_channel.html#redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel">UnevenlySampledChannel</a>, NoneType] = None)</span>
+<span>(</span><span>unevenly_sampled_channel: Union[<a title="redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel" href="unevenly_sampled_channel.html#redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel">UnevenlySampledChannel</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>High-level wrapper around time synchronization exchange.</p>
@@ -266,7 +266,7 @@ class TimeSynchronizationSensor:
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor.diff"><code class="name flex">
-<span>def <span class="ident">diff</span></span>(<span>self, other: <a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">diff</span></span>(<span>self, other: <a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a>) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compares two time synchronization sensors for differences.
@@ -296,7 +296,7 @@ class TimeSynchronizationSensor:
 </details>
 </dd>
 <dt id="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor.metadata"><code class="name flex">
-<span>def <span class="ident">metadata</span></span>(<span>self) ‑> typing.List[str]</span>
+<span>def <span class="ident">metadata</span></span>(<span>self) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns this channel's metadata (if there is any) as a Python list.
@@ -314,7 +314,7 @@ class TimeSynchronizationSensor:
 </details>
 </dd>
 <dt id="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor.metadata_as_dict"><code class="name flex">
-<span>def <span class="ident">metadata_as_dict</span></span>(<span>self) ‑> typing.Dict[str, str]</span>
+<span>def <span class="ident">metadata_as_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns this channel's metadata (if there is any) as a Python dictionary.
@@ -369,7 +369,7 @@ class TimeSynchronizationSensor:
 </details>
 </dd>
 <dt id="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor.set_metadata"><code class="name flex">
-<span>def <span class="ident">set_metadata</span></span>(<span>self, data: typing.List[str]) ‑> <a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a></span>
+<span>def <span class="ident">set_metadata</span></span>(<span>self, data: List[str]) ‑> <a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the metadata
@@ -390,7 +390,7 @@ class TimeSynchronizationSensor:
 </details>
 </dd>
 <dt id="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor.set_metadata_as_dict"><code class="name flex">
-<span>def <span class="ident">set_metadata_as_dict</span></span>(<span>self, metadata_dict: typing.Dict[str, str]) ‑> <a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a></span>
+<span>def <span class="ident">set_metadata_as_dict</span></span>(<span>self, metadata_dict: Dict[str, str]) ‑> <a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets the metadata.
@@ -411,7 +411,7 @@ class TimeSynchronizationSensor:
 </details>
 </dd>
 <dt id="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor.set_payload_values"><code class="name flex">
-<span>def <span class="ident">set_payload_values</span></span>(<span>self, payload: typing.Union[typing.List[int], numpy.ndarray]) ‑> <a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a></span>
+<span>def <span class="ident">set_payload_values</span></span>(<span>self, payload: Union[List[int], numpy.ndarray]) ‑> <a title="redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor" href="#redvox.api900.sensors.time_synchronization_sensor.TimeSynchronizationSensor">TimeSynchronizationSensor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets the time synch channel's payload.

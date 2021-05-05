@@ -36,17 +36,22 @@ Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 &#34;&#34;&#34;
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Iterator, Union
 from itertools import repeat
 from types import FunctionType
 
 import numpy as np
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.common import sensor_reader_utils_raw as srur
 from redvox.common import sensor_data as sd
 from redvox.common import sensor_reader_utils as sdru
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSyncAnalysis
+from redvox.common.io import Index
+
+from redvox.api900.lib.api900_pb2 import RedvoxPacket
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 
 
 class Station:
@@ -70,9 +75,15 @@ class Station:
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station&#39;s timing values
+        _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
     &#34;&#34;&#34;
 
-    def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
+    def __init__(self,
+                 data_packets: Optional[List[WrappedRedvoxPacketM]] = None,
+                 station_id: str = None,
+                 uuid: str = None,
+                 start_time: float = np.nan,
+                 index: Optional[Index] = None):
         &#34;&#34;&#34;
         initialize Station
         :param data_packets: optional list of data packets representing the station, default None
@@ -80,6 +91,7 @@ class Station:
         self.data = {}
         self.packet_metadata = []
         self.is_timestamps_updated = False
+        self._gaps = []
         if data_packets and st_utils.validate_station_key_list(data_packets, True):
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
@@ -104,11 +116,13 @@ class Station:
             self.timesync_analysis = \
                 TimeSyncAnalysis(self.id, self.audio_sample_rate_nominal_hz,
                                  self.start_timestamp).from_packets(data_packets)
+        elif index:
+            self._set_all_sensors_raw(index.stream_raw())
         else:
-            self.id = None
-            self.uuid = None
+            self.id = station_id
+            self.uuid = uuid
             self.metadata = st_utils.StationMetadata(&#34;None&#34;)
-            self.start_timestamp = np.nan
+            self.start_timestamp = start_time
             self.first_data_timestamp = np.nan
             self.last_data_timestamp = np.nan
             self.audio_sample_rate_nominal_hz = np.nan
@@ -258,9 +272,7 @@ class Station:
         calculate the mean packet duration using the stations&#39; packets
         :return: mean duration of packets in microseconds
         &#34;&#34;&#34;
-        return np.mean(
-            [tsd.packet_duration for tsd in self.timesync_analysis.timesync_data]
-        )
+        return float(np.mean([tsd.packet_duration for tsd in self.timesync_analysis.timesync_data]))
 
     def get_mean_packet_audio_samples(self) -&gt; float:
         &#34;&#34;&#34;
@@ -991,8 +1003,10 @@ class Station:
         self.data = {}
         self.packet_metadata: List[st_utils.StationPacketMetadata] = [
             st_utils.StationPacketMetadata(packet) for packet in packets]
-        funcs = [sdru.load_apim_audio_from_list,
-                 sdru.load_apim_compressed_audio_from_list,
+        sensor, self._gaps = sdru.load_apim_audio_from_list(packets)
+        if sensor:
+            self.append_sensor(sensor)
+        funcs = [sdru.load_apim_compressed_audio_from_list,
                  sdru.load_apim_image_from_list,
                  sdru.load_apim_location_from_list,
                  sdru.load_apim_pressure_from_list,
@@ -1009,10 +1023,111 @@ class Station:
                  sdru.load_apim_rotation_vector_from_list,
                  sdru.load_apim_health_from_list,
                  ]
-        sensors = map(FunctionType.__call__, funcs, repeat(packets))
+        sensors = map(FunctionType.__call__, funcs, repeat(packets), repeat(self._gaps))
         for sensor in sensors:
             if sensor:
                 self.append_sensor(sensor)
+
+    def _set_all_sensors_raw(self, packets: Iterator[Union[&#34;RedvoxPacket&#34;, RedvoxPacketM]]):
+        &#34;&#34;&#34;
+        use raw packets to create the station
+        :param packets: raw redvox api900 or api1000 packets
+        &#34;&#34;&#34;
+        self.data = {}
+        # self.packet_metadata: List[st_utils.StationPacketMetadata] = [
+        #     st_utils.StationPacketMetadata(packet) for packet in packets]
+        p_l = [p for p in packets]
+        self.id = p_l[0].station_information.id
+        self.uuid = p_l[0].station_information.uuid
+        self.start_timestamp = p_l[0].timing_information.app_start_mach_timestamp
+        if self.start_timestamp &lt; 0:
+            print(f&#34;WARNING: Station {self.id} has start timestamp before epoch.  &#34;
+                  f&#34;Start timestamp reset to np.nan&#34;)
+            self.start_timestamp = np.nan
+        self.metadata = st_utils.StationMetadata(&#34;Redvox&#34;, WrappedRedvoxPacketM(p_l[0]))
+        sensor, self._gaps = srur.load_apim_audio_from_list(p_l)
+        if sensor:
+            self.append_sensor(sensor)
+        else:
+            print(f&#34;WARNING: Station {self.id} cannot find audio data to load!&#34;)
+        funcs = [srur.load_apim_compressed_audio_from_list,
+                 srur.load_apim_image_from_list,
+                 srur.load_apim_location_from_list,
+                 srur.load_apim_pressure_from_list,
+                 srur.load_apim_light_from_list,
+                 srur.load_apim_ambient_temp_from_list,
+                 srur.load_apim_rel_humidity_from_list,
+                 srur.load_apim_proximity_from_list,
+                 srur.load_apim_accelerometer_from_list,
+                 srur.load_apim_gyroscope_from_list,
+                 srur.load_apim_magnetometer_from_list,
+                 srur.load_apim_gravity_from_list,
+                 srur.load_apim_linear_accel_from_list,
+                 srur.load_apim_orientation_from_list,
+                 srur.load_apim_rotation_vector_from_list,
+                 srur.load_apim_health_from_list,
+                 ]
+        sensors = map(FunctionType.__call__, funcs, repeat(p_l), repeat(self._gaps))
+        for sensor in sensors:
+            if sensor:
+                self.append_sensor(sensor)
+        self._get_start_and_end_timestamps()
+        if self.has_audio_sensor():
+            self.audio_sample_rate_nominal_hz = self.audio_sensor().sample_rate_hz
+            self.is_audio_scrambled = p_l[0].station_information.app_settings.scramble_audio_data
+        else:
+            self.audio_sample_rate_nominal_hz = np.nan
+            self.is_audio_scrambled = False
+        self.timesync_analysis = \
+            TimeSyncAnalysis(self.id, self.audio_sample_rate_nominal_hz,
+                             self.start_timestamp).from_raw_packets(p_l)
+
+    @staticmethod
+    def from_packet(packet: WrappedRedvoxPacketM) -&gt; &#34;Station&#34;:
+        start_time = packet.get_timing_information().get_app_start_mach_timestamp()
+        return Station(station_id=packet.get_station_information().get_id(),
+                       uuid=packet.get_station_information().get_uuid(),
+                       start_time=np.nan if start_time &lt; 0 else start_time)._load_packet(packet)
+
+    def load_packet(self, packet: WrappedRedvoxPacketM) -&gt; &#34;Station&#34;:
+        &#34;&#34;&#34;
+        load all data from a packet
+        :param packet: packet to load data from
+        :return: updated station or a new station if it doesn&#39;t exist
+        &#34;&#34;&#34;
+        start_time = packet.get_timing_information().get_app_start_mach_timestamp()
+        o_s = Station(station_id=packet.get_station_information().get_id(),
+                      uuid=packet.get_station_information().get_uuid(),
+                      start_time=np.nan if start_time &lt; 0 else start_time)
+        if self.get_key() == o_s.get_key():
+            return self._load_packet(packet)
+        return o_s._load_packet(packet)
+
+    def _load_packet(self, packet: WrappedRedvoxPacketM) -&gt; &#34;Station&#34;:
+        self.packet_metadata.append(st_utils.StationPacketMetadata(packet))
+        funcs = [sdru.load_apim_audio,
+                 sdru.load_apim_compressed_audio,
+                 sdru.load_apim_image,
+                 sdru.load_apim_location,
+                 sdru.load_apim_pressure,
+                 sdru.load_apim_light,
+                 sdru.load_apim_ambient_temp,
+                 sdru.load_apim_rel_humidity,
+                 sdru.load_apim_proximity,
+                 sdru.load_apim_accelerometer,
+                 sdru.load_apim_gyroscope,
+                 sdru.load_apim_magnetometer,
+                 sdru.load_apim_gravity,
+                 sdru.load_apim_linear_accel,
+                 sdru.load_apim_orientation,
+                 sdru.load_apim_rotation_vector,
+                 sdru.load_apim_health,
+                 ]
+        sensors = map(lambda fn: fn(packet), funcs)
+        for sensor in sensors:
+            if sensor:
+                self.append_sensor(sensor)
+        return self
 
     def update_timestamps(self) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
@@ -1042,9 +1157,305 @@ class Station:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="redvox.common.station.RedvoxPacket"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacket</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.station.RedvoxPacket.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.common.station.RedvoxPacket.acquisition_server"><code class="name">var <span class="ident">acquisition_server</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.acquisition_server</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.api</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc"><code class="name">var <span class="ident">app_file_start_timestamp_epoch_microseconds_utc</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.app_file_start_timestamp_machine"><code class="name">var <span class="ident">app_file_start_timestamp_machine</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.app_file_start_timestamp_machine</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.app_version"><code class="name">var <span class="ident">app_version</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.app_version</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.authenticated_email"><code class="name">var <span class="ident">authenticated_email</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.authenticated_email</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.authentication_server"><code class="name">var <span class="ident">authentication_server</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.authentication_server</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.authentication_token"><code class="name">var <span class="ident">authentication_token</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.authentication_token</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.battery_level_percent"><code class="name">var <span class="ident">battery_level_percent</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.battery_level_percent</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.device_make"><code class="name">var <span class="ident">device_make</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_make</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.device_model"><code class="name">var <span class="ident">device_model</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_model</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.device_os"><code class="name">var <span class="ident">device_os</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_os</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.device_os_version"><code class="name">var <span class="ident">device_os_version</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_os_version</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.device_temperature_c"><code class="name">var <span class="ident">device_temperature_c</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_temperature_c</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.evenly_sampled_channels"><code class="name">var <span class="ident">evenly_sampled_channels</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.evenly_sampled_channels</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.firebase_token"><code class="name">var <span class="ident">firebase_token</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.firebase_token</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.is_backfilled"><code class="name">var <span class="ident">is_backfilled</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.is_backfilled</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.is_private"><code class="name">var <span class="ident">is_private</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.is_private</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.is_scrambled"><code class="name">var <span class="ident">is_scrambled</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.is_scrambled</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.metadata</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.redvox_id"><code class="name">var <span class="ident">redvox_id</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.redvox_id</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.server_timestamp_epoch_microseconds_utc"><code class="name">var <span class="ident">server_timestamp_epoch_microseconds_utc</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.server_timestamp_epoch_microseconds_utc</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.time_synchronization_server"><code class="name">var <span class="ident">time_synchronization_server</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.time_synchronization_server</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.unevenly_sampled_channels"><code class="name">var <span class="ident">unevenly_sampled_channels</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.unevenly_sampled_channels</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacket.uuid"><code class="name">var <span class="ident">uuid</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.uuid</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacketM</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.station.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.DoubleSamplePayload"><code class="name">var <span class="ident">DoubleSamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.EventStream"><code class="name">var <span class="ident">EventStream</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.Sensors"><code class="name">var <span class="ident">Sensors</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.StationInformation"><code class="name">var <span class="ident">StationInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.SummaryStatistics"><code class="name">var <span class="ident">SummaryStatistics</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.TimingInformation"><code class="name">var <span class="ident">TimingInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.TimingPayload"><code class="name">var <span class="ident">TimingPayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.common.station.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.api</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.event_streams</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.metadata</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sensors</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.station_information</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sub_api</p></div>
+</dd>
+<dt id="redvox.common.station.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.timing_information</p></div>
+</dd>
+</dl>
+</dd>
 <dt id="redvox.common.station.Station"><code class="flex name class">
 <span>class <span class="ident">Station</span></span>
-<span>(</span><span>data_packets: typing.Union[typing.List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>], NoneType] = None)</span>
+<span>(</span><span>data_packets: Union[List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>], NoneType] = None, station_id: str = None, uuid: str = None, start_time: float = nan, index: Union[<a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>generic station for api-independent stuff; uses API M as the core data object since its quite versatile
@@ -1065,7 +1476,9 @@ last_data_timestamp: float of microseconds since epoch UTC of the last data poin
 audio_sample_rate_nominal_hz: float of nominal sample rate of audio component in hz, default np.nan
 is_audio_scrambled: bool, True if audio data is scrambled, default False
 is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
-timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values</p>
+timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
+_gaps: List of Tuples of floats indicating start and end times of gaps.
+Times are not inclusive of the gap.</p>
 <p>initialize Station
 :param data_packets: optional list of data packets representing the station, default None</p></div>
 <details class="source">
@@ -1093,9 +1506,15 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station&#39;s timing values
+        _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
     &#34;&#34;&#34;
 
-    def __init__(self, data_packets: Optional[List[WrappedRedvoxPacketM]] = None):
+    def __init__(self,
+                 data_packets: Optional[List[WrappedRedvoxPacketM]] = None,
+                 station_id: str = None,
+                 uuid: str = None,
+                 start_time: float = np.nan,
+                 index: Optional[Index] = None):
         &#34;&#34;&#34;
         initialize Station
         :param data_packets: optional list of data packets representing the station, default None
@@ -1103,6 +1522,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         self.data = {}
         self.packet_metadata = []
         self.is_timestamps_updated = False
+        self._gaps = []
         if data_packets and st_utils.validate_station_key_list(data_packets, True):
             self.id = data_packets[0].get_station_information().get_id()
             self.uuid = data_packets[0].get_station_information().get_uuid()
@@ -1127,11 +1547,13 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
             self.timesync_analysis = \
                 TimeSyncAnalysis(self.id, self.audio_sample_rate_nominal_hz,
                                  self.start_timestamp).from_packets(data_packets)
+        elif index:
+            self._set_all_sensors_raw(index.stream_raw())
         else:
-            self.id = None
-            self.uuid = None
+            self.id = station_id
+            self.uuid = uuid
             self.metadata = st_utils.StationMetadata(&#34;None&#34;)
-            self.start_timestamp = np.nan
+            self.start_timestamp = start_time
             self.first_data_timestamp = np.nan
             self.last_data_timestamp = np.nan
             self.audio_sample_rate_nominal_hz = np.nan
@@ -1281,9 +1703,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         calculate the mean packet duration using the stations&#39; packets
         :return: mean duration of packets in microseconds
         &#34;&#34;&#34;
-        return np.mean(
-            [tsd.packet_duration for tsd in self.timesync_analysis.timesync_data]
-        )
+        return float(np.mean([tsd.packet_duration for tsd in self.timesync_analysis.timesync_data]))
 
     def get_mean_packet_audio_samples(self) -&gt; float:
         &#34;&#34;&#34;
@@ -2014,8 +2434,10 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
         self.data = {}
         self.packet_metadata: List[st_utils.StationPacketMetadata] = [
             st_utils.StationPacketMetadata(packet) for packet in packets]
-        funcs = [sdru.load_apim_audio_from_list,
-                 sdru.load_apim_compressed_audio_from_list,
+        sensor, self._gaps = sdru.load_apim_audio_from_list(packets)
+        if sensor:
+            self.append_sensor(sensor)
+        funcs = [sdru.load_apim_compressed_audio_from_list,
                  sdru.load_apim_image_from_list,
                  sdru.load_apim_location_from_list,
                  sdru.load_apim_pressure_from_list,
@@ -2032,10 +2454,111 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
                  sdru.load_apim_rotation_vector_from_list,
                  sdru.load_apim_health_from_list,
                  ]
-        sensors = map(FunctionType.__call__, funcs, repeat(packets))
+        sensors = map(FunctionType.__call__, funcs, repeat(packets), repeat(self._gaps))
         for sensor in sensors:
             if sensor:
                 self.append_sensor(sensor)
+
+    def _set_all_sensors_raw(self, packets: Iterator[Union[&#34;RedvoxPacket&#34;, RedvoxPacketM]]):
+        &#34;&#34;&#34;
+        use raw packets to create the station
+        :param packets: raw redvox api900 or api1000 packets
+        &#34;&#34;&#34;
+        self.data = {}
+        # self.packet_metadata: List[st_utils.StationPacketMetadata] = [
+        #     st_utils.StationPacketMetadata(packet) for packet in packets]
+        p_l = [p for p in packets]
+        self.id = p_l[0].station_information.id
+        self.uuid = p_l[0].station_information.uuid
+        self.start_timestamp = p_l[0].timing_information.app_start_mach_timestamp
+        if self.start_timestamp &lt; 0:
+            print(f&#34;WARNING: Station {self.id} has start timestamp before epoch.  &#34;
+                  f&#34;Start timestamp reset to np.nan&#34;)
+            self.start_timestamp = np.nan
+        self.metadata = st_utils.StationMetadata(&#34;Redvox&#34;, WrappedRedvoxPacketM(p_l[0]))
+        sensor, self._gaps = srur.load_apim_audio_from_list(p_l)
+        if sensor:
+            self.append_sensor(sensor)
+        else:
+            print(f&#34;WARNING: Station {self.id} cannot find audio data to load!&#34;)
+        funcs = [srur.load_apim_compressed_audio_from_list,
+                 srur.load_apim_image_from_list,
+                 srur.load_apim_location_from_list,
+                 srur.load_apim_pressure_from_list,
+                 srur.load_apim_light_from_list,
+                 srur.load_apim_ambient_temp_from_list,
+                 srur.load_apim_rel_humidity_from_list,
+                 srur.load_apim_proximity_from_list,
+                 srur.load_apim_accelerometer_from_list,
+                 srur.load_apim_gyroscope_from_list,
+                 srur.load_apim_magnetometer_from_list,
+                 srur.load_apim_gravity_from_list,
+                 srur.load_apim_linear_accel_from_list,
+                 srur.load_apim_orientation_from_list,
+                 srur.load_apim_rotation_vector_from_list,
+                 srur.load_apim_health_from_list,
+                 ]
+        sensors = map(FunctionType.__call__, funcs, repeat(p_l), repeat(self._gaps))
+        for sensor in sensors:
+            if sensor:
+                self.append_sensor(sensor)
+        self._get_start_and_end_timestamps()
+        if self.has_audio_sensor():
+            self.audio_sample_rate_nominal_hz = self.audio_sensor().sample_rate_hz
+            self.is_audio_scrambled = p_l[0].station_information.app_settings.scramble_audio_data
+        else:
+            self.audio_sample_rate_nominal_hz = np.nan
+            self.is_audio_scrambled = False
+        self.timesync_analysis = \
+            TimeSyncAnalysis(self.id, self.audio_sample_rate_nominal_hz,
+                             self.start_timestamp).from_raw_packets(p_l)
+
+    @staticmethod
+    def from_packet(packet: WrappedRedvoxPacketM) -&gt; &#34;Station&#34;:
+        start_time = packet.get_timing_information().get_app_start_mach_timestamp()
+        return Station(station_id=packet.get_station_information().get_id(),
+                       uuid=packet.get_station_information().get_uuid(),
+                       start_time=np.nan if start_time &lt; 0 else start_time)._load_packet(packet)
+
+    def load_packet(self, packet: WrappedRedvoxPacketM) -&gt; &#34;Station&#34;:
+        &#34;&#34;&#34;
+        load all data from a packet
+        :param packet: packet to load data from
+        :return: updated station or a new station if it doesn&#39;t exist
+        &#34;&#34;&#34;
+        start_time = packet.get_timing_information().get_app_start_mach_timestamp()
+        o_s = Station(station_id=packet.get_station_information().get_id(),
+                      uuid=packet.get_station_information().get_uuid(),
+                      start_time=np.nan if start_time &lt; 0 else start_time)
+        if self.get_key() == o_s.get_key():
+            return self._load_packet(packet)
+        return o_s._load_packet(packet)
+
+    def _load_packet(self, packet: WrappedRedvoxPacketM) -&gt; &#34;Station&#34;:
+        self.packet_metadata.append(st_utils.StationPacketMetadata(packet))
+        funcs = [sdru.load_apim_audio,
+                 sdru.load_apim_compressed_audio,
+                 sdru.load_apim_image,
+                 sdru.load_apim_location,
+                 sdru.load_apim_pressure,
+                 sdru.load_apim_light,
+                 sdru.load_apim_ambient_temp,
+                 sdru.load_apim_rel_humidity,
+                 sdru.load_apim_proximity,
+                 sdru.load_apim_accelerometer,
+                 sdru.load_apim_gyroscope,
+                 sdru.load_apim_magnetometer,
+                 sdru.load_apim_gravity,
+                 sdru.load_apim_linear_accel,
+                 sdru.load_apim_orientation,
+                 sdru.load_apim_rotation_vector,
+                 sdru.load_apim_health,
+                 ]
+        sensors = map(lambda fn: fn(packet), funcs)
+        for sensor in sensors:
+            if sensor:
+                self.append_sensor(sensor)
+        return self
 
     def update_timestamps(self) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
@@ -2055,10 +2578,30 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
             self.is_timestamps_updated = True
         return self</code></pre>
 </details>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.station.Station.from_packet"><code class="name flex">
+<span>def <span class="ident">from_packet</span></span>(<span>packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_packet(packet: WrappedRedvoxPacketM) -&gt; &#34;Station&#34;:
+    start_time = packet.get_timing_information().get_app_start_mach_timestamp()
+    return Station(station_id=packet.get_station_information().get_id(),
+                   uuid=packet.get_station_information().get_uuid(),
+                   start_time=np.nan if start_time &lt; 0 else start_time)._load_packet(packet)</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.station.Station.accelerometer_sensor"><code class="name flex">
-<span>def <span class="ident">accelerometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">accelerometer_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the accelerometer sensor if it exists
@@ -2078,7 +2621,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.ambient_temperature_sensor"><code class="name flex">
-<span>def <span class="ident">ambient_temperature_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">ambient_temperature_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the ambient temperature sensor if it exists
@@ -2147,7 +2690,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.append_station_data"><code class="name flex">
-<span>def <span class="ident">append_station_data</span></span>(<span>self, new_station_data: typing.Dict[<a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, <a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>])</span>
+<span>def <span class="ident">append_station_data</span></span>(<span>self, new_station_data: Dict[<a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, <a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>append new station data to existing station data
@@ -2166,7 +2709,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.audio_sensor"><code class="name flex">
-<span>def <span class="ident">audio_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">audio_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the audio sensor if it exists
@@ -2186,7 +2729,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.barometer_sensor"><code class="name flex">
-<span>def <span class="ident">barometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">barometer_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the barometer (aka pressure) sensor if it exists
@@ -2231,7 +2774,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.compressed_audio_sensor"><code class="name flex">
-<span>def <span class="ident">compressed_audio_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">compressed_audio_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the compressed audio sensor if it exists
@@ -2251,7 +2794,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_id"><code class="name flex">
-<span>def <span class="ident">get_id</span></span>(<span>self) ‑> typing.Union[str, NoneType]</span>
+<span>def <span class="ident">get_id</span></span>(<span>self) ‑> Union[str, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: the station id or None if it doesn't exist</p></div>
@@ -2267,7 +2810,7 @@ timesync_analysis: TimeSyncAnalysis object, contains information about the stati
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_key"><code class="name flex">
-<span>def <span class="ident">get_key</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.station_utils.StationKey" href="station_utils.html#redvox.common.station_utils.StationKey">StationKey</a>, NoneType]</span>
+<span>def <span class="ident">get_key</span></span>(<span>self) ‑> Union[<a title="redvox.common.station_utils.StationKey" href="station_utils.html#redvox.common.station_utils.StationKey">StationKey</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: the station's key if id, uuid and start timestamp is set, or None if key cannot be created</p></div>
@@ -2319,9 +2862,7 @@ number of audio sensor's data points and the number of packets
     calculate the mean packet duration using the stations&#39; packets
     :return: mean duration of packets in microseconds
     &#34;&#34;&#34;
-    return np.mean(
-        [tsd.packet_duration for tsd in self.timesync_analysis.timesync_data]
-    )</code></pre>
+    return float(np.mean([tsd.packet_duration for tsd in self.timesync_analysis.timesync_data]))</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_start_timestamp"><code class="name flex">
@@ -2341,7 +2882,7 @@ number of audio sensor's data points and the number of packets
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_uuid"><code class="name flex">
-<span>def <span class="ident">get_uuid</span></span>(<span>self) ‑> typing.Union[str, NoneType]</span>
+<span>def <span class="ident">get_uuid</span></span>(<span>self) ‑> Union[str, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: the station uuid or None if it doesn't exist</p></div>
@@ -2357,7 +2898,7 @@ number of audio sensor's data points and the number of packets
 </details>
 </dd>
 <dt id="redvox.common.station.Station.gravity_sensor"><code class="name flex">
-<span>def <span class="ident">gravity_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">gravity_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the gravity sensor if it exists
@@ -2377,7 +2918,7 @@ number of audio sensor's data points and the number of packets
 </details>
 </dd>
 <dt id="redvox.common.station.Station.gyroscope_sensor"><code class="name flex">
-<span>def <span class="ident">gyroscope_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">gyroscope_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the gyroscope sensor if it exists
@@ -3106,7 +3647,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.health_sensor"><code class="name flex">
-<span>def <span class="ident">health_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">health_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the station health sensor if it exists
@@ -3126,7 +3667,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.image_sensor"><code class="name flex">
-<span>def <span class="ident">image_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">image_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the image sensor if it exists
@@ -3146,7 +3687,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.infrared_sensor"><code class="name flex">
-<span>def <span class="ident">infrared_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">infrared_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the infrared (proximity) sensor if it exists
@@ -3164,7 +3705,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.light_sensor"><code class="name flex">
-<span>def <span class="ident">light_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">light_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the light sensor if it exists
@@ -3184,7 +3725,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.linear_acceleration_sensor"><code class="name flex">
-<span>def <span class="ident">linear_acceleration_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">linear_acceleration_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the linear acceleration sensor if it exists
@@ -3203,8 +3744,34 @@ sensor has any data
     return None</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.station.Station.load_packet"><code class="name flex">
+<span>def <span class="ident">load_packet</span></span>(<span>self, packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>load all data from a packet
+:param packet: packet to load data from
+:return: updated station or a new station if it doesn't exist</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_packet(self, packet: WrappedRedvoxPacketM) -&gt; &#34;Station&#34;:
+    &#34;&#34;&#34;
+    load all data from a packet
+    :param packet: packet to load data from
+    :return: updated station or a new station if it doesn&#39;t exist
+    &#34;&#34;&#34;
+    start_time = packet.get_timing_information().get_app_start_mach_timestamp()
+    o_s = Station(station_id=packet.get_station_information().get_id(),
+                  uuid=packet.get_station_information().get_uuid(),
+                  start_time=np.nan if start_time &lt; 0 else start_time)
+    if self.get_key() == o_s.get_key():
+        return self._load_packet(packet)
+    return o_s._load_packet(packet)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.station.Station.location_sensor"><code class="name flex">
-<span>def <span class="ident">location_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">location_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the location sensor if it exists
@@ -3224,7 +3791,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.magnetometer_sensor"><code class="name flex">
-<span>def <span class="ident">magnetometer_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">magnetometer_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the magnetometer sensor if it exists
@@ -3244,7 +3811,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.orientation_sensor"><code class="name flex">
-<span>def <span class="ident">orientation_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">orientation_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the orientation sensor if it exists
@@ -3264,7 +3831,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.pressure_sensor"><code class="name flex">
-<span>def <span class="ident">pressure_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">pressure_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the pressure sensor if it exists
@@ -3284,7 +3851,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.proximity_sensor"><code class="name flex">
-<span>def <span class="ident">proximity_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">proximity_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the proximity sensor if it exists
@@ -3304,7 +3871,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.relative_humidity_sensor"><code class="name flex">
-<span>def <span class="ident">relative_humidity_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">relative_humidity_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the relative humidity sensor if it exists
@@ -3324,7 +3891,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.rotation_vector_sensor"><code class="name flex">
-<span>def <span class="ident">rotation_vector_sensor</span></span>(<span>self) ‑> typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">rotation_vector_sensor</span></span>(<span>self) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the rotation vector sensor if it exists
@@ -3344,7 +3911,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_accelerometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_accelerometer_sensor</span></span>(<span>self, acc_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_accelerometer_sensor</span></span>(<span>self, acc_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the accelerometer sensor; can remove accelerometer sensor by passing None
@@ -3370,7 +3937,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_ambient_temperature_sensor"><code class="name flex">
-<span>def <span class="ident">set_ambient_temperature_sensor</span></span>(<span>self, amb_temp_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_ambient_temperature_sensor</span></span>(<span>self, amb_temp_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
@@ -3396,7 +3963,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_audio_sensor"><code class="name flex">
-<span>def <span class="ident">set_audio_sensor</span></span>(<span>self, audio_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_audio_sensor</span></span>(<span>self, audio_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the audio sensor; can remove audio sensor by passing None
@@ -3422,7 +3989,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_barometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_barometer_sensor</span></span>(<span>self, bar_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_barometer_sensor</span></span>(<span>self, bar_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the barometer (pressure) sensor; can remove barometer sensor by passing None
@@ -3444,7 +4011,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_compressed_audio_sensor"><code class="name flex">
-<span>def <span class="ident">set_compressed_audio_sensor</span></span>(<span>self, comp_audio_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_compressed_audio_sensor</span></span>(<span>self, comp_audio_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the compressed audio sensor; can remove compressed audio sensor by passing None
@@ -3470,7 +4037,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_gravity_sensor"><code class="name flex">
-<span>def <span class="ident">set_gravity_sensor</span></span>(<span>self, grav_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_gravity_sensor</span></span>(<span>self, grav_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the gravity sensor; can remove gravity sensor by passing None
@@ -3496,7 +4063,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_gyroscope_sensor"><code class="name flex">
-<span>def <span class="ident">set_gyroscope_sensor</span></span>(<span>self, gyro_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_gyroscope_sensor</span></span>(<span>self, gyro_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the gyroscope sensor; can remove gyroscope sensor by passing None
@@ -3522,7 +4089,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_health_sensor"><code class="name flex">
-<span>def <span class="ident">set_health_sensor</span></span>(<span>self, health_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_health_sensor</span></span>(<span>self, health_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the health sensor; can remove health sensor by passing None
@@ -3569,7 +4136,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_image_sensor"><code class="name flex">
-<span>def <span class="ident">set_image_sensor</span></span>(<span>self, img_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_image_sensor</span></span>(<span>self, img_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the image sensor; can remove image sensor by passing None
@@ -3593,7 +4160,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_infrared_sensor"><code class="name flex">
-<span>def <span class="ident">set_infrared_sensor</span></span>(<span>self, infrd_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_infrared_sensor</span></span>(<span>self, infrd_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the infrared sensor; can remove infrared sensor by passing None
@@ -3615,7 +4182,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_light_sensor"><code class="name flex">
-<span>def <span class="ident">set_light_sensor</span></span>(<span>self, light_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_light_sensor</span></span>(<span>self, light_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the light sensor; can remove light sensor by passing None
@@ -3641,7 +4208,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_linear_acceleration_sensor"><code class="name flex">
-<span>def <span class="ident">set_linear_acceleration_sensor</span></span>(<span>self, lin_acc_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_linear_acceleration_sensor</span></span>(<span>self, lin_acc_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
@@ -3667,7 +4234,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_location_sensor"><code class="name flex">
-<span>def <span class="ident">set_location_sensor</span></span>(<span>self, loc_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_location_sensor</span></span>(<span>self, loc_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the location sensor; can remove location sensor by passing None
@@ -3693,7 +4260,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_magnetometer_sensor"><code class="name flex">
-<span>def <span class="ident">set_magnetometer_sensor</span></span>(<span>self, mag_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_magnetometer_sensor</span></span>(<span>self, mag_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the magnetometer sensor; can remove magnetometer sensor by passing None
@@ -3719,7 +4286,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_orientation_sensor"><code class="name flex">
-<span>def <span class="ident">set_orientation_sensor</span></span>(<span>self, orientation_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_orientation_sensor</span></span>(<span>self, orientation_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the orientation sensor; can remove orientation sensor by passing None
@@ -3745,7 +4312,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_pressure_sensor"><code class="name flex">
-<span>def <span class="ident">set_pressure_sensor</span></span>(<span>self, pressure_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_pressure_sensor</span></span>(<span>self, pressure_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the pressure sensor; can remove pressure sensor by passing None
@@ -3771,7 +4338,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_proximity_sensor"><code class="name flex">
-<span>def <span class="ident">set_proximity_sensor</span></span>(<span>self, proximity_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_proximity_sensor</span></span>(<span>self, proximity_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the proximity sensor; can remove proximity sensor by passing None
@@ -3797,7 +4364,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_relative_humidity_sensor"><code class="name flex">
-<span>def <span class="ident">set_relative_humidity_sensor</span></span>(<span>self, rel_hum_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_relative_humidity_sensor</span></span>(<span>self, rel_hum_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the relative humidity sensor; can remove relative humidity sensor by passing None
@@ -3823,7 +4390,7 @@ sensor has any data
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_rotation_vector_sensor"><code class="name flex">
-<span>def <span class="ident">set_rotation_vector_sensor</span></span>(<span>self, rot_vec_sensor: typing.Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">set_rotation_vector_sensor</span></span>(<span>self, rot_vec_sensor: Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType] = None) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the rotation vector sensor; can remove rotation vector sensor by passing None
@@ -3937,6 +4504,81 @@ sensor has any data
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="redvox.common.station.RedvoxPacket" href="#redvox.common.station.RedvoxPacket">RedvoxPacket</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.station.RedvoxPacket.DESCRIPTOR" href="#redvox.common.station.RedvoxPacket.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.acquisition_server" href="#redvox.common.station.RedvoxPacket.acquisition_server">acquisition_server</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.api" href="#redvox.common.station.RedvoxPacket.api">api</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc" href="#redvox.common.station.RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc">app_file_start_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.app_file_start_timestamp_machine" href="#redvox.common.station.RedvoxPacket.app_file_start_timestamp_machine">app_file_start_timestamp_machine</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.app_version" href="#redvox.common.station.RedvoxPacket.app_version">app_version</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.authenticated_email" href="#redvox.common.station.RedvoxPacket.authenticated_email">authenticated_email</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.authentication_server" href="#redvox.common.station.RedvoxPacket.authentication_server">authentication_server</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.authentication_token" href="#redvox.common.station.RedvoxPacket.authentication_token">authentication_token</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.battery_level_percent" href="#redvox.common.station.RedvoxPacket.battery_level_percent">battery_level_percent</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.device_make" href="#redvox.common.station.RedvoxPacket.device_make">device_make</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.device_model" href="#redvox.common.station.RedvoxPacket.device_model">device_model</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.device_os" href="#redvox.common.station.RedvoxPacket.device_os">device_os</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.device_os_version" href="#redvox.common.station.RedvoxPacket.device_os_version">device_os_version</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.device_temperature_c" href="#redvox.common.station.RedvoxPacket.device_temperature_c">device_temperature_c</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.evenly_sampled_channels" href="#redvox.common.station.RedvoxPacket.evenly_sampled_channels">evenly_sampled_channels</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.firebase_token" href="#redvox.common.station.RedvoxPacket.firebase_token">firebase_token</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.is_backfilled" href="#redvox.common.station.RedvoxPacket.is_backfilled">is_backfilled</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.is_private" href="#redvox.common.station.RedvoxPacket.is_private">is_private</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.is_scrambled" href="#redvox.common.station.RedvoxPacket.is_scrambled">is_scrambled</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.metadata" href="#redvox.common.station.RedvoxPacket.metadata">metadata</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.redvox_id" href="#redvox.common.station.RedvoxPacket.redvox_id">redvox_id</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.server_timestamp_epoch_microseconds_utc" href="#redvox.common.station.RedvoxPacket.server_timestamp_epoch_microseconds_utc">server_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.time_synchronization_server" href="#redvox.common.station.RedvoxPacket.time_synchronization_server">time_synchronization_server</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.unevenly_sampled_channels" href="#redvox.common.station.RedvoxPacket.unevenly_sampled_channels">unevenly_sampled_channels</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacket.uuid" href="#redvox.common.station.RedvoxPacket.uuid">uuid</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.station.RedvoxPacketM" href="#redvox.common.station.RedvoxPacketM">RedvoxPacketM</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.station.RedvoxPacketM.BYTE" href="#redvox.common.station.RedvoxPacketM.BYTE">BYTE</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.CENTIMETERS" href="#redvox.common.station.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.DECIBEL" href="#redvox.common.station.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.common.station.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.common.station.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.DESCRIPTOR" href="#redvox.common.station.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.DoubleSamplePayload" href="#redvox.common.station.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.EventStream" href="#redvox.common.station.RedvoxPacketM.EventStream">EventStream</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.KILOPASCAL" href="#redvox.common.station.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.common.station.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.LUX" href="#redvox.common.station.RedvoxPacketM.LUX">LUX</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.METERS" href="#redvox.common.station.RedvoxPacketM.METERS">METERS</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.common.station.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.common.station.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.MICROAMPERES" href="#redvox.common.station.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.common.station.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.MICROTESLA" href="#redvox.common.station.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.MetadataEntry" href="#redvox.common.station.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.common.station.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.PCM" href="#redvox.common.station.RedvoxPacketM.PCM">PCM</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.PERCENTAGE" href="#redvox.common.station.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.RADIANS" href="#redvox.common.station.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.common.station.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.SamplePayload" href="#redvox.common.station.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.Sensors" href="#redvox.common.station.RedvoxPacketM.Sensors">Sensors</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.StationInformation" href="#redvox.common.station.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.SummaryStatistics" href="#redvox.common.station.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.TimingInformation" href="#redvox.common.station.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.TimingPayload" href="#redvox.common.station.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.UNITLESS" href="#redvox.common.station.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.UNKNOWN" href="#redvox.common.station.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.Unit" href="#redvox.common.station.RedvoxPacketM.Unit">Unit</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.api" href="#redvox.common.station.RedvoxPacketM.api">api</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.event_streams" href="#redvox.common.station.RedvoxPacketM.event_streams">event_streams</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.metadata" href="#redvox.common.station.RedvoxPacketM.metadata">metadata</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.sensors" href="#redvox.common.station.RedvoxPacketM.sensors">sensors</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.station_information" href="#redvox.common.station.RedvoxPacketM.station_information">station_information</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.sub_api" href="#redvox.common.station.RedvoxPacketM.sub_api">sub_api</a></code></li>
+<li><code><a title="redvox.common.station.RedvoxPacketM.timing_information" href="#redvox.common.station.RedvoxPacketM.timing_information">timing_information</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></code></h4>
 <ul class="">
 <li><code><a title="redvox.common.station.Station.accelerometer_sensor" href="#redvox.common.station.Station.accelerometer_sensor">accelerometer_sensor</a></code></li>
@@ -3948,6 +4590,7 @@ sensor has any data
 <li><code><a title="redvox.common.station.Station.barometer_sensor" href="#redvox.common.station.Station.barometer_sensor">barometer_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.check_key" href="#redvox.common.station.Station.check_key">check_key</a></code></li>
 <li><code><a title="redvox.common.station.Station.compressed_audio_sensor" href="#redvox.common.station.Station.compressed_audio_sensor">compressed_audio_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.from_packet" href="#redvox.common.station.Station.from_packet">from_packet</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_id" href="#redvox.common.station.Station.get_id">get_id</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_key" href="#redvox.common.station.Station.get_key">get_key</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_mean_packet_audio_samples" href="#redvox.common.station.Station.get_mean_packet_audio_samples">get_mean_packet_audio_samples</a></code></li>
@@ -3999,6 +4642,7 @@ sensor has any data
 <li><code><a title="redvox.common.station.Station.infrared_sensor" href="#redvox.common.station.Station.infrared_sensor">infrared_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.light_sensor" href="#redvox.common.station.Station.light_sensor">light_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.linear_acceleration_sensor" href="#redvox.common.station.Station.linear_acceleration_sensor">linear_acceleration_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.load_packet" href="#redvox.common.station.Station.load_packet">load_packet</a></code></li>
 <li><code><a title="redvox.common.station.Station.location_sensor" href="#redvox.common.station.Station.location_sensor">location_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.magnetometer_sensor" href="#redvox.common.station.Station.magnetometer_sensor">magnetometer_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.orientation_sensor" href="#redvox.common.station.Station.orientation_sensor">orientation_sensor</a></code></li>

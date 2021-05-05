@@ -56,9 +56,9 @@ class ApiVersion(Enum):
         :param version: version as string
         :return: enumerated value represented by string version
         &#34;&#34;&#34;
-        if version == &#34;API_900&#34;:
+        if version == &#34;API_900&#34; or version == &#34;Api900&#34;:
             return ApiVersion.API_900
-        elif version == &#34;API_1000&#34;:
+        elif version == &#34;API_1000&#34; or version == &#34;Api1000&#34;:
             return ApiVersion.API_1000
         return ApiVersion.UNKNOWN
 
@@ -182,9 +182,9 @@ in API M compressed data.
         :param version: version as string
         :return: enumerated value represented by string version
         &#34;&#34;&#34;
-        if version == &#34;API_900&#34;:
+        if version == &#34;API_900&#34; or version == &#34;Api900&#34;:
             return ApiVersion.API_900
-        elif version == &#34;API_1000&#34;:
+        elif version == &#34;API_1000&#34; or version == &#34;Api1000&#34;:
             return ApiVersion.API_1000
         return ApiVersion.UNKNOWN</code></pre>
 </details>
@@ -225,9 +225,9 @@ def from_str(version: str) -&gt; &#34;ApiVersion&#34;:
     :param version: version as string
     :return: enumerated value represented by string version
     &#34;&#34;&#34;
-    if version == &#34;API_900&#34;:
+    if version == &#34;API_900&#34; or version == &#34;Api900&#34;:
         return ApiVersion.API_900
-    elif version == &#34;API_1000&#34;:
+    elif version == &#34;API_1000&#34; or version == &#34;Api1000&#34;:
         return ApiVersion.API_1000
     return ApiVersion.UNKNOWN</code></pre>
 </details>

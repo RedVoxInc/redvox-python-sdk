@@ -203,7 +203,7 @@ class RedVoxConfig:
 <dl>
 <dt id="redvox.cloud.config.RedVoxConfig"><code class="flex name class">
 <span>class <span class="ident">RedVoxConfig</span></span>
-<span>(</span><span>username: str, password: str, protocol: str = 'https', host: str = 'redvox.io', port: int = 8080, secret_token: typing.Union[str, NoneType] = None)</span>
+<span>(</span><span>username: str, password: str, protocol: str = 'https', host: str = 'redvox.io', port: int = 8080, secret_token: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Configuration options specific for accessing the cloud services.</p></div>
@@ -363,7 +363,7 @@ class RedVoxConfig:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.config.RedVoxConfig.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.config.RedVoxConfig.secret_token"><code class="name">var <span class="ident">secret_token</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -375,7 +375,7 @@ class RedVoxConfig:
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.config.RedVoxConfig.find"><code class="name flex">
-<span>def <span class="ident">find</span></span>(<span>) ‑> typing.Union[<a title="redvox.cloud.config.RedVoxConfig" href="#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, NoneType]</span>
+<span>def <span class="ident">find</span></span>(<span>) ‑> Union[<a title="redvox.cloud.config.RedVoxConfig" href="#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempts to load the configuration either from the user's home directory or from the environment.

@@ -388,7 +388,7 @@ class InterleavedChannel:
 <dl>
 <dt id="redvox.api900.sensors.interleaved_channel.InterleavedChannel"><code class="flex name class">
 <span>class <span class="ident">InterleavedChannel</span></span>
-<span>(</span><span>channel: typing.Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel, NoneType] = None)</span>
+<span>(</span><span>channel: Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This class represents an interleaved channel.</p>
@@ -772,7 +772,7 @@ required to correctly set the protobuf_channel</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.sensors.interleaved_channel.InterleavedChannel.get_channel_type_names"><code class="name flex">
-<span>def <span class="ident">get_channel_type_names</span></span>(<span>self) ‑> typing.List[str]</span>
+<span>def <span class="ident">get_channel_type_names</span></span>(<span>self) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the list of channel_types as a list of names instead of enumeration constants.
@@ -790,7 +790,7 @@ required to correctly set the protobuf_channel</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.sensors.interleaved_channel.InterleavedChannel.get_multi_payload"><code class="name flex">
-<span>def <span class="ident">get_multi_payload</span></span>(<span>self, channel_types: typing.List[int]) ‑> numpy.ndarray</span>
+<span>def <span class="ident">get_multi_payload</span></span>(<span>self, channel_types: List[int]) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns an interleaved payload with the given channel types.
@@ -974,7 +974,7 @@ required to correctly set the protobuf_channel</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.sensors.interleaved_channel.InterleavedChannel.metadata_as_dict"><code class="name flex">
-<span>def <span class="ident">metadata_as_dict</span></span>(<span>self) ‑> typing.Dict[str, str]</span>
+<span>def <span class="ident">metadata_as_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns any metadata as a dictionary of key-pair values.
@@ -992,7 +992,7 @@ required to correctly set the protobuf_channel</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.sensors.interleaved_channel.InterleavedChannel.set_channel"><code class="name flex">
-<span>def <span class="ident">set_channel</span></span>(<span>self, channel: typing.Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel])</span>
+<span>def <span class="ident">set_channel</span></span>(<span>self, channel: Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets the protobuf channel
@@ -1019,7 +1019,7 @@ required to correctly set the protobuf_channel</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.sensors.interleaved_channel.InterleavedChannel.set_channel_types"><code class="name flex">
-<span>def <span class="ident">set_channel_types</span></span>(<span>self, types: typing.List[typing.Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]])</span>
+<span>def <span class="ident">set_channel_types</span></span>(<span>self, types: List[Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the channel_types to the list given
@@ -1042,7 +1042,7 @@ required to correctly set the protobuf_channel</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.sensors.interleaved_channel.InterleavedChannel.set_interleaved_payload"><code class="name flex">
-<span>def <span class="ident">set_interleaved_payload</span></span>(<span>self, payloads: typing.List[typing.Union[typing.List, numpy.ndarray]], pl_type: <a title="redvox.api900.constants.PayloadType" href="../constants.html#redvox.api900.constants.PayloadType">PayloadType</a>, should_compute_stats: bool = True)</span>
+<span>def <span class="ident">set_interleaved_payload</span></span>(<span>self, payloads: List[Union[List, numpy.ndarray]], pl_type: <a title="redvox.api900.constants.PayloadType" href="../constants.html#redvox.api900.constants.PayloadType">PayloadType</a>, should_compute_stats: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Interleaves multiple payloads together and sets the interleaved payload.
@@ -1068,7 +1068,7 @@ required to correctly set the protobuf_channel</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.sensors.interleaved_channel.InterleavedChannel.set_metadata"><code class="name flex">
-<span>def <span class="ident">set_metadata</span></span>(<span>self, data: typing.List[str])</span>
+<span>def <span class="ident">set_metadata</span></span>(<span>self, data: List[str])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the metadata
@@ -1089,7 +1089,7 @@ required to correctly set the protobuf_channel</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.sensors.interleaved_channel.InterleavedChannel.set_payload"><code class="name flex">
-<span>def <span class="ident">set_payload</span></span>(<span>self, payload_values: typing.Union[numpy.ndarray, typing.List], pl_type: <a title="redvox.api900.constants.PayloadType" href="../constants.html#redvox.api900.constants.PayloadType">PayloadType</a>, should_compute_stats=True)</span>
+<span>def <span class="ident">set_payload</span></span>(<span>self, payload_values: Union[numpy.ndarray, List], pl_type: <a title="redvox.api900.constants.PayloadType" href="../constants.html#redvox.api900.constants.PayloadType">PayloadType</a>, should_compute_stats=True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the payload to an interleaved channel with step number of arrays interleaved together.

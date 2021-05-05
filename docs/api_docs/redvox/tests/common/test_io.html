@@ -34,7 +34,9 @@ import tempfile
 from typing import Optional, Union
 from unittest import TestCase
 
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.api900.lib.api900_pb2 import RedvoxPacket
 from redvox.common.date_time_utils import (
     datetime_from_epoch_milliseconds_utc as ms2dt,
     datetime_from_epoch_microseconds_utc as us2dt,
@@ -453,12 +455,26 @@ class IndexEntryTests(IoTestCase):
         self.assertIsNotNone(packet)
         self.assertEqual(900, packet.api())
 
+    def test_read_raw_900(self):
+        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;0000000900_1609459200000.rdvxz&#34;)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        packet = entry.read_raw()
+        self.assertIsNotNone(packet)
+        self.assertEqual(900, packet.api)
+
     def test_read_1000(self):
         path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;0000001000_1609459200000000.rdvxm&#34;)
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         packet = entry.read()
         self.assertIsNotNone(packet)
         self.assertEqual(1000.0, packet.get_api())
+
+    def test_read_raw_1000(self):
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;0000001000_1609459200000000.rdvxm&#34;)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        packet = entry.read_raw()
+        self.assertIsNotNone(packet)
+        self.assertEqual(1000.0, packet.api)
 
 
 class IndexTests(IoTestCase):
@@ -554,7 +570,36 @@ class IndexTests(IoTestCase):
 
         self.assertEqual(8, len(index.entries))
 
-    def test_read_all(self):
+    def test_stream_raw_all(self):
+        index: io.Index = io.Index([
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200000.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200001.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200000.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200001.rdvxz&#34;)),
+
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200000000.rdvxm&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200001000.foo&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200000000.rdvxm&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200001000.foo&#34;)),
+        ])
+
+        i: int = 0
+        for packet in index.stream_raw(io.ReadFilter.empty()):
+            self.assertTrue(isinstance(packet, RedvoxPacketM) or isinstance(packet, RedvoxPacket))
+            i += 1
+
+        self.assertEqual(8, len(index.entries))
+
+
+    def test_read_all_raw(self):
         from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
         index: io.Index = io.Index([
@@ -583,6 +628,35 @@ class IndexTests(IoTestCase):
             i += 1
 
         self.assertEqual(8, len(index.entries))
+
+    def test_read_raw_all(self):
+        index: io.Index = io.Index([
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200000.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200001.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200000.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200001.rdvxz&#34;)),
+
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200000000.rdvxm&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200001000.foo&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200000000.rdvxm&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200001000.foo&#34;)),
+        ])
+
+        i: int = 0
+        for packet in index.read_raw(io.ReadFilter.empty()):
+            self.assertTrue(isinstance(packet, RedvoxPacketM) or isinstance(packet, RedvoxPacket))
+            i += 1
+
+        self.assertEqual(8, len(index.entries))
+
 
     def test_read_filtered(self):
         index: io.Index = io.Index([
@@ -998,7 +1072,7 @@ class IndexStationSummaryTests(IoTestCase):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.tests.common.test_io.copy_api_1000"><code class="name flex">
-<span>def <span class="ident">copy_api_1000</span></span>(<span>template_path: str, base_dir: str, structured: bool, station_id: str, ts_dt: typing.Union[int, datetime.datetime], ext: str = '.rdvxm') ‑> str</span>
+<span>def <span class="ident">copy_api_1000</span></span>(<span>template_path: str, base_dir: str, structured: bool, station_id: str, ts_dt: Union[int, datetime.datetime], ext: str = '.rdvxm') ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1036,7 +1110,7 @@ class IndexStationSummaryTests(IoTestCase):
 </details>
 </dd>
 <dt id="redvox.tests.common.test_io.copy_api_900"><code class="name flex">
-<span>def <span class="ident">copy_api_900</span></span>(<span>template_path: str, base_dir: str, structured: bool, station_id: str, ts_dt: typing.Union[int, datetime.datetime], ext: str = '.rdvxz') ‑> str</span>
+<span>def <span class="ident">copy_api_900</span></span>(<span>template_path: str, base_dir: str, structured: bool, station_id: str, ts_dt: Union[int, datetime.datetime], ext: str = '.rdvxz') ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1091,7 +1165,7 @@ class IndexStationSummaryTests(IoTestCase):
 </details>
 </dd>
 <dt id="redvox.tests.common.test_io.write_min_api_1000"><code class="name flex">
-<span>def <span class="ident">write_min_api_1000</span></span>(<span>base_dir: str, file_name: typing.Union[str, NoneType] = None) ‑> str</span>
+<span>def <span class="ident">write_min_api_1000</span></span>(<span>base_dir: str, file_name: Union[str, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1106,7 +1180,7 @@ class IndexStationSummaryTests(IoTestCase):
 </details>
 </dd>
 <dt id="redvox.tests.common.test_io.write_min_api_900"><code class="name flex">
-<span>def <span class="ident">write_min_api_900</span></span>(<span>base_dir: str, file_name: typing.Union[str, NoneType] = None) ‑> str</span>
+<span>def <span class="ident">write_min_api_900</span></span>(<span>base_dir: str, file_name: Union[str, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1331,12 +1405,26 @@ not have a method with the specified name.</p></div>
         self.assertIsNotNone(packet)
         self.assertEqual(900, packet.api())
 
+    def test_read_raw_900(self):
+        path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;0000000900_1609459200000.rdvxz&#34;)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        packet = entry.read_raw()
+        self.assertIsNotNone(packet)
+        self.assertEqual(900, packet.api)
+
     def test_read_1000(self):
         path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;0000001000_1609459200000000.rdvxm&#34;)
         entry: io.IndexEntry = io.IndexEntry.from_path(path)
         packet = entry.read()
         self.assertIsNotNone(packet)
-        self.assertEqual(1000.0, packet.get_api())</code></pre>
+        self.assertEqual(1000.0, packet.get_api())
+
+    def test_read_raw_1000(self):
+        path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;0000001000_1609459200000000.rdvxm&#34;)
+        entry: io.IndexEntry = io.IndexEntry.from_path(path)
+        packet = entry.read_raw()
+        self.assertIsNotNone(packet)
+        self.assertEqual(1000.0, packet.api)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1808,6 +1896,40 @@ not have a method with the specified name.</p></div>
     self.assertEqual(900, packet.api())</code></pre>
 </details>
 </dd>
+<dt id="redvox.tests.common.test_io.IndexEntryTests.test_read_raw_1000"><code class="name flex">
+<span>def <span class="ident">test_read_raw_1000</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_read_raw_1000(self):
+    path: str = copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;0000001000_1609459200000000.rdvxm&#34;)
+    entry: io.IndexEntry = io.IndexEntry.from_path(path)
+    packet = entry.read_raw()
+    self.assertIsNotNone(packet)
+    self.assertEqual(1000.0, packet.api)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_io.IndexEntryTests.test_read_raw_900"><code class="name flex">
+<span>def <span class="ident">test_read_raw_900</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_read_raw_900(self):
+    path: str = copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;0000000900_1609459200000.rdvxz&#34;)
+    entry: io.IndexEntry = io.IndexEntry.from_path(path)
+    packet = entry.read_raw()
+    self.assertIsNotNone(packet)
+    self.assertEqual(900, packet.api)</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
@@ -2243,7 +2365,36 @@ not have a method with the specified name.</p></div>
 
         self.assertEqual(8, len(index.entries))
 
-    def test_read_all(self):
+    def test_stream_raw_all(self):
+        index: io.Index = io.Index([
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200000.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200001.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200000.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200001.rdvxz&#34;)),
+
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200000000.rdvxm&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200001000.foo&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200000000.rdvxm&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200001000.foo&#34;)),
+        ])
+
+        i: int = 0
+        for packet in index.stream_raw(io.ReadFilter.empty()):
+            self.assertTrue(isinstance(packet, RedvoxPacketM) or isinstance(packet, RedvoxPacket))
+            i += 1
+
+        self.assertEqual(8, len(index.entries))
+
+
+    def test_read_all_raw(self):
         from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
         index: io.Index = io.Index([
@@ -2272,6 +2423,35 @@ not have a method with the specified name.</p></div>
             i += 1
 
         self.assertEqual(8, len(index.entries))
+
+    def test_read_raw_all(self):
+        index: io.Index = io.Index([
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200000.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200001.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200000.rdvxz&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200001.rdvxz&#34;)),
+
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200000000.rdvxm&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200001000.foo&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200000000.rdvxm&#34;)),
+            io.IndexEntry.from_path(
+                copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200001000.foo&#34;)),
+        ])
+
+        i: int = 0
+        for packet in index.read_raw(io.ReadFilter.empty()):
+            self.assertTrue(isinstance(packet, RedvoxPacketM) or isinstance(packet, RedvoxPacket))
+            i += 1
+
+        self.assertEqual(8, len(index.entries))
+
 
     def test_read_filtered(self):
         index: io.Index = io.Index([
@@ -2356,8 +2536,8 @@ not have a method with the specified name.</p></div>
     self.assertEqual(0, len(index.read()))</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_io.IndexTests.test_read_all"><code class="name flex">
-<span>def <span class="ident">test_read_all</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_io.IndexTests.test_read_all_raw"><code class="name flex">
+<span>def <span class="ident">test_read_all_raw</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2365,7 +2545,7 @@ not have a method with the specified name.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_read_all(self):
+<pre><code class="python">def test_read_all_raw(self):
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
     index: io.Index = io.Index([
@@ -2432,6 +2612,44 @@ not have a method with the specified name.</p></div>
     self.assertEqual(6, len(index.read(io.ReadFilter.empty().with_extensions({&#34;.foo&#34;, &#34;.rdvxz&#34;}))))
     self.assertEqual(4, len(index.read(io.ReadFilter.empty().with_start_dt(datetime(2021, 1, 1, 0, 0, 1)))))
     self.assertEqual(4, len(index.read(io.ReadFilter.empty().with_end_dt(datetime(2021, 1, 1, 0, 0, 0)))))</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_io.IndexTests.test_read_raw_all"><code class="name flex">
+<span>def <span class="ident">test_read_raw_all</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_read_raw_all(self):
+    index: io.Index = io.Index([
+        io.IndexEntry.from_path(
+            copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200000.rdvxz&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200001.rdvxz&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200000.rdvxz&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200001.rdvxz&#34;)),
+
+        io.IndexEntry.from_path(
+            copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200000000.rdvxm&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200001000.foo&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200000000.rdvxm&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200001000.foo&#34;)),
+    ])
+
+    i: int = 0
+    for packet in index.read_raw(io.ReadFilter.empty()):
+        self.assertTrue(isinstance(packet, RedvoxPacketM) or isinstance(packet, RedvoxPacket))
+        i += 1
+
+    self.assertEqual(8, len(index.entries))</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_io.IndexTests.test_sort"><code class="name flex">
@@ -2513,6 +2731,44 @@ not have a method with the specified name.</p></div>
     i: int = 0
     for packet in index.stream(io.ReadFilter.empty()):
         self.assertTrue(isinstance(packet, WrappedRedvoxPacketM) or isinstance(packet, WrappedRedvoxPacket))
+        i += 1
+
+    self.assertEqual(8, len(index.entries))</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_io.IndexTests.test_stream_raw_all"><code class="name flex">
+<span>def <span class="ident">test_stream_raw_all</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_stream_raw_all(self):
+    index: io.Index = io.Index([
+        io.IndexEntry.from_path(
+            copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200000.rdvxz&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;900_1609459200001.rdvxz&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200000.rdvxz&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_900_path, self.unstructured_900_dir, &#34;901_1609459200001.rdvxz&#34;)),
+
+        io.IndexEntry.from_path(
+            copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200000000.rdvxm&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1000_1609459200001000.foo&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200000000.rdvxm&#34;)),
+        io.IndexEntry.from_path(
+            copy_exact(self.template_1000_path, self.unstructured_1000_dir, &#34;1001_1609459200001000.foo&#34;)),
+    ])
+
+    i: int = 0
+    for packet in index.stream_raw(io.ReadFilter.empty()):
+        self.assertTrue(isinstance(packet, RedvoxPacketM) or isinstance(packet, RedvoxPacket))
         i += 1
 
     self.assertEqual(8, len(index.entries))</code></pre>
@@ -4003,6 +4259,302 @@ not have a method with the specified name.</p></div>
 </li>
 </ul>
 </dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacket</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.acquisition_server"><code class="name">var <span class="ident">acquisition_server</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.acquisition_server</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.api</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc"><code class="name">var <span class="ident">app_file_start_timestamp_epoch_microseconds_utc</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.app_file_start_timestamp_machine"><code class="name">var <span class="ident">app_file_start_timestamp_machine</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.app_file_start_timestamp_machine</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.app_version"><code class="name">var <span class="ident">app_version</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.app_version</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.authenticated_email"><code class="name">var <span class="ident">authenticated_email</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.authenticated_email</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.authentication_server"><code class="name">var <span class="ident">authentication_server</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.authentication_server</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.authentication_token"><code class="name">var <span class="ident">authentication_token</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.authentication_token</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.battery_level_percent"><code class="name">var <span class="ident">battery_level_percent</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.battery_level_percent</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.device_make"><code class="name">var <span class="ident">device_make</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_make</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.device_model"><code class="name">var <span class="ident">device_model</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_model</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.device_os"><code class="name">var <span class="ident">device_os</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_os</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.device_os_version"><code class="name">var <span class="ident">device_os_version</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_os_version</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.device_temperature_c"><code class="name">var <span class="ident">device_temperature_c</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_temperature_c</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.evenly_sampled_channels"><code class="name">var <span class="ident">evenly_sampled_channels</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.evenly_sampled_channels</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.firebase_token"><code class="name">var <span class="ident">firebase_token</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.firebase_token</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.is_backfilled"><code class="name">var <span class="ident">is_backfilled</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.is_backfilled</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.is_private"><code class="name">var <span class="ident">is_private</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.is_private</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.is_scrambled"><code class="name">var <span class="ident">is_scrambled</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.is_scrambled</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.metadata</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.redvox_id"><code class="name">var <span class="ident">redvox_id</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.redvox_id</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.server_timestamp_epoch_microseconds_utc"><code class="name">var <span class="ident">server_timestamp_epoch_microseconds_utc</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.server_timestamp_epoch_microseconds_utc</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.time_synchronization_server"><code class="name">var <span class="ident">time_synchronization_server</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.time_synchronization_server</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.unevenly_sampled_channels"><code class="name">var <span class="ident">unevenly_sampled_channels</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.unevenly_sampled_channels</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacket.uuid"><code class="name">var <span class="ident">uuid</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.uuid</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacketM</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.DoubleSamplePayload"><code class="name">var <span class="ident">DoubleSamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.EventStream"><code class="name">var <span class="ident">EventStream</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.Sensors"><code class="name">var <span class="ident">Sensors</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.StationInformation"><code class="name">var <span class="ident">StationInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.SummaryStatistics"><code class="name">var <span class="ident">SummaryStatistics</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.TimingInformation"><code class="name">var <span class="ident">TimingInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.TimingPayload"><code class="name">var <span class="ident">TimingPayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.api</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.event_streams</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.metadata</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sensors</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.station_information</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sub_api</p></div>
+</dd>
+<dt id="redvox.tests.common.test_io.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.timing_information</p></div>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -4060,6 +4612,8 @@ not have a method with the specified name.</p></div>
 <li><code><a title="redvox.tests.common.test_io.IndexEntryTests.test_from_path_dne" href="#redvox.tests.common.test_io.IndexEntryTests.test_from_path_dne">test_from_path_dne</a></code></li>
 <li><code><a title="redvox.tests.common.test_io.IndexEntryTests.test_read_1000" href="#redvox.tests.common.test_io.IndexEntryTests.test_read_1000">test_read_1000</a></code></li>
 <li><code><a title="redvox.tests.common.test_io.IndexEntryTests.test_read_900" href="#redvox.tests.common.test_io.IndexEntryTests.test_read_900">test_read_900</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.IndexEntryTests.test_read_raw_1000" href="#redvox.tests.common.test_io.IndexEntryTests.test_read_raw_1000">test_read_raw_1000</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.IndexEntryTests.test_read_raw_900" href="#redvox.tests.common.test_io.IndexEntryTests.test_read_raw_900">test_read_raw_900</a></code></li>
 </ul>
 </li>
 <li>
@@ -4081,10 +4635,12 @@ not have a method with the specified name.</p></div>
 <ul class="two-column">
 <li><code><a title="redvox.tests.common.test_io.IndexTests.test_append" href="#redvox.tests.common.test_io.IndexTests.test_append">test_append</a></code></li>
 <li><code><a title="redvox.tests.common.test_io.IndexTests.test_empty_index" href="#redvox.tests.common.test_io.IndexTests.test_empty_index">test_empty_index</a></code></li>
-<li><code><a title="redvox.tests.common.test_io.IndexTests.test_read_all" href="#redvox.tests.common.test_io.IndexTests.test_read_all">test_read_all</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.IndexTests.test_read_all_raw" href="#redvox.tests.common.test_io.IndexTests.test_read_all_raw">test_read_all_raw</a></code></li>
 <li><code><a title="redvox.tests.common.test_io.IndexTests.test_read_filtered" href="#redvox.tests.common.test_io.IndexTests.test_read_filtered">test_read_filtered</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.IndexTests.test_read_raw_all" href="#redvox.tests.common.test_io.IndexTests.test_read_raw_all">test_read_raw_all</a></code></li>
 <li><code><a title="redvox.tests.common.test_io.IndexTests.test_sort" href="#redvox.tests.common.test_io.IndexTests.test_sort">test_sort</a></code></li>
 <li><code><a title="redvox.tests.common.test_io.IndexTests.test_stream_all" href="#redvox.tests.common.test_io.IndexTests.test_stream_all">test_stream_all</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.IndexTests.test_stream_raw_all" href="#redvox.tests.common.test_io.IndexTests.test_stream_raw_all">test_stream_raw_all</a></code></li>
 </ul>
 </li>
 <li>
@@ -4140,6 +4696,81 @@ not have a method with the specified name.</p></div>
 <li><code><a title="redvox.tests.common.test_io.ReadFilterTests.test_extensions_some" href="#redvox.tests.common.test_io.ReadFilterTests.test_extensions_some">test_extensions_some</a></code></li>
 <li><code><a title="redvox.tests.common.test_io.ReadFilterTests.test_with_end_ts" href="#redvox.tests.common.test_io.ReadFilterTests.test_with_end_ts">test_with_end_ts</a></code></li>
 <li><code><a title="redvox.tests.common.test_io.ReadFilterTests.test_with_start_ts" href="#redvox.tests.common.test_io.ReadFilterTests.test_with_start_ts">test_with_start_ts</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.tests.common.test_io.RedvoxPacket" href="#redvox.tests.common.test_io.RedvoxPacket">RedvoxPacket</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.DESCRIPTOR" href="#redvox.tests.common.test_io.RedvoxPacket.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.acquisition_server" href="#redvox.tests.common.test_io.RedvoxPacket.acquisition_server">acquisition_server</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.api" href="#redvox.tests.common.test_io.RedvoxPacket.api">api</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc" href="#redvox.tests.common.test_io.RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc">app_file_start_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.app_file_start_timestamp_machine" href="#redvox.tests.common.test_io.RedvoxPacket.app_file_start_timestamp_machine">app_file_start_timestamp_machine</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.app_version" href="#redvox.tests.common.test_io.RedvoxPacket.app_version">app_version</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.authenticated_email" href="#redvox.tests.common.test_io.RedvoxPacket.authenticated_email">authenticated_email</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.authentication_server" href="#redvox.tests.common.test_io.RedvoxPacket.authentication_server">authentication_server</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.authentication_token" href="#redvox.tests.common.test_io.RedvoxPacket.authentication_token">authentication_token</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.battery_level_percent" href="#redvox.tests.common.test_io.RedvoxPacket.battery_level_percent">battery_level_percent</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.device_make" href="#redvox.tests.common.test_io.RedvoxPacket.device_make">device_make</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.device_model" href="#redvox.tests.common.test_io.RedvoxPacket.device_model">device_model</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.device_os" href="#redvox.tests.common.test_io.RedvoxPacket.device_os">device_os</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.device_os_version" href="#redvox.tests.common.test_io.RedvoxPacket.device_os_version">device_os_version</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.device_temperature_c" href="#redvox.tests.common.test_io.RedvoxPacket.device_temperature_c">device_temperature_c</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.evenly_sampled_channels" href="#redvox.tests.common.test_io.RedvoxPacket.evenly_sampled_channels">evenly_sampled_channels</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.firebase_token" href="#redvox.tests.common.test_io.RedvoxPacket.firebase_token">firebase_token</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.is_backfilled" href="#redvox.tests.common.test_io.RedvoxPacket.is_backfilled">is_backfilled</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.is_private" href="#redvox.tests.common.test_io.RedvoxPacket.is_private">is_private</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.is_scrambled" href="#redvox.tests.common.test_io.RedvoxPacket.is_scrambled">is_scrambled</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.metadata" href="#redvox.tests.common.test_io.RedvoxPacket.metadata">metadata</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.redvox_id" href="#redvox.tests.common.test_io.RedvoxPacket.redvox_id">redvox_id</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.server_timestamp_epoch_microseconds_utc" href="#redvox.tests.common.test_io.RedvoxPacket.server_timestamp_epoch_microseconds_utc">server_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.time_synchronization_server" href="#redvox.tests.common.test_io.RedvoxPacket.time_synchronization_server">time_synchronization_server</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.unevenly_sampled_channels" href="#redvox.tests.common.test_io.RedvoxPacket.unevenly_sampled_channels">unevenly_sampled_channels</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacket.uuid" href="#redvox.tests.common.test_io.RedvoxPacket.uuid">uuid</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.tests.common.test_io.RedvoxPacketM" href="#redvox.tests.common.test_io.RedvoxPacketM">RedvoxPacketM</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.BYTE" href="#redvox.tests.common.test_io.RedvoxPacketM.BYTE">BYTE</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.CENTIMETERS" href="#redvox.tests.common.test_io.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.DECIBEL" href="#redvox.tests.common.test_io.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.tests.common.test_io.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.tests.common.test_io.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.DESCRIPTOR" href="#redvox.tests.common.test_io.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.DoubleSamplePayload" href="#redvox.tests.common.test_io.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.EventStream" href="#redvox.tests.common.test_io.RedvoxPacketM.EventStream">EventStream</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.KILOPASCAL" href="#redvox.tests.common.test_io.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.tests.common.test_io.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.LUX" href="#redvox.tests.common.test_io.RedvoxPacketM.LUX">LUX</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.METERS" href="#redvox.tests.common.test_io.RedvoxPacketM.METERS">METERS</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.tests.common.test_io.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.tests.common.test_io.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.MICROAMPERES" href="#redvox.tests.common.test_io.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.tests.common.test_io.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.MICROTESLA" href="#redvox.tests.common.test_io.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.MetadataEntry" href="#redvox.tests.common.test_io.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.tests.common.test_io.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.PCM" href="#redvox.tests.common.test_io.RedvoxPacketM.PCM">PCM</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.PERCENTAGE" href="#redvox.tests.common.test_io.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.RADIANS" href="#redvox.tests.common.test_io.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.tests.common.test_io.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.SamplePayload" href="#redvox.tests.common.test_io.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.Sensors" href="#redvox.tests.common.test_io.RedvoxPacketM.Sensors">Sensors</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.StationInformation" href="#redvox.tests.common.test_io.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.SummaryStatistics" href="#redvox.tests.common.test_io.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.TimingInformation" href="#redvox.tests.common.test_io.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.TimingPayload" href="#redvox.tests.common.test_io.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.UNITLESS" href="#redvox.tests.common.test_io.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.UNKNOWN" href="#redvox.tests.common.test_io.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.Unit" href="#redvox.tests.common.test_io.RedvoxPacketM.Unit">Unit</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.api" href="#redvox.tests.common.test_io.RedvoxPacketM.api">api</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.event_streams" href="#redvox.tests.common.test_io.RedvoxPacketM.event_streams">event_streams</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.metadata" href="#redvox.tests.common.test_io.RedvoxPacketM.metadata">metadata</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.sensors" href="#redvox.tests.common.test_io.RedvoxPacketM.sensors">sensors</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.station_information" href="#redvox.tests.common.test_io.RedvoxPacketM.station_information">station_information</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.sub_api" href="#redvox.tests.common.test_io.RedvoxPacketM.sub_api">sub_api</a></code></li>
+<li><code><a title="redvox.tests.common.test_io.RedvoxPacketM.timing_information" href="#redvox.tests.common.test_io.RedvoxPacketM.timing_information">timing_information</a></code></li>
 </ul>
 </li>
 </ul>

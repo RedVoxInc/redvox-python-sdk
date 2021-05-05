@@ -587,7 +587,7 @@ def validate_wrapped_packet(wrapped_packet: WrappedRedvoxPacketM) -&gt; List[str
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.validate_wrapped_packet"><code class="name flex">
-<span>def <span class="ident">validate_wrapped_packet</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_wrapped_packet</span></span>(<span>wrapped_packet: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates a wrapped packet.
@@ -1483,7 +1483,7 @@ Directory structure for this packet when using structured layout</p></div>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.default_filename"><code class="name flex">
-<span>def <span class="ident">default_filename</span></span>(<span>self, extension: typing.Union[str, NoneType] = 'rdvxm') ‑> str</span>
+<span>def <span class="ident">default_filename</span></span>(<span>self, extension: Union[str, NoneType] = 'rdvxm') ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the default filename for a given packet.
@@ -1981,7 +1981,7 @@ Directory structure for this packet when using structured layout</p></div>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.validate"><code class="name flex">
-<span>def <span class="ident">validate</span></span>(<span>self) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate</span></span>(<span>self) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates this packet.
@@ -1999,7 +1999,7 @@ Directory structure for this packet when using structured layout</p></div>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_compressed_to_file"><code class="name flex">
-<span>def <span class="ident">write_compressed_to_file</span></span>(<span>self, base_dir: str, filename: typing.Union[str, NoneType] = None) ‑> str</span>
+<span>def <span class="ident">write_compressed_to_file</span></span>(<span>self, base_dir: str, filename: Union[str, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Writes this packet to a .rdvxm file.
@@ -2035,7 +2035,7 @@ Directory structure for this packet when using structured layout</p></div>
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.write_json_to_file"><code class="name flex">
-<span>def <span class="ident">write_json_to_file</span></span>(<span>self, base_dir: str, filename: typing.Union[str, NoneType] = None) ‑> str</span>
+<span>def <span class="ident">write_json_to_file</span></span>(<span>self, base_dir: str, filename: Union[str, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Writes this packet to a .json file.

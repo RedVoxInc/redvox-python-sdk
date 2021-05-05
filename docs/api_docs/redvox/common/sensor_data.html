@@ -42,6 +42,12 @@ import pandas as pd
 import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
 
+# columns that cannot be interpolated
+NON_INTERPOLATED_COLUMNS = [&#34;compressed_audio&#34;, &#34;image&#34;]
+# columns that are not numeric but can be interpolated
+NON_NUMERIC_COLUMNS = [&#34;location_provider&#34;, &#34;image_codec&#34;, &#34;audio_codec&#34;,
+                       &#34;network_type&#34;, &#34;power_state&#34;, &#34;cell_service&#34;]
+
 
 # todo: add original timestamps to the dataframes
 class SensorType(enum.Enum):
@@ -308,7 +314,7 @@ class SensorData:
         return self.data_df.columns.to_list()
 
     def update_data_timestamps(self, offset_model: om.OffsetModel):
-        self.data_df[&#34;timestamps&#34;] = [offset_model.update_time(t) for t in self.data_timestamps()]
+        self.data_df[&#34;timestamps&#34;] = offset_model.update_timestamps(self.data_timestamps())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) &gt; 1:
             self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
@@ -325,25 +331,47 @@ class SensorData:
         &#34;&#34;&#34;
         self.data_df = self.data_df.sort_values(&#34;timestamps&#34;, ascending=ascending)
 
-    def interpolate(self, first_point: int, second_point: int, interpolate_timestamp: float) -&gt; pd.Series:
+    def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
+                    copy: bool = True) -&gt; pd.Series:
         &#34;&#34;&#34;
-        interpolates two points at the intercept value
+        interpolates two points at the intercept value.  the two points must be consecutive in the dataframe
+
+        :param interpolate_timestamp: timestamp to interpolate other values
         :param first_point: index of first point
-        :param second_point: index of second point
-        :param interpolate_timestamp: timestamp to be interpolate other values
+        :param second_point: delta to second point, default 0 (same as first point)
+        :param copy: if True, copies the values of the first point, default True
         :return: pd.Series of interpolated points
         &#34;&#34;&#34;
-        numeric_series = self.data_df.select_dtypes(include=[np.number])
-        numeric_diff = numeric_series.iloc[second_point] - numeric_series.iloc[first_point]
-        numeric_diff = (numeric_diff / numeric_diff[&#34;timestamps&#34;]) \
-            * (interpolate_timestamp - numeric_series[&#34;timestamps&#34;][first_point]) \
-            + numeric_series.iloc[first_point]
-        non_numeric_series = self.data_df.select_dtypes(exclude=[np.number])
-        if np.abs(self.data_df.iloc[first_point][&#34;timestamps&#34;] - interpolate_timestamp) \
-                &lt;= np.abs(self.data_df.iloc[second_point][&#34;timestamps&#34;] - interpolate_timestamp):
-            non_numeric_diff = non_numeric_series.iloc[first_point]
+        start_point = self.data_df.iloc[first_point]
+        numeric_start = start_point[[col for col in self.data_df.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+        non_numeric_start = start_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+        if not copy and second_point:
+            end_point = self.data_df.iloc[first_point + second_point]
+            numeric_end = end_point[[col for col in self.data_df.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_end = end_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+            first_closer = \
+                np.abs(start_point[&#34;timestamps&#34;] - interpolate_timestamp) \
+                &lt;= np.abs(end_point[&#34;timestamps&#34;] - interpolate_timestamp)
+            if first_closer:
+                non_numeric_diff = non_numeric_start
+            else:
+                non_numeric_diff = non_numeric_end
+            # if copy:
+            #     if first_closer:
+            #         numeric_diff = numeric_start
+            #     else:
+            #         numeric_diff = numeric_end
+            # else:
+            numeric_diff = numeric_end - numeric_start
+            numeric_diff = \
+                (numeric_diff / numeric_diff[&#34;timestamps&#34;]) * \
+                (interpolate_timestamp - numeric_start) + numeric_start
         else:
-            non_numeric_diff = non_numeric_series.iloc[second_point]
+            numeric_diff = numeric_start
+            non_numeric_diff = non_numeric_start
+        numeric_diff[&#34;timestamps&#34;] = interpolate_timestamp
         return pd.concat([numeric_diff, non_numeric_diff])</code></pre>
 </details>
 </section>
@@ -573,7 +601,7 @@ default False</p></div>
         return self.data_df.columns.to_list()
 
     def update_data_timestamps(self, offset_model: om.OffsetModel):
-        self.data_df[&#34;timestamps&#34;] = [offset_model.update_time(t) for t in self.data_timestamps()]
+        self.data_df[&#34;timestamps&#34;] = offset_model.update_timestamps(self.data_timestamps())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) &gt; 1:
             self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
@@ -590,25 +618,47 @@ default False</p></div>
         &#34;&#34;&#34;
         self.data_df = self.data_df.sort_values(&#34;timestamps&#34;, ascending=ascending)
 
-    def interpolate(self, first_point: int, second_point: int, interpolate_timestamp: float) -&gt; pd.Series:
+    def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
+                    copy: bool = True) -&gt; pd.Series:
         &#34;&#34;&#34;
-        interpolates two points at the intercept value
+        interpolates two points at the intercept value.  the two points must be consecutive in the dataframe
+
+        :param interpolate_timestamp: timestamp to interpolate other values
         :param first_point: index of first point
-        :param second_point: index of second point
-        :param interpolate_timestamp: timestamp to be interpolate other values
+        :param second_point: delta to second point, default 0 (same as first point)
+        :param copy: if True, copies the values of the first point, default True
         :return: pd.Series of interpolated points
         &#34;&#34;&#34;
-        numeric_series = self.data_df.select_dtypes(include=[np.number])
-        numeric_diff = numeric_series.iloc[second_point] - numeric_series.iloc[first_point]
-        numeric_diff = (numeric_diff / numeric_diff[&#34;timestamps&#34;]) \
-            * (interpolate_timestamp - numeric_series[&#34;timestamps&#34;][first_point]) \
-            + numeric_series.iloc[first_point]
-        non_numeric_series = self.data_df.select_dtypes(exclude=[np.number])
-        if np.abs(self.data_df.iloc[first_point][&#34;timestamps&#34;] - interpolate_timestamp) \
-                &lt;= np.abs(self.data_df.iloc[second_point][&#34;timestamps&#34;] - interpolate_timestamp):
-            non_numeric_diff = non_numeric_series.iloc[first_point]
+        start_point = self.data_df.iloc[first_point]
+        numeric_start = start_point[[col for col in self.data_df.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+        non_numeric_start = start_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+        if not copy and second_point:
+            end_point = self.data_df.iloc[first_point + second_point]
+            numeric_end = end_point[[col for col in self.data_df.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_end = end_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+            first_closer = \
+                np.abs(start_point[&#34;timestamps&#34;] - interpolate_timestamp) \
+                &lt;= np.abs(end_point[&#34;timestamps&#34;] - interpolate_timestamp)
+            if first_closer:
+                non_numeric_diff = non_numeric_start
+            else:
+                non_numeric_diff = non_numeric_end
+            # if copy:
+            #     if first_closer:
+            #         numeric_diff = numeric_start
+            #     else:
+            #         numeric_diff = numeric_end
+            # else:
+            numeric_diff = numeric_end - numeric_start
+            numeric_diff = \
+                (numeric_diff / numeric_diff[&#34;timestamps&#34;]) * \
+                (interpolate_timestamp - numeric_start) + numeric_start
         else:
-            non_numeric_diff = non_numeric_series.iloc[second_point]
+            numeric_diff = numeric_start
+            non_numeric_diff = non_numeric_start
+        numeric_diff[&#34;timestamps&#34;] = interpolate_timestamp
         return pd.concat([numeric_diff, non_numeric_diff])</code></pre>
 </details>
 <h3>Methods</h3>
@@ -645,7 +695,7 @@ recalculate the sample rate, interval, and interval std dev, default False
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.data_channels"><code class="name flex">
-<span>def <span class="ident">data_channels</span></span>(<span>self) ‑> typing.List[str]</span>
+<span>def <span class="ident">data_channels</span></span>(<span>self) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: a list of the names of the columns (data channels) of the dataframe</p></div>
@@ -738,37 +788,61 @@ recalculate the sample rate, interval, and interval std dev, default False
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.interpolate"><code class="name flex">
-<span>def <span class="ident">interpolate</span></span>(<span>self, first_point: int, second_point: int, interpolate_timestamp: float) ‑> pandas.core.series.Series</span>
+<span>def <span class="ident">interpolate</span></span>(<span>self, interpolate_timestamp: float, first_point: int, second_point: int = 0, copy: bool = True) ‑> pandas.core.series.Series</span>
 </code></dt>
 <dd>
-<div class="desc"><p>interpolates two points at the intercept value
+<div class="desc"><p>interpolates two points at the intercept value.
+the two points must be consecutive in the dataframe</p>
+<p>:param interpolate_timestamp: timestamp to interpolate other values
 :param first_point: index of first point
-:param second_point: index of second point
-:param interpolate_timestamp: timestamp to be interpolate other values
+:param second_point: delta to second point, default 0 (same as first point)
+:param copy: if True, copies the values of the first point, default True
 :return: pd.Series of interpolated points</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def interpolate(self, first_point: int, second_point: int, interpolate_timestamp: float) -&gt; pd.Series:
+<pre><code class="python">def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
+                copy: bool = True) -&gt; pd.Series:
     &#34;&#34;&#34;
-    interpolates two points at the intercept value
+    interpolates two points at the intercept value.  the two points must be consecutive in the dataframe
+
+    :param interpolate_timestamp: timestamp to interpolate other values
     :param first_point: index of first point
-    :param second_point: index of second point
-    :param interpolate_timestamp: timestamp to be interpolate other values
+    :param second_point: delta to second point, default 0 (same as first point)
+    :param copy: if True, copies the values of the first point, default True
     :return: pd.Series of interpolated points
     &#34;&#34;&#34;
-    numeric_series = self.data_df.select_dtypes(include=[np.number])
-    numeric_diff = numeric_series.iloc[second_point] - numeric_series.iloc[first_point]
-    numeric_diff = (numeric_diff / numeric_diff[&#34;timestamps&#34;]) \
-        * (interpolate_timestamp - numeric_series[&#34;timestamps&#34;][first_point]) \
-        + numeric_series.iloc[first_point]
-    non_numeric_series = self.data_df.select_dtypes(exclude=[np.number])
-    if np.abs(self.data_df.iloc[first_point][&#34;timestamps&#34;] - interpolate_timestamp) \
-            &lt;= np.abs(self.data_df.iloc[second_point][&#34;timestamps&#34;] - interpolate_timestamp):
-        non_numeric_diff = non_numeric_series.iloc[first_point]
+    start_point = self.data_df.iloc[first_point]
+    numeric_start = start_point[[col for col in self.data_df.columns
+                                 if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+    non_numeric_start = start_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+    if not copy and second_point:
+        end_point = self.data_df.iloc[first_point + second_point]
+        numeric_end = end_point[[col for col in self.data_df.columns
+                                 if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+        non_numeric_end = end_point[[col for col in self.data_df.columns if col in NON_NUMERIC_COLUMNS]]
+        first_closer = \
+            np.abs(start_point[&#34;timestamps&#34;] - interpolate_timestamp) \
+            &lt;= np.abs(end_point[&#34;timestamps&#34;] - interpolate_timestamp)
+        if first_closer:
+            non_numeric_diff = non_numeric_start
+        else:
+            non_numeric_diff = non_numeric_end
+        # if copy:
+        #     if first_closer:
+        #         numeric_diff = numeric_start
+        #     else:
+        #         numeric_diff = numeric_end
+        # else:
+        numeric_diff = numeric_end - numeric_start
+        numeric_diff = \
+            (numeric_diff / numeric_diff[&#34;timestamps&#34;]) * \
+            (interpolate_timestamp - numeric_start) + numeric_start
     else:
-        non_numeric_diff = non_numeric_series.iloc[second_point]
+        numeric_diff = numeric_start
+        non_numeric_diff = non_numeric_start
+    numeric_diff[&#34;timestamps&#34;] = interpolate_timestamp
     return pd.concat([numeric_diff, non_numeric_diff])</code></pre>
 </details>
 </dd>
@@ -943,7 +1017,7 @@ Updates the SensorData object with the new values
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def update_data_timestamps(self, offset_model: om.OffsetModel):
-    self.data_df[&#34;timestamps&#34;] = [offset_model.update_time(t) for t in self.data_timestamps()]
+    self.data_df[&#34;timestamps&#34;] = offset_model.update_timestamps(self.data_timestamps())
     time_diffs = np.floor(np.diff(self.data_timestamps()))
     if len(time_diffs) &gt; 1:
         self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *

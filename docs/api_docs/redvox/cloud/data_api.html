@@ -249,7 +249,7 @@ def request_range_data(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.data_api.request_range_data"><code class="name flex">
-<span>def <span class="ident">request_range_data</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, data_range_req: <a title="redvox.cloud.data_api.DataRangeReq" href="#redvox.cloud.data_api.DataRangeReq">DataRangeReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None, req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
+<span>def <span class="ident">request_range_data</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, data_range_req: <a title="redvox.cloud.data_api.DataRangeReq" href="#redvox.cloud.data_api.DataRangeReq">DataRangeReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None, req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests signed URLs for a range of RedVox packets.
@@ -338,7 +338,7 @@ def request_range_data(
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.request_report_data"><code class="name flex">
-<span>def <span class="ident">request_report_data</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, report_data_req: <a title="redvox.cloud.data_api.ReportDataReq" href="#redvox.cloud.data_api.ReportDataReq">ReportDataReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.data_api.ReportDataResp" href="#redvox.cloud.data_api.ReportDataResp">ReportDataResp</a>, NoneType]</span>
+<span>def <span class="ident">request_report_data</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, report_data_req: <a title="redvox.cloud.data_api.ReportDataReq" href="#redvox.cloud.data_api.ReportDataReq">ReportDataReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None) ‑> Union[<a title="redvox.cloud.data_api.ReportDataResp" href="#redvox.cloud.data_api.ReportDataResp">ReportDataResp</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Makes an API call to generate a signed URL of a RedVox report.
@@ -387,7 +387,7 @@ def request_range_data(
 <dl>
 <dt id="redvox.cloud.data_api.DataRangeReq"><code class="flex name class">
 <span>class <span class="ident">DataRangeReq</span></span>
-<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, redvox_ids: typing.List[str], secret_token: typing.Union[str, NoneType] = None)</span>
+<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, redvox_ids: List[str], secret_token: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Definition of data range request.</p></div>
@@ -416,11 +416,11 @@ def request_range_data(
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.data_api.DataRangeReq.redvox_ids"><code class="name">var <span class="ident">redvox_ids</span> : typing.List[str]</code></dt>
+<dt id="redvox.cloud.data_api.DataRangeReq.redvox_ids"><code class="name">var <span class="ident">redvox_ids</span> : List[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.data_api.DataRangeReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.data_api.DataRangeReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -432,7 +432,7 @@ def request_range_data(
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.DataRangeReq.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -449,7 +449,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeReq.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -517,7 +517,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.DataRangeReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -530,7 +530,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeReq.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -605,7 +605,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeResp"><code class="flex name class">
 <span>class <span class="ident">DataRangeResp</span></span>
-<span>(</span><span>signed_urls: typing.List[str])</span>
+<span>(</span><span>signed_urls: List[str])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Definition of a data range response.</p></div>
@@ -639,7 +639,7 @@ def schema(cls: Type[A],
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.data_api.DataRangeResp.signed_urls"><code class="name">var <span class="ident">signed_urls</span> : typing.List[str]</code></dt>
+<dt id="redvox.cloud.data_api.DataRangeResp.signed_urls"><code class="name">var <span class="ident">signed_urls</span> : List[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -647,7 +647,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.DataRangeResp.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -664,7 +664,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeResp.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -753,7 +753,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeResp.download_fs"><code class="name flex">
-<span>def <span class="ident">download_fs</span></span>(<span>self, out_dir: str, retries: int = 3, out_queue: typing.Union[multiprocessing.queues.Queue, NoneType] = None) ‑> NoneType</span>
+<span>def <span class="ident">download_fs</span></span>(<span>self, out_dir: str, retries: int = 3, out_queue: Union[multiprocessing.queues.Queue, NoneType] = None) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Download the referenced packets to the provided output directory.
@@ -773,7 +773,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -786,7 +786,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.DataRangeResp.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -822,7 +822,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataReq"><code class="flex name class">
 <span>class <span class="ident">ReportDataReq</span></span>
-<span>(</span><span>auth_token: str, report_id: str, secret_token: typing.Union[str, NoneType] = None)</span>
+<span>(</span><span>auth_token: str, report_id: str, secret_token: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A request for a signed URL to a RedVox report distribution.</p></div>
@@ -849,7 +849,7 @@ def schema(cls: Type[A],
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.data_api.ReportDataReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.data_api.ReportDataReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -857,7 +857,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.ReportDataReq.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -874,7 +874,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataReq.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -942,7 +942,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.ReportDataReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -955,7 +955,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataReq.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1035,7 +1035,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.ReportDataResp.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1052,7 +1052,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataResp.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1120,7 +1120,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.data_api.ReportDataResp.download_buf"><code class="name flex">
-<span>def <span class="ident">download_buf</span></span>(<span>self, retries: int = 3) ‑> typing.Union[bytes, NoneType]</span>
+<span>def <span class="ident">download_buf</span></span>(<span>self, retries: int = 3) ‑> Union[bytes, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Downloads the zip compressed report data and returns it as a byte buffer.
@@ -1140,7 +1140,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataResp.download_fs"><code class="name flex">
-<span>def <span class="ident">download_fs</span></span>(<span>self, out_dir: str, retries: int = 3) ‑> typing.Tuple[str, int]</span>
+<span>def <span class="ident">download_fs</span></span>(<span>self, out_dir: str, retries: int = 3) ‑> Tuple[str, int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Downloads the zip compressed report data to the file system.
@@ -1164,7 +1164,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1177,7 +1177,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.data_api.ReportDataResp.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>

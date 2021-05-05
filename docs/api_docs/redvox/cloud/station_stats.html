@@ -195,7 +195,7 @@ def request_station_stats(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.station_stats.request_station_stats"><code class="name flex">
-<span>def <span class="ident">request_station_stats</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, station_stat_req: <a title="redvox.cloud.station_stats.StationStatReq" href="#redvox.cloud.station_stats.StationStatReq">StationStatReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.station_stats.StationStatsResp" href="#redvox.cloud.station_stats.StationStatsResp">StationStatsResp</a>, NoneType]</span>
+<span>def <span class="ident">request_station_stats</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, station_stat_req: <a title="redvox.cloud.station_stats.StationStatReq" href="#redvox.cloud.station_stats.StationStatReq">StationStatReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None) ‑> Union[<a title="redvox.cloud.station_stats.StationStatsResp" href="#redvox.cloud.station_stats.StationStatsResp">StationStatsResp</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests timing statistics with the given parameters.
@@ -243,7 +243,7 @@ def request_station_stats(
 <dl>
 <dt id="redvox.cloud.station_stats.GpsDateTime"><code class="flex name class">
 <span>class <span class="ident">GpsDateTime</span></span>
-<span>(</span><span>mach_dt: float, gps_dt: typing.Union[float, NoneType])</span>
+<span>(</span><span>mach_dt: float, gps_dt: Union[float, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Represents timestamp pairings in API 1000 data.</p></div>
@@ -268,7 +268,7 @@ def request_station_stats(
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.station_stats.GpsDateTime.gps_dt"><code class="name">var <span class="ident">gps_dt</span> : typing.Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.GpsDateTime.gps_dt"><code class="name">var <span class="ident">gps_dt</span> : Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -280,7 +280,7 @@ def request_station_stats(
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.station_stats.GpsDateTime.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -297,7 +297,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.GpsDateTime.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -382,7 +382,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.GpsDateTime.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -395,7 +395,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.GpsDateTime.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -431,7 +431,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.station_stats.StationStat"><code class="flex name class">
 <span>class <span class="ident">StationStat</span></span>
-<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: typing.Union[float, NoneType], packet_start_dt: float, server_recv_dt: typing.Union[float, NoneType], gps_dts: typing.Union[typing.List[<a title="redvox.cloud.station_stats.GpsDateTime" href="#redvox.cloud.station_stats.GpsDateTime">GpsDateTime</a>], NoneType], latency: typing.Union[float, NoneType], offset: typing.Union[float, NoneType], sample_rate_hz: typing.Union[float, NoneType], packet_duration: typing.Union[float, NoneType])</span>
+<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: Union[float, NoneType], packet_start_dt: float, server_recv_dt: Union[float, NoneType], gps_dts: Union[List[<a title="redvox.cloud.station_stats.GpsDateTime" href="#redvox.cloud.station_stats.GpsDateTime">GpsDateTime</a>], NoneType], latency: Union[float, NoneType], offset: Union[float, NoneType], sample_rate_hz: Union[float, NoneType], packet_duration: Union[float, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A collection of station fields for a given API 900 or API 1000 packet.
@@ -479,23 +479,23 @@ These are used for timing correction and gap detection.</p></div>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.station_stats.StationStat.app_start_dt"><code class="name">var <span class="ident">app_start_dt</span> : typing.Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.app_start_dt"><code class="name">var <span class="ident">app_start_dt</span> : Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.gps_dts"><code class="name">var <span class="ident">gps_dts</span> : typing.Union[typing.List[<a title="redvox.cloud.station_stats.GpsDateTime" href="#redvox.cloud.station_stats.GpsDateTime">GpsDateTime</a>], NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.gps_dts"><code class="name">var <span class="ident">gps_dts</span> : Union[List[<a title="redvox.cloud.station_stats.GpsDateTime" href="#redvox.cloud.station_stats.GpsDateTime">GpsDateTime</a>], NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.latency"><code class="name">var <span class="ident">latency</span> : typing.Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.latency"><code class="name">var <span class="ident">latency</span> : Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.offset"><code class="name">var <span class="ident">offset</span> : typing.Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.offset"><code class="name">var <span class="ident">offset</span> : Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.packet_duration"><code class="name">var <span class="ident">packet_duration</span> : typing.Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.packet_duration"><code class="name">var <span class="ident">packet_duration</span> : Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -503,11 +503,11 @@ These are used for timing correction and gap detection.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.sample_rate_hz"><code class="name">var <span class="ident">sample_rate_hz</span> : typing.Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.sample_rate_hz"><code class="name">var <span class="ident">sample_rate_hz</span> : Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.server_recv_dt"><code class="name">var <span class="ident">server_recv_dt</span> : typing.Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.server_recv_dt"><code class="name">var <span class="ident">server_recv_dt</span> : Union[float, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -523,7 +523,7 @@ These are used for timing correction and gap detection.</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.station_stats.StationStat.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -540,7 +540,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.StationStat.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -638,7 +638,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.StationStat.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -651,7 +651,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.StationStat.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -687,7 +687,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.station_stats.StationStatReq"><code class="flex name class">
 <span>class <span class="ident">StationStatReq</span></span>
-<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: typing.List[str], secret_token: typing.Union[str, NoneType] = None)</span>
+<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: List[str], secret_token: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A StationStatReq container.</p></div>
@@ -716,7 +716,7 @@ def schema(cls: Type[A],
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStatReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : typing.Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStatReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -724,7 +724,7 @@ def schema(cls: Type[A],
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStatReq.station_ids"><code class="name">var <span class="ident">station_ids</span> : typing.List[str]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStatReq.station_ids"><code class="name">var <span class="ident">station_ids</span> : List[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -732,7 +732,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.station_stats.StationStatReq.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -749,7 +749,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.StationStatReq.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -817,7 +817,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.station_stats.StationStatReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -830,7 +830,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.StationStatReq.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -866,7 +866,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.station_stats.StationStatResp"><code class="flex name class">
 <span>class <span class="ident">StationStatResp</span></span>
-<span>(</span><span>station_stats: typing.List[<a title="redvox.cloud.station_stats.StationStat" href="#redvox.cloud.station_stats.StationStat">StationStat</a>])</span>
+<span>(</span><span>station_stats: List[<a title="redvox.cloud.station_stats.StationStat" href="#redvox.cloud.station_stats.StationStat">StationStat</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A response contain StationStat instances.</p></div>
@@ -888,7 +888,7 @@ def schema(cls: Type[A],
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.station_stats.StationStatResp.station_stats"><code class="name">var <span class="ident">station_stats</span> : typing.List[<a title="redvox.cloud.station_stats.StationStat" href="#redvox.cloud.station_stats.StationStat">StationStat</a>]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStatResp.station_stats"><code class="name">var <span class="ident">station_stats</span> : List[<a title="redvox.cloud.station_stats.StationStat" href="#redvox.cloud.station_stats.StationStat">StationStat</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -896,7 +896,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.station_stats.StationStatResp.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -913,7 +913,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.StationStatResp.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -996,7 +996,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.StationStatResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1009,7 +1009,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.station_stats.StationStatResp.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1045,7 +1045,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.station_stats.StationStatsResp"><code class="flex name class">
 <span>class <span class="ident">StationStatsResp</span></span>
-<span>(</span><span>station_stats: typing.List[<a title="redvox.common.file_statistics.StationStat" href="../common/file_statistics.html#redvox.common.file_statistics.StationStat">StationStat</a>])</span>
+<span>(</span><span>station_stats: List[<a title="redvox.common.file_statistics.StationStat" href="../common/file_statistics.html#redvox.common.file_statistics.StationStat">StationStat</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A response type converted into the file_statistics module representation.</p></div>
@@ -1062,7 +1062,7 @@ def schema(cls: Type[A],
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.station_stats.StationStatsResp.station_stats"><code class="name">var <span class="ident">station_stats</span> : typing.List[<a title="redvox.common.file_statistics.StationStat" href="../common/file_statistics.html#redvox.common.file_statistics.StationStat">StationStat</a>]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStatsResp.station_stats"><code class="name">var <span class="ident">station_stats</span> : List[<a title="redvox.common.file_statistics.StationStat" href="../common/file_statistics.html#redvox.common.file_statistics.StationStat">StationStat</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

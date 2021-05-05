@@ -111,7 +111,7 @@ def health_check(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.api.health_check"><code class="name flex">
-<span>def <span class="ident">health_check</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = 10.0) ‑> bool</span>
+<span>def <span class="ident">health_check</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = 10.0) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Check that the Cloud API endpoint is up.
@@ -149,7 +149,7 @@ def health_check(
 </details>
 </dd>
 <dt id="redvox.cloud.api.post_req"><code class="name flex">
-<span>def <span class="ident">post_req</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, route: str, req: typing.Any, resp_transform: typing.Callable[[requests.models.Response], typing.Any], session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = 10.0) ‑> typing.Union[typing.Any, NoneType]</span>
+<span>def <span class="ident">post_req</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, route: str, req: Any, resp_transform: Callable[[requests.models.Response], Any], session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = 10.0) ‑> Union[Any, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Performs an HTTP POST request.

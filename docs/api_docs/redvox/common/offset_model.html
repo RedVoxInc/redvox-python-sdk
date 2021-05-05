@@ -168,6 +168,16 @@ class OffsetModel:
         &#34;&#34;&#34;
         return new_time + self.get_offset_at_new_time(new_time)
 
+    def update_timestamps(self, timestamps: np.array) -&gt; np.array:
+        &#34;&#34;&#34;
+        updates a list of timestamps
+        :param timestamps: timestamps to update
+        :return: updated list of timestamps
+        &#34;&#34;&#34;
+        if self.slope != 0.0:
+            return [self.update_time(t) for t in timestamps]
+        return [t + self.intercept for t in timestamps]
+
 
 # Method to get number of bins
 def get_bins_per_5min(start_time: float, end_time: float) -&gt; int:
@@ -424,7 +434,7 @@ def compute_offsets(station_stats: List[&#34;StationStat&#34;]) -&gt; Optional[T
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.common.offset_model.compute_offsets"><code class="name flex">
-<span>def <span class="ident">compute_offsets</span></span>(<span>station_stats: typing.List[ForwardRef('StationStat')]) ‑> typing.Union[<a title="redvox.common.offset_model.TimingOffsets" href="#redvox.common.offset_model.TimingOffsets">TimingOffsets</a>, NoneType]</span>
+<span>def <span class="ident">compute_offsets</span></span>(<span>station_stats: List[ForwardRef('StationStat')]) ‑> Union[<a title="redvox.common.offset_model.TimingOffsets" href="#redvox.common.offset_model.TimingOffsets">TimingOffsets</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Computes the offsets from the provided station statistics.
@@ -630,7 +640,7 @@ Negative values are also adjusted to be 0.0.
 </details>
 </dd>
 <dt id="redvox.common.offset_model.mapf"><code class="name flex">
-<span>def <span class="ident">mapf</span></span>(<span>val: typing.Union[float, NoneType]) ‑> float</span>
+<span>def <span class="ident">mapf</span></span>(<span>val: Union[float, NoneType]) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Maps an optional float to floats by replacing Nones with NaNs.
@@ -673,7 +683,7 @@ Negative values are also adjusted to be 0.0.
 </details>
 </dd>
 <dt id="redvox.common.offset_model.offset_weighted_linear_regression"><code class="name flex">
-<span>def <span class="ident">offset_weighted_linear_regression</span></span>(<span>latencies: numpy.ndarray, offsets: numpy.ndarray, times: numpy.ndarray) ‑> typing.Tuple[float, float, float]</span>
+<span>def <span class="ident">offset_weighted_linear_regression</span></span>(<span>latencies: numpy.ndarray, offsets: numpy.ndarray, times: numpy.ndarray) ‑> Tuple[float, float, float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
@@ -931,7 +941,17 @@ debug: boolean, if True, output additional information when running the OffsetMo
         :param new_time: The time to update
         :return: updated new_time
         &#34;&#34;&#34;
-        return new_time + self.get_offset_at_new_time(new_time)</code></pre>
+        return new_time + self.get_offset_at_new_time(new_time)
+
+    def update_timestamps(self, timestamps: np.array) -&gt; np.array:
+        &#34;&#34;&#34;
+        updates a list of timestamps
+        :param timestamps: timestamps to update
+        :return: updated list of timestamps
+        &#34;&#34;&#34;
+        if self.slope != 0.0:
+            return [self.update_time(t) for t in timestamps]
+        return [t + self.intercept for t in timestamps]</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -995,6 +1015,28 @@ def empty_model() -&gt; &#34;OffsetModel&#34;:
     :return: updated new_time
     &#34;&#34;&#34;
     return new_time + self.get_offset_at_new_time(new_time)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.offset_model.OffsetModel.update_timestamps"><code class="name flex">
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, timestamps: <built-in function array>) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>updates a list of timestamps
+:param timestamps: timestamps to update
+:return: updated list of timestamps</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_timestamps(self, timestamps: np.array) -&gt; np.array:
+    &#34;&#34;&#34;
+    updates a list of timestamps
+    :param timestamps: timestamps to update
+    :return: updated list of timestamps
+    &#34;&#34;&#34;
+    if self.slope != 0.0:
+        return [self.update_time(t) for t in timestamps]
+    return [t + self.intercept for t in timestamps]</code></pre>
 </details>
 </dd>
 </dl>
@@ -1074,6 +1116,7 @@ def empty_model() -&gt; &#34;OffsetModel&#34;:
 <li><code><a title="redvox.common.offset_model.OffsetModel.empty_model" href="#redvox.common.offset_model.OffsetModel.empty_model">empty_model</a></code></li>
 <li><code><a title="redvox.common.offset_model.OffsetModel.get_offset_at_new_time" href="#redvox.common.offset_model.OffsetModel.get_offset_at_new_time">get_offset_at_new_time</a></code></li>
 <li><code><a title="redvox.common.offset_model.OffsetModel.update_time" href="#redvox.common.offset_model.OffsetModel.update_time">update_time</a></code></li>
+<li><code><a title="redvox.common.offset_model.OffsetModel.update_timestamps" href="#redvox.common.offset_model.OffsetModel.update_timestamps">update_timestamps</a></code></li>
 </ul>
 </li>
 <li>

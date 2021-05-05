@@ -1186,7 +1186,7 @@ def validate_sensors(sensors_list: Sensors) -&gt; List[str]:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.validate_sensors"><code class="name flex">
-<span>def <span class="ident">validate_sensors</span></span>(<span>sensors_list: <a title="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors" href="#redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors">Sensors</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_sensors</span></span>(<span>sensors_list: <a title="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors" href="#redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors">Sensors</a>) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates sensors.
@@ -2372,7 +2372,7 @@ def new() -&gt; &#34;Sensors&#34;:
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_accelerometer"><code class="name flex">
-<span>def <span class="ident">get_accelerometer</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
+<span>def <span class="ident">get_accelerometer</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2388,7 +2388,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_ambient_temperature"><code class="name flex">
-<span>def <span class="ident">get_ambient_temperature</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
+<span>def <span class="ident">get_ambient_temperature</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2404,7 +2404,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_audio"><code class="name flex">
-<span>def <span class="ident">get_audio</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio" href="audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio">Audio</a>, NoneType]</span>
+<span>def <span class="ident">get_audio</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio" href="audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio">Audio</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2420,7 +2420,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_compressed_audio"><code class="name flex">
-<span>def <span class="ident">get_compressed_audio</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.audio.CompressedAudio" href="audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.CompressedAudio">CompressedAudio</a>, NoneType]</span>
+<span>def <span class="ident">get_compressed_audio</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.audio.CompressedAudio" href="audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.CompressedAudio">CompressedAudio</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2436,7 +2436,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_gravity"><code class="name flex">
-<span>def <span class="ident">get_gravity</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
+<span>def <span class="ident">get_gravity</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2452,7 +2452,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_gyroscope"><code class="name flex">
-<span>def <span class="ident">get_gyroscope</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
+<span>def <span class="ident">get_gyroscope</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2468,7 +2468,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_image"><code class="name flex">
-<span>def <span class="ident">get_image</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="image.html#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a>, NoneType]</span>
+<span>def <span class="ident">get_image</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="image.html#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2484,7 +2484,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_light"><code class="name flex">
-<span>def <span class="ident">get_light</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
+<span>def <span class="ident">get_light</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2500,7 +2500,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_linear_acceleration"><code class="name flex">
-<span>def <span class="ident">get_linear_acceleration</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
+<span>def <span class="ident">get_linear_acceleration</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2516,7 +2516,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_location"><code class="name flex">
-<span>def <span class="ident">get_location</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location" href="location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.Location">Location</a>, NoneType]</span>
+<span>def <span class="ident">get_location</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.location.Location" href="location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.Location">Location</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2532,7 +2532,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_magnetometer"><code class="name flex">
-<span>def <span class="ident">get_magnetometer</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
+<span>def <span class="ident">get_magnetometer</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2548,7 +2548,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_orientation"><code class="name flex">
-<span>def <span class="ident">get_orientation</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
+<span>def <span class="ident">get_orientation</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2564,7 +2564,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_pressure"><code class="name flex">
-<span>def <span class="ident">get_pressure</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
+<span>def <span class="ident">get_pressure</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2580,7 +2580,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_proximity"><code class="name flex">
-<span>def <span class="ident">get_proximity</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
+<span>def <span class="ident">get_proximity</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2596,7 +2596,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_relative_humidity"><code class="name flex">
-<span>def <span class="ident">get_relative_humidity</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
+<span>def <span class="ident">get_relative_humidity</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.single.Single" href="single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single">Single</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2612,7 +2612,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_rotation_vector"><code class="name flex">
-<span>def <span class="ident">get_rotation_vector</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
+<span>def <span class="ident">get_rotation_vector</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>
@@ -2628,7 +2628,7 @@ def new() -&gt; &#34;Sensors&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors.get_velocity"><code class="name flex">
-<span>def <span class="ident">get_velocity</span></span>(<span>self) ‑> typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
+<span>def <span class="ident">get_velocity</span></span>(<span>self) ‑> Union[<a title="redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz" href="xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz">Xyz</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: The this sensor if it exists otherwise None</p></div>

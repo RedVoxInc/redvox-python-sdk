@@ -132,7 +132,7 @@ def download_file(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.data_io.download_file"><code class="name flex">
-<span>def <span class="ident">download_file</span></span>(<span>url: str, session: requests.sessions.Session, out_dir: str, retries: int) ‑> typing.Tuple[str, int]</span>
+<span>def <span class="ident">download_file</span></span>(<span>url: str, session: requests.sessions.Session, out_dir: str, retries: int) ‑> Tuple[str, int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempts to download a file from S3.
@@ -204,7 +204,7 @@ def download_file(
 </details>
 </dd>
 <dt id="redvox.cloud.data_io.get_file"><code class="name flex">
-<span>def <span class="ident">get_file</span></span>(<span>url: str, retries: int, session: requests.sessions.Session = &lt;requests.sessions.Session object&gt;) ‑> typing.Union[bytes, NoneType]</span>
+<span>def <span class="ident">get_file</span></span>(<span>url: str, retries: int, session: requests.sessions.Session = &lt;requests.sessions.Session object&gt;) ‑> Union[bytes, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempts to download a file with a configurable amount of retries.

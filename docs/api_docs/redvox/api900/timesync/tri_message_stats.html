@@ -343,7 +343,7 @@ def transmit_receive_timestamps_microsec(coeffs: np.ndarray) -&gt; Tuple[
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.api900.timesync.tri_message_stats.latencies"><code class="name flex">
-<span>def <span class="ident">latencies</span></span>(<span>a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> typing.Tuple[numpy.ndarray, numpy.ndarray]</span>
+<span>def <span class="ident">latencies</span></span>(<span>a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> Tuple[numpy.ndarray, numpy.ndarray]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute latencies in microseconds based on message exchange timestamps.</p>
@@ -390,7 +390,7 @@ def transmit_receive_timestamps_microsec(coeffs: np.ndarray) -&gt; Tuple[
 </details>
 </dd>
 <dt id="redvox.api900.timesync.tri_message_stats.offsets"><code class="name flex">
-<span>def <span class="ident">offsets</span></span>(<span>a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> typing.Tuple[numpy.ndarray, numpy.ndarray]</span>
+<span>def <span class="ident">offsets</span></span>(<span>a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> Tuple[numpy.ndarray, numpy.ndarray]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compute offsets in microseconds based on message exchange timestamps.</p>
@@ -450,7 +450,7 @@ def transmit_receive_timestamps_microsec(coeffs: np.ndarray) -&gt; Tuple[
 </details>
 </dd>
 <dt id="redvox.api900.timesync.tri_message_stats.transmit_receive_timestamps_microsec"><code class="name flex">
-<span>def <span class="ident">transmit_receive_timestamps_microsec</span></span>(<span>coeffs: numpy.ndarray) ‑> typing.Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]</span>
+<span>def <span class="ident">transmit_receive_timestamps_microsec</span></span>(<span>coeffs: numpy.ndarray) ‑> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Recover Tri-Message timestamp coefficients. Uses concept of
@@ -515,7 +515,7 @@ Tri-Message to synchronize a device with a reference server:</p>
 </details>
 </dd>
 <dt id="redvox.api900.timesync.tri_message_stats.validate_timestamps"><code class="name flex">
-<span>def <span class="ident">validate_timestamps</span></span>(<span>a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> typing.Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]</span>
+<span>def <span class="ident">validate_timestamps</span></span>(<span>a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>it's possible some of the tri-message values are duplicated; the duplicates and other invalid times
@@ -582,7 +582,7 @@ arrays of valid message exchange timestamps</p></div>
 <dl>
 <dt id="redvox.api900.timesync.tri_message_stats.TriMessageStats"><code class="flex name class">
 <span>class <span class="ident">TriMessageStats</span></span>
-<span>(</span><span>packet_id: typing.Union[str, int], a1: numpy.ndarray, a2: numpy.ndarray, a3: numpy.ndarray, b1: numpy.ndarray, b2: numpy.ndarray, b3: numpy.ndarray)</span>
+<span>(</span><span>packet_id: Union[str, int], a1: numpy.ndarray, a2: numpy.ndarray, a3: numpy.ndarray, b1: numpy.ndarray, b2: numpy.ndarray, b3: numpy.ndarray)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stores statistics about the tri-message exchanges

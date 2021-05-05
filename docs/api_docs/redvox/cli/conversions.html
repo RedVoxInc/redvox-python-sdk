@@ -38,6 +38,10 @@ from typing import List, Optional
 import redvox.api900.reader as reader
 import redvox.api900.reader_utils as reader_utils
 import redvox.common.api_conversions as api_conversions
+import redvox.api900.lib.api900_pb2 as api_900
+import redvox.api1000.proto.redvox_api_m_pb2 as api_1000
+
+import lz4.frame
 
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
@@ -52,11 +56,15 @@ def validate_rdvxm(paths: List[str]) -&gt; bool:
     :return: True if all valid, False otherwise
     &#34;&#34;&#34;
     for path in paths:
-        wrapped_packet: WrappedRedvoxPacketM = WrappedRedvoxPacketM.from_compressed_path(path)
+        wrapped_packet: WrappedRedvoxPacketM = (
+            WrappedRedvoxPacketM.from_compressed_path(path)
+        )
         validation_results: List[str] = wrapped_packet.validate()
 
         if len(validation_results) &gt; 0:
-            print(f&#34;{len(validation_results)} validation issues found for file at path {path}&#34;)
+            print(
+                f&#34;{len(validation_results)} validation issues found for file at path {path}&#34;
+            )
             for i, validation_result in enumerate(validation_results):
                 print(f&#34;{i} {validation_result}&#34;)
 
@@ -96,7 +104,9 @@ def rdvxm_to_json(paths: List[str], out_dir: Optional[str] = None) -&gt; bool:
     &#34;&#34;&#34;
     out_dir = out_dir if out_dir is not None else &#34;.&#34;
     for path in paths:
-        wrapped_packet: WrappedRedvoxPacketM = WrappedRedvoxPacketM.from_compressed_path(path)
+        wrapped_packet: WrappedRedvoxPacketM = (
+            WrappedRedvoxPacketM.from_compressed_path(path)
+        )
 
         wrapped_packet.write_json_to_file(out_dir)
         log.info(&#34;Converted %s to json&#34;, path)
@@ -153,9 +163,16 @@ def rdvxz_to_rdvxm(paths: List[str], out_dir: Optional[str] = None) -&gt; bool:
     &#34;&#34;&#34;
     out_dir = out_dir if out_dir is not None else &#34;.&#34;
     for path in paths:
-        wrapped_packet_900: reader.WrappedRedvoxPacket = reader.read_rdvxz_file(path)
-        wrapped_packet_1000: WrappedRedvoxPacketM = api_conversions.convert_api_900_to_1000(wrapped_packet_900)
-        wrapped_packet_1000.write_compressed_to_file(out_dir)
+        packet_900: api_900.RedvoxPacket = reader.read_file(path, True)
+        packet_1000: api_1000.RedvoxPacketM = (
+            api_conversions.convert_api_900_to_1000_raw(packet_900)
+        )
+        file_name: str = f&#34;{packet_1000.station_information.id}_{int(packet_1000.timing_information.packet_start_mach_timestamp)}.rdvxm&#34;
+        with lz4.frame.open(os.path.join(out_dir, file_name), &#34;wb&#34;, compression_level=12) as fout:
+            fout.write(packet_1000.SerializeToString())
+        # wrapped_packet_900: reader.WrappedRedvoxPacket = reader.read_rdvxz_file(path)
+        # wrapped_packet_1000: WrappedRedvoxPacketM = api_conversions.convert_api_900_to_1000(wrapped_packet_900)
+        # wrapped_packet_1000.write_compressed_to_file(out_dir)
 
     return True
 
@@ -169,8 +186,12 @@ def rdvxm_to_rdvxz(paths: List[str], out_dir: Optional[str] = None) -&gt; bool:
     &#34;&#34;&#34;
     out_dir = out_dir if out_dir is not None else &#34;.&#34;
     for path in paths:
-        wrapped_packet_1000: WrappedRedvoxPacketM = WrappedRedvoxPacketM.from_compressed_path(path)
-        wrapped_packet_900: reader.WrappedRedvoxPacket = api_conversions.convert_api_1000_to_900(wrapped_packet_1000)
+        wrapped_packet_1000: WrappedRedvoxPacketM = (
+            WrappedRedvoxPacketM.from_compressed_path(path)
+        )
+        wrapped_packet_900: reader.WrappedRedvoxPacket = (
+            api_conversions.convert_api_1000_to_900(wrapped_packet_1000)
+        )
         wrapped_packet_900.write_rdvxz(out_dir)
 
     return True
@@ -208,7 +229,7 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cli.conversions.json_to_rdvxm"><code class="name flex">
-<span>def <span class="ident">json_to_rdvxm</span></span>(<span>paths: typing.List[str], out_dir: typing.Union[str, NoneType] = None) ‑> bool</span>
+<span>def <span class="ident">json_to_rdvxm</span></span>(<span>paths: List[str], out_dir: Union[str, NoneType] = None) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts .json files to .rdvxm files.
@@ -236,7 +257,7 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
 </details>
 </dd>
 <dt id="redvox.cli.conversions.json_to_rdvxz"><code class="name flex">
-<span>def <span class="ident">json_to_rdvxz</span></span>(<span>paths: typing.List[str], out_dir: typing.Union[str, NoneType] = None) ‑> bool</span>
+<span>def <span class="ident">json_to_rdvxz</span></span>(<span>paths: List[str], out_dir: Union[str, NoneType] = None) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts .json files to .rdvxz files.
@@ -272,7 +293,7 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
 </details>
 </dd>
 <dt id="redvox.cli.conversions.rdvxm_print_stdout"><code class="name flex">
-<span>def <span class="ident">rdvxm_print_stdout</span></span>(<span>paths: typing.List[str]) ‑> bool</span>
+<span>def <span class="ident">rdvxm_print_stdout</span></span>(<span>paths: List[str]) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Prints the contends of rdvxm files to sdtout.
@@ -295,7 +316,7 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
 </details>
 </dd>
 <dt id="redvox.cli.conversions.rdvxm_to_json"><code class="name flex">
-<span>def <span class="ident">rdvxm_to_json</span></span>(<span>paths: typing.List[str], out_dir: typing.Union[str, NoneType] = None) ‑> bool</span>
+<span>def <span class="ident">rdvxm_to_json</span></span>(<span>paths: List[str], out_dir: Union[str, NoneType] = None) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts .rdvxm files to .json files.
@@ -315,7 +336,9 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
     &#34;&#34;&#34;
     out_dir = out_dir if out_dir is not None else &#34;.&#34;
     for path in paths:
-        wrapped_packet: WrappedRedvoxPacketM = WrappedRedvoxPacketM.from_compressed_path(path)
+        wrapped_packet: WrappedRedvoxPacketM = (
+            WrappedRedvoxPacketM.from_compressed_path(path)
+        )
 
         wrapped_packet.write_json_to_file(out_dir)
         log.info(&#34;Converted %s to json&#34;, path)
@@ -324,7 +347,7 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
 </details>
 </dd>
 <dt id="redvox.cli.conversions.rdvxm_to_rdvxz"><code class="name flex">
-<span>def <span class="ident">rdvxm_to_rdvxz</span></span>(<span>paths: typing.List[str], out_dir: typing.Union[str, NoneType] = None) ‑> bool</span>
+<span>def <span class="ident">rdvxm_to_rdvxz</span></span>(<span>paths: List[str], out_dir: Union[str, NoneType] = None) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert rdvxm files to rdvxz files
@@ -344,15 +367,19 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
     &#34;&#34;&#34;
     out_dir = out_dir if out_dir is not None else &#34;.&#34;
     for path in paths:
-        wrapped_packet_1000: WrappedRedvoxPacketM = WrappedRedvoxPacketM.from_compressed_path(path)
-        wrapped_packet_900: reader.WrappedRedvoxPacket = api_conversions.convert_api_1000_to_900(wrapped_packet_1000)
+        wrapped_packet_1000: WrappedRedvoxPacketM = (
+            WrappedRedvoxPacketM.from_compressed_path(path)
+        )
+        wrapped_packet_900: reader.WrappedRedvoxPacket = (
+            api_conversions.convert_api_1000_to_900(wrapped_packet_1000)
+        )
         wrapped_packet_900.write_rdvxz(out_dir)
 
     return True</code></pre>
 </details>
 </dd>
 <dt id="redvox.cli.conversions.rdvxz_print_stdout"><code class="name flex">
-<span>def <span class="ident">rdvxz_print_stdout</span></span>(<span>paths: typing.List[str]) ‑> bool</span>
+<span>def <span class="ident">rdvxz_print_stdout</span></span>(<span>paths: List[str]) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Prints the contends of rdvxz files to sdtout.
@@ -375,7 +402,7 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
 </details>
 </dd>
 <dt id="redvox.cli.conversions.rdvxz_to_json"><code class="name flex">
-<span>def <span class="ident">rdvxz_to_json</span></span>(<span>paths: typing.List[str], out_dir: typing.Union[str, NoneType] = None) ‑> bool</span>
+<span>def <span class="ident">rdvxz_to_json</span></span>(<span>paths: List[str], out_dir: Union[str, NoneType] = None) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts .rdvxz files to .json files.
@@ -411,7 +438,7 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
 </details>
 </dd>
 <dt id="redvox.cli.conversions.rdvxz_to_rdvxm"><code class="name flex">
-<span>def <span class="ident">rdvxz_to_rdvxm</span></span>(<span>paths: typing.List[str], out_dir: typing.Union[str, NoneType] = None) ‑> bool</span>
+<span>def <span class="ident">rdvxz_to_rdvxm</span></span>(<span>paths: List[str], out_dir: Union[str, NoneType] = None) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Convert rdvxz files to rdvxm files
@@ -431,15 +458,22 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
     &#34;&#34;&#34;
     out_dir = out_dir if out_dir is not None else &#34;.&#34;
     for path in paths:
-        wrapped_packet_900: reader.WrappedRedvoxPacket = reader.read_rdvxz_file(path)
-        wrapped_packet_1000: WrappedRedvoxPacketM = api_conversions.convert_api_900_to_1000(wrapped_packet_900)
-        wrapped_packet_1000.write_compressed_to_file(out_dir)
+        packet_900: api_900.RedvoxPacket = reader.read_file(path, True)
+        packet_1000: api_1000.RedvoxPacketM = (
+            api_conversions.convert_api_900_to_1000_raw(packet_900)
+        )
+        file_name: str = f&#34;{packet_1000.station_information.id}_{int(packet_1000.timing_information.packet_start_mach_timestamp)}.rdvxm&#34;
+        with lz4.frame.open(os.path.join(out_dir, file_name), &#34;wb&#34;, compression_level=12) as fout:
+            fout.write(packet_1000.SerializeToString())
+        # wrapped_packet_900: reader.WrappedRedvoxPacket = reader.read_rdvxz_file(path)
+        # wrapped_packet_1000: WrappedRedvoxPacketM = api_conversions.convert_api_900_to_1000(wrapped_packet_900)
+        # wrapped_packet_1000.write_compressed_to_file(out_dir)
 
     return True</code></pre>
 </details>
 </dd>
 <dt id="redvox.cli.conversions.validate_rdvxm"><code class="name flex">
-<span>def <span class="ident">validate_rdvxm</span></span>(<span>paths: typing.List[str]) ‑> bool</span>
+<span>def <span class="ident">validate_rdvxm</span></span>(<span>paths: List[str]) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates the correctness of rdvxm files.
@@ -456,11 +490,15 @@ def rdvxm_print_stdout(paths: List[str]) -&gt; bool:
     :return: True if all valid, False otherwise
     &#34;&#34;&#34;
     for path in paths:
-        wrapped_packet: WrappedRedvoxPacketM = WrappedRedvoxPacketM.from_compressed_path(path)
+        wrapped_packet: WrappedRedvoxPacketM = (
+            WrappedRedvoxPacketM.from_compressed_path(path)
+        )
         validation_results: List[str] = wrapped_packet.validate()
 
         if len(validation_results) &gt; 0:
-            print(f&#34;{len(validation_results)} validation issues found for file at path {path}&#34;)
+            print(
+                f&#34;{len(validation_results)} validation issues found for file at path {path}&#34;
+            )
             for i, validation_result in enumerate(validation_results):
                 print(f&#34;{i} {validation_result}&#34;)
 

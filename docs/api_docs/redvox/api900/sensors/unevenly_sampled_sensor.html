@@ -199,7 +199,7 @@ class UnevenlySampledSensor:
 <dl>
 <dt id="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor"><code class="flex name class">
 <span>class <span class="ident">UnevenlySampledSensor</span></span>
-<span>(</span><span>unevenly_sampled_channel: typing.Union[<a title="redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel" href="unevenly_sampled_channel.html#redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel">UnevenlySampledChannel</a>, NoneType] = None)</span>
+<span>(</span><span>unevenly_sampled_channel: Union[<a title="redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel" href="unevenly_sampled_channel.html#redvox.api900.sensors.unevenly_sampled_channel.UnevenlySampledChannel">UnevenlySampledChannel</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An UnevenlySampledSensor provides a high level abstraction over an UnevenlySampledChannel.</p>
@@ -370,7 +370,7 @@ Composition is used instead of inheritance to hide the complexities of the under
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.diff"><code class="name flex">
-<span>def <span class="ident">diff</span></span>(<span>self, other: <a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">diff</span></span>(<span>self, other: <a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a>) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Compares two unevenly sampled sensors for differences.
@@ -402,7 +402,7 @@ Composition is used instead of inheritance to hide the complexities of the under
 </details>
 </dd>
 <dt id="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.metadata"><code class="name flex">
-<span>def <span class="ident">metadata</span></span>(<span>self) ‑> typing.List[str]</span>
+<span>def <span class="ident">metadata</span></span>(<span>self) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns this channel's metadata (if there is any) as a Python list.
@@ -420,7 +420,7 @@ Composition is used instead of inheritance to hide the complexities of the under
 </details>
 </dd>
 <dt id="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.metadata_as_dict"><code class="name flex">
-<span>def <span class="ident">metadata_as_dict</span></span>(<span>self) ‑> typing.Dict[str, str]</span>
+<span>def <span class="ident">metadata_as_dict</span></span>(<span>self) ‑> Dict[str, str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns this channel's metadata (if there is any) as a Python dictionary.
@@ -528,7 +528,7 @@ Composition is used instead of inheritance to hide the complexities of the under
 </details>
 </dd>
 <dt id="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_metadata"><code class="name flex">
-<span>def <span class="ident">set_metadata</span></span>(<span>self, data: typing.List[str]) ‑> <a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a></span>
+<span>def <span class="ident">set_metadata</span></span>(<span>self, data: List[str]) ‑> <a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the metadata
@@ -549,7 +549,7 @@ Composition is used instead of inheritance to hide the complexities of the under
 </details>
 </dd>
 <dt id="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_metadata_as_dict"><code class="name flex">
-<span>def <span class="ident">set_metadata_as_dict</span></span>(<span>self, metadata_dict: typing.Dict[str, str]) ‑> <a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a></span>
+<span>def <span class="ident">set_metadata_as_dict</span></span>(<span>self, metadata_dict: Dict[str, str]) ‑> <a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets the metadata using a dictionary.
@@ -591,7 +591,7 @@ Composition is used instead of inheritance to hide the complexities of the under
 </details>
 </dd>
 <dt id="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor.set_timestamps_microseconds_utc"><code class="name flex">
-<span>def <span class="ident">set_timestamps_microseconds_utc</span></span>(<span>self, timestamps: typing.Union[numpy.ndarray, typing.List[int]]) ‑> <a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a></span>
+<span>def <span class="ident">set_timestamps_microseconds_utc</span></span>(<span>self, timestamps: Union[numpy.ndarray, List[int]]) ‑> <a title="redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor" href="#redvox.api900.sensors.unevenly_sampled_sensor.UnevenlySampledSensor">UnevenlySampledSensor</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>set the time stamps

@@ -1097,7 +1097,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.compute_distance_all"><code class="name flex">
-<span>def <span class="ident">compute_distance_all</span></span>(<span>point: typing.Dict[str, float], all_gps_data: typing.List[<a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a>]) ‑> pandas.core.frame.DataFrame</span>
+<span>def <span class="ident">compute_distance_all</span></span>(<span>point: Dict[str, float], all_gps_data: List[<a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a>]) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
 <div class="desc"><p>compute distance from all gps data points to the chosen point
@@ -1163,7 +1163,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.get_component_dist_to_point"><code class="name flex">
-<span>def <span class="ident">get_component_dist_to_point</span></span>(<span>point: typing.Dict[str, float], gps_data: pandas.core.series.Series, bar_mean: float) ‑> (<class 'float'>, <class 'float'>, <class 'float'>)</span>
+<span>def <span class="ident">get_component_dist_to_point</span></span>(<span>point: Dict[str, float], gps_data: pandas.core.series.Series, bar_mean: float) ‑> (<class 'float'>, <class 'float'>, <class 'float'>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>compute distance from the gps data point to the chosen point using haversine formula
@@ -1200,7 +1200,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.get_gps_dist_to_location"><code class="name flex">
-<span>def <span class="ident">get_gps_dist_to_location</span></span>(<span>point: typing.Dict[str, float], gps_dataholder: <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a>, bar_alt: typing.Union[float, NoneType] = None) ‑> <built-in function array></span>
+<span>def <span class="ident">get_gps_dist_to_location</span></span>(<span>point: Dict[str, float], gps_dataholder: <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a>, bar_alt: Union[float, NoneType] = None) ‑> <built-in function array></span>
 </code></dt>
 <dd>
 <div class="desc"><p>compute distance from multiple gps points to the chosen point using haversine formula
@@ -1241,7 +1241,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.load_kml"><code class="name flex">
-<span>def <span class="ident">load_kml</span></span>(<span>kml_file: str) ‑> typing.Dict[str, typing.Dict[str, float]]</span>
+<span>def <span class="ident">load_kml</span></span>(<span>kml_file: str) ‑> Dict[str, Dict[str, float]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load location from a kml file
@@ -1269,7 +1269,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.load_position_data"><code class="name flex">
-<span>def <span class="ident">load_position_data</span></span>(<span>w_p: typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]) ‑> <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a></span>
+<span>def <span class="ident">load_position_data</span></span>(<span>w_p: List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]) ‑> <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>load gps data from a list of wrapped redvox packets
@@ -1331,7 +1331,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.point_on_line_side"><code class="name flex">
-<span>def <span class="ident">point_on_line_side</span></span>(<span>line_points: typing.Tuple[typing.Dict[str, float], typing.Dict[str, float]], point: typing.Dict[str, float]) ‑> float</span>
+<span>def <span class="ident">point_on_line_side</span></span>(<span>line_points: Tuple[Dict[str, float], Dict[str, float]], point: Dict[str, float]) ‑> float</span>
 </code></dt>
 <dd>
 <div class="desc"><p>check which side of a line the point is on
@@ -1356,7 +1356,7 @@ algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://g
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.print_station_df"><code class="name flex">
-<span>def <span class="ident">print_station_df</span></span>(<span>station_df: pandas.core.frame.DataFrame, os_type: typing.Union[str, NoneType] = None)</span>
+<span>def <span class="ident">print_station_df</span></span>(<span>station_df: pandas.core.frame.DataFrame, os_type: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>print a dataframe, filtering on the station's os type
@@ -1381,7 +1381,7 @@ algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://g
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.validate"><code class="name flex">
-<span>def <span class="ident">validate</span></span>(<span>data_to_test: <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a>, inclusion_ranges: typing.Tuple[float, float, float] = (100.0, 50.0, 10.0), validation_type: str = None, validation_points: typing.List[typing.Dict[str, float]] = None, debug: bool = False) ‑> <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a></span>
+<span>def <span class="ident">validate</span></span>(<span>data_to_test: <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a>, inclusion_ranges: Tuple[float, float, float] = (100.0, 50.0, 10.0), validation_type: str = None, validation_points: List[Dict[str, float]] = None, debug: bool = False) ‑> <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>validation master function.
@@ -1454,7 +1454,7 @@ Can perform any kind of validation requested
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.validate_blacklist"><code class="name flex">
-<span>def <span class="ident">validate_blacklist</span></span>(<span>gps_data: pandas.core.series.Series, point: typing.Dict[str, float], bar_mean: float, inclusion_ranges: typing.Tuple[float, float, float] = (100.0, 50.0, 10.0)) ‑> bool</span>
+<span>def <span class="ident">validate_blacklist</span></span>(<span>gps_data: pandas.core.series.Series, point: Dict[str, float], bar_mean: float, inclusion_ranges: Tuple[float, float, float] = (100.0, 50.0, 10.0)) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return True if the gps point is NOT in the blacklist
@@ -1486,7 +1486,7 @@ Can perform any kind of validation requested
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.validate_near_point"><code class="name flex">
-<span>def <span class="ident">validate_near_point</span></span>(<span>gps_data: pandas.core.series.Series, point: typing.Dict[str, float], bar_mean: float, inclusion_ranges: typing.Tuple[float, float, float] = (100.0, 50.0, 10.0)) ‑> bool</span>
+<span>def <span class="ident">validate_near_point</span></span>(<span>gps_data: pandas.core.series.Series, point: Dict[str, float], bar_mean: float, inclusion_ranges: Tuple[float, float, float] = (100.0, 50.0, 10.0)) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return True if the gps point IS close to the chosen point
@@ -1518,7 +1518,7 @@ Can perform any kind of validation requested
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.validate_point_in_polygon"><code class="name flex">
-<span>def <span class="ident">validate_point_in_polygon</span></span>(<span>point: typing.Dict[str, float], edges: typing.List[typing.Dict[str, float]]) ‑> bool</span>
+<span>def <span class="ident">validate_point_in_polygon</span></span>(<span>point: Dict[str, float], edges: List[Dict[str, float]]) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Use winding number algorithm to determine if a point is in a polygon (or on the edge)
@@ -1553,7 +1553,7 @@ algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://g
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.write_kml"><code class="name flex">
-<span>def <span class="ident">write_kml</span></span>(<span>kml_file: str, master_dict: typing.Dict[str, typing.Dict[str, float]])</span>
+<span>def <span class="ident">write_kml</span></span>(<span>kml_file: str, master_dict: Dict[str, Dict[str, float]])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>put information from master_dict into a kml file
@@ -1715,7 +1715,7 @@ best_value: the value that best represents the data set</p>
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.DataHolder.get_data"><code class="name flex">
-<span>def <span class="ident">get_data</span></span>(<span>self) ‑> typing.List[float]</span>
+<span>def <span class="ident">get_data</span></span>(<span>self) ‑> List[float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the data
@@ -1805,7 +1805,7 @@ best_value: the value that best represents the data set</p>
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.DataHolder.set_data"><code class="name flex">
-<span>def <span class="ident">set_data</span></span>(<span>self, new_data: typing.List[float])</span>
+<span>def <span class="ident">set_data</span></span>(<span>self, new_data: List[float])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>overwrites the stored data with the new_data
@@ -1827,7 +1827,7 @@ best_value: the value that best represents the data set</p>
 </dd>
 <dt id="redvox.api900.location_analyzer.GPSDataHolder"><code class="flex name class">
 <span>class <span class="ident">GPSDataHolder</span></span>
-<span>(</span><span>name: str, opsys: str, data: typing.Union[typing.List[typing.List[float]], NoneType] = None, mic_samp_rate_hz: float = 80.0, bar: typing.Union[<a title="redvox.api900.location_analyzer.DataHolder" href="#redvox.api900.location_analyzer.DataHolder">DataHolder</a>, NoneType] = None)</span>
+<span>(</span><span>name: str, opsys: str, data: Union[List[List[float]], NoneType] = None, mic_samp_rate_hz: float = 80.0, bar: Union[<a title="redvox.api900.location_analyzer.DataHolder" href="#redvox.api900.location_analyzer.DataHolder">DataHolder</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>holds gps data (latitude, longitude, altitude, and accuracy) and barometric data
@@ -1991,7 +1991,7 @@ best_data_index: the index that corresponds to the best representative of the da
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.GPSDataHolder.get_mean_all"><code class="name flex">
-<span>def <span class="ident">get_mean_all</span></span>(<span>self) ‑> typing.Dict[str, float]</span>
+<span>def <span class="ident">get_mean_all</span></span>(<span>self) ‑> Dict[str, float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the means of the latitude, longitude, altitude, accuracy, and barometer
@@ -2035,7 +2035,7 @@ best_data_index: the index that corresponds to the best representative of the da
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.GPSDataHolder.get_std_all"><code class="name flex">
-<span>def <span class="ident">get_std_all</span></span>(<span>self) ‑> typing.Dict[str, float]</span>
+<span>def <span class="ident">get_std_all</span></span>(<span>self) ‑> Dict[str, float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the standard deviations of the latitude, longitude, altitude, accuracy, and barometer
@@ -2069,7 +2069,7 @@ best_data_index: the index that corresponds to the best representative of the da
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.GPSDataHolder.set_barometer"><code class="name flex">
-<span>def <span class="ident">set_barometer</span></span>(<span>self, bar_data: typing.List[float])</span>
+<span>def <span class="ident">set_barometer</span></span>(<span>self, bar_data: List[float])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>sets the barometer DataHolder.
@@ -2090,7 +2090,7 @@ uses the mean of the data as the best value
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.GPSDataHolder.set_data"><code class="name flex">
-<span>def <span class="ident">set_data</span></span>(<span>self, new_data: typing.Union[typing.List[typing.List[float]], NoneType] = None)</span>
+<span>def <span class="ident">set_data</span></span>(<span>self, new_data: Union[List[List[float]], NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>set gps location data.
@@ -2111,7 +2111,7 @@ and accuracy values
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.GPSDataHolder.set_metadata"><code class="name flex">
-<span>def <span class="ident">set_metadata</span></span>(<span>self, new_id: typing.Union[str, NoneType] = None, new_os: typing.Union[str, NoneType] = None, new_mic_samp_rate_hz: typing.Union[float, NoneType] = None)</span>
+<span>def <span class="ident">set_metadata</span></span>(<span>self, new_id: Union[str, NoneType] = None, new_os: Union[str, NoneType] = None, new_mic_samp_rate_hz: Union[float, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>set metadata fields; id, os and mic sample rate
@@ -2142,7 +2142,7 @@ and accuracy values
 </dd>
 <dt id="redvox.api900.location_analyzer.LocationAnalyzer"><code class="flex name class">
 <span>class <span class="ident">LocationAnalyzer</span></span>
-<span>(</span><span>wrapped_packets: typing.List[typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]] = None, real_location: typing.Union[typing.Dict[str, float], NoneType] = None, invalid_points: typing.Union[typing.List[typing.Dict[str, float]], NoneType] = None)</span>
+<span>(</span><span>wrapped_packets: List[List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]] = None, real_location: Union[Dict[str, float], NoneType] = None, invalid_points: Union[List[Dict[str, float]], NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>stores location information, which can be analyzed later
@@ -2464,7 +2464,7 @@ information is stored in the data frames</p></div>
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.LocationAnalyzer.get_loc_from_packets"><code class="name flex">
-<span>def <span class="ident">get_loc_from_packets</span></span>(<span>self, w_p: typing.List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>])</span>
+<span>def <span class="ident">get_loc_from_packets</span></span>(<span>self, w_p: List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>store the location information and their mean and std using a collection of wrapped redvox packets
@@ -2498,7 +2498,7 @@ assumes a list of redvox packets shares 1 device id
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.LocationAnalyzer.get_real_location"><code class="name flex">
-<span>def <span class="ident">get_real_location</span></span>(<span>self) ‑> typing.Dict[str, float]</span>
+<span>def <span class="ident">get_real_location</span></span>(<span>self) ‑> Dict[str, float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the station's real location
@@ -2535,7 +2535,7 @@ assumes a list of redvox packets shares 1 device id
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.LocationAnalyzer.print_location_df"><code class="name flex">
-<span>def <span class="ident">print_location_df</span></span>(<span>self, info_type: typing.Union[str, NoneType] = None, os_type: typing.Union[str, NoneType] = None)</span>
+<span>def <span class="ident">print_location_df</span></span>(<span>self, info_type: Union[str, NoneType] = None, os_type: Union[str, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>print a single dataframe or a group of dataframes
@@ -2567,7 +2567,7 @@ assumes a list of redvox packets shares 1 device id
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.LocationAnalyzer.print_to_csv"><code class="name flex">
-<span>def <span class="ident">print_to_csv</span></span>(<span>self, path: str, os_type: typing.Union[str, NoneType] = None, debug: typing.Union[bool, NoneType] = False)</span>
+<span>def <span class="ident">print_to_csv</span></span>(<span>self, path: str, os_type: Union[str, NoneType] = None, debug: Union[bool, NoneType] = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>print dataframes to csv files in path
@@ -2599,7 +2599,7 @@ assumes a list of redvox packets shares 1 device id
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.LocationAnalyzer.set_real_location"><code class="name flex">
-<span>def <span class="ident">set_real_location</span></span>(<span>self, survey: typing.Dict[str, float] = None)</span>
+<span>def <span class="ident">set_real_location</span></span>(<span>self, survey: Dict[str, float] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>set the real location
@@ -2617,7 +2617,7 @@ assumes a list of redvox packets shares 1 device id
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.LocationAnalyzer.validate_all"><code class="name flex">
-<span>def <span class="ident">validate_all</span></span>(<span>self, validation_ranges: typing.Tuple[float, float, float] = (100.0, 50.0, 10.0))</span>
+<span>def <span class="ident">validate_all</span></span>(<span>self, validation_ranges: Tuple[float, float, float] = (100.0, 50.0, 10.0))</span>
 </code></dt>
 <dd>
 <div class="desc"><p>check that all data in the data set are valid.

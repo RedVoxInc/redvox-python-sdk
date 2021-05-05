@@ -42,7 +42,6 @@ from google.protobuf.internal import containers
 import lz4.block
 import numpy
 
-
 import redvox.api900.exceptions as exceptions
 import redvox.api900.lib.api900_pb2 as api900_pb2
 
@@ -74,9 +73,13 @@ def lz4_decompress(buf: bytes) -&gt; bytes:
     uncompressed_size = calculate_uncompressed_size(buf)
 
     if uncompressed_size &lt;= 0:
-        raise exceptions.ReaderException(&#34;uncompressed size [{}] must be &gt; 0&#34;.format(uncompressed_size))
+        raise exceptions.ReaderException(
+            &#34;uncompressed size [{}] must be &gt; 0&#34;.format(uncompressed_size)
+        )
 
-    return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))
+    return lz4.block.decompress(
+        buf[4:], uncompressed_size=calculate_uncompressed_size(buf)
+    )
 
 
 # noinspection PyArgumentList
@@ -122,8 +125,11 @@ def from_json(redvox_packet_json: str) -&gt; api900_pb2.RedvoxPacket:
     return json_format.Parse(redvox_packet_json, api900_pb2.RedvoxPacket())
 
 
-def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                       api900_pb2.UnevenlySampledChannel]) -&gt; str:
+def payload_type(
+    channel: typing.Union[
+        api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel
+    ]
+) -&gt; str:
     &#34;&#34;&#34;
     Given a channel, return the internal protobuf string representation of the payload&#39;s data type.
     :param channel: The channel to check the data type of.
@@ -135,8 +141,11 @@ def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     return channel.WhichOneof(&#34;payload&#34;)
 
 
-def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                          api900_pb2.UnevenlySampledChannel]) -&gt; numpy.ndarray:
+def payload_len(
+    channel: typing.Union[
+        api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel
+    ]
+) -&gt; int:
     &#34;&#34;&#34;
     Given an evenly or unevenly sampled channel, extracts the entire payload.
 
@@ -144,6 +153,39 @@ def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     protobuf type.
     :param channel: The protobuf channel to extract the payload from.
     :return: A numpy array of either floats or ints.
+    &#34;&#34;&#34;
+    payload_type_str = payload_type(channel)
+
+    if payload_type_str == &#34;byte_payload&#34;:
+        payload = len(channel.byte_payload.payload)
+    elif payload_type_str == &#34;uint32_payload&#34;:
+        payload = len(channel.uint32_payload.payload)
+    elif payload_type_str == &#34;uint64_payload&#34;:
+        payload = len(channel.uint64_payload.payload)
+    elif payload_type_str == &#34;int32_payload&#34;:
+        payload = len(channel.int32_payload.payload)
+    elif payload_type_str == &#34;int64_payload&#34;:
+        payload = len(channel.int64_payload.payload)
+    elif payload_type_str == &#34;float32_payload&#34;:
+        payload = len(channel.float32_payload.payload)
+    elif payload_type_str == &#34;float64_payload&#34;:
+        payload = len(channel.float64_payload.payload)
+    else:
+        payload = 0
+
+    return payload
+
+
+def extract_payload(
+    channel: typing.Union[
+        api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel
+    ]
+) -&gt; numpy.ndarray:
+    &#34;&#34;&#34;
+    Given an evenly or unevenly sampled channel, extracts the length of the payload.
+
+    :param channel: The protobuf channel to extract the payload from.
+    :return: Length of the payload.
     &#34;&#34;&#34;
     payload_type_str = payload_type(channel)
 
@@ -169,18 +211,26 @@ def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
     return numpy.array(payload)
 
 
-def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                            containers.RepeatedScalarFieldContainer]) -&gt; typing.List:
+def repeated_to_list(
+    repeated: typing.Union[
+        containers.RepeatedCompositeFieldContainer,
+        containers.RepeatedScalarFieldContainer,
+    ]
+) -&gt; typing.List:
     &#34;&#34;&#34;
     Transforms a repeated protobuf field into a list.
     :param repeated: The repeated field to transform.
     :return: A list of the repeated items.
     &#34;&#34;&#34;
-    return repeated[0:len(repeated)]
+    return repeated[0 : len(repeated)]
 
 
-def repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                             containers.RepeatedScalarFieldContainer]) -&gt; numpy.ndarray:
+def repeated_to_array(
+    repeated: typing.Union[
+        containers.RepeatedCompositeFieldContainer,
+        containers.RepeatedScalarFieldContainer,
+    ]
+) -&gt; numpy.ndarray:
     &#34;&#34;&#34;
     Transforms a repeated protobuf field into a numpy array.
     :param repeated: The repeated field to transform.
@@ -214,16 +264,24 @@ def deinterleave_array(ndarray: numpy.ndarray, offset: int, step: int) -&gt; num
     &#34;&#34;&#34;
 
     if offset &lt; 0 or offset &gt;= len(ndarray):
-        raise exceptions.ReaderException(&#34;offset {} out of range [{},{})&#34;.format(offset, 0, len(ndarray)))
+        raise exceptions.ReaderException(
+            &#34;offset {} out of range [{},{})&#34;.format(offset, 0, len(ndarray))
+        )
 
     if offset &gt;= step:
-        raise exceptions.ReaderException(&#34;offset {} must be smaller than step {}&#34;.format(offset, step))
+        raise exceptions.ReaderException(
+            &#34;offset {} must be smaller than step {}&#34;.format(offset, step)
+        )
 
     if step &lt;= 0 or step &gt; len(ndarray):
-        raise exceptions.ReaderException(&#34;step {} out of range [{},{})&#34;.format(step, 0, len(ndarray)))
+        raise exceptions.ReaderException(
+            &#34;step {} out of range [{},{})&#34;.format(step, 0, len(ndarray))
+        )
 
     if len(ndarray) % step != 0:
-        raise exceptions.ReaderException(&#34;step {} is not a multiple of {}&#34;.format(step, len(ndarray)))
+        raise exceptions.ReaderException(
+            &#34;step {} is not a multiple of {}&#34;.format(step, len(ndarray))
+        )
 
     # pylint: disable=C1801
     if len(ndarray) == 0:
@@ -250,7 +308,9 @@ def interleave_arrays(arrays: typing.List[numpy.ndarray]) -&gt; numpy.ndarray:
     :return: Interleaved arrays.
     &#34;&#34;&#34;
     if len(arrays) &lt; 2:
-        raise exceptions.ReaderException(&#34;At least 2 arrays are required for interleaving&#34;)
+        raise exceptions.ReaderException(
+            &#34;At least 2 arrays are required for interleaving&#34;
+        )
 
     if len(set(map(len, arrays))) &gt; 1:
         raise exceptions.ReaderException(&#34;all arrays must be same size&#34;)
@@ -363,13 +423,91 @@ def get_metadata(metadata: typing.List[str], k: str) -&gt; str:
     :return: The value corresponding to the key or an empty string.
     &#34;&#34;&#34;
     if len(metadata) % 2 != 0:
-        raise exceptions.ReaderException(&#34;metadata list must contain an even number of items&#34;)
+        raise exceptions.ReaderException(
+            &#34;metadata list must contain an even number of items&#34;
+        )
 
     idx = safe_index_of(metadata, k)
     if idx &lt; 0:
         return &#34;&#34;
 
     return metadata[idx + 1]
+
+
+def extract_uneven_payload_idx_raw(
+    packet: api900_pb2.RedvoxPacket, channel_type
+) -&gt; typing.Optional[int]:
+    channel: api900_pb2.UnevenlySampledChannel
+    for channel in packet.unevenly_sampled_channels:
+        for (i, local_type) in enumerate(channel.channel_types):
+            if local_type == channel_type:
+                return i
+
+    return None
+
+
+def extract_uneven_payload_raw(
+    packet: api900_pb2.RedvoxPacket, channel_type
+) -&gt; typing.Optional[typing.List[float]]:
+    channel: api900_pb2.UnevenlySampledChannel
+    for channel in packet.unevenly_sampled_channels:
+        for (i, local_type) in enumerate(channel.channel_types):
+            if local_type == channel_type:
+                total_channels: int = len(channel.channel_types)
+                return list(extract_payload(channel))[i::total_channels]
+
+    return None
+
+
+def find_uneven_channel_raw(packet: api900_pb2.RedvoxPacket, channel_types):
+    channel: api900_pb2.UnevenlySampledChannel
+    for channel in packet.unevenly_sampled_channels:
+        for local_type in channel.channel_types:
+            if local_type in channel_types:
+                return channel
+    return None
+
+
+T = typing.TypeVar(&#34;T&#34;)
+
+
+def get_metadata_or_default(
+    metadata: typing.List[str],
+    k: str,
+    and_then: typing.Callable[[str], T],
+    or_default: T,
+) -&gt; T:
+    for i, v in enumerate(metadata):
+        if v == k and (i + 1) &lt; len(metadata):
+            try:
+                return and_then(metadata[i + 1])
+            except:
+                return or_default
+
+    return or_default
+
+
+def get_metadata_raw(
+    metadata: typing.List[str],
+    k: str,
+    and_then: typing.Optional[typing.Callable[[str], T]] = None,
+    or_default: typing.Optional[typing.Union[str, T]] = None,
+) -&gt; typing.Optional[typing.Union[str, T]]:
+    &#34;&#34;&#34;
+    Given a meta-data key, extract the value.
+    :param metadata: List of metadata to extract value from.
+    :param k: The meta-data key.
+    :return: The value corresponding to the key or an empty string.
+    &#34;&#34;&#34;
+    for i, v in enumerate(metadata):
+        if v == k and (i + 1) &lt; len(metadata):
+            try:
+                r: str = metadata[i + 1]
+                return r if and_then is None else and_then(r)
+            except:
+                return None
+
+    return or_default
 
 
 def get_metadata_as_dict(metadata: typing.List[str]) -&gt; typing.Dict[str, str]:
@@ -382,7 +520,9 @@ def get_metadata_as_dict(metadata: typing.List[str]) -&gt; typing.Dict[str, str]
         return {}
 
     if len(metadata) % 2 != 0:
-        raise exceptions.ReaderException(&#34;metadata list must contain an even number of items&#34;)
+        raise exceptions.ReaderException(
+            &#34;metadata list must contain an even number of items&#34;
+        )
 
     metadata_dict = {}
     metadata_copy = metadata.copy()
@@ -501,16 +641,24 @@ As such, a GPS channel payload would contain the following values:</p>
     &#34;&#34;&#34;
 
     if offset &lt; 0 or offset &gt;= len(ndarray):
-        raise exceptions.ReaderException(&#34;offset {} out of range [{},{})&#34;.format(offset, 0, len(ndarray)))
+        raise exceptions.ReaderException(
+            &#34;offset {} out of range [{},{})&#34;.format(offset, 0, len(ndarray))
+        )
 
     if offset &gt;= step:
-        raise exceptions.ReaderException(&#34;offset {} must be smaller than step {}&#34;.format(offset, step))
+        raise exceptions.ReaderException(
+            &#34;offset {} must be smaller than step {}&#34;.format(offset, step)
+        )
 
     if step &lt;= 0 or step &gt; len(ndarray):
-        raise exceptions.ReaderException(&#34;step {} out of range [{},{})&#34;.format(step, 0, len(ndarray)))
+        raise exceptions.ReaderException(
+            &#34;step {} out of range [{},{})&#34;.format(step, 0, len(ndarray))
+        )
 
     if len(ndarray) % step != 0:
-        raise exceptions.ReaderException(&#34;step {} is not a multiple of {}&#34;.format(step, len(ndarray)))
+        raise exceptions.ReaderException(
+            &#34;step {} is not a multiple of {}&#34;.format(step, len(ndarray))
+        )
 
     # pylint: disable=C1801
     if len(ndarray) == 0:
@@ -520,7 +668,7 @@ As such, a GPS channel payload would contain the following values:</p>
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.diff"><code class="name flex">
-<span>def <span class="ident">diff</span></span>(<span>val1, val2) ‑> typing.Tuple[bool, typing.Union[str, NoneType]]</span>
+<span>def <span class="ident">diff</span></span>(<span>val1, val2) ‑> Tuple[bool, Union[str, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Determines if the two values are different.
@@ -617,27 +765,26 @@ As such, a GPS channel payload would contain the following values:</p>
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.extract_payload"><code class="name flex">
-<span>def <span class="ident">extract_payload</span></span>(<span>channel: typing.Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]) ‑> numpy.ndarray</span>
+<span>def <span class="ident">extract_payload</span></span>(<span>channel: Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Given an evenly or unevenly sampled channel, extracts the entire payload.</p>
-<p>This will return a payload of either ints or floats and is type agnostic when it comes to the underlying
-protobuf type.
-:param channel: The protobuf channel to extract the payload from.
-:return: A numpy array of either floats or ints.</p></div>
+<div class="desc"><p>Given an evenly or unevenly sampled channel, extracts the length of the payload.</p>
+<p>:param channel: The protobuf channel to extract the payload from.
+:return: Length of the payload.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def extract_payload(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                          api900_pb2.UnevenlySampledChannel]) -&gt; numpy.ndarray:
+<pre><code class="python">def extract_payload(
+    channel: typing.Union[
+        api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel
+    ]
+) -&gt; numpy.ndarray:
     &#34;&#34;&#34;
-    Given an evenly or unevenly sampled channel, extracts the entire payload.
+    Given an evenly or unevenly sampled channel, extracts the length of the payload.
 
-    This will return a payload of either ints or floats and is type agnostic when it comes to the underlying
-    protobuf type.
     :param channel: The protobuf channel to extract the payload from.
-    :return: A numpy array of either floats or ints.
+    :return: Length of the payload.
     &#34;&#34;&#34;
     payload_type_str = payload_type(channel)
 
@@ -663,6 +810,67 @@ protobuf type.
     return numpy.array(payload)</code></pre>
 </details>
 </dd>
+<dt id="redvox.api900.reader_utils.extract_uneven_payload_idx_raw"><code class="name flex">
+<span>def <span class="ident">extract_uneven_payload_idx_raw</span></span>(<span>packet: api900_pb2.RedvoxPacket, channel_type) ‑> Union[int, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extract_uneven_payload_idx_raw(
+    packet: api900_pb2.RedvoxPacket, channel_type
+) -&gt; typing.Optional[int]:
+    channel: api900_pb2.UnevenlySampledChannel
+    for channel in packet.unevenly_sampled_channels:
+        for (i, local_type) in enumerate(channel.channel_types):
+            if local_type == channel_type:
+                return i
+
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader_utils.extract_uneven_payload_raw"><code class="name flex">
+<span>def <span class="ident">extract_uneven_payload_raw</span></span>(<span>packet: api900_pb2.RedvoxPacket, channel_type) ‑> Union[List[float], NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extract_uneven_payload_raw(
+    packet: api900_pb2.RedvoxPacket, channel_type
+) -&gt; typing.Optional[typing.List[float]]:
+    channel: api900_pb2.UnevenlySampledChannel
+    for channel in packet.unevenly_sampled_channels:
+        for (i, local_type) in enumerate(channel.channel_types):
+            if local_type == channel_type:
+                total_channels: int = len(channel.channel_types)
+                return list(extract_payload(channel))[i::total_channels]
+
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader_utils.find_uneven_channel_raw"><code class="name flex">
+<span>def <span class="ident">find_uneven_channel_raw</span></span>(<span>packet: api900_pb2.RedvoxPacket, channel_types)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_uneven_channel_raw(packet: api900_pb2.RedvoxPacket, channel_types):
+    channel: api900_pb2.UnevenlySampledChannel
+    for channel in packet.unevenly_sampled_channels:
+        for local_type in channel.channel_types:
+            if local_type in channel_types:
+                return channel
+    return None</code></pre>
+</details>
+</dd>
 <dt id="redvox.api900.reader_utils.from_json"><code class="name flex">
 <span>def <span class="ident">from_json</span></span>(<span>redvox_packet_json: str) ‑> api900_pb2.RedvoxPacket</span>
 </code></dt>
@@ -684,7 +892,7 @@ protobuf type.
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.get_metadata"><code class="name flex">
-<span>def <span class="ident">get_metadata</span></span>(<span>metadata: typing.List[str], k: str) ‑> str</span>
+<span>def <span class="ident">get_metadata</span></span>(<span>metadata: List[str], k: str) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Given a meta-data key, extract the value.
@@ -703,7 +911,9 @@ protobuf type.
     :return: The value corresponding to the key or an empty string.
     &#34;&#34;&#34;
     if len(metadata) % 2 != 0:
-        raise exceptions.ReaderException(&#34;metadata list must contain an even number of items&#34;)
+        raise exceptions.ReaderException(
+            &#34;metadata list must contain an even number of items&#34;
+        )
 
     idx = safe_index_of(metadata, k)
     if idx &lt; 0:
@@ -713,7 +923,7 @@ protobuf type.
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.get_metadata_as_dict"><code class="name flex">
-<span>def <span class="ident">get_metadata_as_dict</span></span>(<span>metadata: typing.List[str]) ‑> typing.Dict[str, str]</span>
+<span>def <span class="ident">get_metadata_as_dict</span></span>(<span>metadata: List[str]) ‑> Dict[str, str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Since the metadata is inherently key-value, it may be useful to turn the metadata list into a python dictionary.
@@ -733,7 +943,9 @@ protobuf type.
         return {}
 
     if len(metadata) % 2 != 0:
-        raise exceptions.ReaderException(&#34;metadata list must contain an even number of items&#34;)
+        raise exceptions.ReaderException(
+            &#34;metadata list must contain an even number of items&#34;
+        )
 
     metadata_dict = {}
     metadata_copy = metadata.copy()
@@ -743,6 +955,66 @@ protobuf type.
         if metadata_key not in metadata_dict:
             metadata_dict[metadata_key] = metadata_value
     return metadata_dict</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader_utils.get_metadata_or_default"><code class="name flex">
+<span>def <span class="ident">get_metadata_or_default</span></span>(<span>metadata: List[str], k: str, and_then: Callable[[str], ~T], or_default: ~T) ‑> ~T</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_metadata_or_default(
+    metadata: typing.List[str],
+    k: str,
+    and_then: typing.Callable[[str], T],
+    or_default: T,
+) -&gt; T:
+    for i, v in enumerate(metadata):
+        if v == k and (i + 1) &lt; len(metadata):
+            try:
+                return and_then(metadata[i + 1])
+            except:
+                return or_default
+
+    return or_default</code></pre>
+</details>
+</dd>
+<dt id="redvox.api900.reader_utils.get_metadata_raw"><code class="name flex">
+<span>def <span class="ident">get_metadata_raw</span></span>(<span>metadata: List[str], k: str, and_then: Union[Callable[[str], ~T], NoneType] = None, or_default: Union[str, ~T, NoneType] = None) ‑> Union[str, ~T, NoneType]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Given a meta-data key, extract the value.
+:param metadata: List of metadata to extract value from.
+:param k: The meta-data key.
+:return: The value corresponding to the key or an empty string.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_metadata_raw(
+    metadata: typing.List[str],
+    k: str,
+    and_then: typing.Optional[typing.Callable[[str], T]] = None,
+    or_default: typing.Optional[typing.Union[str, T]] = None,
+) -&gt; typing.Optional[typing.Union[str, T]]:
+    &#34;&#34;&#34;
+    Given a meta-data key, extract the value.
+    :param metadata: List of metadata to extract value from.
+    :param k: The meta-data key.
+    :return: The value corresponding to the key or an empty string.
+    &#34;&#34;&#34;
+    for i, v in enumerate(metadata):
+        if v == k and (i + 1) &lt; len(metadata):
+            try:
+                r: str = metadata[i + 1]
+                return r if and_then is None else and_then(r)
+            except:
+                return None
+
+    return or_default</code></pre>
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.implements_diff"><code class="name flex">
@@ -770,7 +1042,7 @@ protobuf type.
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.interleave_arrays"><code class="name flex">
-<span>def <span class="ident">interleave_arrays</span></span>(<span>arrays: typing.List[numpy.ndarray]) ‑> numpy.ndarray</span>
+<span>def <span class="ident">interleave_arrays</span></span>(<span>arrays: List[numpy.ndarray]) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Interleaves multiple arrays together.
@@ -787,7 +1059,9 @@ protobuf type.
     :return: Interleaved arrays.
     &#34;&#34;&#34;
     if len(arrays) &lt; 2:
-        raise exceptions.ReaderException(&#34;At least 2 arrays are required for interleaving&#34;)
+        raise exceptions.ReaderException(
+            &#34;At least 2 arrays are required for interleaving&#34;
+        )
 
     if len(set(map(len, arrays))) &gt; 1:
         raise exceptions.ReaderException(&#34;all arrays must be same size&#34;)
@@ -845,13 +1119,17 @@ size of uncompressed buffer.
     uncompressed_size = calculate_uncompressed_size(buf)
 
     if uncompressed_size &lt;= 0:
-        raise exceptions.ReaderException(&#34;uncompressed size [{}] must be &gt; 0&#34;.format(uncompressed_size))
+        raise exceptions.ReaderException(
+            &#34;uncompressed size [{}] must be &gt; 0&#34;.format(uncompressed_size)
+        )
 
-    return lz4.block.decompress(buf[4:], uncompressed_size=calculate_uncompressed_size(buf))</code></pre>
+    return lz4.block.decompress(
+        buf[4:], uncompressed_size=calculate_uncompressed_size(buf)
+    )</code></pre>
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.metadata_dict_to_list"><code class="name flex">
-<span>def <span class="ident">metadata_dict_to_list</span></span>(<span>metadata_dict: typing.Dict[str, str]) ‑> typing.List[str]</span>
+<span>def <span class="ident">metadata_dict_to_list</span></span>(<span>metadata_dict: Dict[str, str]) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts a dictionary containing metadata into a list of metadata.
@@ -873,8 +1151,56 @@ size of uncompressed buffer.
     return metadata_list</code></pre>
 </details>
 </dd>
+<dt id="redvox.api900.reader_utils.payload_len"><code class="name flex">
+<span>def <span class="ident">payload_len</span></span>(<span>channel: Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Given an evenly or unevenly sampled channel, extracts the entire payload.</p>
+<p>This will return a payload of either ints or floats and is type agnostic when it comes to the underlying
+protobuf type.
+:param channel: The protobuf channel to extract the payload from.
+:return: A numpy array of either floats or ints.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def payload_len(
+    channel: typing.Union[
+        api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel
+    ]
+) -&gt; int:
+    &#34;&#34;&#34;
+    Given an evenly or unevenly sampled channel, extracts the entire payload.
+
+    This will return a payload of either ints or floats and is type agnostic when it comes to the underlying
+    protobuf type.
+    :param channel: The protobuf channel to extract the payload from.
+    :return: A numpy array of either floats or ints.
+    &#34;&#34;&#34;
+    payload_type_str = payload_type(channel)
+
+    if payload_type_str == &#34;byte_payload&#34;:
+        payload = len(channel.byte_payload.payload)
+    elif payload_type_str == &#34;uint32_payload&#34;:
+        payload = len(channel.uint32_payload.payload)
+    elif payload_type_str == &#34;uint64_payload&#34;:
+        payload = len(channel.uint64_payload.payload)
+    elif payload_type_str == &#34;int32_payload&#34;:
+        payload = len(channel.int32_payload.payload)
+    elif payload_type_str == &#34;int64_payload&#34;:
+        payload = len(channel.int64_payload.payload)
+    elif payload_type_str == &#34;float32_payload&#34;:
+        payload = len(channel.float32_payload.payload)
+    elif payload_type_str == &#34;float64_payload&#34;:
+        payload = len(channel.float64_payload.payload)
+    else:
+        payload = 0
+
+    return payload</code></pre>
+</details>
+</dd>
 <dt id="redvox.api900.reader_utils.payload_type"><code class="name flex">
-<span>def <span class="ident">payload_type</span></span>(<span>channel: typing.Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]) ‑> str</span>
+<span>def <span class="ident">payload_type</span></span>(<span>channel: Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Given a channel, return the internal protobuf string representation of the payload's data type.
@@ -884,8 +1210,11 @@ size of uncompressed buffer.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def payload_type(channel: typing.Union[api900_pb2.EvenlySampledChannel,
-                                       api900_pb2.UnevenlySampledChannel]) -&gt; str:
+<pre><code class="python">def payload_type(
+    channel: typing.Union[
+        api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel
+    ]
+) -&gt; str:
     &#34;&#34;&#34;
     Given a channel, return the internal protobuf string representation of the payload&#39;s data type.
     :param channel: The channel to check the data type of.
@@ -898,7 +1227,7 @@ size of uncompressed buffer.
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.repeated_to_array"><code class="name flex">
-<span>def <span class="ident">repeated_to_array</span></span>(<span>repeated: typing.Union[google.protobuf.internal.containers.RepeatedCompositeFieldContainer, google.protobuf.internal.containers.RepeatedScalarFieldContainer]) ‑> numpy.ndarray</span>
+<span>def <span class="ident">repeated_to_array</span></span>(<span>repeated: Union[google.protobuf.internal.containers.RepeatedCompositeFieldContainer, google.protobuf.internal.containers.RepeatedScalarFieldContainer]) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Transforms a repeated protobuf field into a numpy array.
@@ -908,8 +1237,12 @@ size of uncompressed buffer.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def repeated_to_array(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                             containers.RepeatedScalarFieldContainer]) -&gt; numpy.ndarray:
+<pre><code class="python">def repeated_to_array(
+    repeated: typing.Union[
+        containers.RepeatedCompositeFieldContainer,
+        containers.RepeatedScalarFieldContainer,
+    ]
+) -&gt; numpy.ndarray:
     &#34;&#34;&#34;
     Transforms a repeated protobuf field into a numpy array.
     :param repeated: The repeated field to transform.
@@ -919,7 +1252,7 @@ size of uncompressed buffer.
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.repeated_to_list"><code class="name flex">
-<span>def <span class="ident">repeated_to_list</span></span>(<span>repeated: typing.Union[google.protobuf.internal.containers.RepeatedCompositeFieldContainer, google.protobuf.internal.containers.RepeatedScalarFieldContainer]) ‑> typing.List</span>
+<span>def <span class="ident">repeated_to_list</span></span>(<span>repeated: Union[google.protobuf.internal.containers.RepeatedCompositeFieldContainer, google.protobuf.internal.containers.RepeatedScalarFieldContainer]) ‑> List</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Transforms a repeated protobuf field into a list.
@@ -929,18 +1262,22 @@ size of uncompressed buffer.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def repeated_to_list(repeated: typing.Union[containers.RepeatedCompositeFieldContainer,
-                                            containers.RepeatedScalarFieldContainer]) -&gt; typing.List:
+<pre><code class="python">def repeated_to_list(
+    repeated: typing.Union[
+        containers.RepeatedCompositeFieldContainer,
+        containers.RepeatedScalarFieldContainer,
+    ]
+) -&gt; typing.List:
     &#34;&#34;&#34;
     Transforms a repeated protobuf field into a list.
     :param repeated: The repeated field to transform.
     :return: A list of the repeated items.
     &#34;&#34;&#34;
-    return repeated[0:len(repeated)]</code></pre>
+    return repeated[0 : len(repeated)]</code></pre>
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.safe_index_of"><code class="name flex">
-<span>def <span class="ident">safe_index_of</span></span>(<span>lst: typing.List, val: typing.Any) ‑> int</span>
+<span>def <span class="ident">safe_index_of</span></span>(<span>lst: List, val: Any) ‑> int</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Finds the index of an item in a list and instead of throwing an exception returns -1 when the item DNE.
@@ -965,7 +1302,7 @@ size of uncompressed buffer.
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.to_array"><code class="name flex">
-<span>def <span class="ident">to_array</span></span>(<span>values: typing.Union[typing.List, numpy.ndarray]) ‑> numpy.ndarray</span>
+<span>def <span class="ident">to_array</span></span>(<span>values: Union[List, numpy.ndarray]) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Takes either a list or a numpy array and returns a numpy array if the parameter was a list.
@@ -1077,14 +1414,20 @@ Specify the correct file type in the file string.
 <li><code><a title="redvox.api900.reader_utils.empty_evenly_sampled_channel" href="#redvox.api900.reader_utils.empty_evenly_sampled_channel">empty_evenly_sampled_channel</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.empty_unevenly_sampled_channel" href="#redvox.api900.reader_utils.empty_unevenly_sampled_channel">empty_unevenly_sampled_channel</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.extract_payload" href="#redvox.api900.reader_utils.extract_payload">extract_payload</a></code></li>
+<li><code><a title="redvox.api900.reader_utils.extract_uneven_payload_idx_raw" href="#redvox.api900.reader_utils.extract_uneven_payload_idx_raw">extract_uneven_payload_idx_raw</a></code></li>
+<li><code><a title="redvox.api900.reader_utils.extract_uneven_payload_raw" href="#redvox.api900.reader_utils.extract_uneven_payload_raw">extract_uneven_payload_raw</a></code></li>
+<li><code><a title="redvox.api900.reader_utils.find_uneven_channel_raw" href="#redvox.api900.reader_utils.find_uneven_channel_raw">find_uneven_channel_raw</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.from_json" href="#redvox.api900.reader_utils.from_json">from_json</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.get_metadata" href="#redvox.api900.reader_utils.get_metadata">get_metadata</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.get_metadata_as_dict" href="#redvox.api900.reader_utils.get_metadata_as_dict">get_metadata_as_dict</a></code></li>
+<li><code><a title="redvox.api900.reader_utils.get_metadata_or_default" href="#redvox.api900.reader_utils.get_metadata_or_default">get_metadata_or_default</a></code></li>
+<li><code><a title="redvox.api900.reader_utils.get_metadata_raw" href="#redvox.api900.reader_utils.get_metadata_raw">get_metadata_raw</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.implements_diff" href="#redvox.api900.reader_utils.implements_diff">implements_diff</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.interleave_arrays" href="#redvox.api900.reader_utils.interleave_arrays">interleave_arrays</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.lz4_compress" href="#redvox.api900.reader_utils.lz4_compress">lz4_compress</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.lz4_decompress" href="#redvox.api900.reader_utils.lz4_decompress">lz4_decompress</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.metadata_dict_to_list" href="#redvox.api900.reader_utils.metadata_dict_to_list">metadata_dict_to_list</a></code></li>
+<li><code><a title="redvox.api900.reader_utils.payload_len" href="#redvox.api900.reader_utils.payload_len">payload_len</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.payload_type" href="#redvox.api900.reader_utils.payload_type">payload_type</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.repeated_to_array" href="#redvox.api900.reader_utils.repeated_to_array">repeated_to_array</a></code></li>
 <li><code><a title="redvox.api900.reader_utils.repeated_to_list" href="#redvox.api900.reader_utils.repeated_to_list">repeated_to_list</a></code></li>

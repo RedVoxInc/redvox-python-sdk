@@ -261,7 +261,7 @@ def validate_image(image_sensor: Image) -&gt; List[str]:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.validate_image"><code class="name flex">
-<span>def <span class="ident">validate_image</span></span>(<span>image_sensor: <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_image</span></span>(<span>image_sensor: <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a>) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates the image sensor.
@@ -532,7 +532,7 @@ def new() -&gt; &#34;Image&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.append_values"><code class="name flex">
-<span>def <span class="ident">append_values</span></span>(<span>self, images: typing.List[bytes]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
+<span>def <span class="ident">append_values</span></span>(<span>self, images: List[bytes]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Appends multiple images to this sensor's image payload.
@@ -644,7 +644,7 @@ def new() -&gt; &#34;Image&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.get_samples"><code class="name flex">
-<span>def <span class="ident">get_samples</span></span>(<span>self) ‑> typing.List[bytes]</span>
+<span>def <span class="ident">get_samples</span></span>(<span>self) ‑> List[bytes]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:return: Returns each image as collection of bytes.</p></div>
@@ -715,7 +715,7 @@ def new() -&gt; &#34;Image&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.set_samples"><code class="name flex">
-<span>def <span class="ident">set_samples</span></span>(<span>self, images: typing.List[bytes]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
+<span>def <span class="ident">set_samples</span></span>(<span>self, images: List[bytes]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.sensors.image.Image" href="#redvox.api1000.wrapped_redvox_packet.sensors.image.Image">Image</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Set images.
@@ -782,7 +782,7 @@ def new() -&gt; &#34;Image&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_image"><code class="name flex">
-<span>def <span class="ident">write_image</span></span>(<span>self, index: int, base_dir: str = '.', out_file: typing.Union[str, NoneType] = None) ‑> str</span>
+<span>def <span class="ident">write_image</span></span>(<span>self, index: int, base_dir: str = '.', out_file: Union[str, NoneType] = None) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Writes an image to disk.
@@ -826,7 +826,7 @@ def new() -&gt; &#34;Image&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.sensors.image.Image.write_images"><code class="name flex">
-<span>def <span class="ident">write_images</span></span>(<span>self, indices: typing.Union[typing.List[int], NoneType] = None, base_dir: str = '.') ‑> typing.List[str]</span>
+<span>def <span class="ident">write_images</span></span>(<span>self, indices: Union[List[int], NoneType] = None, base_dir: str = '.') ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Write multiple images to disk.

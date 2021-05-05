@@ -39,13 +39,18 @@ Also includes functions for correcting time arrays.
 ALL timestamps in microseconds unless otherwise stated
 &#34;&#34;&#34;
 
+from functools import reduce
 from typing import List, Optional, Union
 
 # noinspection Mypy
 import numpy as np
 import pandas as pd
 
+import redvox.api900.lib.api900_pb2 as api900_pb2
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
+from redvox.api900.lib.api900_pb2 import RedvoxPacket
 from redvox.common.offset_model import OffsetModel
+import redvox.api900.reader_utils as util_900
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 from redvox.common import (
@@ -83,17 +88,17 @@ class TimeSyncData:
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        station_id: str = &#34;&#34;,
-        sample_rate_hz: float = np.nan,
-        num_audio_samples: int = np.nan,
-        station_start_timestamp: float = np.nan,
-        server_acquisition_timestamp: float = np.nan,
-        packet_start_timestamp: float = np.nan,
-        packet_end_timestamp: float = np.nan,
-        time_sync_exchanges_list: Optional[List[float]] = None,
-        best_latency: float = np.nan,
-        best_offset: float = 0.0,
+            self,
+            station_id: str = &#34;&#34;,
+            sample_rate_hz: float = np.nan,
+            num_audio_samples: int = np.nan,
+            station_start_timestamp: float = np.nan,
+            server_acquisition_timestamp: float = np.nan,
+            packet_start_timestamp: float = np.nan,
+            packet_end_timestamp: float = np.nan,
+            time_sync_exchanges_list: Optional[List[float]] = None,
+            best_latency: float = np.nan,
+            best_offset: float = 0.0,
     ):
         &#34;&#34;&#34;
         Initialize properties
@@ -134,7 +139,7 @@ class TimeSyncData:
         self.packet_duration = self.packet_end_timestamp - self.packet_start_timestamp
         # calculate travel time between corrected end of packet timestamp and server timestamp
         self.acquire_travel_time = self.server_acquisition_timestamp - (
-            self.packet_end_timestamp + self.best_offset
+                self.packet_end_timestamp + self.best_offset
         )
 
     def _compute_tri_message_stats(self):
@@ -214,6 +219,64 @@ class TimeSyncData:
             return self.packet_start_timestamp
 
 
+def time_sync_data_from_raw_packet(packet: Union[RedvoxPacketM, RedvoxPacket]) -&gt; TimeSyncData:
+    tsd: TimeSyncData
+    if isinstance(packet, RedvoxPacketM):
+        exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
+                                        packet.timing_information.synch_exchanges,
+                                        [])
+        tsd = TimeSyncData(
+            packet.station_information.id,
+            packet.sensors.audio.sample_rate,
+            len(packet.sensors.audio.samples.values),
+            packet.timing_information.app_start_mach_timestamp,
+            packet.timing_information.server_acquisition_arrival_timestamp,
+            packet.timing_information.packet_start_mach_timestamp,
+            packet.timing_information.packet_end_mach_timestamp,
+            exchanges,
+            packet.timing_information.best_latency,
+            packet.timing_information.best_offset
+        )
+    else:
+        mtz: float = np.nan
+        best_latency: float = np.nan
+        best_offset: float = np.nan
+
+        for i, v in enumerate(packet.metadata):
+            plus_1: int = i + 1
+            try:
+                if v == &#34;machTimeZero&#34; and plus_1 &lt; len(packet.metadata):
+                    mtz = float(packet.metadata[plus_1])
+                if v == &#34;bestLatency&#34; and plus_1 &lt; len(packet.metadata):
+                    best_latency = float(packet.metadata[plus_1])
+                if v == &#34;bestOffset&#34; and plus_1 &lt; len(packet.metadata):
+                    best_offset = float(packet.metadata[plus_1])
+            except (KeyError, ValueError):
+                continue
+
+        # Get synch exchanges
+        exchanges: Optional[np.ndarray] = None
+        ch: api900_pb2.UnevenlySampledChannel
+        for ch in packet.unevenly_sampled_channels:
+            if api900_pb2.TIME_SYNCHRONIZATION in ch.channel_types:
+                exchanges = util_900.extract_payload(ch)
+
+        tsd = TimeSyncData(
+            packet.redvox_id,
+            packet.evenly_sampled_channels[0].sample_rate_hz,
+            util_900.payload_len(packet.evenly_sampled_channels[0]),
+            mtz,
+            packet.evenly_sampled_channels[0].first_sample_timestamp_epoch_microseconds_utc,
+            packet.server_timestamp_epoch_microseconds_utc,
+            packet.app_file_start_timestamp_machine,
+            list(exchanges),
+            best_latency,
+            best_offset,
+        )
+
+    return tsd
+
+
 class TimeSyncAnalysis:
     &#34;&#34;&#34;
     Used for multiple TimeSyncData objects from a station
@@ -229,11 +292,11 @@ class TimeSyncAnalysis:
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        station_id: str = &#34;&#34;,
-        audio_sample_rate_hz: float = np.nan,
-        station_start_timestamp: float = np.nan,
-        time_sync_data: Optional[List[TimeSyncData]] = None,
+            self,
+            station_id: str = &#34;&#34;,
+            audio_sample_rate_hz: float = np.nan,
+            station_start_timestamp: float = np.nan,
+            time_sync_data: Optional[List[TimeSyncData]] = None,
     ):
         &#34;&#34;&#34;
         Initialize the object
@@ -324,6 +387,79 @@ class TimeSyncAnalysis:
                               for packet in packets]
         if len(self.timesync_data) &gt; 0:
             self.evaluate_and_validate_data()
+        return self
+
+    def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -&gt; &#39;TimeSyncAnalysis&#39;:
+        &#34;&#34;&#34;
+        converts packets into TimeSyncData objects, then performs analysis
+        :param packets: list of WrappedRedvoxPacketM to convert
+        :return: modified version of self
+        &#34;&#34;&#34;
+        timesync_data: List[TimeSyncData] = []
+
+        packet: Union[RedvoxPacketM, RedvoxPacket]
+        for packet in packets:
+            tsd: TimeSyncData
+            if isinstance(packet, RedvoxPacketM):
+                exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
+                                                packet.timing_information.synch_exchanges,
+                                                [])
+                tsd = TimeSyncData(
+                    packet.station_information.id,
+                    packet.sensors.audio.sample_rate,
+                    len(packet.sensors.audio.samples.values),
+                    packet.timing_information.app_start_mach_timestamp,
+                    packet.timing_information.server_acquisition_arrival_timestamp,
+                    packet.timing_information.packet_start_mach_timestamp,
+                    packet.timing_information.packet_end_mach_timestamp,
+                    exchanges,
+                    packet.timing_information.best_latency,
+                    packet.timing_information.best_offset
+                )
+            else:
+                mtz: float = np.nan
+                best_latency: float = np.nan
+                best_offset: float = np.nan
+
+                for i, v in enumerate(packet.metadata):
+                    plus_1: int = i + 1
+                    try:
+                        if v == &#34;machTimeZero&#34; and plus_1 &lt; len(packet.metadata):
+                            mtz = float(packet.metadata[plus_1])
+                        if v == &#34;bestLatency&#34; and plus_1 &lt; len(packet.metadata):
+                            best_latency = float(packet.metadata[plus_1])
+                        if v == &#34;bestOffset&#34; and plus_1 &lt; len(packet.metadata):
+                            best_offset = float(packet.metadata[plus_1])
+                    except (KeyError, ValueError):
+                        continue
+
+                # Get synch exchanges
+                exchanges: Optional[np.ndarray] = None
+                ch: api900_pb2.UnevenlySampledChannel
+                for ch in packet.unevenly_sampled_channels:
+                    if api900_pb2.TIME_SYNCHRONIZATION in ch.channel_types:
+                        exchanges = util_900.extract_payload(ch)
+
+                tsd = TimeSyncData(
+                    packet.redvox_id,
+                    packet.evenly_sampled_channels[0].sample_rate_hz,
+                    util_900.payload_len(packet.evenly_sampled_channels[0]),
+                    mtz,
+                    packet.evenly_sampled_channels[0].first_sample_timestamp_epoch_microseconds_utc,
+                    packet.server_timestamp_epoch_microseconds_utc,
+                    packet.app_file_start_timestamp_machine,
+                    list(exchanges),
+                    best_latency,
+                    best_offset,
+                )
+
+            timesync_data.append(tsd)
+
+        self.timesync_data = timesync_data
+
+        if len(self.timesync_data) &gt; 0:
+            self.evaluate_and_validate_data()
+
         return self
 
     def add_timesync_data(self, timesync_data: TimeSyncData):
@@ -436,7 +572,7 @@ class TimeSyncAnalysis:
         &#34;&#34;&#34;
         bad_packets = []
         for idx in range(
-            self.get_num_packets()
+                self.get_num_packets()
         ):  # mark bad indices (they have a 0 or less value)
             if self.get_latencies()[idx] &lt;= 0 or np.isnan(self.get_latencies()[idx]):
                 bad_packets.append(idx)
@@ -471,8 +607,8 @@ class TimeSyncAnalysis:
         for index in range(self.get_num_packets()):
             # compare station start timestamps; notify when they are different
             if (
-                self.timesync_data[index].station_start_timestamp
-                != self.station_start_timestamp
+                    self.timesync_data[index].station_start_timestamp
+                    != self.station_start_timestamp
             ):
                 if debug:
                     print(
@@ -494,8 +630,8 @@ class TimeSyncAnalysis:
         for index in range(self.get_num_packets()):
             # compare station start timestamps; notify when they are different
             if (
-                np.isnan(self.timesync_data[index].sample_rate_hz)
-                or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
+                    np.isnan(self.timesync_data[index].sample_rate_hz)
+                    or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
             ):
                 if debug:
                     print(
@@ -521,11 +657,11 @@ class TimeSyncAnalysis:
             for index in range(1, self.get_num_packets()):
                 # compare last packet&#39;s end timestamp with current start timestamp
                 if (
-                    dt.microseconds_to_seconds(
-                        self.timesync_data[index].packet_start_timestamp
-                        - self.timesync_data[index - 1].packet_end_timestamp
-                    )
-                    &gt; gap_duration_s
+                        dt.microseconds_to_seconds(
+                            self.timesync_data[index].packet_start_timestamp
+                            - self.timesync_data[index - 1].packet_end_timestamp
+                        )
+                        &gt; gap_duration_s
                 ):
                     if debug:
                         print(f&#34;Warning!  Gap detected at packet number: {index}&#34;)
@@ -541,37 +677,6 @@ class TimeSyncAnalysis:
             self.station_start_timestamp += self.offset_model.get_offset_at_new_time(self.station_start_timestamp)
         for tsd in self.timesync_data:
             tsd.update_timestamps(self.offset_model)
-
-
-def timesync_data_from_packet(packet: Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]) -&gt; TimeSyncData:
-    &#34;&#34;&#34;
-    converts a packet into TimeSyncData
-    :param packet: packet to read
-    :return: modified version of self
-    &#34;&#34;&#34;
-    if isinstance(packet, WrappedRedvoxPacketM):
-        return TimeSyncData(packet.get_station_information().get_id(),
-                            packet.get_sensors().get_audio().get_sample_rate(),
-                            packet.get_sensors().get_audio().get_num_samples(),
-                            packet.get_timing_information().get_app_start_mach_timestamp(),
-                            packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
-                            packet.get_timing_information().get_packet_start_mach_timestamp(),
-                            packet.get_timing_information().get_packet_end_mach_timestamp(),
-                            packet.get_timing_information().get_synch_exchange_array(),
-                            packet.get_timing_information().get_best_latency(),
-                            packet.get_timing_information().get_best_offset(),
-                            )
-    return TimeSyncData(packet.redvox_id(),
-                        packet.microphone_sensor().sample_rate_hz(),
-                        packet.microphone_sensor().payload_values().size,
-                        packet.start_timestamp_us_utc(),
-                        packet.server_timestamp_epoch_microseconds_utc(),
-                        packet.start_timestamp_us_utc(),
-                        packet.end_timestamp_us_utc(),
-                        list(packet.time_synchronization_sensor().payload_values()),
-                        packet.best_latency(),
-                        packet.best_offset(),
-                        )
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -&gt; bool:
@@ -592,9 +697,9 @@ def validate_sensors(tsa_data: TimeSyncAnalysis) -&gt; bool:
 
 
 def update_evenly_sampled_time_array(
-    ts_analysis: TimeSyncAnalysis,
-    num_samples: float = None,
-    time_start_array_s: np.array = None,
+        ts_analysis: TimeSyncAnalysis,
+        num_samples: float = None,
+        time_start_array_s: np.array = None,
 ) -&gt; np.ndarray:
     &#34;&#34;&#34;
     Correct evenly sampled times using updated time_start_array values as the focal point.
@@ -648,8 +753,8 @@ def update_evenly_sampled_time_array(
         list(range(int(samples_before + 1)))
     )
     timesec_before = timesec_before[
-        ::-1
-    ]  # reverse &#39;before&#39; times so they increase from earliest start time
+                     ::-1
+                     ]  # reverse &#39;before&#39; times so they increase from earliest start time
     timesec_after = np.vectorize(lambda t: best_start_sec + t * t_dt)(
         list(range(1, int(samples_after + 1)))
     )
@@ -669,7 +774,7 @@ def update_time_array(ts_data: TimeSyncData, time_array_s: np.array) -&gt; np.nd
 
 
 def update_time_array_from_analysis(
-    ts_analysis: TimeSyncAnalysis, time_array_s: np.array
+        ts_analysis: TimeSyncAnalysis, time_array_s: np.array
 ) -&gt; np.ndarray:
     &#34;&#34;&#34;
     Correct timestamps in time_array using information from TimeSyncAnalysis
@@ -687,46 +792,71 @@ def update_time_array_from_analysis(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="redvox.common.timesync.timesync_data_from_packet"><code class="name flex">
-<span>def <span class="ident">timesync_data_from_packet</span></span>(<span>packet: typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../api900/wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]) ‑> <a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a></span>
+<dt id="redvox.common.timesync.time_sync_data_from_raw_packet"><code class="name flex">
+<span>def <span class="ident">time_sync_data_from_raw_packet</span></span>(<span>packet: Union[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, api900_pb2.RedvoxPacket]) ‑> <a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>converts a packet into TimeSyncData
-:param packet: packet to read
-:return: modified version of self</p></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def timesync_data_from_packet(packet: Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]) -&gt; TimeSyncData:
-    &#34;&#34;&#34;
-    converts a packet into TimeSyncData
-    :param packet: packet to read
-    :return: modified version of self
-    &#34;&#34;&#34;
-    if isinstance(packet, WrappedRedvoxPacketM):
-        return TimeSyncData(packet.get_station_information().get_id(),
-                            packet.get_sensors().get_audio().get_sample_rate(),
-                            packet.get_sensors().get_audio().get_num_samples(),
-                            packet.get_timing_information().get_app_start_mach_timestamp(),
-                            packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
-                            packet.get_timing_information().get_packet_start_mach_timestamp(),
-                            packet.get_timing_information().get_packet_end_mach_timestamp(),
-                            packet.get_timing_information().get_synch_exchange_array(),
-                            packet.get_timing_information().get_best_latency(),
-                            packet.get_timing_information().get_best_offset(),
-                            )
-    return TimeSyncData(packet.redvox_id(),
-                        packet.microphone_sensor().sample_rate_hz(),
-                        packet.microphone_sensor().payload_values().size,
-                        packet.start_timestamp_us_utc(),
-                        packet.server_timestamp_epoch_microseconds_utc(),
-                        packet.start_timestamp_us_utc(),
-                        packet.end_timestamp_us_utc(),
-                        list(packet.time_synchronization_sensor().payload_values()),
-                        packet.best_latency(),
-                        packet.best_offset(),
-                        )</code></pre>
+<pre><code class="python">def time_sync_data_from_raw_packet(packet: Union[RedvoxPacketM, RedvoxPacket]) -&gt; TimeSyncData:
+    tsd: TimeSyncData
+    if isinstance(packet, RedvoxPacketM):
+        exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
+                                        packet.timing_information.synch_exchanges,
+                                        [])
+        tsd = TimeSyncData(
+            packet.station_information.id,
+            packet.sensors.audio.sample_rate,
+            len(packet.sensors.audio.samples.values),
+            packet.timing_information.app_start_mach_timestamp,
+            packet.timing_information.server_acquisition_arrival_timestamp,
+            packet.timing_information.packet_start_mach_timestamp,
+            packet.timing_information.packet_end_mach_timestamp,
+            exchanges,
+            packet.timing_information.best_latency,
+            packet.timing_information.best_offset
+        )
+    else:
+        mtz: float = np.nan
+        best_latency: float = np.nan
+        best_offset: float = np.nan
+
+        for i, v in enumerate(packet.metadata):
+            plus_1: int = i + 1
+            try:
+                if v == &#34;machTimeZero&#34; and plus_1 &lt; len(packet.metadata):
+                    mtz = float(packet.metadata[plus_1])
+                if v == &#34;bestLatency&#34; and plus_1 &lt; len(packet.metadata):
+                    best_latency = float(packet.metadata[plus_1])
+                if v == &#34;bestOffset&#34; and plus_1 &lt; len(packet.metadata):
+                    best_offset = float(packet.metadata[plus_1])
+            except (KeyError, ValueError):
+                continue
+
+        # Get synch exchanges
+        exchanges: Optional[np.ndarray] = None
+        ch: api900_pb2.UnevenlySampledChannel
+        for ch in packet.unevenly_sampled_channels:
+            if api900_pb2.TIME_SYNCHRONIZATION in ch.channel_types:
+                exchanges = util_900.extract_payload(ch)
+
+        tsd = TimeSyncData(
+            packet.redvox_id,
+            packet.evenly_sampled_channels[0].sample_rate_hz,
+            util_900.payload_len(packet.evenly_sampled_channels[0]),
+            mtz,
+            packet.evenly_sampled_channels[0].first_sample_timestamp_epoch_microseconds_utc,
+            packet.server_timestamp_epoch_microseconds_utc,
+            packet.app_file_start_timestamp_machine,
+            list(exchanges),
+            best_latency,
+            best_offset,
+        )
+
+    return tsd</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.timesync.update_evenly_sampled_time_array"><code class="name flex">
@@ -747,9 +877,9 @@ TimeSyncAnalysis object if not given
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def update_evenly_sampled_time_array(
-    ts_analysis: TimeSyncAnalysis,
-    num_samples: float = None,
-    time_start_array_s: np.array = None,
+        ts_analysis: TimeSyncAnalysis,
+        num_samples: float = None,
+        time_start_array_s: np.array = None,
 ) -&gt; np.ndarray:
     &#34;&#34;&#34;
     Correct evenly sampled times using updated time_start_array values as the focal point.
@@ -803,8 +933,8 @@ TimeSyncAnalysis object if not given
         list(range(int(samples_before + 1)))
     )
     timesec_before = timesec_before[
-        ::-1
-    ]  # reverse &#39;before&#39; times so they increase from earliest start time
+                     ::-1
+                     ]  # reverse &#39;before&#39; times so they increase from earliest start time
     timesec_after = np.vectorize(lambda t: best_start_sec + t * t_dt)(
         list(range(1, int(samples_after + 1)))
     )
@@ -848,7 +978,7 @@ TimeSyncAnalysis object if not given
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def update_time_array_from_analysis(
-    ts_analysis: TimeSyncAnalysis, time_array_s: np.array
+        ts_analysis: TimeSyncAnalysis, time_array_s: np.array
 ) -&gt; np.ndarray:
     &#34;&#34;&#34;
     Correct timestamps in time_array using information from TimeSyncAnalysis
@@ -892,9 +1022,305 @@ TimeSyncAnalysis object if not given
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="redvox.common.timesync.RedvoxPacket"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacket</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.timesync.RedvoxPacket.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.common.timesync.RedvoxPacket.acquisition_server"><code class="name">var <span class="ident">acquisition_server</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.acquisition_server</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.api</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc"><code class="name">var <span class="ident">app_file_start_timestamp_epoch_microseconds_utc</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.app_file_start_timestamp_machine"><code class="name">var <span class="ident">app_file_start_timestamp_machine</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.app_file_start_timestamp_machine</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.app_version"><code class="name">var <span class="ident">app_version</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.app_version</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.authenticated_email"><code class="name">var <span class="ident">authenticated_email</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.authenticated_email</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.authentication_server"><code class="name">var <span class="ident">authentication_server</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.authentication_server</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.authentication_token"><code class="name">var <span class="ident">authentication_token</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.authentication_token</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.battery_level_percent"><code class="name">var <span class="ident">battery_level_percent</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.battery_level_percent</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.device_make"><code class="name">var <span class="ident">device_make</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_make</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.device_model"><code class="name">var <span class="ident">device_model</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_model</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.device_os"><code class="name">var <span class="ident">device_os</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_os</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.device_os_version"><code class="name">var <span class="ident">device_os_version</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_os_version</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.device_temperature_c"><code class="name">var <span class="ident">device_temperature_c</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.device_temperature_c</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.evenly_sampled_channels"><code class="name">var <span class="ident">evenly_sampled_channels</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.evenly_sampled_channels</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.firebase_token"><code class="name">var <span class="ident">firebase_token</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.firebase_token</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.is_backfilled"><code class="name">var <span class="ident">is_backfilled</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.is_backfilled</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.is_private"><code class="name">var <span class="ident">is_private</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.is_private</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.is_scrambled"><code class="name">var <span class="ident">is_scrambled</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.is_scrambled</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.metadata</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.redvox_id"><code class="name">var <span class="ident">redvox_id</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.redvox_id</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.server_timestamp_epoch_microseconds_utc"><code class="name">var <span class="ident">server_timestamp_epoch_microseconds_utc</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.server_timestamp_epoch_microseconds_utc</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.time_synchronization_server"><code class="name">var <span class="ident">time_synchronization_server</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.time_synchronization_server</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.unevenly_sampled_channels"><code class="name">var <span class="ident">unevenly_sampled_channels</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.unevenly_sampled_channels</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacket.uuid"><code class="name">var <span class="ident">uuid</span></code></dt>
+<dd>
+<div class="desc"><p>Field RedvoxPacket.uuid</p></div>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacketM</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.timesync.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.DoubleSamplePayload"><code class="name">var <span class="ident">DoubleSamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.EventStream"><code class="name">var <span class="ident">EventStream</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.Sensors"><code class="name">var <span class="ident">Sensors</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.StationInformation"><code class="name">var <span class="ident">StationInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.SummaryStatistics"><code class="name">var <span class="ident">SummaryStatistics</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.TimingInformation"><code class="name">var <span class="ident">TimingInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.TimingPayload"><code class="name">var <span class="ident">TimingPayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.common.timesync.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.api</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.event_streams</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.metadata</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sensors</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.station_information</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sub_api</p></div>
+</dd>
+<dt id="redvox.common.timesync.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.timing_information</p></div>
+</dd>
+</dl>
+</dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis"><code class="flex name class">
 <span>class <span class="ident">TimeSyncAnalysis</span></span>
-<span>(</span><span>station_id: str = '', audio_sample_rate_hz: float = nan, station_start_timestamp: float = nan, time_sync_data: typing.Union[typing.List[<a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a>], NoneType] = None)</span>
+<span>(</span><span>station_id: str = '', audio_sample_rate_hz: float = nan, station_start_timestamp: float = nan, time_sync_data: Union[List[<a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a>], NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Used for multiple TimeSyncData objects from a station
@@ -931,11 +1357,11 @@ station_start_timestamp: float, the timestamp of when the station became active,
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        station_id: str = &#34;&#34;,
-        audio_sample_rate_hz: float = np.nan,
-        station_start_timestamp: float = np.nan,
-        time_sync_data: Optional[List[TimeSyncData]] = None,
+            self,
+            station_id: str = &#34;&#34;,
+            audio_sample_rate_hz: float = np.nan,
+            station_start_timestamp: float = np.nan,
+            time_sync_data: Optional[List[TimeSyncData]] = None,
     ):
         &#34;&#34;&#34;
         Initialize the object
@@ -1026,6 +1452,79 @@ station_start_timestamp: float, the timestamp of when the station became active,
                               for packet in packets]
         if len(self.timesync_data) &gt; 0:
             self.evaluate_and_validate_data()
+        return self
+
+    def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -&gt; &#39;TimeSyncAnalysis&#39;:
+        &#34;&#34;&#34;
+        converts packets into TimeSyncData objects, then performs analysis
+        :param packets: list of WrappedRedvoxPacketM to convert
+        :return: modified version of self
+        &#34;&#34;&#34;
+        timesync_data: List[TimeSyncData] = []
+
+        packet: Union[RedvoxPacketM, RedvoxPacket]
+        for packet in packets:
+            tsd: TimeSyncData
+            if isinstance(packet, RedvoxPacketM):
+                exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
+                                                packet.timing_information.synch_exchanges,
+                                                [])
+                tsd = TimeSyncData(
+                    packet.station_information.id,
+                    packet.sensors.audio.sample_rate,
+                    len(packet.sensors.audio.samples.values),
+                    packet.timing_information.app_start_mach_timestamp,
+                    packet.timing_information.server_acquisition_arrival_timestamp,
+                    packet.timing_information.packet_start_mach_timestamp,
+                    packet.timing_information.packet_end_mach_timestamp,
+                    exchanges,
+                    packet.timing_information.best_latency,
+                    packet.timing_information.best_offset
+                )
+            else:
+                mtz: float = np.nan
+                best_latency: float = np.nan
+                best_offset: float = np.nan
+
+                for i, v in enumerate(packet.metadata):
+                    plus_1: int = i + 1
+                    try:
+                        if v == &#34;machTimeZero&#34; and plus_1 &lt; len(packet.metadata):
+                            mtz = float(packet.metadata[plus_1])
+                        if v == &#34;bestLatency&#34; and plus_1 &lt; len(packet.metadata):
+                            best_latency = float(packet.metadata[plus_1])
+                        if v == &#34;bestOffset&#34; and plus_1 &lt; len(packet.metadata):
+                            best_offset = float(packet.metadata[plus_1])
+                    except (KeyError, ValueError):
+                        continue
+
+                # Get synch exchanges
+                exchanges: Optional[np.ndarray] = None
+                ch: api900_pb2.UnevenlySampledChannel
+                for ch in packet.unevenly_sampled_channels:
+                    if api900_pb2.TIME_SYNCHRONIZATION in ch.channel_types:
+                        exchanges = util_900.extract_payload(ch)
+
+                tsd = TimeSyncData(
+                    packet.redvox_id,
+                    packet.evenly_sampled_channels[0].sample_rate_hz,
+                    util_900.payload_len(packet.evenly_sampled_channels[0]),
+                    mtz,
+                    packet.evenly_sampled_channels[0].first_sample_timestamp_epoch_microseconds_utc,
+                    packet.server_timestamp_epoch_microseconds_utc,
+                    packet.app_file_start_timestamp_machine,
+                    list(exchanges),
+                    best_latency,
+                    best_offset,
+                )
+
+            timesync_data.append(tsd)
+
+        self.timesync_data = timesync_data
+
+        if len(self.timesync_data) &gt; 0:
+            self.evaluate_and_validate_data()
+
         return self
 
     def add_timesync_data(self, timesync_data: TimeSyncData):
@@ -1138,7 +1637,7 @@ station_start_timestamp: float, the timestamp of when the station became active,
         &#34;&#34;&#34;
         bad_packets = []
         for idx in range(
-            self.get_num_packets()
+                self.get_num_packets()
         ):  # mark bad indices (they have a 0 or less value)
             if self.get_latencies()[idx] &lt;= 0 or np.isnan(self.get_latencies()[idx]):
                 bad_packets.append(idx)
@@ -1173,8 +1672,8 @@ station_start_timestamp: float, the timestamp of when the station became active,
         for index in range(self.get_num_packets()):
             # compare station start timestamps; notify when they are different
             if (
-                self.timesync_data[index].station_start_timestamp
-                != self.station_start_timestamp
+                    self.timesync_data[index].station_start_timestamp
+                    != self.station_start_timestamp
             ):
                 if debug:
                     print(
@@ -1196,8 +1695,8 @@ station_start_timestamp: float, the timestamp of when the station became active,
         for index in range(self.get_num_packets()):
             # compare station start timestamps; notify when they are different
             if (
-                np.isnan(self.timesync_data[index].sample_rate_hz)
-                or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
+                    np.isnan(self.timesync_data[index].sample_rate_hz)
+                    or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
             ):
                 if debug:
                     print(
@@ -1223,11 +1722,11 @@ station_start_timestamp: float, the timestamp of when the station became active,
             for index in range(1, self.get_num_packets()):
                 # compare last packet&#39;s end timestamp with current start timestamp
                 if (
-                    dt.microseconds_to_seconds(
-                        self.timesync_data[index].packet_start_timestamp
-                        - self.timesync_data[index - 1].packet_end_timestamp
-                    )
-                    &gt; gap_duration_s
+                        dt.microseconds_to_seconds(
+                            self.timesync_data[index].packet_start_timestamp
+                            - self.timesync_data[index - 1].packet_end_timestamp
+                        )
+                        &gt; gap_duration_s
                 ):
                     if debug:
                         print(f&#34;Warning!  Gap detected at packet number: {index}&#34;)
@@ -1319,7 +1818,7 @@ outputs warnings if a change in timestamps is detected</p></div>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis.from_packets"><code class="name flex">
-<span>def <span class="ident">from_packets</span></span>(<span>self, packets: typing.List[typing.Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../api900/wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]]) ‑> <a title="redvox.common.timesync.TimeSyncAnalysis" href="#redvox.common.timesync.TimeSyncAnalysis">TimeSyncAnalysis</a></span>
+<span>def <span class="ident">from_packets</span></span>(<span>self, packets: List[Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../api900/wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]]) ‑> <a title="redvox.common.timesync.TimeSyncAnalysis" href="#redvox.common.timesync.TimeSyncAnalysis">TimeSyncAnalysis</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>converts packets into TimeSyncData objects, then performs analysis
@@ -1364,8 +1863,93 @@ outputs warnings if a change in timestamps is detected</p></div>
     return self</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.timesync.TimeSyncAnalysis.from_raw_packets"><code class="name flex">
+<span>def <span class="ident">from_raw_packets</span></span>(<span>self, packets: List[Union[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, api900_pb2.RedvoxPacket]]) ‑> <a title="redvox.common.timesync.TimeSyncAnalysis" href="#redvox.common.timesync.TimeSyncAnalysis">TimeSyncAnalysis</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>converts packets into TimeSyncData objects, then performs analysis
+:param packets: list of WrappedRedvoxPacketM to convert
+:return: modified version of self</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -&gt; &#39;TimeSyncAnalysis&#39;:
+    &#34;&#34;&#34;
+    converts packets into TimeSyncData objects, then performs analysis
+    :param packets: list of WrappedRedvoxPacketM to convert
+    :return: modified version of self
+    &#34;&#34;&#34;
+    timesync_data: List[TimeSyncData] = []
+
+    packet: Union[RedvoxPacketM, RedvoxPacket]
+    for packet in packets:
+        tsd: TimeSyncData
+        if isinstance(packet, RedvoxPacketM):
+            exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
+                                            packet.timing_information.synch_exchanges,
+                                            [])
+            tsd = TimeSyncData(
+                packet.station_information.id,
+                packet.sensors.audio.sample_rate,
+                len(packet.sensors.audio.samples.values),
+                packet.timing_information.app_start_mach_timestamp,
+                packet.timing_information.server_acquisition_arrival_timestamp,
+                packet.timing_information.packet_start_mach_timestamp,
+                packet.timing_information.packet_end_mach_timestamp,
+                exchanges,
+                packet.timing_information.best_latency,
+                packet.timing_information.best_offset
+            )
+        else:
+            mtz: float = np.nan
+            best_latency: float = np.nan
+            best_offset: float = np.nan
+
+            for i, v in enumerate(packet.metadata):
+                plus_1: int = i + 1
+                try:
+                    if v == &#34;machTimeZero&#34; and plus_1 &lt; len(packet.metadata):
+                        mtz = float(packet.metadata[plus_1])
+                    if v == &#34;bestLatency&#34; and plus_1 &lt; len(packet.metadata):
+                        best_latency = float(packet.metadata[plus_1])
+                    if v == &#34;bestOffset&#34; and plus_1 &lt; len(packet.metadata):
+                        best_offset = float(packet.metadata[plus_1])
+                except (KeyError, ValueError):
+                    continue
+
+            # Get synch exchanges
+            exchanges: Optional[np.ndarray] = None
+            ch: api900_pb2.UnevenlySampledChannel
+            for ch in packet.unevenly_sampled_channels:
+                if api900_pb2.TIME_SYNCHRONIZATION in ch.channel_types:
+                    exchanges = util_900.extract_payload(ch)
+
+            tsd = TimeSyncData(
+                packet.redvox_id,
+                packet.evenly_sampled_channels[0].sample_rate_hz,
+                util_900.payload_len(packet.evenly_sampled_channels[0]),
+                mtz,
+                packet.evenly_sampled_channels[0].first_sample_timestamp_epoch_microseconds_utc,
+                packet.server_timestamp_epoch_microseconds_utc,
+                packet.app_file_start_timestamp_machine,
+                list(exchanges),
+                best_latency,
+                best_offset,
+            )
+
+        timesync_data.append(tsd)
+
+    self.timesync_data = timesync_data
+
+    if len(self.timesync_data) &gt; 0:
+        self.evaluate_and_validate_data()
+
+    return self</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis.get_bad_packets"><code class="name flex">
-<span>def <span class="ident">get_bad_packets</span></span>(<span>self) ‑> typing.List[int]</span>
+<span>def <span class="ident">get_bad_packets</span></span>(<span>self) ‑> List[int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>returns all the packets that have invalid data
@@ -1381,7 +1965,7 @@ outputs warnings if a change in timestamps is detected</p></div>
     &#34;&#34;&#34;
     bad_packets = []
     for idx in range(
-        self.get_num_packets()
+            self.get_num_packets()
     ):  # mark bad indices (they have a 0 or less value)
         if self.get_latencies()[idx] &lt;= 0 or np.isnan(self.get_latencies()[idx]):
             bad_packets.append(idx)
@@ -1656,8 +2240,8 @@ outputs warning if a change in sample rate is detected
     for index in range(self.get_num_packets()):
         # compare station start timestamps; notify when they are different
         if (
-            np.isnan(self.timesync_data[index].sample_rate_hz)
-            or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
+                np.isnan(self.timesync_data[index].sample_rate_hz)
+                or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
         ):
             if debug:
                 print(
@@ -1691,8 +2275,8 @@ outputs warnings if a change in timestamps is detected
     for index in range(self.get_num_packets()):
         # compare station start timestamps; notify when they are different
         if (
-            self.timesync_data[index].station_start_timestamp
-            != self.station_start_timestamp
+                self.timesync_data[index].station_start_timestamp
+                != self.station_start_timestamp
         ):
             if debug:
                 print(
@@ -1733,11 +2317,11 @@ outputs warning if a gap is detected
         for index in range(1, self.get_num_packets()):
             # compare last packet&#39;s end timestamp with current start timestamp
             if (
-                dt.microseconds_to_seconds(
-                    self.timesync_data[index].packet_start_timestamp
-                    - self.timesync_data[index - 1].packet_end_timestamp
-                )
-                &gt; gap_duration_s
+                    dt.microseconds_to_seconds(
+                        self.timesync_data[index].packet_start_timestamp
+                        - self.timesync_data[index - 1].packet_end_timestamp
+                    )
+                    &gt; gap_duration_s
             ):
                 if debug:
                     print(f&#34;Warning!  Gap detected at packet number: {index}&#34;)
@@ -1750,7 +2334,7 @@ outputs warning if a gap is detected
 </dd>
 <dt id="redvox.common.timesync.TimeSyncData"><code class="flex name class">
 <span>class <span class="ident">TimeSyncData</span></span>
-<span>(</span><span>station_id: str = '', sample_rate_hz: float = nan, num_audio_samples: int = nan, station_start_timestamp: float = nan, server_acquisition_timestamp: float = nan, packet_start_timestamp: float = nan, packet_end_timestamp: float = nan, time_sync_exchanges_list: typing.Union[typing.List[float], NoneType] = None, best_latency: float = nan, best_offset: float = 0.0)</span>
+<span>(</span><span>station_id: str = '', sample_rate_hz: float = nan, num_audio_samples: int = nan, station_start_timestamp: float = nan, server_acquisition_timestamp: float = nan, packet_start_timestamp: float = nan, packet_end_timestamp: float = nan, time_sync_exchanges_list: Union[List[float], NoneType] = None, best_latency: float = nan, best_offset: float = 0.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stores latencies, offsets, and other timesync related information about a single station
@@ -1820,17 +2404,17 @@ default np.nan
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        station_id: str = &#34;&#34;,
-        sample_rate_hz: float = np.nan,
-        num_audio_samples: int = np.nan,
-        station_start_timestamp: float = np.nan,
-        server_acquisition_timestamp: float = np.nan,
-        packet_start_timestamp: float = np.nan,
-        packet_end_timestamp: float = np.nan,
-        time_sync_exchanges_list: Optional[List[float]] = None,
-        best_latency: float = np.nan,
-        best_offset: float = 0.0,
+            self,
+            station_id: str = &#34;&#34;,
+            sample_rate_hz: float = np.nan,
+            num_audio_samples: int = np.nan,
+            station_start_timestamp: float = np.nan,
+            server_acquisition_timestamp: float = np.nan,
+            packet_start_timestamp: float = np.nan,
+            packet_end_timestamp: float = np.nan,
+            time_sync_exchanges_list: Optional[List[float]] = None,
+            best_latency: float = np.nan,
+            best_offset: float = 0.0,
     ):
         &#34;&#34;&#34;
         Initialize properties
@@ -1871,7 +2455,7 @@ default np.nan
         self.packet_duration = self.packet_end_timestamp - self.packet_start_timestamp
         # calculate travel time between corrected end of packet timestamp and server timestamp
         self.acquire_travel_time = self.server_acquisition_timestamp - (
-            self.packet_end_timestamp + self.best_offset
+                self.packet_end_timestamp + self.best_offset
         )
 
     def _compute_tri_message_stats(self):
@@ -1989,7 +2573,7 @@ default np.nan
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncData.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: typing.Union[<a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, NoneType])</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: Union[<a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>update timestamps by adding microseconds based on the OffsetModel.
@@ -2037,7 +2621,7 @@ uses negative values to go backwards in time
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="redvox.common.timesync.timesync_data_from_packet" href="#redvox.common.timesync.timesync_data_from_packet">timesync_data_from_packet</a></code></li>
+<li><code><a title="redvox.common.timesync.time_sync_data_from_raw_packet" href="#redvox.common.timesync.time_sync_data_from_raw_packet">time_sync_data_from_raw_packet</a></code></li>
 <li><code><a title="redvox.common.timesync.update_evenly_sampled_time_array" href="#redvox.common.timesync.update_evenly_sampled_time_array">update_evenly_sampled_time_array</a></code></li>
 <li><code><a title="redvox.common.timesync.update_time_array" href="#redvox.common.timesync.update_time_array">update_time_array</a></code></li>
 <li><code><a title="redvox.common.timesync.update_time_array_from_analysis" href="#redvox.common.timesync.update_time_array_from_analysis">update_time_array_from_analysis</a></code></li>
@@ -2047,12 +2631,88 @@ uses negative values to go backwards in time
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="redvox.common.timesync.RedvoxPacket" href="#redvox.common.timesync.RedvoxPacket">RedvoxPacket</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.timesync.RedvoxPacket.DESCRIPTOR" href="#redvox.common.timesync.RedvoxPacket.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.acquisition_server" href="#redvox.common.timesync.RedvoxPacket.acquisition_server">acquisition_server</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.api" href="#redvox.common.timesync.RedvoxPacket.api">api</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc" href="#redvox.common.timesync.RedvoxPacket.app_file_start_timestamp_epoch_microseconds_utc">app_file_start_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.app_file_start_timestamp_machine" href="#redvox.common.timesync.RedvoxPacket.app_file_start_timestamp_machine">app_file_start_timestamp_machine</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.app_version" href="#redvox.common.timesync.RedvoxPacket.app_version">app_version</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.authenticated_email" href="#redvox.common.timesync.RedvoxPacket.authenticated_email">authenticated_email</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.authentication_server" href="#redvox.common.timesync.RedvoxPacket.authentication_server">authentication_server</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.authentication_token" href="#redvox.common.timesync.RedvoxPacket.authentication_token">authentication_token</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.battery_level_percent" href="#redvox.common.timesync.RedvoxPacket.battery_level_percent">battery_level_percent</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.device_make" href="#redvox.common.timesync.RedvoxPacket.device_make">device_make</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.device_model" href="#redvox.common.timesync.RedvoxPacket.device_model">device_model</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.device_os" href="#redvox.common.timesync.RedvoxPacket.device_os">device_os</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.device_os_version" href="#redvox.common.timesync.RedvoxPacket.device_os_version">device_os_version</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.device_temperature_c" href="#redvox.common.timesync.RedvoxPacket.device_temperature_c">device_temperature_c</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.evenly_sampled_channels" href="#redvox.common.timesync.RedvoxPacket.evenly_sampled_channels">evenly_sampled_channels</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.firebase_token" href="#redvox.common.timesync.RedvoxPacket.firebase_token">firebase_token</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.is_backfilled" href="#redvox.common.timesync.RedvoxPacket.is_backfilled">is_backfilled</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.is_private" href="#redvox.common.timesync.RedvoxPacket.is_private">is_private</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.is_scrambled" href="#redvox.common.timesync.RedvoxPacket.is_scrambled">is_scrambled</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.metadata" href="#redvox.common.timesync.RedvoxPacket.metadata">metadata</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.redvox_id" href="#redvox.common.timesync.RedvoxPacket.redvox_id">redvox_id</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.server_timestamp_epoch_microseconds_utc" href="#redvox.common.timesync.RedvoxPacket.server_timestamp_epoch_microseconds_utc">server_timestamp_epoch_microseconds_utc</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.time_synchronization_server" href="#redvox.common.timesync.RedvoxPacket.time_synchronization_server">time_synchronization_server</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.unevenly_sampled_channels" href="#redvox.common.timesync.RedvoxPacket.unevenly_sampled_channels">unevenly_sampled_channels</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacket.uuid" href="#redvox.common.timesync.RedvoxPacket.uuid">uuid</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.timesync.RedvoxPacketM" href="#redvox.common.timesync.RedvoxPacketM">RedvoxPacketM</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.BYTE" href="#redvox.common.timesync.RedvoxPacketM.BYTE">BYTE</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.CENTIMETERS" href="#redvox.common.timesync.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.DECIBEL" href="#redvox.common.timesync.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.common.timesync.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.common.timesync.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.DESCRIPTOR" href="#redvox.common.timesync.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.DoubleSamplePayload" href="#redvox.common.timesync.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.EventStream" href="#redvox.common.timesync.RedvoxPacketM.EventStream">EventStream</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.KILOPASCAL" href="#redvox.common.timesync.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.common.timesync.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.LUX" href="#redvox.common.timesync.RedvoxPacketM.LUX">LUX</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.METERS" href="#redvox.common.timesync.RedvoxPacketM.METERS">METERS</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.common.timesync.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.common.timesync.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.MICROAMPERES" href="#redvox.common.timesync.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.common.timesync.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.MICROTESLA" href="#redvox.common.timesync.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.MetadataEntry" href="#redvox.common.timesync.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.common.timesync.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.PCM" href="#redvox.common.timesync.RedvoxPacketM.PCM">PCM</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.PERCENTAGE" href="#redvox.common.timesync.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.RADIANS" href="#redvox.common.timesync.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.common.timesync.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.SamplePayload" href="#redvox.common.timesync.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.Sensors" href="#redvox.common.timesync.RedvoxPacketM.Sensors">Sensors</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.StationInformation" href="#redvox.common.timesync.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.SummaryStatistics" href="#redvox.common.timesync.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.TimingInformation" href="#redvox.common.timesync.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.TimingPayload" href="#redvox.common.timesync.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.UNITLESS" href="#redvox.common.timesync.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.UNKNOWN" href="#redvox.common.timesync.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.Unit" href="#redvox.common.timesync.RedvoxPacketM.Unit">Unit</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.api" href="#redvox.common.timesync.RedvoxPacketM.api">api</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.event_streams" href="#redvox.common.timesync.RedvoxPacketM.event_streams">event_streams</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.metadata" href="#redvox.common.timesync.RedvoxPacketM.metadata">metadata</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.sensors" href="#redvox.common.timesync.RedvoxPacketM.sensors">sensors</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.station_information" href="#redvox.common.timesync.RedvoxPacketM.station_information">station_information</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.sub_api" href="#redvox.common.timesync.RedvoxPacketM.sub_api">sub_api</a></code></li>
+<li><code><a title="redvox.common.timesync.RedvoxPacketM.timing_information" href="#redvox.common.timesync.RedvoxPacketM.timing_information">timing_information</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="redvox.common.timesync.TimeSyncAnalysis" href="#redvox.common.timesync.TimeSyncAnalysis">TimeSyncAnalysis</a></code></h4>
 <ul class="">
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.add_timesync_data" href="#redvox.common.timesync.TimeSyncAnalysis.add_timesync_data">add_timesync_data</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.evaluate_and_validate_data" href="#redvox.common.timesync.TimeSyncAnalysis.evaluate_and_validate_data">evaluate_and_validate_data</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.evaluate_latencies" href="#redvox.common.timesync.TimeSyncAnalysis.evaluate_latencies">evaluate_latencies</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.from_packets" href="#redvox.common.timesync.TimeSyncAnalysis.from_packets">from_packets</a></code></li>
+<li><code><a title="redvox.common.timesync.TimeSyncAnalysis.from_raw_packets" href="#redvox.common.timesync.TimeSyncAnalysis.from_raw_packets">from_raw_packets</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_bad_packets" href="#redvox.common.timesync.TimeSyncAnalysis.get_bad_packets">get_bad_packets</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_best_latency" href="#redvox.common.timesync.TimeSyncAnalysis.get_best_latency">get_best_latency</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_best_offset" href="#redvox.common.timesync.TimeSyncAnalysis.get_best_offset">get_best_offset</a></code></li>

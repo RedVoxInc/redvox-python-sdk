@@ -576,7 +576,7 @@ def validate_timing_information(timing_information: TimingInformation) -&gt; Lis
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.api1000.wrapped_redvox_packet.timing_information.validate_synch_exchange"><code class="name flex">
-<span>def <span class="ident">validate_synch_exchange</span></span>(<span>synch_exchange: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_synch_exchange</span></span>(<span>synch_exchange: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a>) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates a synch exchange.
@@ -620,7 +620,7 @@ def validate_timing_information(timing_information: TimingInformation) -&gt; Lis
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.timing_information.validate_timing_information"><code class="name flex">
-<span>def <span class="ident">validate_timing_information</span></span>(<span>timing_information: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a>) ‑> typing.List[str]</span>
+<span>def <span class="ident">validate_timing_information</span></span>(<span>timing_information: <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a>) ‑> List[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates timing information
@@ -1201,7 +1201,7 @@ def new() -&gt; &#34;SynchExchange&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange.set_unit"><code class="name flex">
-<span>def <span class="ident">set_unit</span></span>(<span>self, unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, int]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
+<span>def <span class="ident">set_unit</span></span>(<span>self, unit: Union[<a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, int]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange" href="#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange">SynchExchange</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets the unit for this exchange type
@@ -1714,7 +1714,7 @@ def new() -&gt; &#34;TimingInformation&#34;:
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.get_synch_exchange_array"><code class="name flex">
-<span>def <span class="ident">get_synch_exchange_array</span></span>(<span>self) ‑> typing.List[float]</span>
+<span>def <span class="ident">get_synch_exchange_array</span></span>(<span>self) ‑> List[float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the packet's synch exchanges as a single list of timestamps, with each synch exchange in
@@ -2068,7 +2068,7 @@ a1, a2, a3, b1, b2, b3 order
 </details>
 </dd>
 <dt id="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation.set_unit"><code class="name flex">
-<span>def <span class="ident">set_unit</span></span>(<span>self, unit: typing.Union[<a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, int]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
+<span>def <span class="ident">set_unit</span></span>(<span>self, unit: Union[<a title="redvox.api1000.common.common.Unit" href="../common/common.html#redvox.api1000.common.common.Unit">Unit</a>, int]) ‑> <a title="redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation" href="#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation">TimingInformation</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets a unit for this timing info.

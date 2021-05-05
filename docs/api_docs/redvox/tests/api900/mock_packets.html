@@ -434,7 +434,7 @@ def multi_channel_packet():
 </details>
 </dd>
 <dt id="redvox.tests.api900.mock_packets.set_payload"><code class="name flex">
-<span>def <span class="ident">set_payload</span></span>(<span>redvox_channel: typing.Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel], payload_type: typing.Type, payload: typing.List) ‑> typing.Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]</span>
+<span>def <span class="ident">set_payload</span></span>(<span>redvox_channel: Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel], payload_type: Type, payload: List) ‑> Union[api900_pb2.EvenlySampledChannel, api900_pb2.UnevenlySampledChannel]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -719,7 +719,7 @@ def multi_channel_packet():
 </details>
 </dd>
 <dt id="redvox.tests.api900.mock_packets.with_evenly_sampled_channel"><code class="name flex">
-<span>def <span class="ident">with_evenly_sampled_channel</span></span>(<span>redvox_packet: api900_pb2.RedvoxPacket, channel_types: typing.List[int], sensor_name: str, sample_rate_hz: float, first_sample_timestamp_epoch_microseconds_utc: int, payload: typing.List[int], value_means: typing.List[float], value_stds: typing.List[float], value_medians: typing.List[float], metadata: typing.List[str]) ‑> api900_pb2.RedvoxPacket</span>
+<span>def <span class="ident">with_evenly_sampled_channel</span></span>(<span>redvox_packet: api900_pb2.RedvoxPacket, channel_types: List[int], sensor_name: str, sample_rate_hz: float, first_sample_timestamp_epoch_microseconds_utc: int, payload: List[int], value_means: List[float], value_stds: List[float], value_medians: List[float], metadata: List[str]) ‑> api900_pb2.RedvoxPacket</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -754,7 +754,7 @@ def multi_channel_packet():
 </details>
 </dd>
 <dt id="redvox.tests.api900.mock_packets.with_unevenly_sampled_channel"><code class="name flex">
-<span>def <span class="ident">with_unevenly_sampled_channel</span></span>(<span>redvox_packet: api900_pb2.RedvoxPacket, channel_types: typing.List[int], sensor_name: str, timestamps: typing.List[int], payload_float64: typing.Union[typing.List[float], NoneType], payload_int64: typing.Union[typing.List[int], NoneType], value_means: typing.List[float], value_stds: typing.List[float], value_medians: typing.List[float], sample_interval_mean: float, sample_interval_std: float, sample_interval_median: float, metadata: typing.List[str]) ‑> api900_pb2.RedvoxPacket</span>
+<span>def <span class="ident">with_unevenly_sampled_channel</span></span>(<span>redvox_packet: api900_pb2.RedvoxPacket, channel_types: List[int], sensor_name: str, timestamps: List[int], payload_float64: Union[List[float], NoneType], payload_int64: Union[List[int], NoneType], value_means: List[float], value_stds: List[float], value_medians: List[float], sample_interval_mean: float, sample_interval_std: float, sample_interval_median: float, metadata: List[str]) ‑> api900_pb2.RedvoxPacket</span>
 </code></dt>
 <dd>
 <div class="desc"></div>

@@ -219,7 +219,7 @@ def refresh_token(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.auth_api.authenticate_user"><code class="name flex">
-<span>def <span class="ident">authenticate_user</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, authentication_request: <a title="redvox.cloud.auth_api.AuthReq" href="#redvox.cloud.auth_api.AuthReq">AuthReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> <a title="redvox.cloud.auth_api.AuthResp" href="#redvox.cloud.auth_api.AuthResp">AuthResp</a></span>
+<span>def <span class="ident">authenticate_user</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, authentication_request: <a title="redvox.cloud.auth_api.AuthReq" href="#redvox.cloud.auth_api.AuthReq">AuthReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None) ‑> <a title="redvox.cloud.auth_api.AuthResp" href="#redvox.cloud.auth_api.AuthResp">AuthResp</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempts to authenticate a RedVox user.
@@ -264,7 +264,7 @@ def refresh_token(
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.refresh_token"><code class="name flex">
-<span>def <span class="ident">refresh_token</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, refresh_token_req: <a title="redvox.cloud.auth_api.RefreshTokenReq" href="#redvox.cloud.auth_api.RefreshTokenReq">RefreshTokenReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.auth_api.RefreshTokenResp" href="#redvox.cloud.auth_api.RefreshTokenResp">RefreshTokenResp</a>, NoneType]</span>
+<span>def <span class="ident">refresh_token</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, refresh_token_req: <a title="redvox.cloud.auth_api.RefreshTokenReq" href="#redvox.cloud.auth_api.RefreshTokenReq">RefreshTokenReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None) ‑> Union[<a title="redvox.cloud.auth_api.RefreshTokenResp" href="#redvox.cloud.auth_api.RefreshTokenResp">RefreshTokenResp</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempt to refresh the given authentication token.
@@ -307,7 +307,7 @@ def refresh_token(
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.validate_token"><code class="name flex">
-<span>def <span class="ident">validate_token</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, validate_token_req: <a title="redvox.cloud.auth_api.ValidateTokenReq" href="#redvox.cloud.auth_api.ValidateTokenReq">ValidateTokenReq</a>, session: typing.Union[requests.sessions.Session, NoneType] = None, timeout: typing.Union[float, NoneType] = None) ‑> typing.Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</span>
+<span>def <span class="ident">validate_token</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, validate_token_req: <a title="redvox.cloud.auth_api.ValidateTokenReq" href="#redvox.cloud.auth_api.ValidateTokenReq">ValidateTokenReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None) ‑> Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempt to validate the provided auth token.
@@ -386,7 +386,7 @@ def refresh_token(
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.AuthReq.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -403,7 +403,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.AuthReq.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -471,7 +471,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.AuthReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -484,7 +484,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.AuthReq.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -520,7 +520,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.auth_api.AuthResp"><code class="flex name class">
 <span>class <span class="ident">AuthResp</span></span>
-<span>(</span><span>status: int, auth_token: typing.Union[str, NoneType], claims: typing.Union[ForwardRef('<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>'), NoneType])</span>
+<span>(</span><span>status: int, auth_token: Union[str, NoneType], claims: Union[ForwardRef('<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>'), NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An authentication response.</p></div>
@@ -549,11 +549,11 @@ def schema(cls: Type[A],
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.auth_api.AuthResp.auth_token"><code class="name">var <span class="ident">auth_token</span> : typing.Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.auth_api.AuthResp.auth_token"><code class="name">var <span class="ident">auth_token</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.auth_api.AuthResp.claims"><code class="name">var <span class="ident">claims</span> : typing.Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</code></dt>
+<dt id="redvox.cloud.auth_api.AuthResp.claims"><code class="name">var <span class="ident">claims</span> : Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -565,7 +565,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.AuthResp.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -582,7 +582,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.AuthResp.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -670,7 +670,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.AuthResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -683,7 +683,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.AuthResp.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -744,7 +744,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.RefreshTokenReq.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -761,7 +761,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.RefreshTokenReq.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -829,7 +829,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.RefreshTokenReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -842,7 +842,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.RefreshTokenReq.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -878,7 +878,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.auth_api.RefreshTokenResp"><code class="flex name class">
 <span>class <span class="ident">RefreshTokenResp</span></span>
-<span>(</span><span>auth_token: typing.Union[str, NoneType], claims: typing.Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType])</span>
+<span>(</span><span>auth_token: Union[str, NoneType], claims: Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A token validation request.</p></div>
@@ -896,11 +896,11 @@ def schema(cls: Type[A],
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.auth_api.RefreshTokenResp.auth_token"><code class="name">var <span class="ident">auth_token</span> : typing.Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.auth_api.RefreshTokenResp.auth_token"><code class="name">var <span class="ident">auth_token</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.auth_api.RefreshTokenResp.claims"><code class="name">var <span class="ident">claims</span> : typing.Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</code></dt>
+<dt id="redvox.cloud.auth_api.RefreshTokenResp.claims"><code class="name">var <span class="ident">claims</span> : Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -908,7 +908,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.RefreshTokenResp.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -925,7 +925,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.RefreshTokenResp.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -993,7 +993,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.RefreshTokenResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1006,7 +1006,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.RefreshTokenResp.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1067,7 +1067,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.ValidateTokenReq.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1084,7 +1084,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.ValidateTokenReq.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1152,7 +1152,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.ValidateTokenReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1165,7 +1165,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.ValidateTokenReq.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1256,7 +1256,7 @@ def schema(cls: Type[A],
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.ValidateTokenResp.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: typing.Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1273,7 +1273,7 @@ def from_dict(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.ValidateTokenResp.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: typing.Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1341,7 +1341,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.ValidateTokenResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> typing.Dict[str, typing.Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1354,7 +1354,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.ValidateTokenResp.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: typing.Union[int, str, NoneType] = None, separators: typing.Tuple[str, str] = None, default: typing.Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>

@@ -329,7 +329,7 @@ class ProtoBase(Generic[P]):
 </details>
 </dd>
 <dt id="redvox.api1000.common.generic.ProtoBase.as_dict"><code class="name flex">
-<span>def <span class="ident">as_dict</span></span>(<span>self) ‑> typing.Dict</span>
+<span>def <span class="ident">as_dict</span></span>(<span>self) ‑> Dict</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Serializes and returns the backing protobuf as a Python dictionary.
@@ -404,7 +404,7 @@ class ProtoBase(Generic[P]):
 </dd>
 <dt id="redvox.api1000.common.generic.ProtoRepeatedMessage"><code class="flex name class">
 <span>class <span class="ident">ProtoRepeatedMessage</span></span>
-<span>(</span><span>parent_proto, repeated_field_proto, repeated_field_name: str, from_proto: typing.Callable[[~P], ~T], to_proto: typing.Callable[[~T], ~P])</span>
+<span>(</span><span>parent_proto, repeated_field_proto, repeated_field_name: str, from_proto: Callable[[~P], ~T], to_proto: Callable[[~T], ~P])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Encapsulates protobuf repeated fields while transforming values between protobuf and wrapper types.</p>
@@ -497,7 +497,7 @@ class ProtoBase(Generic[P]):
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.api1000.common.generic.ProtoRepeatedMessage.append_values"><code class="name flex">
-<span>def <span class="ident">append_values</span></span>(<span>self, values: typing.List[~T]) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a>[~P, ~T]</span>
+<span>def <span class="ident">append_values</span></span>(<span>self, values: List[~T]) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a>[~P, ~T]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Appends the given values to the collection, automatically converting them into protobuf messages.
@@ -556,7 +556,7 @@ class ProtoBase(Generic[P]):
 </details>
 </dd>
 <dt id="redvox.api1000.common.generic.ProtoRepeatedMessage.get_values"><code class="name flex">
-<span>def <span class="ident">get_values</span></span>(<span>self) ‑> typing.List[~T]</span>
+<span>def <span class="ident">get_values</span></span>(<span>self) ‑> List[~T]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns a list of wrapped items stored in this collection.
@@ -574,7 +574,7 @@ class ProtoBase(Generic[P]):
 </details>
 </dd>
 <dt id="redvox.api1000.common.generic.ProtoRepeatedMessage.set_values"><code class="name flex">
-<span>def <span class="ident">set_values</span></span>(<span>self, values: typing.List[~T]) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a>[~P, ~T]</span>
+<span>def <span class="ident">set_values</span></span>(<span>self, values: List[~T]) ‑> <a title="redvox.api1000.common.generic.ProtoRepeatedMessage" href="#redvox.api1000.common.generic.ProtoRepeatedMessage">ProtoRepeatedMessage</a>[~P, ~T]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Sets the contents of this collection to the passed in values. The wrapped values are automatically converted
