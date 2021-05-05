@@ -192,9 +192,9 @@ class StationRaw:
         """
         if self.id:
             if self.uuid:
-                if not np.isnan(self.start_timestamp):
-                    return True
-                self.errors.append("WARNING: Station start timestamp is not valid.")
+                # if not np.isnan(self.start_timestamp):
+                return True
+                # self.errors.append("WARNING: Station start timestamp is not valid.")
             else:
                 self.errors.append("WARNING: Station uuid is not valid.")
         else:
