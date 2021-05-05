@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc29 (2021-5-4)
+
+* Provide native backend for indexing
+
 ### 3.0.0rc28 (2021-4-29)
 
 * Raw protobuf conversion from api900 to apiM implemented
