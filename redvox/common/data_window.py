@@ -20,7 +20,7 @@ from redvox.common import io
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.station_raw import StationRaw
-from redvox.common.station_utils import StationKey
+# from redvox.common.station_utils import StationKey
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader import ApiReader
 from redvox.common.api_reader_raw import ApiReaderRaw
@@ -32,7 +32,7 @@ DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
 DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
 # minimum default length of time in seconds for data to be off by to be considered suspicious
-DATA_DROP_DURATION_S: float = 0.1
+DATA_DROP_DURATION_S: float = 0.2
 
 
 @dataclass_json()
@@ -105,12 +105,6 @@ class DataWindowFast:
 
         self.errors = DataWindowExceptions()
         self.input_directory: str = input_dir
-        if start_datetime and end_datetime:
-            if end_datetime <= start_datetime:
-                self.errors.append("Data Window does not like end datetimes before or equal to start datetimes:"
-                                   f"{end_datetime} <= {start_datetime}")
-                raise AttributeError("Data Window does not like end datetimes before or equal to start datetimes:"
-                                     f"{end_datetime} <= {start_datetime}")
         self.structured_layout: bool = structured_layout
         self.start_datetime: Optional[dtu.datetime] = start_datetime
         self.end_datetime: Optional[dtu.datetime] = end_datetime
@@ -128,13 +122,19 @@ class DataWindowFast:
         self.copy_edge_points = copy_edge_points
         self.debug: bool = debug
         self.stations: List[StationRaw] = []
-        self.create_data_window()
+        if start_datetime and end_datetime:
+            if end_datetime <= start_datetime:
+                self.errors.append("Data Window will not work when end datetime is before or equal to start datetime.\n"
+                                   f"Your times: {end_datetime} <= {start_datetime}")
+            else:
+                self.create_data_window()
         self.errors.print()
 
     @staticmethod
     def from_config_file(file: str) -> "DataWindowFast":
         """
         Loads a configuration file to create the DataWindow
+
         :param file: full path to config file
         :return: a data window
         """
@@ -144,6 +144,7 @@ class DataWindowFast:
     def from_config(config: DataWindowConfig) -> "DataWindowFast":
         """
         Loads a configuration to create the DataWindow
+
         :param config: DataWindow configuration object
         :return: a data window
         """
@@ -303,29 +304,23 @@ class DataWindowFast:
     #         with open(json_dict["file_path"], 'rb') as fp:
     #             return pickle.load(fp)
 
-    def _has_time_window(self) -> bool:
-        """
-        Returns true if there is a start or end datetime in the settings
-        :return: True if start_datetime or end_datetime exists
-        """
-        return self.start_datetime is not None or self.end_datetime is not None
-
     def get_station(self, station_id: str, station_uuid: Optional[str] = None,
-                    start_timestamp: Optional[float] = None) -> Optional[StationRaw]:
+                    start_timestamp: Optional[float] = None) -> Optional[List[StationRaw]]:
         """
-        Get a single station from the data window.  Must give at least the station's id.  Other parameters may be None,
-        and will get any station that matches the other, non-None parameters.
+        Get stations from the data window.  Must give at least the station's id.  Other parameters may be None,
+        which means the value will be ignored when searching.  Results will match all non-None parameters given.
 
         :param station_id: station id
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
-        :return: A single station or None if the station cannot be found
+        :return: A list of valid stations or None if the station cannot be found
         """
-        for s in self.stations:
-            if s.get_key().check_key(station_id, station_uuid, start_timestamp):
-                return s
+        result = [s for s in self.stations if s.get_key().check_key(station_id, station_uuid, start_timestamp)]
+        if len(result) > 0:
+            return result
         if self.debug:
-            print(f"Warning: Attempted to get station {station_id}, but that station is not in this data window!")
+            self.errors.append(f"Warning: Attempted to get station {station_id}, "
+                               f"but that station is not in this data window!")
         return None
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
@@ -333,7 +328,6 @@ class DataWindowFast:
         updates the data window to contain only the data within the window parameters
         stations without audio or any data outside the window are removed
         """
-
         # Let's create and manage a single pool of workers that we can utilize throughout
         # the instantiation of the data window.
         _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
@@ -399,19 +393,10 @@ class DataWindowFast:
         if pool is None:
             _pool.close()
 
-    @staticmethod
-    def _create_station_raw(index: io.Index) -> Optional[StationRaw]:
-        if len(index.entries) > 0:
-            return StationRaw(list(index.stream_raw()))
-        return None
-
-    def _find_station(self, station_id: str, uuid: str, start_time: float) -> Optional[StationRaw]:
-        for s in self.stations:
-            if s.get_key() == StationKey(station_id, uuid, start_time):
-                return s
-        return None
-
     def _check_for_audio(self):
+        """
+        removes any station and station id without audio data from the data window
+        """
         remove = []
         for s in self.stations:
             if not s.has_audio_sensor():
@@ -436,6 +421,7 @@ class DataWindowFast:
         """
         truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
         returns nothing, updates the station in place
+
         :param station: station object to truncate sensors of
         :param start_date_timestamp: timestamp in microseconds since epoch UTC of start of window
         :param end_date_timestamp: timestamp in microseconds since epoch UTC of end of window
@@ -458,6 +444,7 @@ class DataWindowFast:
                        end_date_timestamp: float):
         """
         process a non audio sensor to fit within the data window.  Updates sensor in place, returns nothing.
+
         :param sensor: sensor to process
         :param station_id: station id
         :param start_date_timestamp: start of data window
