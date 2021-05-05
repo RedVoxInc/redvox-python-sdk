@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc30 (2021-5-5)
+
+* Fixed bugs in DataWindowFast
+* Added JSON and serialization to DataWindowFast
+
 ### 3.0.0rc29 (2021-5-4)
 
 * Provide native backend for indexing
