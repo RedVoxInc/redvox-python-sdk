@@ -1170,8 +1170,8 @@ def data_window_to_json(
     _file_name: str = (
         file_name
         if file_name is not None
-        else f"{data_win.start_datetime.timestamp()}"
-        f"_{data_win.end_datetime.timestamp()}"
+        else f"{int(data_win.start_datetime.timestamp())}"
+        f"_{int(data_win.end_datetime.timestamp())}"
         f"_{len(data_win.get_all_station_ids())}"
     )
     if compression_format == "lz4":
@@ -1213,8 +1213,8 @@ def data_window_to_json_file(
     _file_name: str = (
         file_name
         if file_name is not None
-        else f"{data_window.start_datetime.timestamp()}"
-        f"_{data_window.end_datetime.timestamp()}"
+        else f"{int(data_window.start_datetime.timestamp())}"
+        f"_{int(data_window.end_datetime.timestamp())}"
         f"_{len(data_window.get_all_station_ids())}"
     )
     file_path: Path = Path(base_dir).joinpath(f"{_file_name}.json")
@@ -1271,8 +1271,8 @@ def serialize_data_window(
     _file_name: str = (
         file_name
         if file_name is not None
-        else f"{data_window.start_datetime.timestamp()}"
-        f"_{data_window.end_datetime.timestamp()}"
+        else f"{int(data_window.start_datetime.timestamp())}"
+        f"_{int(data_window.end_datetime.timestamp())}"
         f"_{len(data_window.get_all_station_ids())}.pkl.lz4"
     )
 
@@ -1296,6 +1296,17 @@ def deserialize_data_window(path: str) -> "DataWindow":
         return pickle.load(compressed_in)
 
 
+def json_file_to_data_window_fast(base_dir: str, file_name: str) -> Dict:
+    """
+    load a data window from json written to disk
+    :param base_dir: directory where json file is saved
+    :param file_name: name of json file to load
+    :return: a dictionary representing a json-ified data window
+    """
+    with open(Path(base_dir).joinpath(file_name), "r") as r_f:
+        return json_to_data_window(r_f.read())
+
+
 def data_window_fast_to_json(
         data_win: "DataWindowFast",
         base_dir: str = ".",
@@ -1315,10 +1326,13 @@ def data_window_fast_to_json(
     _file_name: str = (
         file_name
         if file_name is not None
-        else f"{data_win.start_datetime.timestamp()}"
-             f"_{data_win.end_datetime.timestamp()}"
-             f"_{len(data_win.station_ids())}"
+        else f"{int(data_win.start_datetime.timestamp())}"
+             f"_{int(data_win.end_datetime.timestamp())}"
+             f"_{len(data_win.station_ids)}"
     )
+    base_dir = os.path.join(base_dir, "dw")
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
     if compression_format == "lz4":
         dfp = str(
             serialize_data_window_fast(data_win, base_dir, _file_name + ".pkl.lz4").resolve()
@@ -1334,7 +1348,7 @@ def data_window_fast_to_json(
         "end_datetime": us_dt(data_win.end_datetime) if data_win.end_datetime else None,
         "station_ids": list(data_win.station_ids),
         "compression_format": compression_format,
-        "file_path": dfp,
+        "file_name": _file_name,
     }
     return json.dumps(data_win_dict)
 
@@ -1358,9 +1372,9 @@ def data_window_fast_to_json_file(
     _file_name: str = (
         file_name
         if file_name is not None
-        else f"{data_window.start_datetime.timestamp()}"
-             f"_{data_window.end_datetime.timestamp()}"
-             f"_{len(data_window.station_ids())}"
+        else f"{int(data_window.start_datetime.timestamp())}"
+             f"_{int(data_window.end_datetime.timestamp())}"
+             f"_{len(data_window.station_ids)}"
     )
     file_path: Path = Path(base_dir).joinpath(f"{_file_name}.json")
     with open(file_path, "w") as f_p:
@@ -1390,9 +1404,9 @@ def serialize_data_window_fast(
     _file_name: str = (
         file_name
         if file_name is not None
-        else f"{data_window.start_datetime.timestamp()}"
-             f"_{data_window.end_datetime.timestamp()}"
-             f"_{len(data_window.station_ids())}.pkl.lz4"
+        else f"{int(data_window.start_datetime.timestamp())}"
+             f"_{int(data_window.end_datetime.timestamp())}"
+             f"_{len(data_window.station_ids)}.pkl.lz4"
     )
 
     file_path: Path = Path(base_dir).joinpath(_file_name)

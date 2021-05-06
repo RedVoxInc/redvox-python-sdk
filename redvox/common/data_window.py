@@ -8,6 +8,7 @@ from datetime import timedelta
 from dataclasses import dataclass, field
 
 import pandas as pd
+import redvox
 from dataclasses_json import dataclass_json
 import multiprocessing
 import multiprocessing.pool
@@ -121,6 +122,7 @@ class DataWindowFast:
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
         self.copy_edge_points = copy_edge_points
+        self.sdk_version: str = redvox.VERSION
         self.debug: bool = debug
         self.stations: List[StationRaw] = []
         if start_datetime and end_datetime and (end_datetime <= start_datetime):
@@ -248,23 +250,33 @@ class DataWindowFast:
         return io.data_window_fast_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
 
     @staticmethod
-    def from_json_file(path: str, start_dt: Optional[dtu.datetime] = None,
+    def from_json_file(base_dir: str, file_name: str,
+                       dw_base_dir: Optional[str] = None,
+                       start_dt: Optional[dtu.datetime] = None,
                        end_dt: Optional[dtu.datetime] = None,
                        station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindowFast"]:
         """
         Reads a JSON file and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
-        :param path: the path to the JSON file to read
+        :param base_dir: the base directory containing the json file
+        :param file_name: the file name of the json file.  Do not include extensions
+        :param dw_base_dir: optional directory containing the compressed data window file.
+                            If not given, assume in subdirectory "dw".  default None
         :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
         :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        return DataWindowFast.from_json_dict(io.json_file_to_data_window(path), start_dt, end_dt, station_ids)
+        if not dw_base_dir:
+            dw_base_dir = Path(base_dir).joinpath("dw")
+        file_name += ".json"
+        return DataWindowFast.from_json_dict(
+            io.json_file_to_data_window_fast(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
 
     @staticmethod
-    def from_json(json_str: str, start_dt: Optional[dtu.datetime] = None,
+    def from_json(json_str: str, dw_base_dir: str,
+                  start_dt: Optional[dtu.datetime] = None,
                   end_dt: Optional[dtu.datetime] = None,
                   station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindowFast"]:
         """
@@ -272,25 +284,31 @@ class DataWindowFast:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
         :param json_str: the JSON to read
+        :param dw_base_dir: directory containing the compressed data window file
         :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
         :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        return DataWindowFast.from_json_dict(io.json_to_data_window(json_str), start_dt, end_dt, station_ids)
+        return DataWindowFast.from_json_dict(io.json_to_data_window(json_str), dw_base_dir,
+                                             start_dt, end_dt, station_ids)
 
     @staticmethod
-    def from_json_dict(json_dict: Dict, start_dt: Optional[dtu.datetime] = None,
+    def from_json_dict(json_dict: Dict,
+                       dw_base_dir: str,
+                       start_dt: Optional[dtu.datetime] = None,
                        end_dt: Optional[dtu.datetime] = None,
                        station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindowFast"]:
         """
         Reads a JSON string and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
+
         :param json_dict: the dictionary to read
-        :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
-        :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
-        :param station_ids: the station ids to check against.  if not given, assumes True.  default None
+        :param dw_base_dir: base directory for the compressed data window file
+        :param start_dt: optional start datetime to check against.  if not given, assumes True.  default None
+        :param end_dt: optional end datetime to check against.  if not given, assumes True.  default None
+        :param station_ids: optional station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
         if start_dt and json_dict["start_datetime"] > dtu.datetime_to_epoch_microseconds_utc(start_dt):
@@ -299,10 +317,11 @@ class DataWindowFast:
             return None
         if station_ids and not all(a in json_dict["station_ids"] for a in station_ids):
             return None
+        comp_dw_path = str(Path(dw_base_dir).joinpath(json_dict["file_name"]))
         if json_dict["compression_format"] == "lz4":
-            return DataWindowFast.deserialize(json_dict["file_path"])
+            return DataWindowFast.deserialize(comp_dw_path + ".pkl.lz4")
         else:
-            with open(json_dict["file_path"], 'rb') as fp:
+            with open(comp_dw_path + ".pkl", 'rb') as fp:
                 return pickle.load(fp)
 
     def get_station(self, station_id: str, station_uuid: Optional[str] = None,

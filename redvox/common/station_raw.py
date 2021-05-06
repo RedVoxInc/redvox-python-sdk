@@ -97,8 +97,8 @@ class StationRaw:
             ].timing_information.app_start_mach_timestamp
             if self.start_timestamp < 0:
                 self.errors.append(
-                    f"WARNING: Station {self.id} has start timestamp before epoch.  "
-                    f"Start timestamp reset to np.nan"
+                    f"WARNING: Station {self.id} has station start date before epoch.  "
+                    f"Station start date reset to np.nan"
                 )
                 self.start_timestamp = np.nan
             self.metadata = st_utils.StationMetadataRaw("Redvox", data_packets[0])

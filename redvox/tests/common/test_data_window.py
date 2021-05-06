@@ -224,64 +224,65 @@ class DataWindowFastJsonTest(unittest.TestCase):
 
     def test_dw_json_pkl_compression(self):
         d_w = dw.DataWindowFast(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
+        json_str = d_w.to_json_file(self.temp_dir_path)
         json_str = d_w.to_json_file(self.temp_dir_path, "d_w", "pkl")
-        unjsonified = dw.DataWindowFast.from_json_file(str(json_str.resolve()))
+        unjsonified = dw.DataWindowFast.from_json_file(self.temp_dir_path, "d_w")
         self.assertTrue("0000000001" in unjsonified.station_ids)
         self.assertTrue(any([f.has_audio_data() for f in unjsonified.get_station("0000000001")]))
         json_str = d_w.to_json(self.temp_dir_path, "d_w", "pkl")
-        unjsonified = dw.DataWindowFast.from_json(json_str)
+        unjsonified = dw.DataWindowFast.from_json(json_str, self.temp_dir_path + "/dw")
         self.assertTrue("0000000001" in unjsonified.station_ids)
         self.assertTrue(any(f.has_audio_data() for f in unjsonified.get_station("0000000001")))
 
     def test_dw_json_lz4_compression(self):
         d_w = dw.DataWindowFast(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
         json_str = d_w.to_json_file(self.temp_dir_path, "d_w", "lz4")
-        unjsonified = dw.DataWindowFast.from_json_file(str(json_str.resolve()))
+        unjsonified = dw.DataWindowFast.from_json_file(self.temp_dir_path, "d_w")
         self.assertTrue("0000000001" in unjsonified.station_ids)
         self.assertTrue(any(f.has_audio_data() for f in unjsonified.get_station("0000000001")))
         json_str = d_w.to_json(self.temp_dir_path, "d_w", "lz4")
-        unjsonified = dw.DataWindowFast.from_json(json_str)
+        unjsonified = dw.DataWindowFast.from_json(json_str, self.temp_dir_path + "/dw")
         self.assertTrue("0000000001" in unjsonified.station_ids)
         self.assertTrue(any(f.has_audio_data() for f in unjsonified.get_station("0000000001")))
 
     def test_dw_json_start_dt(self):
         d_w = dw.DataWindowFast(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
         json_str = d_w.to_json_file(self.temp_dir_path, "d_w", "lz4")
-        unjsonified = dw.DataWindowFast.from_json_file(str(json_str.resolve()),
+        unjsonified = dw.DataWindowFast.from_json_file(self.temp_dir_path, "d_w",
                                                        start_dt=dt.datetime_from_epoch_seconds_utc(1597189455))
         self.assertTrue("0000000001" in unjsonified.station_ids)
         self.assertTrue(any(f.has_audio_data() for f in unjsonified.get_station("0000000001")))
-        unjsonified = dw.DataWindowFast.from_json_file(str(json_str.resolve()),
+        unjsonified = dw.DataWindowFast.from_json_file(self.temp_dir_path, "d_w",
                                                        start_dt=dt.datetime_from_epoch_seconds_utc(1597189300))
         self.assertIsNone(unjsonified)
 
     def test_dw_json_end_dt(self):
         d_w = dw.DataWindowFast(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
         json_str = d_w.to_json_file(self.temp_dir_path, "d_w", "lz4")
-        unjsonified = dw.DataWindowFast.from_json_file(str(json_str.resolve()),
+        unjsonified = dw.DataWindowFast.from_json_file(self.temp_dir_path, "d_w",
                                                        end_dt=dt.datetime_from_epoch_seconds_utc(1597189465))
         self.assertTrue("0000000001" in unjsonified.station_ids)
         self.assertTrue(any(f.has_audio_data() for f in unjsonified.get_station("0000000001")))
-        unjsonified = dw.DataWindowFast.from_json_file(str(json_str.resolve()),
+        unjsonified = dw.DataWindowFast.from_json_file(self.temp_dir_path, "d_w",
                                                        end_dt=dt.datetime_from_epoch_seconds_utc(1597189495))
         self.assertIsNone(unjsonified)
 
     def test_dw_json_station_ids(self):
         d_w = dw.DataWindowFast(tests.TEST_DATA_DIR, False, station_ids={"0000000001"})
         json_str = d_w.to_json_file(self.temp_dir_path, "d_w", "lz4")
-        unjsonified = dw.DataWindowFast.from_json_file(str(json_str.resolve()), station_ids=["0000000001"])
+        unjsonified = dw.DataWindowFast.from_json_file(self.temp_dir_path, "d_w", station_ids=["0000000001"])
         self.assertTrue("0000000001" in unjsonified.station_ids)
         self.assertTrue(any(f.has_audio_data() for f in unjsonified.get_station("0000000001")))
-        unjsonified = dw.DataWindowFast.from_json_file(str(json_str.resolve()), station_ids=["0000000002"])
+        unjsonified = dw.DataWindowFast.from_json_file(self.temp_dir_path, "d_w", station_ids=["0000000002"])
         self.assertIsNone(unjsonified)
 
     def test_empty_dw_json(self):
         d_w = dw.DataWindowFast(".")
         json_str = d_w.to_json_file(self.temp_dir_path, "d_w", "pkl")
-        unjsonified = dw.DataWindowFast.from_json_file(str(json_str.resolve()))
+        unjsonified = dw.DataWindowFast.from_json_file(self.temp_dir_path, "d_w")
         self.assertEqual(len(unjsonified.station_ids), 0)
         json_str = d_w.to_json(self.temp_dir_path, "d_w", "lz4")
-        unjsonified = dw.DataWindowFast.from_json(json_str)
+        unjsonified = dw.DataWindowFast.from_json(json_str, self.temp_dir_path + "/dw")
         self.assertEqual(len(unjsonified.station_ids), 0)
 
     # noinspection PyUnresolvedReferences
