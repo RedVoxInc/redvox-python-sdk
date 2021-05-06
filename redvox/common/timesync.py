@@ -93,7 +93,7 @@ class TimeSyncData:
                 time_sync_exchanges_list[i: i + 6]
                 for i in range(0, len(time_sync_exchanges_list), 6)
             ]
-        self.time_sync_exchanges_df = np.transpose(time_sync_exchanges_list)
+        self.time_sync_exchanges_list = np.transpose(time_sync_exchanges_list)
         self.best_latency = best_latency
         self.best_offset = best_offset
 
@@ -113,12 +113,12 @@ class TimeSyncData:
             # compute tri message data from time sync exchanges
             tse = tms.TriMessageStats(
                 self.station_id,
-                np.array(self.time_sync_exchanges_df[0]),
-                np.array(self.time_sync_exchanges_df[1]),
-                np.array(self.time_sync_exchanges_df[2]),
-                np.array(self.time_sync_exchanges_df[3]),
-                np.array(self.time_sync_exchanges_df[4]),
-                np.array(self.time_sync_exchanges_df[5]),
+                np.array(self.time_sync_exchanges_list[0]),
+                np.array(self.time_sync_exchanges_list[1]),
+                np.array(self.time_sync_exchanges_list[2]),
+                np.array(self.time_sync_exchanges_list[3]),
+                np.array(self.time_sync_exchanges_list[4]),
+                np.array(self.time_sync_exchanges_list[5]),
             )
             # Compute the statistics for latency and offset
             self.mean_latency = np.mean([*tse.latency1, *tse.latency3])
@@ -154,7 +154,7 @@ class TimeSyncData:
         return the number of tri-message exchanges
         :return: number of tri-message exchanges
         """
-        return np.size(self.time_sync_exchanges_df)
+        return np.size(self.time_sync_exchanges_list)
 
     def update_timestamps(self, om: Optional[OffsetModel]):
         """
@@ -175,9 +175,9 @@ class TimeSyncData:
 
     def get_best_latency_timestamp(self):
         if self.best_msg_timestamp_index == 1:
-            return self.time_sync_exchanges_df[3][self.best_latency_index]
+            return self.time_sync_exchanges_list[3][self.best_latency_index]
         elif self.best_msg_timestamp_index == 3:
-            return self.time_sync_exchanges_df[5][self.best_latency_index]
+            return self.time_sync_exchanges_list[5][self.best_latency_index]
         else:
             return self.packet_start_timestamp
 
