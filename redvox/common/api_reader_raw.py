@@ -149,14 +149,27 @@ class ApiReaderRaw:
         if timing_offsets is None:
             return station_index
 
+        diff_s = diff_e = timedelta(seconds=0)
+
         # if our filtered files do not encompass the request even when the packet times are updated, inform user
         insufficient_str = ""
         if self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt:
             insufficient_str += " start"
+            diff_s = self.filter.start_dt_buf + 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
         if self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt:
             insufficient_str += " end"
+            diff_e = self.filter.end_dt_buf + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
         if len(insufficient_str) > 0:
-            print(f"{station_index.summarize().station_ids()} not enough data at{insufficient_str}")
+            # print(f"{station_index.summarize().station_ids()} not enough data at{insufficient_str}")
+            new_index = self._apply_filter(io.ReadFilter()
+                                           .with_start_dt(self.filter.start_dt)
+                                           .with_end_dt(self.filter.end_dt)
+                                           .with_extensions(self.filter.extensions)
+                                           .with_api_versions(self.filter.api_versions)
+                                           .with_station_ids(set(station_index.summarize().station_ids()))
+                                           .with_start_dt_buf(diff_s)
+                                           .with_end_dt_buf(diff_e))
+            return new_index
 
         return station_index
 
