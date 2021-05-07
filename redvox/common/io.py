@@ -131,6 +131,32 @@ class IndexEntry:
 
         return IndexEntry(full_path, station_id, date_time, ext, api_version)
 
+    @staticmethod
+    def from_native(entry) -> "IndexEntry":
+        """
+        Converts a native index entry into a python index entry.
+        :param entry: A native index entry.
+        :return: A python index entry.
+        """
+        return IndexEntry(
+            entry.full_path,
+            entry.station_id,
+            dt_us(entry.date_time),
+            entry.extension,
+            ApiVersion.from_str(entry.api_version),
+        )
+
+    def to_native(self):
+        import redvox_native
+        entry = redvox_native.IndexEntry(
+            self.full_path,
+            self.station_id,
+            us_dt(self.date_time),
+            self.extension,
+            self.api_version.value
+        )
+        return entry
+
     def read(self) -> Optional[Union[WrappedRedvoxPacketM, "WrappedRedvoxPacket"]]:
         """
         Reads, decompresses, deserializes, and wraps the RedVox file pointed to by this entry.
@@ -209,12 +235,12 @@ class ReadFilter:
         return_filter = ReadFilter()
         return (
             return_filter.with_start_dt(self.start_dt)
-            .with_end_dt(self.end_dt)
-            .with_station_ids(self.station_ids)
-            .with_extensions(self.extensions)
-            .with_start_dt_buf(self.start_dt_buf)
-            .with_end_dt_buf(self.end_dt_buf)
-            .with_api_versions(self.api_versions)
+                .with_end_dt(self.end_dt)
+                .with_station_ids(self.station_ids)
+                .with_extensions(self.extensions)
+                .with_start_dt_buf(self.start_dt_buf)
+                .with_end_dt_buf(self.end_dt_buf)
+                .with_api_versions(self.api_versions)
         )
 
     def with_start_dt(self, start_dt: Optional[datetime]) -> "ReadFilter":
@@ -302,7 +328,7 @@ class ReadFilter:
         return self
 
     def with_api_versions(
-        self, api_versions: Optional[Set[ApiVersion]]
+            self, api_versions: Optional[Set[ApiVersion]]
     ) -> "ReadFilter":
         """
         Filters for specified API versions.
@@ -314,7 +340,7 @@ class ReadFilter:
         return self
 
     def apply_dt(
-        self, date_time: datetime, dt_fn: Callable[[datetime], datetime] = lambda dt: dt
+            self, date_time: datetime, dt_fn: Callable[[datetime], datetime] = lambda dt: dt
     ) -> bool:
         """
         Tests if a given datetime passes this filter.
@@ -504,6 +530,22 @@ class Index:
 
     entries: List[IndexEntry] = field(default_factory=lambda: [])
 
+    @staticmethod
+    def from_native(index_native) -> "Index":
+        """
+        Converts a native index into a python index.
+        :param index_native: A native index.
+        :return: A Python index.
+        """
+        entries: List[IndexEntry] = list(map(IndexEntry.from_native, index_native.entries))
+        return Index(entries)
+
+    def to_native(self):
+        import redvox_native
+        native_index = redvox_native.Index()
+        native_index.entries = list(map(IndexEntry.to_native, self.entries))
+        return native_index
+
     def sort(self) -> None:
         """
         Sorts the entries stored in this index.
@@ -534,7 +576,7 @@ class Index:
         return Index([en for en in self.entries if en.station_id == station_id])
 
     def stream_raw(
-        self, read_filter: ReadFilter = ReadFilter()
+            self, read_filter: ReadFilter = ReadFilter()
     ) -> Iterator[Union["RedvoxPacket", RedvoxPacketM]]:
         """
         Read, decompress, deserialize, and then stream RedVox data pointed to by this index.
@@ -546,7 +588,7 @@ class Index:
         return map(IndexEntry.read_raw, filtered)
 
     def stream(
-        self, read_filter: ReadFilter = ReadFilter()
+            self, read_filter: ReadFilter = ReadFilter()
     ) -> Iterator[Union["WrappedRedvoxPacket", WrappedRedvoxPacketM]]:
         """
         Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
@@ -558,7 +600,7 @@ class Index:
         return map(IndexEntry.read, filtered)
 
     def read_raw(
-        self, read_filter: ReadFilter = ReadFilter()
+            self, read_filter: ReadFilter = ReadFilter()
     ) -> List[Union["RedvoxPacket", RedvoxPacketM]]:
         """
         Read, decompress, and deserialize RedVox data pointed to by this index.
@@ -568,7 +610,7 @@ class Index:
         return list(self.stream_raw(read_filter))
 
     def read(
-        self, read_filter: ReadFilter = ReadFilter()
+            self, read_filter: ReadFilter = ReadFilter()
     ) -> List[Union["WrappedRedvoxPacket", WrappedRedvoxPacketM]]:
         """
         Read, decompress, deserialize, and wrap RedVox data pointed to by this index.
@@ -613,31 +655,6 @@ __INDEX_UNSTRUCTURED_FN: Callable[
 ]
 
 
-def __into_index_entry_py(entry) -> IndexEntry:
-    """
-    Converts a native index entry into a python index entry.
-    :param entry: A native index entry.
-    :return: A python index entry.
-    """
-    return IndexEntry(
-        entry.full_path,
-        entry.station_id,
-        dt_us(entry.date_time),
-        entry.extension,
-        ApiVersion.from_str(entry.api_version),
-    )
-
-
-def __into_index_py(index_native) -> Index:
-    """
-    Converts a native index into a python index.
-    :param index_native: A native index.
-    :return: A Python index.
-    """
-    entries: List[IndexEntry] = list(map(__into_index_entry_py, index_native.entries))
-    return Index(entries)
-
-
 def __map_opt(fn, v):
     """
     Maps the provided function on the value if v is not None, otherwise, returns None.
@@ -677,10 +694,10 @@ def __api_native(apis_py: Set[ApiVersion]) -> Set[str]:
 
 
 def index_unstructured_py(
-    base_dir: str,
-    read_filter: ReadFilter = ReadFilter(),
-    sort: bool = True,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+        base_dir: str,
+        read_filter: ReadFilter = ReadFilter(),
+        sort: bool = True,
+        pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     Returns the list of file paths that match the given filter for unstructured data.
@@ -738,10 +755,10 @@ def index_unstructured_py(
 
 
 def index_structured_api_900_py(
-    base_dir: str,
-    read_filter: ReadFilter = ReadFilter(),
-    sort: bool = True,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+        base_dir: str,
+        read_filter: ReadFilter = ReadFilter(),
+        sort: bool = True,
+        pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
@@ -758,12 +775,12 @@ def index_structured_api_900_py(
     for year in _list_subdirs(base_dir, __VALID_YEARS):
         for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
             for day in _list_subdirs(
-                os.path.join(base_dir, year, month), __VALID_DATES
+                    os.path.join(base_dir, year, month), __VALID_DATES
             ):
                 # Before scanning for *.rdvxz files, let's see if the current year, month, day, are in the
                 # filter's range. If not, we can short circuit and skip getting the *.rdvxz files.
                 if not read_filter.apply_dt(
-                    datetime(int(year), int(month), int(day)), dt_fn=truncate_dt_ymd
+                        datetime(int(year), int(month), int(day)), dt_fn=truncate_dt_ymd
                 ):
                     continue
 
@@ -784,10 +801,10 @@ def index_structured_api_900_py(
 
 
 def index_structured_api_1000_py(
-    base_dir: str,
-    read_filter: ReadFilter = ReadFilter(),
-    sort: bool = True,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+        base_dir: str,
+        read_filter: ReadFilter = ReadFilter(),
+        sort: bool = True,
+        pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     This parses a structured API M directory structure and identifies files that match the provided filter.
@@ -804,16 +821,16 @@ def index_structured_api_1000_py(
     for year in _list_subdirs(base_dir, __VALID_YEARS):
         for month in _list_subdirs(os.path.join(base_dir, year), __VALID_MONTHS):
             for day in _list_subdirs(
-                os.path.join(base_dir, year, month), __VALID_DATES
+                    os.path.join(base_dir, year, month), __VALID_DATES
             ):
                 for hour in _list_subdirs(
-                    os.path.join(base_dir, year, month, day), __VALID_HOURS
+                        os.path.join(base_dir, year, month, day), __VALID_HOURS
                 ):
                     # Before scanning for *.rdvxm files, let's see if the current year, month, day, hour are in the
                     # filter's range. If not, we can short circuit and skip getting the *.rdvxm files.
                     if not read_filter.apply_dt(
-                        datetime(int(year), int(month), int(day), int(hour)),
-                        dt_fn=truncate_dt_ymdh,
+                            datetime(int(year), int(month), int(day), int(hour)),
+                            dt_fn=truncate_dt_ymdh,
                     ):
                         continue
 
@@ -834,9 +851,9 @@ def index_structured_api_1000_py(
 
 
 def index_structured_py(
-    base_dir: str,
-    read_filter: ReadFilter = ReadFilter(),
-    pool: Optional[multiprocessing.pool.Pool] = None,
+        base_dir: str,
+        read_filter: ReadFilter = ReadFilter(),
+        pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     Indexes both API 900 and API 1000 structured directory layouts.
@@ -898,6 +915,7 @@ try:
     # noinspection PyUnresolvedReferences
     import redvox_native
 
+
     def __into_read_filter_native(read_filter: ReadFilter):
         """
         Converts a python read filter into a native read filter.
@@ -917,11 +935,12 @@ try:
 
         return read_filter_native
 
+
     def __index_structured_900_native(
-        base_dir: str,
-        read_filter: ReadFilter,
-        sort: bool,
-        pool: Optional[multiprocessing.pool.Pool],
+            base_dir: str,
+            read_filter: ReadFilter,
+            sort: bool,
+            pool: Optional[multiprocessing.pool.Pool],
     ) -> Index:
         """
         This parses a structured API 900 directory structure and identifies files that match the provided filter.
@@ -932,15 +951,16 @@ try:
         :return: A list of wrapped packets on an empty list if none match the filter or none are found
         """
         read_filter = __into_read_filter_native(read_filter)
-        return __into_index_py(
+        return Index.from_native(
             redvox_native.index_structured_900(base_dir, read_filter, sort)
         )
 
+
     def __index_structured_1000_native(
-        base_dir: str,
-        read_filter: ReadFilter,
-        sort: bool,
-        pool: Optional[multiprocessing.pool.Pool],
+            base_dir: str,
+            read_filter: ReadFilter,
+            sort: bool,
+            pool: Optional[multiprocessing.pool.Pool],
     ) -> Index:
         """
         This parses a structured API M directory structure and identifies files that match the provided filter.
@@ -951,14 +971,15 @@ try:
         :return: A list of wrapped packets on an empty list if none match the filter or none are found
         """
         read_filter = __into_read_filter_native(read_filter)
-        return __into_index_py(
+        return Index.from_native(
             redvox_native.index_structured_1000(base_dir, read_filter, sort)
         )
 
+
     def __index_structured_native(
-        base_dir: str,
-        read_filter: ReadFilter,
-        pool: Optional[multiprocessing.pool.Pool],
+            base_dir: str,
+            read_filter: ReadFilter,
+            pool: Optional[multiprocessing.pool.Pool],
     ) -> Index:
         """
         Indexes both API 900 and API 1000 structured directory layouts.
@@ -969,13 +990,14 @@ try:
         :return: An Index of RedVox files.
         """
         read_filter = __into_read_filter_native(read_filter)
-        return __into_index_py(redvox_native.index_structured(base_dir, read_filter))
+        return Index.from_native(redvox_native.index_structured(base_dir, read_filter))
+
 
     def __index_unstructured_native(
-        base_dir: str,
-        read_filter: ReadFilter,
-        sort: bool,
-        pool: Optional[multiprocessing.pool.Pool],
+            base_dir: str,
+            read_filter: ReadFilter,
+            sort: bool,
+            pool: Optional[multiprocessing.pool.Pool],
     ) -> Index:
         """
         Returns the list of file paths that match the given filter for unstructured data.
@@ -986,9 +1008,10 @@ try:
         :return: An iterator of valid paths.
         """
         read_filter = __into_read_filter_native(read_filter)
-        return __into_index_py(
+        return Index.from_native(
             redvox_native.index_unstructured(base_dir, read_filter, sort)
         )
+
 
     __INDEX_STRUCTURED_FN = __index_structured_native
     __INDEX_STRUCTURED_900_FN = __index_structured_900_native
@@ -1002,10 +1025,10 @@ except ImportError:
 
 
 def index_unstructured(
-    base_dir: str,
-    read_filter: ReadFilter = ReadFilter(),
-    sort: bool = True,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+        base_dir: str,
+        read_filter: ReadFilter = ReadFilter(),
+        sort: bool = True,
+        pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     Returns the list of file paths that match the given filter for unstructured data.
@@ -1019,10 +1042,10 @@ def index_unstructured(
 
 
 def index_structured_api_900(
-    base_dir: str,
-    read_filter: ReadFilter = ReadFilter(),
-    sort: bool = True,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+        base_dir: str,
+        read_filter: ReadFilter = ReadFilter(),
+        sort: bool = True,
+        pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
@@ -1036,10 +1059,10 @@ def index_structured_api_900(
 
 
 def index_structured_api_1000(
-    base_dir: str,
-    read_filter: ReadFilter = ReadFilter(),
-    sort: bool = True,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+        base_dir: str,
+        read_filter: ReadFilter = ReadFilter(),
+        sort: bool = True,
+        pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     This parses a structured API M directory structure and identifies files that match the provided filter.
@@ -1053,9 +1076,9 @@ def index_structured_api_1000(
 
 
 def index_structured(
-    base_dir: str,
-    read_filter: ReadFilter = ReadFilter(),
-    pool: Optional[multiprocessing.pool.Pool] = None,
+        base_dir: str,
+        read_filter: ReadFilter = ReadFilter(),
+        pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> Index:
     """
     Indexes both API 900 and API 1000 structured directory layouts.
@@ -1069,10 +1092,10 @@ def index_structured(
 
 
 def sort_unstructured_redvox_data(
-    input_dir: str,
-    output_dir: Optional[str] = None,
-    read_filter: ReadFilter = ReadFilter(),
-    copy: bool = True,
+        input_dir: str,
+        output_dir: Optional[str] = None,
+        read_filter: ReadFilter = ReadFilter(),
+        copy: bool = True,
 ) -> bool:
     """
     takes all redvox files in input_dir and sorts them into appropriate sub-directories
@@ -1155,10 +1178,10 @@ def sort_unstructured_redvox_data(
 
 
 def data_window_to_json(
-    data_win: "DataWindow",
-    base_dir: str = ".",
-    file_name: Optional[str] = None,
-    compression_format: str = "lz4",
+        data_win: "DataWindow",
+        base_dir: str = ".",
+        file_name: Optional[str] = None,
+        compression_format: str = "lz4",
 ) -> str:
     """
     Converts a data window to json format
@@ -1174,8 +1197,8 @@ def data_window_to_json(
         file_name
         if file_name is not None
         else f"{int(data_win.start_datetime.timestamp())}"
-        f"_{int(data_win.end_datetime.timestamp())}"
-        f"_{len(data_win.get_all_station_ids())}"
+             f"_{int(data_win.end_datetime.timestamp())}"
+             f"_{len(data_win.get_all_station_ids())}"
     )
     if compression_format == "lz4":
         dfp = str(
@@ -1198,10 +1221,10 @@ def data_window_to_json(
 
 
 def data_window_to_json_file(
-    data_window: "DataWindow",
-    base_dir: str = ".",
-    file_name: Optional[str] = None,
-    compression_format: str = "lz4",
+        data_window: "DataWindow",
+        base_dir: str = ".",
+        file_name: Optional[str] = None,
+        compression_format: str = "lz4",
 ) -> Path:
     """
     Converts a data window to json format.
@@ -1217,8 +1240,8 @@ def data_window_to_json_file(
         file_name
         if file_name is not None
         else f"{int(data_window.start_datetime.timestamp())}"
-        f"_{int(data_window.end_datetime.timestamp())}"
-        f"_{len(data_window.get_all_station_ids())}"
+             f"_{int(data_window.end_datetime.timestamp())}"
+             f"_{len(data_window.get_all_station_ids())}"
     )
     file_path: Path = Path(base_dir).joinpath(f"{_file_name}.json")
     with open(file_path, "w") as f_p:
@@ -1255,10 +1278,10 @@ class DataWindowSerializationResult:
 
 
 def serialize_data_window(
-    data_window: "DataWindow",
-    base_dir: str = ".",
-    file_name: Optional[str] = None,
-    compression_factor: int = 4,
+        data_window: "DataWindow",
+        base_dir: str = ".",
+        file_name: Optional[str] = None,
+        compression_factor: int = 4,
 ) -> Path:
     """
     Serializes and compresses a DataWindow to a file.
@@ -1275,14 +1298,14 @@ def serialize_data_window(
         file_name
         if file_name is not None
         else f"{int(data_window.start_datetime.timestamp())}"
-        f"_{int(data_window.end_datetime.timestamp())}"
-        f"_{len(data_window.get_all_station_ids())}.pkl.lz4"
+             f"_{int(data_window.end_datetime.timestamp())}"
+             f"_{len(data_window.get_all_station_ids())}.pkl.lz4"
     )
 
     file_path: Path = Path(base_dir).joinpath(_file_name)
 
     with lz4.frame.open(
-        file_path, "wb", compression_level=compression_factor
+            file_path, "wb", compression_level=compression_factor
     ) as compressed_out:
         pickle.dump(data_window, compressed_out)
         compressed_out.flush()
