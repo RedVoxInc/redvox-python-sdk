@@ -226,7 +226,7 @@ class DataWindowFast:
     def to_json_file(self, base_dir: str = ".", file_name: Optional[str] = None,
                      compression_format: str = "lz4") -> Path:
         """
-        Converts the data window into a JSON file and writes it to disk.
+        Converts the data window metadata into a JSON file and compresses the data window and writes it to disk.
         :param base_dir: base directory to write the json file to.  Default . (local directory)
         :param file_name: the optional file name.  Do not include a file extension.
                             If None, a default file name is created using this format:
@@ -239,7 +239,7 @@ class DataWindowFast:
     def to_json(self, compressed_file_base_dir: str = ".", compressed_file_name: Optional[str] = None,
                 compression_format: str = "lz4") -> str:
         """
-        Converts the data window into a JSON string
+        Converts the data window metadata into a JSON string, then compresses the data window and writes it to disk.
         :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
         :param compressed_file_name: the optional file name.  Do not include a file extension.
                                         If None, a default file name is created using this format:
