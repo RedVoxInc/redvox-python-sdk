@@ -5,6 +5,7 @@ This module provides utility functions for determining statistics of well struct
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Callable, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
+import math
 import multiprocessing
 from multiprocessing.pool import Pool
 
@@ -100,7 +101,7 @@ def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -> flo
 
 
 def _map_opt(
-    opt: Optional[Any], apply: Callable[[Optional[Any]], Optional[Any]]
+        opt: Optional[Any], apply: Callable[[Optional[Any]], Optional[Any]]
 ) -> Optional[Any]:
     """
     Maps an optional with the given function. If the optional is None, None is returned.
@@ -112,6 +113,20 @@ def _map_opt(
         return None
 
     return apply(opt)
+
+def _map_opt_numeric(
+        fn: Callable[[Optional[Any]], Optional[Any]], opt: Optional[Any],
+) -> Optional[Any]:
+    """
+    Maps an optional with the given function. If the optional is None, None is returned.
+    :param opt: The optional to map.
+    :param apply: The function to apply to the optional if a value is present.
+    :return: The mapped value.
+    """
+    if opt is None or math.isnan(opt):
+        return None
+
+    return fn(opt)
 
 
 def _partition_list(lst: List[Any], chunks: int) -> List[Any]:
@@ -125,7 +140,7 @@ def _partition_list(lst: List[Any], chunks: int) -> List[Any]:
     n: int = len(lst)
     k: int = chunks
     return [
-        lst[i * (n // k) + min(i, n % k) : (i + 1) * (n // k) + min(i + 1, n % k)]
+        lst[i * (n // k) + min(i, n % k): (i + 1) * (n // k) + min(i + 1, n % k)]
         for i in range(k)
     ]
 
@@ -138,6 +153,10 @@ class GpsDateTime:
 
     mach_dt: datetime
     gps_dt: Optional[datetime]
+
+
+def dur2td(us: float) -> timedelta:
+    return timedelta(microseconds=us)
 
 
 @dataclass
@@ -158,6 +177,22 @@ class StationStat:
     offset: Optional[float]
     sample_rate_hz: Optional[float]
     packet_duration: Optional[timedelta]
+
+    @staticmethod
+    def from_native(native) -> "StationStat":
+        return StationStat(
+            native.station_id,
+            native.station_uuid,
+            _map_opt_numeric(us2dt, native.app_start_dt),
+            us2dt(native.packet_start_dt),
+            _map_opt_numeric(us2dt, native.server_recv_dt),
+            None,
+            native.latency,
+            native.best_latency_timestamp,
+            native.offset,
+            native.sample_rate_hz,
+            _map_opt_numeric(dur2td, native.packet_duration)
+        )
 
     @staticmethod
     def from_api_900(packet: "WrappedRedvoxPacket") -> "StationStat":
@@ -286,7 +321,7 @@ def extract_stats_serial(index: io.Index) -> List[StationStat]:
 
 
 def extract_stats_parallel(
-    index: io.Index, pool: Optional[multiprocessing.pool.Pool] = None
+        index: io.Index, pool: Optional[multiprocessing.pool.Pool] = None
 ) -> List[StationStat]:
     """
     Extracts StationStat information in parallel from packets stored in the provided index.
@@ -312,26 +347,31 @@ def extract_stats_parallel(
     )
     return [item for sublist in nested for item in sublist]
 
+
 ExtractStatsFn: Callable[[io.Index, Optional[Pool]], List[StationStat]]
 
 try:
     import redvox_native
 
+
     def extract_stats_native(index: io.Index, pool: Optional[Pool] = None) -> List[StationStat]:
-        # if index.native_index is not None:
-        #     return redvox_native.extract_stats(index.native_index)
-        # else:
         return extract_stats_parallel(index, pool)
         # To native index
+        # native_index = index.to_native()
         # Get native stats
-        # To py result
+        # native_stats = redvox_native.extract_stats(native_index)
+         # To py result
+        # return list(map(StationStat.from_native, native_stats))
+
+
     ExtractStatsFn = extract_stats_native
 except ImportError:
     ExtractStatsFn = extract_stats_parallel
 
+
 def extract_stats(
-    index: io.Index,
-    pool: Optional[multiprocessing.pool.Pool] = None,
+        index: io.Index,
+        pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> List[StationStat]:
     """
     Extracts StationStat information from packets stored in the provided index.
