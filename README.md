@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc31 (2021-5-7)
+
+* Add native implementation of file stats extraction
+
 ### 3.0.0rc30 (2021-5-5)
 
 * Fixed bugs in DataWindowFast
