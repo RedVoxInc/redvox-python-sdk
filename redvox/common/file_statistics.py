@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Callable, Iterator, List, Optional, Tuple, TYPE_CHECKING, Union
 import multiprocessing
+from multiprocessing.pool import Pool
 
 import numpy as np
 
@@ -311,20 +312,33 @@ def extract_stats_parallel(
     )
     return [item for sublist in nested for item in sublist]
 
+ExtractStatsFn: Callable[[io.Index, Optional[Pool]], List[StationStat]]
+
+try:
+    import redvox_native
+
+    def extract_stats_native(index: io.Index, pool: Optional[Pool] = None) -> List[StationStat]:
+        # if index.native_index is not None:
+        #     return redvox_native.extract_stats(index.native_index)
+        # else:
+        return extract_stats_parallel(index, pool)
+        # To native index
+        # Get native stats
+        # To py result
+    ExtractStatsFn = extract_stats_native
+except ImportError:
+    ExtractStatsFn = extract_stats_parallel
 
 def extract_stats(
     index: io.Index,
-    min_len_for_parallel: int = 128,
     pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> List[StationStat]:
     """
     Extracts StationStat information from packets stored in the provided index.
     :param index: Index of packets to extract information from.
-    :param min_len_for_parallel: When the index contains more than this number of entries, the values will be read in
-                                 parallel, otherwise they are read in serial.
     :return: A list of StationStat objects.
     """
-    return extract_stats_parallel(index, pool)
+    return ExtractStatsFn(index, pool)
     # if len(index.entries) >= min_len_for_parallel:
     #     _pool: multiprocessing.pool.Pool = (
     #         multiprocessing.Pool() if pool is None else pool

@@ -159,6 +159,9 @@ class IndexEntry:
         else:
             return None
 
+    def _into_native(self):
+        pass
+
     def __eq__(self, other: object) -> bool:
         """
         Tests if this value is equal to another value.
