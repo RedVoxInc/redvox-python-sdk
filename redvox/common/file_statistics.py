@@ -101,7 +101,7 @@ def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -> flo
 
 
 def _map_opt(
-        opt: Optional[Any], apply: Callable[[Optional[Any]], Optional[Any]]
+    opt: Optional[Any], apply: Callable[[Optional[Any]], Optional[Any]]
 ) -> Optional[Any]:
     """
     Maps an optional with the given function. If the optional is None, None is returned.
@@ -114,8 +114,10 @@ def _map_opt(
 
     return apply(opt)
 
+
 def _map_opt_numeric(
-        fn: Callable[[Optional[Any]], Optional[Any]], opt: Optional[Any],
+    fn: Callable[[Optional[Any]], Optional[Any]],
+    opt: Optional[Any],
 ) -> Optional[Any]:
     """
     Maps an optional with the given function. If the optional is None, None is returned.
@@ -140,7 +142,7 @@ def _partition_list(lst: List[Any], chunks: int) -> List[Any]:
     n: int = len(lst)
     k: int = chunks
     return [
-        lst[i * (n // k) + min(i, n % k): (i + 1) * (n // k) + min(i + 1, n % k)]
+        lst[i * (n // k) + min(i, n % k) : (i + 1) * (n // k) + min(i + 1, n % k)]
         for i in range(k)
     ]
 
@@ -191,7 +193,7 @@ class StationStat:
             native.best_latency_timestamp,
             native.offset,
             native.sample_rate_hz,
-            _map_opt_numeric(dur2td, native.packet_duration)
+            _map_opt_numeric(dur2td, native.packet_duration),
         )
 
     @staticmethod
@@ -208,7 +210,9 @@ class StationStat:
         if packet.has_time_synchronization_sensor():
             tsd = TimeSyncData(
                 packet.redvox_id(),
-                time_sync_exchanges_list=list(packet.time_synchronization_sensor().payload_values()),
+                time_sync_exchanges_list=list(
+                    packet.time_synchronization_sensor().payload_values()
+                ),
                 packet_start_timestamp=packet.app_file_start_timestamp_machine(),
                 packet_end_timestamp=packet.end_timestamp_us_utc(),
                 server_acquisition_timestamp=packet.server_timestamp_epoch_microseconds_utc(),
@@ -321,7 +325,7 @@ def extract_stats_serial(index: io.Index) -> List[StationStat]:
 
 
 def extract_stats_parallel(
-        index: io.Index, pool: Optional[multiprocessing.pool.Pool] = None
+    index: io.Index, pool: Optional[multiprocessing.pool.Pool] = None
 ) -> List[StationStat]:
     """
     Extracts StationStat information in parallel from packets stored in the provided index.
@@ -343,7 +347,7 @@ def extract_stats_parallel(
         extract_stats_serial,
         iter(indices),
         lambda: len(indices) > 128,
-        chunk_size=64
+        chunk_size=64,
     )
     return [item for sublist in nested for item in sublist]
 
@@ -351,18 +355,19 @@ def extract_stats_parallel(
 ExtractStatsFn: Callable[[io.Index, Optional[Pool]], List[StationStat]]
 
 try:
+    # noinspection PyUnresolvedReferences
     import redvox_native
 
-
-    def extract_stats_native(index: io.Index, pool: Optional[Pool] = None) -> List[StationStat]:
-        # return extract_stats_parallel(index, pool)
+    def extract_stats_native(
+        index: io.Index, pool: Optional[Pool] = None
+    ) -> List[StationStat]:
         # To native index
         native_index = index.to_native()
         # Get native stats
+        # noinspection PyUnresolvedReferences
         native_stats = redvox_native.extract_stats(native_index)
         # To py result
         return list(map(StationStat.from_native, native_stats))
-
 
     ExtractStatsFn = extract_stats_native
 except ImportError:
@@ -370,8 +375,8 @@ except ImportError:
 
 
 def extract_stats(
-        index: io.Index,
-        pool: Optional[multiprocessing.pool.Pool] = None,
+    index: io.Index,
+    pool: Optional[multiprocessing.pool.Pool] = None,
 ) -> List[StationStat]:
     """
     Extracts StationStat information from packets stored in the provided index.
@@ -379,13 +384,3 @@ def extract_stats(
     :return: A list of StationStat objects.
     """
     return ExtractStatsFn(index, pool)
-    # if len(index.entries) >= min_len_for_parallel:
-    #     _pool: multiprocessing.pool.Pool = (
-    #         multiprocessing.Pool() if pool is None else pool
-    #     )
-    #     stats: List[StationStat] = extract_stats_parallel(index)
-    #     if pool is None:
-    #         _pool.close()
-    #     return stats
-    # else:
-    #     return extract_stats_serial(index)
