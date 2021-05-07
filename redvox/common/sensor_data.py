@@ -3,13 +3,21 @@ Defines generic sensor data and data for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import pandas as pd
 
 import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
+from redvox.api1000.wrapped_redvox_packet.station_information import (
+    NetworkType,
+    PowerState,
+    CellServiceState,
+)
+from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
+from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 
 # columns that cannot be interpolated
 NON_INTERPOLATED_COLUMNS = ["compressed_audio", "image"]
@@ -159,7 +167,6 @@ class SensorData:
             self.organize_and_update_stats()
         else:
             self.sort_by_data_timestamps()
-        # todo: store the non-consecutive timestamp indices (idk how to find those)
 
     def is_sample_interval_invalid(self) -> bool:
         """
@@ -225,16 +232,28 @@ class SensorData:
         """
         return self.data_df.iloc[:, 2:].T.to_numpy()
 
-    def get_data_channel(self, channel_name: str) -> np.array:
+    def get_data_channel(self, channel_name: str) -> Union[np.array, List[str]]:
         """
         gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
         :param channel_name: the name of the channel to get data for
-        :return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated
+        :return: the data values of the channel as a numpy array
         """
         if channel_name not in self.data_df.columns:
             raise ValueError(
                 f"WARNING: {channel_name} does not exist; try one of {self.data_channels()}"
             )
+        if channel_name == "location_provider":
+            return [LocationProvider(c) for c in self.data_df[channel_name]]
+        elif channel_name == "image_codec":
+            return [ImageCodec(c) for c in self.data_df[channel_name]]
+        elif channel_name == "audio_codec":
+            return [AudioCodec(c) for c in self.data_df[channel_name]]
+        elif channel_name == "network_type":
+            return [NetworkType(c) for c in self.data_df[channel_name]]
+        elif channel_name == "power_state":
+            return [PowerState(c) for c in self.data_df[channel_name]]
+        elif channel_name == "cell_service":
+            return [CellServiceState(c) for c in self.data_df[channel_name]]
         return self.data_df[channel_name].to_numpy()
 
     def get_valid_data_channel_values(self, channel_name: str) -> np.array:

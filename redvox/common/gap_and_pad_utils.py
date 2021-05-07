@@ -277,12 +277,15 @@ def add_data_points_to_df(dataframe: pd.DataFrame,
     if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0:
         start_timestamp = dataframe["timestamps"].iloc[start_index]
         t = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-        start_point = dataframe.iloc[start_index].copy()
         # interpolate mode only uses the first created timestamp
         if point_creation_mode == DataPointCreationMode.COPY:
-            empty_df = start_point
+            empty_df = dataframe.iloc[start_index].copy()
+            for column_index in dataframe.columns:
+                if column_index in NON_INTERPOLATED_COLUMNS:
+                    empty_df[column_index] = np.nan
             empty_df["timestamps"] = t[0]
         elif point_creation_mode == DataPointCreationMode.INTERPOLATE:
+            start_point = dataframe.iloc[start_index]
             numeric_start = start_point[[col for col in dataframe.columns
                                          if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
             non_numeric_start = start_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
