@@ -355,13 +355,13 @@ try:
 
 
     def extract_stats_native(index: io.Index, pool: Optional[Pool] = None) -> List[StationStat]:
-        return extract_stats_parallel(index, pool)
+        # return extract_stats_parallel(index, pool)
         # To native index
-        # native_index = index.to_native()
+        native_index = index.to_native()
         # Get native stats
-        # native_stats = redvox_native.extract_stats(native_index)
-         # To py result
-        # return list(map(StationStat.from_native, native_stats))
+        native_stats = redvox_native.extract_stats(native_index)
+        # To py result
+        return list(map(StationStat.from_native, native_stats))
 
 
     ExtractStatsFn = extract_stats_native
