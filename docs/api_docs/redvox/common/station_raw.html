@@ -130,8 +130,8 @@ class StationRaw:
             ].timing_information.app_start_mach_timestamp
             if self.start_timestamp &lt; 0:
                 self.errors.append(
-                    f&#34;WARNING: Station {self.id} has start timestamp before epoch.  &#34;
-                    f&#34;Start timestamp reset to np.nan&#34;
+                    f&#34;WARNING: Station {self.id} has station start date before epoch.  &#34;
+                    f&#34;Station start date reset to np.nan&#34;
                 )
                 self.start_timestamp = np.nan
             self.metadata = st_utils.StationMetadataRaw(&#34;Redvox&#34;, data_packets[0])
@@ -225,9 +225,9 @@ class StationRaw:
         &#34;&#34;&#34;
         if self.id:
             if self.uuid:
-                if not np.isnan(self.start_timestamp):
-                    return True
-                self.errors.append(&#34;WARNING: Station start timestamp is not valid.&#34;)
+                # if not np.isnan(self.start_timestamp):
+                return True
+                # self.errors.append(&#34;WARNING: Station start timestamp is not valid.&#34;)
             else:
                 self.errors.append(&#34;WARNING: Station uuid is not valid.&#34;)
         else:
@@ -1387,8 +1387,8 @@ Times are not inclusive of the gap.</p>
             ].timing_information.app_start_mach_timestamp
             if self.start_timestamp &lt; 0:
                 self.errors.append(
-                    f&#34;WARNING: Station {self.id} has start timestamp before epoch.  &#34;
-                    f&#34;Start timestamp reset to np.nan&#34;
+                    f&#34;WARNING: Station {self.id} has station start date before epoch.  &#34;
+                    f&#34;Station start date reset to np.nan&#34;
                 )
                 self.start_timestamp = np.nan
             self.metadata = st_utils.StationMetadataRaw(&#34;Redvox&#34;, data_packets[0])
@@ -1482,9 +1482,9 @@ Times are not inclusive of the gap.</p>
         &#34;&#34;&#34;
         if self.id:
             if self.uuid:
-                if not np.isnan(self.start_timestamp):
-                    return True
-                self.errors.append(&#34;WARNING: Station start timestamp is not valid.&#34;)
+                # if not np.isnan(self.start_timestamp):
+                return True
+                # self.errors.append(&#34;WARNING: Station start timestamp is not valid.&#34;)
             else:
                 self.errors.append(&#34;WARNING: Station uuid is not valid.&#34;)
         else:
@@ -2500,9 +2500,9 @@ def from_packet(packet: api_m.RedvoxPacketM) -&gt; &#34;StationRaw&#34;:
     &#34;&#34;&#34;
     if self.id:
         if self.uuid:
-            if not np.isnan(self.start_timestamp):
-                return True
-            self.errors.append(&#34;WARNING: Station start timestamp is not valid.&#34;)
+            # if not np.isnan(self.start_timestamp):
+            return True
+            # self.errors.append(&#34;WARNING: Station start timestamp is not valid.&#34;)
         else:
             self.errors.append(&#34;WARNING: Station uuid is not valid.&#34;)
     else:

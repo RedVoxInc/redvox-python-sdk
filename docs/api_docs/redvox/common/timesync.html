@@ -44,7 +44,6 @@ from typing import List, Optional, Union
 
 # noinspection Mypy
 import numpy as np
-import pandas as pd
 
 import redvox.api900.lib.api900_pb2 as api900_pb2
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
@@ -128,9 +127,7 @@ class TimeSyncData:
                 time_sync_exchanges_list[i: i + 6]
                 for i in range(0, len(time_sync_exchanges_list), 6)
             ]
-        self.time_sync_exchanges_df = pd.DataFrame(
-            time_sync_exchanges_list, columns=[&#34;a1&#34;, &#34;a2&#34;, &#34;a3&#34;, &#34;b1&#34;, &#34;b2&#34;, &#34;b3&#34;]
-        )
+        self.time_sync_exchanges_list = np.transpose(time_sync_exchanges_list)
         self.best_latency = best_latency
         self.best_offset = best_offset
 
@@ -150,12 +147,12 @@ class TimeSyncData:
             # compute tri message data from time sync exchanges
             tse = tms.TriMessageStats(
                 self.station_id,
-                self.time_sync_exchanges_df[&#34;a1&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;a2&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;a3&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;b1&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;b2&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;b3&#34;].to_numpy(),
+                np.array(self.time_sync_exchanges_list[0]),
+                np.array(self.time_sync_exchanges_list[1]),
+                np.array(self.time_sync_exchanges_list[2]),
+                np.array(self.time_sync_exchanges_list[3]),
+                np.array(self.time_sync_exchanges_list[4]),
+                np.array(self.time_sync_exchanges_list[5]),
             )
             # Compute the statistics for latency and offset
             self.mean_latency = np.mean([*tse.latency1, *tse.latency3])
@@ -191,7 +188,7 @@ class TimeSyncData:
         return the number of tri-message exchanges
         :return: number of tri-message exchanges
         &#34;&#34;&#34;
-        return self.time_sync_exchanges_df.shape[0]
+        return np.size(self.time_sync_exchanges_list)
 
     def update_timestamps(self, om: Optional[OffsetModel]):
         &#34;&#34;&#34;
@@ -212,9 +209,9 @@ class TimeSyncData:
 
     def get_best_latency_timestamp(self):
         if self.best_msg_timestamp_index == 1:
-            return self.time_sync_exchanges_df[&#34;b1&#34;].iloc[self.best_latency_index]
+            return self.time_sync_exchanges_list[3][self.best_latency_index]
         elif self.best_msg_timestamp_index == 3:
-            return self.time_sync_exchanges_df[&#34;b3&#34;].iloc[self.best_latency_index]
+            return self.time_sync_exchanges_list[5][self.best_latency_index]
         else:
             return self.packet_start_timestamp
 
@@ -2444,9 +2441,7 @@ default np.nan
                 time_sync_exchanges_list[i: i + 6]
                 for i in range(0, len(time_sync_exchanges_list), 6)
             ]
-        self.time_sync_exchanges_df = pd.DataFrame(
-            time_sync_exchanges_list, columns=[&#34;a1&#34;, &#34;a2&#34;, &#34;a3&#34;, &#34;b1&#34;, &#34;b2&#34;, &#34;b3&#34;]
-        )
+        self.time_sync_exchanges_list = np.transpose(time_sync_exchanges_list)
         self.best_latency = best_latency
         self.best_offset = best_offset
 
@@ -2466,12 +2461,12 @@ default np.nan
             # compute tri message data from time sync exchanges
             tse = tms.TriMessageStats(
                 self.station_id,
-                self.time_sync_exchanges_df[&#34;a1&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;a2&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;a3&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;b1&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;b2&#34;].to_numpy(),
-                self.time_sync_exchanges_df[&#34;b3&#34;].to_numpy(),
+                np.array(self.time_sync_exchanges_list[0]),
+                np.array(self.time_sync_exchanges_list[1]),
+                np.array(self.time_sync_exchanges_list[2]),
+                np.array(self.time_sync_exchanges_list[3]),
+                np.array(self.time_sync_exchanges_list[4]),
+                np.array(self.time_sync_exchanges_list[5]),
             )
             # Compute the statistics for latency and offset
             self.mean_latency = np.mean([*tse.latency1, *tse.latency3])
@@ -2507,7 +2502,7 @@ default np.nan
         return the number of tri-message exchanges
         :return: number of tri-message exchanges
         &#34;&#34;&#34;
-        return self.time_sync_exchanges_df.shape[0]
+        return np.size(self.time_sync_exchanges_list)
 
     def update_timestamps(self, om: Optional[OffsetModel]):
         &#34;&#34;&#34;
@@ -2528,9 +2523,9 @@ default np.nan
 
     def get_best_latency_timestamp(self):
         if self.best_msg_timestamp_index == 1:
-            return self.time_sync_exchanges_df[&#34;b1&#34;].iloc[self.best_latency_index]
+            return self.time_sync_exchanges_list[3][self.best_latency_index]
         elif self.best_msg_timestamp_index == 3:
-            return self.time_sync_exchanges_df[&#34;b3&#34;].iloc[self.best_latency_index]
+            return self.time_sync_exchanges_list[5][self.best_latency_index]
         else:
             return self.packet_start_timestamp</code></pre>
 </details>
@@ -2547,9 +2542,9 @@ default np.nan
 </summary>
 <pre><code class="python">def get_best_latency_timestamp(self):
     if self.best_msg_timestamp_index == 1:
-        return self.time_sync_exchanges_df[&#34;b1&#34;].iloc[self.best_latency_index]
+        return self.time_sync_exchanges_list[3][self.best_latency_index]
     elif self.best_msg_timestamp_index == 3:
-        return self.time_sync_exchanges_df[&#34;b3&#34;].iloc[self.best_latency_index]
+        return self.time_sync_exchanges_list[5][self.best_latency_index]
     else:
         return self.packet_start_timestamp</code></pre>
 </details>
@@ -2569,7 +2564,7 @@ default np.nan
     return the number of tri-message exchanges
     :return: number of tri-message exchanges
     &#34;&#34;&#34;
-    return self.time_sync_exchanges_df.shape[0]</code></pre>
+    return np.size(self.time_sync_exchanges_list)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncData.update_timestamps"><code class="name flex">

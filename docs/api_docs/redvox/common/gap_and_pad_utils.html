@@ -305,12 +305,15 @@ def add_data_points_to_df(dataframe: pd.DataFrame,
     if len(dataframe) &gt; start_index and len(dataframe) &gt; 0 and num_samples_to_add &gt; 0:
         start_timestamp = dataframe[&#34;timestamps&#34;].iloc[start_index]
         t = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-        start_point = dataframe.iloc[start_index].copy()
         # interpolate mode only uses the first created timestamp
         if point_creation_mode == DataPointCreationMode.COPY:
-            empty_df = start_point
+            empty_df = dataframe.iloc[start_index].copy()
+            for column_index in dataframe.columns:
+                if column_index in NON_INTERPOLATED_COLUMNS:
+                    empty_df[column_index] = np.nan
             empty_df[&#34;timestamps&#34;] = t[0]
         elif point_creation_mode == DataPointCreationMode.INTERPOLATE:
+            start_point = dataframe.iloc[start_index]
             numeric_start = start_point[[col for col in dataframe.columns
                                          if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
             non_numeric_start = start_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
@@ -497,12 +500,15 @@ add points before the start_index
     if len(dataframe) &gt; start_index and len(dataframe) &gt; 0 and num_samples_to_add &gt; 0:
         start_timestamp = dataframe[&#34;timestamps&#34;].iloc[start_index]
         t = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
-        start_point = dataframe.iloc[start_index].copy()
         # interpolate mode only uses the first created timestamp
         if point_creation_mode == DataPointCreationMode.COPY:
-            empty_df = start_point
+            empty_df = dataframe.iloc[start_index].copy()
+            for column_index in dataframe.columns:
+                if column_index in NON_INTERPOLATED_COLUMNS:
+                    empty_df[column_index] = np.nan
             empty_df[&#34;timestamps&#34;] = t[0]
         elif point_creation_mode == DataPointCreationMode.INTERPOLATE:
+            start_point = dataframe.iloc[start_index]
             numeric_start = start_point[[col for col in dataframe.columns
                                          if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
             non_numeric_start = start_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]

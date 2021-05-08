@@ -205,14 +205,14 @@ class StationKey:
         :return: True if all parameters match key values
         &#34;&#34;&#34;
         if station_id is not None and station_id != self.id:
-            print(f&#34;Id {station_id} does not equal station&#39;s id: {self.id}&#34;)
+            # print(f&#34;Id {station_id} does not equal station&#39;s id: {self.id}&#34;)
             return False
         if station_uuid is not None and station_uuid != self.uuid:
-            print(f&#34;Uuid {station_uuid} does not equal station&#39;s uuid: {self.uuid}&#34;)
+            # print(f&#34;Uuid {station_uuid} does not equal station&#39;s uuid: {self.uuid}&#34;)
             return False
         if start_timestamp is not None and start_timestamp != self.start_timestamp_micros:
-            print(f&#34;Start timestamp {start_timestamp} does not equal station&#39;s &#34;
-                  f&#34;start timestamp: {self.start_timestamp_micros}&#34;)
+            # print(f&#34;Start timestamp {start_timestamp} does not equal station&#39;s &#34;
+            #       f&#34;start timestamp: {self.start_timestamp_micros}&#34;)
             return False
         return True
 
@@ -687,14 +687,14 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
         :return: True if all parameters match key values
         &#34;&#34;&#34;
         if station_id is not None and station_id != self.id:
-            print(f&#34;Id {station_id} does not equal station&#39;s id: {self.id}&#34;)
+            # print(f&#34;Id {station_id} does not equal station&#39;s id: {self.id}&#34;)
             return False
         if station_uuid is not None and station_uuid != self.uuid:
-            print(f&#34;Uuid {station_uuid} does not equal station&#39;s uuid: {self.uuid}&#34;)
+            # print(f&#34;Uuid {station_uuid} does not equal station&#39;s uuid: {self.uuid}&#34;)
             return False
         if start_timestamp is not None and start_timestamp != self.start_timestamp_micros:
-            print(f&#34;Start timestamp {start_timestamp} does not equal station&#39;s &#34;
-                  f&#34;start timestamp: {self.start_timestamp_micros}&#34;)
+            # print(f&#34;Start timestamp {start_timestamp} does not equal station&#39;s &#34;
+            #       f&#34;start timestamp: {self.start_timestamp_micros}&#34;)
             return False
         return True
 
@@ -747,14 +747,14 @@ If the parameter is None, any value will match.
     :return: True if all parameters match key values
     &#34;&#34;&#34;
     if station_id is not None and station_id != self.id:
-        print(f&#34;Id {station_id} does not equal station&#39;s id: {self.id}&#34;)
+        # print(f&#34;Id {station_id} does not equal station&#39;s id: {self.id}&#34;)
         return False
     if station_uuid is not None and station_uuid != self.uuid:
-        print(f&#34;Uuid {station_uuid} does not equal station&#39;s uuid: {self.uuid}&#34;)
+        # print(f&#34;Uuid {station_uuid} does not equal station&#39;s uuid: {self.uuid}&#34;)
         return False
     if start_timestamp is not None and start_timestamp != self.start_timestamp_micros:
-        print(f&#34;Start timestamp {start_timestamp} does not equal station&#39;s &#34;
-              f&#34;start timestamp: {self.start_timestamp_micros}&#34;)
+        # print(f&#34;Start timestamp {start_timestamp} does not equal station&#39;s &#34;
+        #       f&#34;start timestamp: {self.start_timestamp_micros}&#34;)
         return False
     return True</code></pre>
 </details>

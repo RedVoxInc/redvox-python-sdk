@@ -34,13 +34,21 @@ Defines generic sensor data and data for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 &#34;&#34;&#34;
 import enum
-from typing import List
+from typing import List, Union
 
 import numpy as np
 import pandas as pd
 
 import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
+from redvox.api1000.wrapped_redvox_packet.station_information import (
+    NetworkType,
+    PowerState,
+    CellServiceState,
+)
+from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
+from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 
 # columns that cannot be interpolated
 NON_INTERPOLATED_COLUMNS = [&#34;compressed_audio&#34;, &#34;image&#34;]
@@ -190,7 +198,6 @@ class SensorData:
             self.organize_and_update_stats()
         else:
             self.sort_by_data_timestamps()
-        # todo: store the non-consecutive timestamp indices (idk how to find those)
 
     def is_sample_interval_invalid(self) -&gt; bool:
         &#34;&#34;&#34;
@@ -256,16 +263,28 @@ class SensorData:
         &#34;&#34;&#34;
         return self.data_df.iloc[:, 2:].T.to_numpy()
 
-    def get_data_channel(self, channel_name: str) -&gt; np.array:
+    def get_data_channel(self, channel_name: str) -&gt; Union[np.array, List[str]]:
         &#34;&#34;&#34;
         gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
         :param channel_name: the name of the channel to get data for
-        :return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated
+        :return: the data values of the channel as a numpy array
         &#34;&#34;&#34;
         if channel_name not in self.data_df.columns:
             raise ValueError(
                 f&#34;WARNING: {channel_name} does not exist; try one of {self.data_channels()}&#34;
             )
+        if channel_name == &#34;location_provider&#34;:
+            return [LocationProvider(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;image_codec&#34;:
+            return [ImageCodec(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;audio_codec&#34;:
+            return [AudioCodec(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;network_type&#34;:
+            return [NetworkType(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;power_state&#34;:
+            return [PowerState(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;cell_service&#34;:
+            return [CellServiceState(c) for c in self.data_df[channel_name]]
         return self.data_df[channel_name].to_numpy()
 
     def get_valid_data_channel_values(self, channel_name: str) -&gt; np.array:
@@ -477,7 +496,6 @@ default False</p></div>
             self.organize_and_update_stats()
         else:
             self.sort_by_data_timestamps()
-        # todo: store the non-consecutive timestamp indices (idk how to find those)
 
     def is_sample_interval_invalid(self) -&gt; bool:
         &#34;&#34;&#34;
@@ -543,16 +561,28 @@ default False</p></div>
         &#34;&#34;&#34;
         return self.data_df.iloc[:, 2:].T.to_numpy()
 
-    def get_data_channel(self, channel_name: str) -&gt; np.array:
+    def get_data_channel(self, channel_name: str) -&gt; Union[np.array, List[str]]:
         &#34;&#34;&#34;
         gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
         :param channel_name: the name of the channel to get data for
-        :return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated
+        :return: the data values of the channel as a numpy array
         &#34;&#34;&#34;
         if channel_name not in self.data_df.columns:
             raise ValueError(
                 f&#34;WARNING: {channel_name} does not exist; try one of {self.data_channels()}&#34;
             )
+        if channel_name == &#34;location_provider&#34;:
+            return [LocationProvider(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;image_codec&#34;:
+            return [ImageCodec(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;audio_codec&#34;:
+            return [AudioCodec(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;network_type&#34;:
+            return [NetworkType(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;power_state&#34;:
+            return [PowerState(c) for c in self.data_df[channel_name]]
+        elif channel_name == &#34;cell_service&#34;:
+            return [CellServiceState(c) for c in self.data_df[channel_name]]
         return self.data_df[channel_name].to_numpy()
 
     def get_valid_data_channel_values(self, channel_name: str) -&gt; np.array:
@@ -743,26 +773,38 @@ recalculate the sample rate, interval, and interval std dev, default False
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.get_data_channel"><code class="name flex">
-<span>def <span class="ident">get_data_channel</span></span>(<span>self, channel_name: str) ‑> <built-in function array></span>
+<span>def <span class="ident">get_data_channel</span></span>(<span>self, channel_name: str) ‑> Union[<built-in function array>, List[str]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
 :param channel_name: the name of the channel to get data for
-:return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated</p></div>
+:return: the data values of the channel as a numpy array</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_data_channel(self, channel_name: str) -&gt; np.array:
+<pre><code class="python">def get_data_channel(self, channel_name: str) -&gt; Union[np.array, List[str]]:
     &#34;&#34;&#34;
     gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
     :param channel_name: the name of the channel to get data for
-    :return: the data values of the channel as a numpy array or a list of strings if the channel is enumerated
+    :return: the data values of the channel as a numpy array
     &#34;&#34;&#34;
     if channel_name not in self.data_df.columns:
         raise ValueError(
             f&#34;WARNING: {channel_name} does not exist; try one of {self.data_channels()}&#34;
         )
+    if channel_name == &#34;location_provider&#34;:
+        return [LocationProvider(c) for c in self.data_df[channel_name]]
+    elif channel_name == &#34;image_codec&#34;:
+        return [ImageCodec(c) for c in self.data_df[channel_name]]
+    elif channel_name == &#34;audio_codec&#34;:
+        return [AudioCodec(c) for c in self.data_df[channel_name]]
+    elif channel_name == &#34;network_type&#34;:
+        return [NetworkType(c) for c in self.data_df[channel_name]]
+    elif channel_name == &#34;power_state&#34;:
+        return [PowerState(c) for c in self.data_df[channel_name]]
+    elif channel_name == &#34;cell_service&#34;:
+        return [CellServiceState(c) for c in self.data_df[channel_name]]
     return self.data_df[channel_name].to_numpy()</code></pre>
 </details>
 </dd>

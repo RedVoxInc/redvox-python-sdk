@@ -80,6 +80,20 @@ LOCATION_COLUMNS: List[str] = [
     &#34;location_provider&#34;,
 ]
 
+STATION_HEALTH_COLUMNS: List[str] = [
+    &#34;timestamps&#34;,
+    &#34;unaltered_timestamps&#34;,
+    &#34;battery_charge_remaining&#34;,
+    &#34;battery_current_strength&#34;,
+    &#34;internal_temp_c&#34;,
+    &#34;network_type&#34;,
+    &#34;network_strength&#34;,
+    &#34;power_state&#34;,
+    &#34;avail_ram&#34;,
+    &#34;avail_disk&#34;,
+    &#34;cell_service&#34;,
+]
+
 # These are used for checking if a field is present or not
 __ACCELEROMETER_FIELD_NAME: str = &#34;accelerometer&#34;
 __AMBIENT_TEMPERATURE_FIELD_NAME: str = &#34;ambient_temperature&#34;
@@ -1330,19 +1344,7 @@ def load_apim_health(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
             data_for_df.append(new_entry)
         data_df = pd.DataFrame(
             data_for_df,
-            columns=[
-                &#34;timestamps&#34;,
-                &#34;unaltered_timestamps&#34;,
-                &#34;battery_charge_remaining&#34;,
-                &#34;battery_current_strength&#34;,
-                &#34;internal_temp_c&#34;,
-                &#34;network_type&#34;,
-                &#34;network_strength&#34;,
-                &#34;power_state&#34;,
-                &#34;avail_ram&#34;,
-                &#34;avail_disk&#34;,
-                &#34;cell_service&#34;,
-            ],
+            columns=STATION_HEALTH_COLUMNS,
         )
         if len(timestamps) &gt; 1:
             sample_rate = 1
@@ -1444,19 +1446,7 @@ def load_apim_health_from_list(
         df = gpu.fill_gaps(
             pd.DataFrame(
                 np.transpose(data_list),
-                columns=[
-                    &#34;timestamps&#34;,
-                    &#34;unaltered_timestamps&#34;,
-                    &#34;battery_charge_remaining&#34;,
-                    &#34;battery_current_strength&#34;,
-                    &#34;internal_temp_c&#34;,
-                    &#34;network_type&#34;,
-                    &#34;network_strength&#34;,
-                    &#34;power_state&#34;,
-                    &#34;avail_ram&#34;,
-                    &#34;avail_disk&#34;,
-                    &#34;cell_service&#34;,
-                ],
+                columns=STATION_HEALTH_COLUMNS,
             ),
             gaps,
             dtu.seconds_to_microseconds(sample_interval),
@@ -2040,19 +2030,7 @@ NOTE: This only works because audio sensors in the list should all have the same
             data_for_df.append(new_entry)
         data_df = pd.DataFrame(
             data_for_df,
-            columns=[
-                &#34;timestamps&#34;,
-                &#34;unaltered_timestamps&#34;,
-                &#34;battery_charge_remaining&#34;,
-                &#34;battery_current_strength&#34;,
-                &#34;internal_temp_c&#34;,
-                &#34;network_type&#34;,
-                &#34;network_strength&#34;,
-                &#34;power_state&#34;,
-                &#34;avail_ram&#34;,
-                &#34;avail_disk&#34;,
-                &#34;cell_service&#34;,
-            ],
+            columns=STATION_HEALTH_COLUMNS,
         )
         if len(timestamps) &gt; 1:
             sample_rate = 1
@@ -2166,19 +2144,7 @@ NOTE: This only works because audio sensors in the list should all have the same
         df = gpu.fill_gaps(
             pd.DataFrame(
                 np.transpose(data_list),
-                columns=[
-                    &#34;timestamps&#34;,
-                    &#34;unaltered_timestamps&#34;,
-                    &#34;battery_charge_remaining&#34;,
-                    &#34;battery_current_strength&#34;,
-                    &#34;internal_temp_c&#34;,
-                    &#34;network_type&#34;,
-                    &#34;network_strength&#34;,
-                    &#34;power_state&#34;,
-                    &#34;avail_ram&#34;,
-                    &#34;avail_disk&#34;,
-                    &#34;cell_service&#34;,
-                ],
+                columns=STATION_HEALTH_COLUMNS,
             ),
             gaps,
             dtu.seconds_to_microseconds(sample_interval),
