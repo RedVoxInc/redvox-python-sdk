@@ -141,7 +141,6 @@ class ApiReader:
         ):
             return index
         stats = fs.extract_stats(index, pool=_pool)
-
         # Close pool if created here
         if pool is None:
             _pool.close()

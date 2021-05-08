@@ -186,7 +186,7 @@ class StationStat:
             native.station_id,
             native.station_uuid,
             _map_opt_numeric(us2dt, native.app_start_dt),
-            us2dt(native.packet_start_dt),
+            _map_opt_numeric(us2dt, native.packet_start_dt),
             _map_opt_numeric(us2dt, native.server_recv_dt),
             None,
             native.latency,
