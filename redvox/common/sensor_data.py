@@ -236,7 +236,7 @@ class SensorData:
         """
         gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
         :param channel_name: the name of the channel to get data for
-        :return: the data values of the channel as a numpy array
+        :return: the data values of the channel as a numpy array or list of strings for enumerated channels
         """
         if channel_name not in self.data_df.columns:
             raise ValueError(

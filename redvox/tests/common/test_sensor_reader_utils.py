@@ -34,7 +34,7 @@ class ReaderTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.apim_files = index_unstructured(tests.TEST_DATA_DIR,
                                             ReadFilter(extensions={".rdvxm"}, station_ids={"0000000001"})
-                                            ).read()
+                                            ).read_raw()
 
     def test_load_audio(self):
         audio = sdru.load_apim_audio(self.apim_files[0])

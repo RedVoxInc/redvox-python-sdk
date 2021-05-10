@@ -14,7 +14,7 @@ class StationMetadataTest(unittest.TestCase):
 
     def test_station_metadata(self):
         files = ApiReader(self.input_dir, read_filter=self.station_filter).read_files_by_id("0000000001")
-        metadata = [su.StationMetadata("Redvox", p) for p in files]
+        metadata = [su.StationMetadataWrapped("Redvox", p) for p in files]
         self.assertEqual(len(metadata), 3)
         self.assertEqual(metadata[2].os_version, "Fedora 32")
         self.assertEqual(metadata[1].app_version, "0.2.0")
@@ -28,7 +28,7 @@ class StationPacketMetadataTest(unittest.TestCase):
 
     def test_station_packet_metadata(self):
         files = ApiReader(self.input_dir, read_filter=self.station_filter).read_files_by_id("0000000001")
-        metadata = [su.StationPacketMetadata(p) for p in files]
+        metadata = [su.StationPacketMetadataWrapped(p) for p in files]
         self.assertEqual(metadata[0].packet_start_mach_timestamp, 1597189452945991.0)
 
 

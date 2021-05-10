@@ -15,7 +15,7 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
 
-def validate_station_key_list_raw(
+def validate_station_key_list(
     data_packets: List[api_m.RedvoxPacketM], debug: bool = False
 ) -> bool:
     """
@@ -68,69 +68,6 @@ def validate_station_key_list_raw(
             if debug:
                 print(
                     f"WARNING: {data_packets[0].station_information.id} "
-                    f"{key} contains multiple unique values: {result}."
-                )
-                print(
-                    "Current solution is to alter your query to omit or focus on this station."
-                )
-            return False  # stop processing, one bad key is enough
-
-    return True  # if here, everything is consistent
-
-
-def validate_station_key_list(
-    data_packets: List[WrappedRedvoxPacketM], debug: bool = False
-) -> bool:
-    """
-    Checks for consistency in the data packets.  Returns False if discrepancies are found.
-    If debug is True, will output the discrepancies.
-    :param data_packets: list of WrappedRedvoxPacketM to look at
-    :param debug: bool, if True, output any discrepancies found, default False
-    :return: True if no discrepancies found.  False otherwise
-    """
-    if len(data_packets) < 2:
-        return True
-    k = np.transpose(
-        [
-            [
-                t.get_station_information().get_id(),
-                t.get_station_information().get_uuid(),
-                t.get_timing_information().get_app_start_mach_timestamp(),
-                t.get_api(),
-                t.get_sub_api(),
-                t.get_station_information().get_make(),
-                t.get_station_information().get_model(),
-                t.get_station_information().get_os().value,
-                t.get_station_information().get_os_version(),
-                t.get_station_information().get_app_version(),
-                t.get_station_information().get_is_private(),
-                t.get_packet_duration_s(),
-            ]
-            for t in data_packets
-        ]
-    )
-
-    k = {
-        "ids": k[0],
-        "uuids": k[1],
-        "station_start_times": k[2],
-        "apis": k[3],
-        "sub_apis": k[4],
-        "makes": k[5],
-        "models": k[6],
-        "os": k[7],
-        "os_versions": k[8],
-        "app_versions": k[9],
-        "privates": k[10],
-        "durations": k[11],
-    }
-
-    for key, value in k.items():
-        result = np.unique(value)
-        if len(result) > 1:
-            if debug:
-                print(
-                    f"WARNING: {data_packets[0].get_station_information().get_id()} "
                     f"{key} contains multiple unique values: {result}."
                 )
                 print(
@@ -195,7 +132,7 @@ class StationKey:
 
 
 # todo add event streams?
-class StationMetadataRaw:
+class StationMetadata:
     """
     A container for all the packet metadata consistent across all packets
     Properties:
@@ -247,7 +184,7 @@ class StationMetadataRaw:
             self.packet_duration_s = np.nan
             self.station_description = ""
 
-    def validate_metadata(self, other_metadata: "StationMetadataRaw") -> bool:
+    def validate_metadata(self, other_metadata: "StationMetadata") -> bool:
         """
         :param other_metadata: another StationMetadata object to compare
         :return: True if other_metadata is equal to the calling metadata
@@ -267,7 +204,7 @@ class StationMetadataRaw:
         )
 
 
-class StationMetadata:
+class StationMetadataWrapped:
     """
     A container for all the packet metadata consistent across all packets
     Properties:
@@ -318,7 +255,7 @@ class StationMetadata:
             self.packet_duration_s = np.nan
             self.station_description = ""
 
-    def validate_metadata(self, other_metadata: "StationMetadata") -> bool:
+    def validate_metadata(self, other_metadata: "StationMetadataWrapped") -> bool:
         """
         :param other_metadata: another StationMetadata object to compare
         :return: True if other_metadata is equal to the calling metadata
@@ -338,7 +275,7 @@ class StationMetadata:
         )
 
 
-class StationPacketMetadataRaw:
+class StationPacketMetadata:
     """
     A container for all the packet metadata that isn't consistent across all packets
     Properties:
@@ -390,7 +327,7 @@ class StationPacketMetadataRaw:
         self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)
 
 
-class StationPacketMetadata:
+class StationPacketMetadataWrapped:
     """
     A container for all the packet metadata that isn't consistent across all packets
     Properties:

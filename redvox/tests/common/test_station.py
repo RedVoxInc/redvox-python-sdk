@@ -7,7 +7,7 @@ import contextlib
 import numpy as np
 
 import redvox.tests as tests
-from redvox.common import api_reader
+from redvox.common import api_reader_raw
 from redvox.common.io import ReadFilter
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType
@@ -18,13 +18,13 @@ class StationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         with contextlib.redirect_stdout(None):
-            reader = api_reader.ApiReader(
+            reader = api_reader_raw.ApiReaderRaw(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={".rdvxm"}, station_ids={"0000000001"}),
             )
             cls.apim_station = reader.get_station_by_id("0000000001")
-            reader = api_reader.ApiReader(
+            reader = api_reader_raw.ApiReaderRaw(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),
@@ -78,7 +78,7 @@ class StationTest(unittest.TestCase):
             empty_apim_station.set_id("1234567890")
             self.assertFalse(empty_apim_station.check_key())
             empty_apim_station.set_uuid("abcdefghij")
-            self.assertFalse(empty_apim_station.check_key())
+            self.assertTrue(empty_apim_station.check_key())
             empty_apim_station.set_start_timestamp(1579448154300000)
             self.assertTrue(empty_apim_station.check_key())
 
@@ -131,7 +131,7 @@ class StationTest(unittest.TestCase):
 
     def test_update_timestamps(self):
         with contextlib.redirect_stdout(None):
-            updated_station = api_reader.ApiReader(
+            updated_station = api_reader_raw.ApiReaderRaw(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),

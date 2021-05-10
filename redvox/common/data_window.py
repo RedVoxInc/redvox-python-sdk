@@ -20,14 +20,10 @@ from redvox.common import date_time_utils as dtu
 from redvox.common import io
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
-from redvox.common.station_raw import StationRaw
-# from redvox.common.station_utils import StationKey
 from redvox.common.sensor_data import SensorType, SensorData
-from redvox.common.api_reader import ApiReader
 from redvox.common.api_reader_raw import ApiReaderRaw
 from redvox.common.data_window_configuration import DataWindowConfig
 from redvox.common import gap_and_pad_utils as gpu
-# from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
 DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
@@ -124,7 +120,7 @@ class DataWindowFast:
         self.copy_edge_points = copy_edge_points
         self.sdk_version: str = redvox.VERSION
         self.debug: bool = debug
-        self.stations: List[StationRaw] = []
+        self.stations: List[Station] = []
         if start_datetime and end_datetime and (end_datetime <= start_datetime):
             self.errors.append("Data Window will not work when end datetime is before or equal to start datetime.\n"
                                f"Your times: {end_datetime} <= {start_datetime}")
@@ -325,7 +321,7 @@ class DataWindowFast:
                 return pickle.load(fp)
 
     def get_station(self, station_id: str, station_uuid: Optional[str] = None,
-                    start_timestamp: Optional[float] = None) -> Optional[List[StationRaw]]:
+                    start_timestamp: Optional[float] = None) -> Optional[List[Station]]:
         """
         Get stations from the data window.  Must give at least the station's id.  Other parameters may be None,
         which means the value will be ignored when searching.  Results will match all non-None parameters given.
@@ -379,11 +375,12 @@ class DataWindowFast:
         # get the data to convert into a window
         a_r = ApiReaderRaw(self.input_directory, self.structured_layout, r_f, self.debug, _pool)
 
-        self.station_ids = a_r.index_summary.station_ids()
+        if not self.station_ids:
+            self.station_ids = a_r.index_summary.station_ids()
 
         # Parallel update
         # Apply timing correction in parallel by station
-        stations = list(maybe_parallel_map(_pool, StationRaw.update_timestamps,
+        stations = list(maybe_parallel_map(_pool, Station.update_timestamps,
                                            iter(a_r.sort_files_by_station()), chunk_size=1))
 
         self._check_for_audio()
@@ -437,7 +434,7 @@ class DataWindowFast:
                 )
 
     def create_window_in_sensors(
-            self, station: StationRaw, start_datetime: Optional[dtu.datetime] = None,
+            self, station: Station, start_datetime: Optional[dtu.datetime] = None,
             end_datetime: Optional[dtu.datetime] = None
     ):
         """
@@ -459,17 +456,15 @@ class DataWindowFast:
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.id, start_datetime, end_datetime)
-        for sensor in station.data:
-            if sensor.type != SensorType.AUDIO:
-                self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
-                                    station.audio_sensor().last_data_timestamp())
+        for sensor in [s for s in station.data if s.type != SensorType.AUDIO]:
+            self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
+                                station.audio_sensor().last_data_timestamp())
         # recalculate metadata
         station.first_data_timestamp = station.audio_sensor().first_data_timestamp()
         station.last_data_timestamp = station.audio_sensor().data_timestamps()[-1]
-        new_meta = [meta for meta in station.packet_metadata
-                    if meta.packet_start_mach_timestamp < station.last_data_timestamp and
-                    meta.packet_end_mach_timestamp >= station.first_data_timestamp]
-        station.packet_metadata = new_meta
+        station.packet_metadata = [meta for meta in station.packet_metadata
+                                   if meta.packet_start_mach_timestamp < station.last_data_timestamp and
+                                   meta.packet_end_mach_timestamp >= station.first_data_timestamp]
         self.stations.append(station)
 
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
@@ -482,8 +477,6 @@ class DataWindowFast:
         :param start_date_timestamp: start of data window
         :param end_date_timestamp: end of data window
         """
-        # calculate the sensor's sample interval, std sample interval and sample rate of all data
-        # sensor.organize_and_update_stats()
         df_timestamps = sensor.data_timestamps()
         if len(df_timestamps) > 0:
             # get only the timestamps between the start and end timestamps
@@ -542,7 +535,6 @@ class DataWindowFast:
                     sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, 0,
                                                                start_date_timestamp - sensor.first_data_timestamp(),
                                                                point_creation_mode=new_point_mode)
-                # gap fill goes here at some point
                 sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
         else:
             self.errors.append(f"WARNING: Data window for {station_id} {sensor.type.name} "
@@ -991,8 +983,8 @@ class DataWindow:
         :param end_date_timestamp: timestamp in microseconds since epoch UTC of end of window
         """
         self.process_audio_sensor(station, start_date_timestamp, end_date_timestamp)
-        for sensor_type, sensor in station.data.items():
-            if sensor_type != SensorType.AUDIO:
+        for sensor in station.data:
+            if sensor.type != SensorType.AUDIO:
                 self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
                                     station.audio_sensor().last_data_timestamp())
         # recalculate metadata
@@ -1039,7 +1031,7 @@ class DataWindow:
             self.end_buffer_td = r_f.end_dt_buf
 
         # get the data to convert into a window
-        stations = ApiReader(
+        stations = ApiReaderRaw(
             self.input_directory,
             self.structured_layout,
             r_f,
