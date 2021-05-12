@@ -20,7 +20,7 @@ from redvox.common.station import Station
 
 class ApiReaderRaw:
     """
-    Reads data from api 900 or api 1000 format, converting all data read into WrappedRedvoxPacketM for
+    Reads data from api 900 or api 1000 format, converting all data read into RedvoxPacketM for
         ease of comparison and use.
     Properties:
         filter: io.ReadFilter with the station ids, start and end time, start and end time padding, and
@@ -126,6 +126,7 @@ class ApiReaderRaw:
         :param station_index: index representing the requested information
         :return: Index that includes as much information as possible that fits the request
         """
+        # todo: pass on offset values to station creation
         _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
         # if there are no restrictions on time or we found nothing, return the index
         if (not self.filter.start_dt and not self.filter.end_dt) or len(station_index.entries) < 1:

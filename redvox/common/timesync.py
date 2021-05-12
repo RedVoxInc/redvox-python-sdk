@@ -278,8 +278,8 @@ class TimeSyncAnalysis:
             self.timesync_data: List[TimeSyncData] = time_sync_data
             self.evaluate_and_validate_data()
         else:
-            self.offset_model = OffsetModel.empty_model()
             self.timesync_data = []
+            self.offset_model = OffsetModel.empty_model()
 
     def evaluate_and_validate_data(self):
         """
@@ -289,10 +289,16 @@ class TimeSyncAnalysis:
         self.validate_start_timestamp()
         self.validate_sample_rate()
         self._calc_timesync_stats()
-        self.offset_model = OffsetModel(self.get_latencies(), self.get_offsets(),
-                                        np.array([td.get_best_latency_timestamp() for td in self.timesync_data]),
-                                        self.timesync_data[0].packet_start_timestamp,
-                                        self.timesync_data[-1].packet_end_timestamp)
+        self.offset_model = self.get_offset_model()
+
+    def get_offset_model(self) -> OffsetModel:
+        """
+        :return: an OffsetModel based on the information in the timesync analysis
+        """
+        return OffsetModel(self.get_latencies(), self.get_offsets(),
+                           np.array([td.get_best_latency_timestamp() for td in self.timesync_data]),
+                           self.timesync_data[0].packet_start_timestamp,
+                           self.timesync_data[-1].packet_end_timestamp)
 
     def _calc_timesync_stats(self):
         """

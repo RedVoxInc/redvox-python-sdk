@@ -84,6 +84,7 @@ class Station:
         initialize Station
         :param data_packets: optional list of data packets representing the station, default None
         """
+        # todo: include option to use offsetmodel from outside source
         self.data = []
         self.packet_metadata: List[st_utils.StationPacketMetadata] = []
         self.is_timestamps_updated = False

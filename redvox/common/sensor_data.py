@@ -10,6 +10,7 @@ import pandas as pd
 
 import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
+from redvox.common.gap_and_pad_utils import calc_evenly_sampled_timestamps
 from redvox.api1000.wrapped_redvox_packet.station_information import (
     NetworkType,
     PowerState,
@@ -26,7 +27,6 @@ NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec",
                        "network_type", "power_state", "cell_service"]
 
 
-# todo: add original timestamps to the dataframes
 class SensorType(enum.Enum):
     """
     Enumeration of possible types of sensors to read data from
@@ -302,7 +302,13 @@ class SensorData:
         return self.data_df.columns.to_list()
 
     def update_data_timestamps(self, offset_model: om.OffsetModel):
-        self.data_df["timestamps"] = offset_model.update_timestamps(self.data_timestamps())
+        if self.type == SensorType.AUDIO:
+            self.data_df["timestamps"] = \
+                calc_evenly_sampled_timestamps(self.first_data_timestamp(), self.num_samples(),
+                                               dtu.seconds_to_microseconds(self.sample_interval_s)
+                                               * (1 + offset_model.slope))
+        else:
+            self.data_df["timestamps"] = offset_model.update_timestamps(self.data_timestamps())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
             self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *

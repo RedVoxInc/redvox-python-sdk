@@ -365,7 +365,6 @@ def create_dataless_timestamps_df(
         num_samples_to_add: int,
         add_to_start: bool = False,
 ) -> pd.DataFrame:
-    # todo: what about bytes columns?
     """
     Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
 

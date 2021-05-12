@@ -49,6 +49,7 @@ class DataWindowExceptions:
     def append(self, msg: str):
         """
         append an error message to the list of errors
+
         :param msg: error message to add
         """
         self.errors.append(msg)
@@ -56,6 +57,7 @@ class DataWindowExceptions:
     def extend(self, msgs: List[str]):
         """
         extend a list of error messages to the list of errors
+
         :param msgs: error messages to add
         """
         self.errors.extend(msgs)
@@ -72,15 +74,36 @@ class DataWindowExceptions:
 
 class DataWindowFast:
     """
-    200 ms error
-    2 mins extra grab
-    gotta go fast
-    stream files from system
-    check for gaps
-    concat data
-    fill gaps
-    window-ize data
-    shift/interpolate edge points of non-audio sensors
+    Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
+
+    Properties:
+        input_directory: string, directory that contains the files to read data from.  REQUIRED
+        structured_layout: bool, if True, the input_directory contains specially named and organized
+                            directories of data.  Default True
+        station_ids: optional set of strings, representing the station ids to filter on.
+                        If empty or None, get any ids found in the input directory.  Default None
+        extensions: optional set of strings, representing file extensions to filter on.
+                        If None, gets as much data as it can in the input directory.  Default None
+        api_versions: optional set of ApiVersions, representing api versions to filter on.
+                        If None, get as much data as it can in the input directory.  Default None
+        start_datetime: optional datetime, start datetime of the window.
+                        If None, uses the first timestamp of the filtered data.  Default None
+        end_datetime: optional datetime, end datetime of the window.
+                        If None, uses the last timestamp of the filtered data.  Default None
+        start_buffer_td: timedelta, the amount of time to include before the start_datetime when filtering data.
+                            Default DEFAULT_START_BUFFER_TD
+        end_buffer_td: float, the amount of time to include after the end_datetime when filtering data.
+                            Default DEFAULT_END_BUFFER_TD
+        drop_time_s: float, the minimum amount of seconds between packages that would indicate a gap.
+                     Default DATA_DROP_DURATION_S
+        apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
+        copy_edge_points: bool, if True, points on the edge of the data window are copies of the closest point
+                            within the window.  If False, edge points are interpolated from adjacent points.
+                            Default False
+        debug: bool, if True, outputs additional information during initialization. Default False
+        errors: DataWindowExceptions, class containing a list of all errors encountered by the data window.
+        stations: list of Stations, the results of reading the data from input_directory
+        sdk_version: str, the version of the Redvox SDK used to create the data window
     """
     def __init__(
         self,
@@ -197,11 +220,11 @@ class DataWindowFast:
             config.debug,
         )
 
-    # todo: implement methods for Fast mode
     @staticmethod
     def deserialize(path: str) -> "DataWindowFast":
         """
         Decompresses and deserializes a DataWindow written to disk.
+
         :param path: Path to the serialized and compressed data window.
         :return: An instance of a DataWindowFast.
         """
@@ -210,6 +233,7 @@ class DataWindowFast:
     def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
         """
         Serializes and compresses this DataWindowFast to a file.
+
         :param base_dir: The base directory to write the serialized file to (default=.).
         :param file_name: The optional file name. If None, a default filename with the following format is used:
                           [start_ts]_[end_ts]_[num_stations].pkl.lz4
@@ -223,6 +247,7 @@ class DataWindowFast:
                      compression_format: str = "lz4") -> Path:
         """
         Converts the data window metadata into a JSON file and compresses the data window and writes it to disk.
+
         :param base_dir: base directory to write the json file to.  Default . (local directory)
         :param file_name: the optional file name.  Do not include a file extension.
                             If None, a default file name is created using this format:
@@ -236,6 +261,7 @@ class DataWindowFast:
                 compression_format: str = "lz4") -> str:
         """
         Converts the data window metadata into a JSON string, then compresses the data window and writes it to disk.
+
         :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
         :param compressed_file_name: the optional file name.  Do not include a file extension.
                                         If None, a default file name is created using this format:
@@ -255,6 +281,7 @@ class DataWindowFast:
         Reads a JSON file and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
+
         :param base_dir: the base directory containing the json file
         :param file_name: the file name of the json file.  Do not include extensions
         :param dw_base_dir: optional directory containing the compressed data window file.
@@ -279,6 +306,7 @@ class DataWindowFast:
         Reads a JSON string and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
+
         :param json_str: the JSON to read
         :param dw_base_dir: directory containing the compressed data window file
         :param start_dt: the start datetime to check against.  if not given, assumes True.  default None

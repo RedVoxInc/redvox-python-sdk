@@ -431,6 +431,7 @@ def load_apim_audio_from_list(
                     )
                     for p in packets
                 ]
+                # todo: include corrected offset values; (1 + slope) * base_interval
                 df, gaps = gpu.fill_audio_gaps(
                     packet_info, dtu.seconds_to_microseconds(1 / sample_rate_hz)
                 )
