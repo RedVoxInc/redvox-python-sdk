@@ -9,6 +9,11 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc35 (2021-5-13)
+
+* Added check for time synchronization data in a Station
+* converted Station and SensorData to read directly from raw protobuf instead of the wrapped versions
+
 ### 3.0.0rc31 (2021-5-7)
 
 * Add native implementation of file stats extraction

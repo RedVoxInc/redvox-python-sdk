@@ -304,7 +304,8 @@ class SensorData:
     def update_data_timestamps(self, offset_model: om.OffsetModel):
         if self.type == SensorType.AUDIO:
             self.data_df["timestamps"] = \
-                calc_evenly_sampled_timestamps(self.first_data_timestamp(), self.num_samples(),
+                calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp()),
+                                               self.num_samples(),
                                                dtu.seconds_to_microseconds(self.sample_interval_s)
                                                * (1 + offset_model.slope))
         else:
