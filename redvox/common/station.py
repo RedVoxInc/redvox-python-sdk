@@ -84,7 +84,6 @@ class Station:
         initialize Station
         :param data_packets: optional list of data packets representing the station, default None
         """
-        # todo: include option to use offsetmodel from outside source
         self.data = []
         self.packet_metadata: List[st_utils.StationPacketMetadata] = []
         self.is_timestamps_updated = False
@@ -306,6 +305,12 @@ class Station:
         """
         # noinspection Mypy
         return self.audio_sensor().num_samples() / len(self.packet_metadata)
+
+    def has_timesync_data(self) -> bool:
+        """
+        :return: True if there is timesync data for the station
+        """
+        return len(self.timesync_analysis.timesync_data) > 0
 
     def has_audio_sensor(self) -> bool:
         """
