@@ -243,17 +243,17 @@ class SensorData:
                 f"WARNING: {channel_name} does not exist; try one of {self.data_channels()}"
             )
         if channel_name == "location_provider":
-            return [LocationProvider(c) for c in self.data_df[channel_name]]
+            return [LocationProvider(c).name for c in self.data_df[channel_name]]
         elif channel_name == "image_codec":
-            return [ImageCodec(c) for c in self.data_df[channel_name]]
+            return [ImageCodec(c).name for c in self.data_df[channel_name]]
         elif channel_name == "audio_codec":
-            return [AudioCodec(c) for c in self.data_df[channel_name]]
+            return [AudioCodec(c).name for c in self.data_df[channel_name]]
         elif channel_name == "network_type":
-            return [NetworkType(c) for c in self.data_df[channel_name]]
+            return [NetworkType(c).name for c in self.data_df[channel_name]]
         elif channel_name == "power_state":
-            return [PowerState(c) for c in self.data_df[channel_name]]
+            return [PowerState(c).name for c in self.data_df[channel_name]]
         elif channel_name == "cell_service":
-            return [CellServiceState(c) for c in self.data_df[channel_name]]
+            return [CellServiceState(c).name for c in self.data_df[channel_name]]
         return self.data_df[channel_name].to_numpy()
 
     def get_valid_data_channel_values(self, channel_name: str) -> np.array:

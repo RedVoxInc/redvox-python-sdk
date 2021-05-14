@@ -18,6 +18,7 @@ from redvox.api1000.wrapped_redvox_packet.station_information import (
 from redvox.common.stats_helper import StatsContainer
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
+from redvox.common.offset_model import OffsetModel
 from redvox.common.sensor_data import SensorType, SensorData
 
 # Dataframe column definitions
@@ -185,6 +186,29 @@ def __packet_duration_us(packet: api_m.RedvoxPacketM) -> float:
     return __packet_duration_s(packet) * 1_000_000.0
 
 
+def __stats_for_sensor_per_packet_per_second(num_packets: int,
+                                             packet_dur_s: float,
+                                             timestamps: np.array) -> Tuple[float, float, float]:
+    """
+    Sensor being evaluated must either have 1/packet or 1/second sample rate
+    :param num_packets: number of packets to calculate stats for
+    :param packet_dur_s: duration of packet in seconds
+    :param timestamps: timestamps of the samples
+    :return: sample rate in hz, sample interval in seconds, and sample interval std deviation
+    """
+    if len(timestamps) != num_packets:
+        sample_rate = 1.0
+    else:
+        sample_rate = 1 / packet_dur_s
+    sample_interval = 1 / sample_rate
+    sample_interval_std = (
+        dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+        if len(timestamps) > 1
+        else np.nan
+    )
+    return sample_rate, sample_interval, sample_interval_std
+
+
 def get_empty_sensor_data(
         name: str, sensor_type: SensorType = SensorType.UNKNOWN_SENSOR
 ) -> SensorData:
@@ -283,7 +307,7 @@ def read_apim_xyz_sensor(
         raise
 
 
-def load_apim_xyz_sensor(
+def load_apim_xyz_sensor_from_list(
         sensor_type: SensorType,
         data: List[List[float]],
         gaps: List[Tuple[float, float]],
@@ -342,7 +366,7 @@ def read_apim_single_sensor(
         raise
 
 
-def load_apim_single_sensor(
+def load_apim_single_sensor_from_list(
         sensor_type: SensorType,
         timestamps: List[float],
         data: List[float],
@@ -546,8 +570,9 @@ def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
             columns=IMAGE_COLUMNS,
         )
         data_df["image_codec"] = [d for d in data_df["image_codec"]]
-        sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
-            data_df
+        # image is collected 1 per packet or 1 per second
+        sample_rate, sample_interval, sample_interval_std = __stats_for_sensor_per_packet_per_second(
+            1, __packet_duration_s(packet), timestamps
         )
         return SensorData(
             image_sensor.sensor_description,
@@ -556,7 +581,7 @@ def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
             sample_rate,
             sample_interval,
             sample_interval_std,
-            False,
+            True,
         )
     return None
 
@@ -585,15 +610,8 @@ def load_apim_image_from_list(
             )
     if len(data_list[0]) > 0:
         # image is collected 1 per packet or 1 per second
-        if len(data_list[0]) > len(packets):
-            sample_rate = 1.0
-        else:
-            sample_rate = 1 / __packet_duration_s(packets[0])
-        sample_interval = 1 / sample_rate
-        sample_interval_std = (
-            dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0]))))
-            if len(data_list[0]) > 1
-            else np.nan
+        sample_rate, sample_interval, sample_interval_std = __stats_for_sensor_per_packet_per_second(
+            len(packets), __packet_duration_s(packets[0]), data_list[0]
         )
         df = pd.DataFrame(
             np.transpose(
@@ -616,7 +634,7 @@ def load_apim_image_from_list(
             sample_rate,
             sample_interval,
             sample_interval_std,
-            False,
+            True,
         )
     return None
 
@@ -873,7 +891,7 @@ def load_single_from_list(
             else:
                 sensor_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list) > 0:
-        return load_apim_single_sensor(
+        return load_apim_single_sensor_from_list(
             sensor_type,
             timestamps,
             data_list,
@@ -1071,7 +1089,7 @@ def load_xyz_from_list(
             else:
                 sensor_stats.add(np.mean(np.diff(ts)), np.std(np.diff(ts)), len(ts) - 1)
     if len(data_list[0]) > 0:
-        return load_apim_xyz_sensor(
+        return load_apim_xyz_sensor_from_list(
             sensor_type,
             data_list,
             gaps,
@@ -1320,21 +1338,18 @@ def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
             data_for_df,
             columns=STATION_HEALTH_COLUMNS,
         )
-        if len(timestamps) > 1:
-            sample_rate = 1
-            sample_interval_std = dtu.microseconds_to_seconds(
-                float(np.std(np.diff(data_df["timestamps"])))
-            )
-        else:
-            sample_rate = 1.0 / __packet_duration_s(packet)
-            sample_interval_std = np.nan
+        # health is collected 1 per packet or 1 per second
+        sample_rate, sample_interval, sample_interval_std = __stats_for_sensor_per_packet_per_second(
+            1, __packet_duration_s(packet), timestamps
+        )
         return SensorData(
             "station health",
             data_df,
             SensorType.STATION_HEALTH,
             sample_rate,
-            1 / sample_rate,
+            sample_interval,
             sample_interval_std,
+            True
             )
     return None
 
@@ -1407,15 +1422,8 @@ def load_apim_health_from_list(
     if len(data_list[0]) > 0:
         data_list.insert(1, data_list[0].copy())
         # health is collected 1 per packet or 1 per second
-        if len(data_list[0]) > len(packets):
-            sample_rate = 1.0
-        else:
-            sample_rate = 1.0 / __packet_duration_s(packets[0])
-        sample_interval = 1 / sample_rate
-        sample_interval_std = (
-            dtu.microseconds_to_seconds(float(np.std(np.diff(data_list[0]))))
-            if len(data_list[0]) > 1
-            else np.nan
+        sample_rate, sample_interval, sample_interval_std = __stats_for_sensor_per_packet_per_second(
+            len(packets), __packet_duration_s(packets[0]), data_list[0]
         )
         df = gpu.fill_gaps(
             pd.DataFrame(
@@ -1433,5 +1441,6 @@ def load_apim_health_from_list(
             sample_rate,
             sample_interval,
             sample_interval_std,
+            True
         )
     return None

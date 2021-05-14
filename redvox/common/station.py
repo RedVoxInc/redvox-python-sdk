@@ -104,9 +104,8 @@ class Station:
             self.metadata = st_utils.StationMetadata("Redvox", data_packets[0])
             self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
-            audio_sensor: Optional[sd.SensorData] = self.audio_sensor()
-            if audio_sensor is not None:
-                self.audio_sample_rate_nominal_hz = audio_sensor.sample_rate_hz
+            if self.audio_sensor() is not None:
+                self.audio_sample_rate_nominal_hz = self.audio_sensor().sample_rate_hz
                 self.is_audio_scrambled = data_packets[0].sensors.audio.is_scrambled
             else:
                 self.audio_sample_rate_nominal_hz = np.nan
