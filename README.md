@@ -9,6 +9,12 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc36 (2021-5-19)
+
+* Fixed api900 conversion setting wrong value for mach time zero (api900) to app start time (api1000)
+* SensorData Enumerated values return strings instead of numbers or Enum objects
+* Updated Data Window to return multiple stations if a single station id changes its start datetime (one new station per change in start datetime)
+
 ### 3.0.0rc35 (2021-5-13)
 
 * Added check for time synchronization data in a Station
