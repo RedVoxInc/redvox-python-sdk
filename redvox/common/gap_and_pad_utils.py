@@ -45,7 +45,7 @@ def calc_evenly_sampled_timestamps(
     :param start: float, start timestamp in microseconds
     :param samples: int, number of samples
     :param sample_interval_micros: float, sample interval in microseconds
-    :return: np.array with evenly spaced timestamps starting at start
+    :return: np.array with number of samples timestamps, evenly spaced starting at start
     """
     return start + (np.arange(0, samples) * sample_interval_micros)
 

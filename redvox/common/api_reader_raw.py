@@ -4,10 +4,12 @@ Data files can be either API 900 or API 1000 data formats
 The ReadResult object converts api900 data into api 1000 format
 """
 from collections import defaultdict
-from typing import List, Optional, Dict, Iterator, Tuple
+from typing import List, Optional, Dict, Iterator
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
+
+import numpy as np
 
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import offset_model
@@ -245,20 +247,37 @@ class ApiReaderRaw:
         # noinspection Mypy
         return list(filter(lambda station: station is not None, stations_opt))
 
-    def sort_files_by_station(self) -> List[Station]:
-        stations: Dict[Tuple[str, str, float], List[api_m.RedvoxPacketM]] = {}
-        for k, v in self.read_files().items():
-            for f in v:
-                if (k, f.station_information.uuid, f.timing_information.app_start_mach_timestamp) in stations.keys():
-                    stations[k, f.station_information.uuid, f.timing_information.app_start_mach_timestamp].append(f)
-                else:
-                    stations[k, f.station_information.uuid, f.timing_information.app_start_mach_timestamp] = [f]
-        result = []
-        for v in stations.values():
-            s = Station(v)
-            if s.id is not None:
-                result.append(s)
-        return result
+    def _stations_by_key(self, get_id: str) -> List[Station]:
+        """
+        return the start datetime and the list of packets that have the start datetime for a single station id
+        :param get_id: the single id to get data for
+        :return: list of stations where each station has different start datetimes but the same station id
+        """
+        packets = self.read_files_by_id(get_id)
+        if packets:
+            result = {}
+            if packets[0].timing_information.app_start_mach_timestamp \
+                    != packets[-1].timing_information.app_start_mach_timestamp:
+                sts = np.unique([p.timing_information.app_start_mach_timestamp for p in packets])
+                for st in sts:
+                    result[st] = [p for p in packets if p.timing_information.app_start_mach_timestamp == st]
+            else:
+                result[packets[0].timing_information.app_start_mach_timestamp] = packets
+            return [Station(d) for d in result.values()]
+        else:
+            return []
+
+    def sort_files_by_station(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[Station]:
+        stations_opt = maybe_parallel_map(
+            pool,
+            self._stations_by_key,
+            iter(self.read_files().keys()),
+            lambda: len(self.read_files().keys()) > 2,
+            chunk_size=1
+        )
+        # return result
+        xd = [item for sublist in stations_opt for item in sublist]
+        return xd
 
     def read_files_as_stations(
         self, pool: Optional[multiprocessing.pool.Pool] = None

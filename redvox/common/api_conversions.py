@@ -86,28 +86,35 @@ def _migrate_synch_exchanges_900_to_1000(
 
 # todo: can set default return to np.nan?
 def _find_mach_time_zero_raw(packet: api_900.RedvoxPacket) -> int:
+    """
+    find the mach time zero in api 900 packets
+    :param packet: api 900 redvox packet to read
+    :return: mach time zero fo the api 900 packet or -1 if it doesn't exist
+    """
     # if "machTimeZero" in packet.metadata_as_dict():
     #     return int(packet.metadata_as_dict()["machTimeZero"])
     key: str = "machTimeZero"
     mtz: Optional[int] = reader_utils.get_metadata_raw(list(packet.metadata), key, int)
-    if mtz is None:
-        location_sensor: Optional[
-            api_900.UnevenlySampledChannel
-        ] = reader_utils.find_uneven_channel_raw(
-            packet,
-            {
-                api_900.ChannelType.LATITUDE,
-                api_900.ChannelType.LONGITUDE,
-                api_900.ChannelType.ALTITUDE,
-                api_900.ChannelType.SPEED,
-            },
+    if mtz is not None:
+        return mtz
+
+    location_sensor: Optional[
+        api_900.UnevenlySampledChannel
+    ] = reader_utils.find_uneven_channel_raw(
+        packet,
+        {
+            api_900.ChannelType.LATITUDE,
+            api_900.ChannelType.LONGITUDE,
+            api_900.ChannelType.ALTITUDE,
+            api_900.ChannelType.SPEED,
+        },
+    )
+    if location_sensor is not None:
+        mtz = reader_utils.get_metadata_raw(
+            list(location_sensor.metadata), key, int
         )
-        if location_sensor is not None:
-            mtz = reader_utils.get_metadata_raw(
-                list(location_sensor.metadata), key, int
-            )
-            if mtz is not None:
-                return mtz
+        if mtz is not None:
+            return mtz
 
     return -1
 

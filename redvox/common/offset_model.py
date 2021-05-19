@@ -53,6 +53,7 @@ class OffsetModel:
     ):
         """
         Create an OffsetModel
+
         :param latencies: latencies within the time specified
         :param offsets: offsets that correspond to the latencies
         :param times: timestamps that correspond to the latencies
@@ -124,7 +125,8 @@ class OffsetModel:
 
     def get_offset_at_new_time(self, new_time: float) -> float:
         """
-        Get's offset at new_time time based on the offset model.
+        Gets offset at new_time time based on the offset model.
+
         :param new_time: The time of corresponding to the new offset
         :return: new offset corresponding to the new_time
         """
@@ -135,6 +137,7 @@ class OffsetModel:
     def update_time(self, new_time: float) -> float:
         """
         update new_time time based on the offset model.
+
         :param new_time: The time to update
         :return: updated new_time
         """
@@ -143,6 +146,7 @@ class OffsetModel:
     def update_timestamps(self, timestamps: np.array) -> np.array:
         """
         updates a list of timestamps
+
         :param timestamps: timestamps to update
         :return: updated list of timestamps
         """
@@ -156,6 +160,7 @@ def get_bins_per_5min(start_time: float, end_time: float) -> int:
     """
     Calculates number of bins needed for roughly 5 minute bins.
         k_bins = int((end_time - start_time) / (300 * 1e6) + 1)
+
     :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
     :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
     :return: number of bins to use for offset model
@@ -169,6 +174,7 @@ def get_bins_per_5min(start_time: float, end_time: float) -> int:
 def minmax_scale(data: np.ndarray) -> np.ndarray:
     """
     Returns scaled data by subtracting the min value and dividing by (max - min) value.
+
     :param data: the data to be scaled
     :return: scaled data
     """
@@ -184,6 +190,7 @@ def get_wlr_score(
     Computes and returns a R2 score for the weighted linear regression using sklearn's score method.
     The best value is 1.0, and 0.0 corresponds to a function with no slope.
     Negative values are also adjusted to be 0.0.
+
     :param model: The linear regression model
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
@@ -208,6 +215,7 @@ def offset_weighted_linear_regression(
     Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
     The intercept is based on first UTC time 0, all units are in microseconds
     The function uses sklearn's LinearRegression with sample weights, and also returns the R2 score.
+
     :param latencies: array of the best latencies per packet
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
@@ -240,7 +248,8 @@ def get_offset_at_new_time(
     new_time: float, slope: float, intercept: float, model_time: float
 ) -> float:
     """
-    Get's offset at new_time time based on the offset model.
+    Gets offset at new_time time based on the offset model.
+
     :param new_time: The time of corresponding to the new offset
     :param slope: slope of the offset model
     :param intercept: the intercept of the offset model relative to the model_time
@@ -263,6 +272,7 @@ def get_binned_df(
     """
     Returns a subset of the full_df with n_samples per binned times.
     nan latencies values will be ignored.
+
     :param full_df: pandas DataFrame containing latencies, offsets, and times.
     :param bin_times: array of edge times for each bin
     :param n_samples: number of samples to take per bin
@@ -299,6 +309,7 @@ def timesync_quality_check(
         If timesync duration is longer than 5 min
         If there are 3 latency values (non-nan) per 5 minutes on average
     Returns False if the data quality is not up to "standards".
+
     :param latencies: array of the best latencies per packet
     :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
     :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
@@ -341,6 +352,7 @@ class TimingOffsets:
 def mapf(val: Optional[float]) -> float:
     """
     Maps an optional float to floats by replacing Nones with NaNs.
+
     :param val: Float value to map.
     :return: The mapped float.
     """
@@ -352,6 +364,7 @@ def mapf(val: Optional[float]) -> float:
 def compute_offsets(station_stats: List["StationStat"]) -> Optional[TimingOffsets]:
     """
     Computes the offsets from the provided station statistics.
+
     :param station_stats: Statistics to compute offsets from.
     :return: Timing offset information or None if there are no offsets or there is an error.
     """

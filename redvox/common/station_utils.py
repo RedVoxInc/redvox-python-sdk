@@ -67,11 +67,9 @@ def validate_station_key_list(
         if len(result) > 1:
             if debug:
                 print(
-                    f"WARNING: {data_packets[0].station_information.id} "
-                    f"{key} contains multiple unique values: {result}."
-                )
-                print(
-                    "Current solution is to alter your query to omit or focus on this station."
+                    f"WARNING from station_utils: {data_packets[0].station_information.id} "
+                    f"{key} contains multiple unique values: {result}.\n"
+                    "Please update your query to focus on one of these values."
                 )
             return False  # stop processing, one bad key is enough
 

@@ -367,6 +367,11 @@ class DataWindowFast:
                                f"but that station is not in this data window!")
         return None
 
+    def _add_sensor_to_window(self, station: Station):
+        self.errors.extend(station.errors.get())
+        # set the window start and end if they were specified, otherwise use the bounds of the data
+        self.create_window_in_sensors(station, self.start_datetime, self.end_datetime)
+
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         """
         updates the data window to contain only the data within the window parameters
@@ -408,15 +413,13 @@ class DataWindowFast:
 
         # Parallel update
         # Apply timing correction in parallel by station
-        stations = list(maybe_parallel_map(_pool, Station.update_timestamps,
-                                           iter(a_r.sort_files_by_station()), chunk_size=1))
 
-        self._check_for_audio()
+        # stations = list(maybe_parallel_map(_pool, Station.temp_me, iter(a_r.sort_files_by_station()), chunk_size=1))
+        # stations = a_r.sort_files_by_station(_pool)
 
-        for station in stations:
-            self.errors.extend(station.errors.get())
-            # set the window start and end if they were specified, otherwise use the bounds of the data
-            self.create_window_in_sensors(station, self.start_datetime, self.end_datetime)
+        maybe_parallel_map(_pool, self._add_sensor_to_window,
+                           maybe_parallel_map(_pool, Station.update_timestamps, iter(a_r.sort_files_by_station()),
+                                              chunk_size=1), chunk_size=1)
 
         # check for stations without data
         self._check_for_audio()
@@ -1065,7 +1068,7 @@ class DataWindow:
             r_f,
             self.debug,
             pool=_pool,
-        ).get_stations(pool=_pool)
+        ).sort_files_by_station()
 
         # Parallel update
         # Apply timing correction in parallel by station

@@ -90,30 +90,13 @@ class Station:
         self._gaps: List[Tuple[float, float]] = []
         self.errors: StationExceptions = StationExceptions()
         if data_packets and st_utils.validate_station_key_list(data_packets, True):
-            self.id = data_packets[0].station_information.id
-            self.uuid = data_packets[0].station_information.uuid
-            self.start_timestamp = data_packets[
-                0
-            ].timing_information.app_start_mach_timestamp
-            if self.start_timestamp < 0:
-                self.errors.append(
-                    f"WARNING: Station {self.id} has station start date before epoch.  "
-                    f"Station start date reset to np.nan"
-                )
-                self.start_timestamp = np.nan
-            self.metadata = st_utils.StationMetadata("Redvox", data_packets[0])
-            self._set_all_sensors(data_packets)
-            self._get_start_and_end_timestamps()
-            if self.audio_sensor() is not None:
-                self.audio_sample_rate_nominal_hz = self.audio_sensor().sample_rate_hz
-                self.is_audio_scrambled = data_packets[0].sensors.audio.is_scrambled
-            else:
-                self.audio_sample_rate_nominal_hz = np.nan
-                self.is_audio_scrambled = False
             # noinspection Mypy
+            self._load_metadata_from_packet(data_packets[0])
             self.timesync_analysis = TimeSyncAnalysis(
                 self.id, self.audio_sample_rate_nominal_hz, self.start_timestamp
             ).from_raw_packets(data_packets)
+            self._set_all_sensors(data_packets)
+            self._get_start_and_end_timestamps()
         else:
             self.id = station_id
             self.uuid = uuid
@@ -125,6 +108,28 @@ class Station:
             self.is_audio_scrambled = False
             self.timesync_analysis = TimeSyncAnalysis()
         # self.errors.print()
+
+    def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
+        """
+        sets metadata that applies to the entire station from a single packet
+        :param packet: API-M redvox packet to load metadata from
+        """
+        self.id = packet.station_information.id
+        self.uuid = packet.station_information.uuid
+        self.start_timestamp = packet.timing_information.app_start_mach_timestamp
+        if self.start_timestamp < 0:
+            self.errors.append(
+                f"WARNING: Station {self.id} has station start date before epoch.  "
+                f"Station start date reset to np.nan"
+            )
+            self.start_timestamp = np.nan
+        self.metadata = st_utils.StationMetadata("Redvox", packet)
+        if isinstance(packet, api_m.RedvoxPacketM) and packet.sensors.HasField("audio"):
+            self.audio_sample_rate_nominal_hz = packet.sensors.audio.sample_rate
+            self.is_audio_scrambled = packet.sensors.audio.is_scrambled
+        else:
+            self.audio_sample_rate_nominal_hz = np.nan
+            self.is_audio_scrambled = False
 
     def _sort_metadata_packets(self):
         """
@@ -1034,4 +1039,7 @@ class Station:
                 self.last_data_timestamp
             )
             self.is_timestamps_updated = True
+        return self
+
+    def temp_me(self) -> "Station":
         return self

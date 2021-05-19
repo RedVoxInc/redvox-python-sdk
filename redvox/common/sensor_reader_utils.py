@@ -18,7 +18,6 @@ from redvox.api1000.wrapped_redvox_packet.station_information import (
 from redvox.common.stats_helper import StatsContainer
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
-from redvox.common.offset_model import OffsetModel
 from redvox.common.sensor_data import SensorType, SensorData
 
 # Dataframe column definitions
@@ -455,7 +454,6 @@ def load_apim_audio_from_list(
                     )
                     for p in packets
                 ]
-                # todo: include corrected offset values; (1 + slope) * base_interval
                 df, gaps = gpu.fill_audio_gaps(
                     packet_info, dtu.seconds_to_microseconds(1 / sample_rate_hz)
                 )
