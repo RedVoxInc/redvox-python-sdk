@@ -276,8 +276,7 @@ class ApiReaderRaw:
             chunk_size=1
         )
         # return result
-        xd = [item for sublist in stations_opt for item in sublist]
-        return xd
+        return [item for sublist in stations_opt for item in sublist]
 
     def read_files_as_stations(
         self, pool: Optional[multiprocessing.pool.Pool] = None

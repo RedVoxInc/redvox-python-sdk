@@ -28,6 +28,7 @@ def maybe_parallel_map(pool: Optional[Pool],
     """
     Maps a function over a set of values. This will either be run in parallel or serially depending on the value
     of redvox.settings.
+
     :param pool: An optional pool. If a pool is provided, the user is responsible for closing the pool. If the pool
                  is not provided, one is created by this process and then closed at the end of this process.
     :param map_fn: A function that maps each value in the provided iterator.

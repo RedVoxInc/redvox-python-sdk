@@ -413,13 +413,9 @@ class DataWindowFast:
 
         # Parallel update
         # Apply timing correction in parallel by station
-
-        # stations = list(maybe_parallel_map(_pool, Station.temp_me, iter(a_r.sort_files_by_station()), chunk_size=1))
-        # stations = a_r.sort_files_by_station(_pool)
-
-        maybe_parallel_map(_pool, self._add_sensor_to_window,
-                           maybe_parallel_map(_pool, Station.update_timestamps, iter(a_r.sort_files_by_station()),
-                                              chunk_size=1), chunk_size=1)
+        for st in maybe_parallel_map(_pool, Station.update_timestamps,
+                                     iter(a_r.sort_files_by_station()), chunk_size=1):
+            self._add_sensor_to_window(st)
 
         # check for stations without data
         self._check_for_audio()
