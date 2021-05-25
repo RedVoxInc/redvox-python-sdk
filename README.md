@@ -9,6 +9,12 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc37 (2021-5-25)
+
+* Api900 conversion will report error when api900 file doesn't contain audio data
+* LocationSensor will use packet start mach timestamps if derived from a BestLocation instead of using only the BestLocation's timestamps (which may not have been created within the DataWindow specified).
+* Utilize api1000 native reading processes over WrappedPacket reading processes
+
 ### 3.0.0rc36 (2021-5-19)
 
 * Fixed api900 conversion setting wrong value for mach time zero (api900) to app start time (api1000)
