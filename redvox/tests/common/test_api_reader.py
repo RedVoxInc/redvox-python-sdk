@@ -30,7 +30,7 @@ class ApiReaderTest(unittest.TestCase):
         result_by_id = reader.read_files_by_id("1000001000")
         self.assertEqual(len(result_by_id), 1)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "1000001000"
+            result_by_id[0].station_information.id, "1000001000"
         )
 
     def test_read_all_end_time(self):
@@ -38,14 +38,14 @@ class ApiReaderTest(unittest.TestCase):
             self.input_dir,
             True,
             ReadFilter(end_dt_buf=timedelta(seconds=30),
-                       end_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
+                       end_dt=dtu.datetime_from_epoch_seconds_utc(1611696100)),
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
         result_by_id = reader.read_files_by_id("1000000900")
         self.assertEqual(len(result_by_id), 1)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "1000000900"
+            result_by_id[0].station_information.id, "1000000900"
         )
 
     def test_read_all_start_time_no_match(self):
@@ -74,7 +74,7 @@ class ApiReaderTest(unittest.TestCase):
         result_by_id = reader.read_files_by_id("1000001000")
         self.assertEqual(len(result_by_id), 2)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "1000001000"
+            result_by_id[0].station_information.id, "1000001000"
         )
 
     def test_read_all_api900_in_unstructured_dir(self):
@@ -86,7 +86,7 @@ class ApiReaderTest(unittest.TestCase):
         result_by_id = reader.read_files_by_id("2000000900")
         self.assertEqual(len(result_by_id), 1)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "2000000900"
+            result_by_id[0].station_information.id, "2000000900"
         )
 
     def test_read_all_api900_in_structured_dir(self):
@@ -98,7 +98,7 @@ class ApiReaderTest(unittest.TestCase):
         result_by_id = reader.read_files_by_id("1000000900")
         self.assertEqual(len(result_by_id), 2)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "1000000900"
+            result_by_id[0].station_information.id, "1000000900"
         )
 
     def test_read_all_api1000_in_unstructured_dir(self):
@@ -110,7 +110,7 @@ class ApiReaderTest(unittest.TestCase):
         result_by_id = reader.read_files_by_id("2000001000")
         self.assertEqual(len(result_by_id), 1)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "2000001000"
+            result_by_id[0].station_information.id, "2000001000"
         )
 
     def test_read_all_api1000_in_structured_dir(self):
@@ -122,7 +122,7 @@ class ApiReaderTest(unittest.TestCase):
         result_by_id = reader.read_files_by_id("1000001000")
         self.assertEqual(len(result_by_id), 2)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "1000001000"
+            result_by_id[0].station_information.id, "1000001000"
         )
 
     def test_read_all_in_unstructured_dir(self):
@@ -132,12 +132,12 @@ class ApiReaderTest(unittest.TestCase):
         result_by_id = reader.read_files_by_id("2000001000")
         self.assertEqual(len(result_by_id), 1)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "2000001000"
+            result_by_id[0].station_information.id, "2000001000"
         )
         result_by_id = reader.read_files_by_id("2000000900")
         self.assertEqual(len(result_by_id), 1)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "2000000900"
+            result_by_id[0].station_information.id, "2000000900"
         )
 
     def test_read_all_in_structured_dir(self):
@@ -147,12 +147,12 @@ class ApiReaderTest(unittest.TestCase):
         result_by_id = reader.read_files_by_id("1000001000")
         self.assertEqual(len(result_by_id), 2)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "1000001000"
+            result_by_id[0].station_information.id, "1000001000"
         )
         result_by_id = reader.read_files_by_id("1000000900")
         self.assertEqual(len(result_by_id), 2)
         self.assertEqual(
-            result_by_id[0].get_station_information().get_id(), "1000000900"
+            result_by_id[0].station_information.id, "1000000900"
         )
 
     def test_filter_loop(self):

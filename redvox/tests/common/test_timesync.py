@@ -6,7 +6,7 @@ import contextlib
 import numpy as np
 import redvox.tests as tests
 from redvox.common import timesync as ts
-from redvox.common import api_reader_raw
+from redvox.common import api_reader
 from redvox.common.io import ReadFilter
 
 
@@ -14,8 +14,8 @@ class TimesyncTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         with contextlib.redirect_stdout(None):
-            result = api_reader_raw.ApiReaderRaw(tests.TEST_DATA_DIR, structured_dir=False,
-                                                 read_filter=ReadFilter(station_ids={"1637680001"}))
+            result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
+                                          read_filter=ReadFilter(station_ids={"1637680001"}))
             cls.time_sync_analysis = ts.TimeSyncAnalysis().from_raw_packets(result.read_files_by_id("1637680001"))
 
     def test_validate_sensors(self):

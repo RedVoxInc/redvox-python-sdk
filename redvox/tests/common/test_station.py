@@ -7,7 +7,7 @@ import contextlib
 import numpy as np
 
 import redvox.tests as tests
-from redvox.common import api_reader_raw
+from redvox.common import api_reader
 from redvox.common.io import ReadFilter
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType
@@ -18,18 +18,18 @@ class StationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         with contextlib.redirect_stdout(None):
-            reader = api_reader_raw.ApiReaderRaw(
+            reader = api_reader.ApiReader(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={".rdvxm"}, station_ids={"0000000001"}),
             )
-            cls.apim_station = reader.get_station_by_id("0000000001")
-            reader = api_reader_raw.ApiReaderRaw(
+            cls.apim_station = reader.get_station_by_id("0000000001")[0]
+            reader = api_reader.ApiReader(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),
             )
-            cls.api900_station = reader.get_station_by_id("1637650010")
+            cls.api900_station = reader.get_station_by_id("1637650010")[0]
 
     def test_empty_station(self):
         empty_apim_station = Station([])
@@ -131,11 +131,11 @@ class StationTest(unittest.TestCase):
 
     def test_update_timestamps(self):
         with contextlib.redirect_stdout(None):
-            updated_station = api_reader_raw.ApiReaderRaw(
+            updated_station = api_reader.ApiReader(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={".rdvxz"}, station_ids={"1637650010"}),
-            ).get_station_by_id("1637650010")
+            ).get_station_by_id("1637650010")[0]
             self.assertEqual(updated_station.first_data_timestamp,
                              updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
             updated_station.update_timestamps()

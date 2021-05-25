@@ -21,7 +21,7 @@ from redvox.common import io
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, SensorData
-from redvox.common.api_reader_raw import ApiReaderRaw
+from redvox.common.api_reader import ApiReader
 from redvox.common.data_window_configuration import DataWindowConfig
 from redvox.common import gap_and_pad_utils as gpu
 
@@ -88,7 +88,7 @@ class DataWindowFast:
                         If None, get as much data as it can in the input directory.  Default None
         start_datetime: optional datetime, start datetime of the window.
                         If None, uses the first timestamp of the filtered data.  Default None
-        end_datetime: optional datetime, end datetime of the window.
+        end_datetime: optional datetime, non-inclusive end datetime of the window.
                         If None, uses the last timestamp of the filtered data.  Default None
         start_buffer_td: timedelta, the amount of time to include before the start_datetime when filtering data.
                             Default DEFAULT_START_BUFFER_TD
@@ -335,7 +335,7 @@ class DataWindowFast:
         :param station_ids: optional station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        if start_dt and json_dict["start_datetime"] > dtu.datetime_to_epoch_microseconds_utc(start_dt):
+        if start_dt and json_dict["start_datetime"] >= dtu.datetime_to_epoch_microseconds_utc(start_dt):
             return None
         if end_dt and json_dict["end_datetime"] < dtu.datetime_to_epoch_microseconds_utc(end_dt):
             return None
@@ -406,15 +406,14 @@ class DataWindowFast:
             self.end_buffer_td = r_f.end_dt_buf
 
         # get the data to convert into a window
-        a_r = ApiReaderRaw(self.input_directory, self.structured_layout, r_f, self.debug, _pool)
+        a_r = ApiReader(self.input_directory, self.structured_layout, r_f, self.debug, _pool)
 
         if not self.station_ids:
             self.station_ids = a_r.index_summary.station_ids()
-
         # Parallel update
         # Apply timing correction in parallel by station
         for st in maybe_parallel_map(_pool, Station.update_timestamps,
-                                     iter(a_r.sort_files_by_station()), chunk_size=1):
+                                     iter(a_r.get_stations()), chunk_size=1):
             self._add_sensor_to_window(st)
 
         # check for stations without data
@@ -430,9 +429,10 @@ class DataWindowFast:
         if not self.start_datetime and len(self.stations) > 0:
             self.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
                 np.min([t.first_data_timestamp for t in self.stations]))
+        # end_datetime is non-inclusive, so it must be greater than our latest timestamp
         if not self.end_datetime and len(self.stations) > 0:
             self.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.max([t.last_data_timestamp for t in self.stations]))
+                np.max([t.last_data_timestamp for t in self.stations]) + 1)
 
         # If the pool was created by this function, then it needs to managed by this function.
         if pool is None:
@@ -504,18 +504,18 @@ class DataWindowFast:
         :param start_date_timestamp: start of data window
         :param end_date_timestamp: end of data window
         """
-        df_timestamps = sensor.data_timestamps()
-        if len(df_timestamps) > 0:
+        if sensor.num_samples() > 0:
             # get only the timestamps between the start and end timestamps
-            before_start = np.where(df_timestamps < start_date_timestamp)[0]
-            after_end = np.where(end_date_timestamp <= df_timestamps)[0]
+            before_start = np.where(sensor.data_timestamps() < start_date_timestamp)[0]
+            after_end = np.where(end_date_timestamp <= sensor.data_timestamps())[0]
+            # start_index is inclusive of window start
             if len(before_start) > 0:
                 last_before_start = before_start[-1]
                 start_index = last_before_start + 1
             else:
                 last_before_start = None
                 start_index = 0
-            # end_index is non-inclusive
+            # end_index is non-inclusive of window end
             if len(after_end) > 0:
                 first_after_end = after_end[0]
                 end_index = first_after_end
@@ -1056,15 +1056,14 @@ class DataWindow:
             r_f.with_end_dt_buf(self.end_buffer_td)
         else:
             self.end_buffer_td = r_f.end_dt_buf
-
         # get the data to convert into a window
-        stations = ApiReaderRaw(
+        stations = ApiReader(
             self.input_directory,
             self.structured_layout,
             r_f,
             self.debug,
             pool=_pool,
-        ).sort_files_by_station()
+        ).get_stations()
 
         # Parallel update
         # Apply timing correction in parallel by station

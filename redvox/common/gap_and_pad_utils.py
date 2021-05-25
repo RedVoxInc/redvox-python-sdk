@@ -260,7 +260,7 @@ def add_data_points_to_df(dataframe: pd.DataFrame,
             * dataframe must not be empty
             * start_index must be non-negative and less than the length of dataframe
             * num_samples_to_add must be greater than 0
-            * the points are added onto the end and the result is not sorted
+            * points are added onto the end and the result is not sorted
         Options for point_creation_mode are:
             * NAN: default values and nans
             * COPY: copies of the start data point

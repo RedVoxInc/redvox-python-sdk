@@ -384,6 +384,8 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
 
     # Sensors
     # Microphone / Audio
+    if len(packet.evenly_sampled_channels) < 1:
+        raise ValueError("Cannot convert API900 to API1000; Audio sensor missing.")
     audio_900: api_900.EvenlySampledChannel = packet.evenly_sampled_channels[0]
     packet_m.sensors.audio.sensor_description = audio_900.sensor_name
     packet_m.sensors.audio.sample_rate = audio_900.sample_rate_hz

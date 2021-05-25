@@ -661,10 +661,9 @@ def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
                 best_loc = loc.last_best_location
             else:
                 best_loc = loc.overall_best_location
-            # todo what if unaltered_timestamps is original ts of best loc data point?
             data_for_df = [
                 [
-                    best_loc.latitude_longitude_timestamp.mach,
+                    packet.timing_information.packet_start_mach_timestamp,
                     best_loc.latitude_longitude_timestamp.mach,
                     best_loc.latitude_longitude_timestamp.gps,
                     best_loc.latitude,
@@ -750,9 +749,7 @@ def load_apim_location_from_list(
                     best_loc = loc.last_best_location
                 else:
                     best_loc = loc.overall_best_location
-                # todo what if unaltered_timestamps is original ts of best loc data point?
-                data_list[0].append(best_loc.latitude_longitude_timestamp.mach)
-                # data_list[0].append(packet.timing_information.packet_start_mach_timestamp)
+                data_list[0].append(packet.timing_information.packet_start_mach_timestamp)
                 data_list[1].append(best_loc.latitude_longitude_timestamp.gps)
                 data_list[2].append(best_loc.latitude)
                 data_list[3].append(best_loc.longitude)
@@ -782,8 +779,6 @@ def load_apim_location_from_list(
                             np.std(np.diff(samples)),
                             num_samples - 1,
                             )
-                    # data_list[4].extend([np.nan if len(samples) < i + 1
-                    #                      else samples[i] for i in range(num_samples)])
                     for i in range(num_samples):
                         samples = loc.timestamps_gps.timestamps
                         data_list[1].append(np.nan if len(samples) <= i else samples[i])
