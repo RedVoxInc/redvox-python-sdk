@@ -21,8 +21,9 @@ end_minute = 0                      # minute of end hour
 end_second = 59                     # second of end minute
 start_padding_seconds = 120         # padding to include before start datetime when searching for data
 end_padding_seconds = 120           # padding to include after start datetime when searching for data
-gap_time_seconds = 0.25             # minimum number of seconds between timestamps that indicates a gap in data
+drop_time_seconds = 0.2             # minimum number of seconds between data files that indicates a gap in data
 extensions = [".rdvxm", ".rdvxz"]   # specific file extensions to get; acceptable values: ".rdvxm", ".rdvxz"
 # specific api versions to get; acceptable values: "API_900", "API_1000", "UNKNOWN"
 api_versions = ["API_900", "API_1000"]
+edge_points_mode = "COPY"           # acceptable values: "NAN", "COPY", "INTERPOLATE"
 debug = true                        # if true, output extra information when processing the data window

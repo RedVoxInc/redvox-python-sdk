@@ -25,7 +25,6 @@ from redvox.common.api_reader import ApiReader
 from redvox.common.data_window_configuration import DataWindowConfig
 from redvox.common import gap_and_pad_utils as gpu
 
-DEFAULT_GAP_TIME_S: float = 0.25  # default length of a gap in seconds
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
 DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
 # minimum default length of time in seconds for data to be off by to be considered suspicious
@@ -121,9 +120,6 @@ class DataWindowFast:
         copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
         debug: bool = False
     ):
-        if debug:
-            print("Using Fast Mode")
-
         self.errors = DataWindowExceptions()
         self.input_directory: str = input_dir
         self.structured_layout: bool = structured_layout
@@ -204,6 +200,8 @@ class DataWindowFast:
             station_ids = set(config.station_ids)
         else:
             station_ids = None
+        if config.edge_points_mode not in gpu.DataPointCreationMode.list_names():
+            config.edge_points_mode = "COPY"
         return DataWindowFast(
             config.input_directory,
             config.structured_layout,
@@ -216,7 +214,7 @@ class DataWindowFast:
             extensions,
             api_versions,
             config.apply_correction,
-            gpu.DataPointCreationMode["COPY"],
+            gpu.DataPointCreationMode[config.edge_points_mode],
             config.debug,
         )
 
@@ -412,9 +410,12 @@ class DataWindowFast:
             self.station_ids = a_r.index_summary.station_ids()
         # Parallel update
         # Apply timing correction in parallel by station
-        for st in maybe_parallel_map(_pool, Station.update_timestamps,
-                                     iter(a_r.get_stations()), chunk_size=1):
-            self._add_sensor_to_window(st)
+        if self.apply_correction:
+            for st in maybe_parallel_map(_pool, Station.update_timestamps,
+                                         iter(a_r.get_stations()), chunk_size=1):
+                self._add_sensor_to_window(st)
+        else:
+            [self._add_sensor_to_window(s) for s in a_r.get_stations()]
 
         # check for stations without data
         self._check_for_audio()
@@ -608,7 +609,7 @@ class DataWindow:
             end_datetime: Optional[dtu.datetime] = None,
             start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
             end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-            gap_time_s: float = DEFAULT_GAP_TIME_S,
+            gap_time_s: float = 0.25,
             station_ids: Optional[Iterable[str]] = None,
             extensions: Optional[Set[str]] = None,
             api_versions: Optional[Set[io.ApiVersion]] = None,
@@ -728,7 +729,7 @@ class DataWindow:
             end_time,
             dtu.timedelta(seconds=config.start_padding_seconds),
             dtu.timedelta(seconds=config.end_padding_seconds),
-            config.gap_time_seconds,
+            config.drop_time_s,
             station_ids,
             extensions,
             api_versions,

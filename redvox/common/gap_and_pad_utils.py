@@ -35,6 +35,10 @@ class DataPointCreationMode(enum.Enum):
     COPY: int = 1
     INTERPOLATE: int = 2
 
+    @staticmethod
+    def list_names() -> List[str]:
+        return [n.name for n in DataPointCreationMode]
+
 
 def calc_evenly_sampled_timestamps(
         start: float, samples: int, sample_interval_micros: float

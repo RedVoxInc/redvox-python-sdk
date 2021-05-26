@@ -11,7 +11,7 @@ import toml
 
 
 # defaults for configuration
-DEFAULT_GAP_TIME_S: float = 0.25  # seconds to be considered a gap
+DEFAULT_DROP_TIME_S: float = 0.2  # seconds between packets to be considered a gap
 DEFAULT_START_PADDING_S: float = 120.0  # time to add before start time when searching
 DEFAULT_END_PADDING_S: float = 120.0  # time to add after end time when searching
 
@@ -46,9 +46,11 @@ class DataWindowConfig:
                                 when filtering data.  Default DEFAULT_START_PADDING_S
         end_padding_seconds: float representing the amount of seconds to include after the end datetime
                                 when filtering data.  Default DEFAULT_END_PADDING_S
-        gap_time_s: float representing the minimum amount of seconds between data points that would indicate a gap.
-                    Default DEFAULT_GAP_TIME_S
+        drop_time_seconds: float representing the minimum amount of seconds between data packets that would indicate
+                            a gap.  Default DEFAULT_DROP_TIME_S
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
+        edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.  Determines behavior when creating points on the edge
+                            of the data window.  default COPY
         debug: bool, if True, output additional information when processing data window.  Default False
     """
 
@@ -71,8 +73,9 @@ class DataWindowConfig:
     end_second: Optional[int] = None
     start_padding_seconds: float = DEFAULT_START_PADDING_S
     end_padding_seconds: float = DEFAULT_END_PADDING_S
-    gap_time_seconds: float = DEFAULT_GAP_TIME_S
+    drop_time_seconds: float = DEFAULT_DROP_TIME_S
     apply_correction: bool = True
+    edge_points_mode: str = "COPY"
     debug: bool = False
 
     @staticmethod
