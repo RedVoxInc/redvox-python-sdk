@@ -97,6 +97,7 @@ __SENSOR_TYPE_TO_FIELD_NAME: Dict[SensorType, str] = {
     SensorType.LIGHT: __LIGHT_FIELD_NAME,
     SensorType.LINEAR_ACCELERATION: __LINEAR_ACCELERATION_FIELD_NAME,
     SensorType.LOCATION: __LOCATION_FIELD_NAME,
+    SensorType.BEST_LOCATION: __LOCATION_FIELD_NAME,
     SensorType.MAGNETOMETER: __MAGNETOMETER_FIELD_NAME,
     SensorType.ORIENTATION: __ORIENTATION_FIELD_NAME,
     SensorType.PRESSURE: __PRESSURE_FIELD_NAME,
@@ -137,6 +138,7 @@ __SENSOR_TYPE_TO_SENSOR_FN: Dict[
     SensorType.LIGHT: lambda packet: packet.sensors.light,
     SensorType.LINEAR_ACCELERATION: lambda packet: packet.sensors.linear_acceleration,
     SensorType.LOCATION: lambda packet: packet.sensors.location,
+    SensorType.BEST_LOCATION: lambda packet: packet.sensors.location,
     SensorType.MAGNETOMETER: lambda packet: packet.sensors.magnetometer,
     SensorType.ORIENTATION: lambda packet: packet.sensors.orientation,
     SensorType.PRESSURE: lambda packet: packet.sensors.pressure,
@@ -401,7 +403,7 @@ def load_apim_single_sensor_from_list(
 
 def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load audio data from a single wrapped packet
+    load audio data from a single redvox packet
     :param packet: packet with data to load
     :return: audio sensor data if it exists, None otherwise
     """
@@ -436,7 +438,7 @@ def load_apim_audio_from_list(
         packets: List[api_m.RedvoxPacketM],
 ) -> Tuple[Optional[SensorData], List[Tuple[float, float]]]:
     """
-    load audio data from a list of wrapped packets
+    load audio data from a list of redvox packets
     NOTE: This only works because audio sensors in the list should all have the same number of data points.
     :param packets: packets with data to load
     :return: audio sensor data if it exists, None otherwise
@@ -481,7 +483,7 @@ def load_apim_audio_from_list(
 
 def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load compressed audio data from a single wrapped packet
+    load compressed audio data from a single redvox packet
     :param packet: packet with data to load
     :return: compressed audio sensor data if it exists, None otherwise
     """
@@ -516,7 +518,7 @@ def load_apim_compressed_audio_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load compressed audio data from a list of wrapped packets
+    load compressed audio data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: compressed audio sensor data if it exists, None otherwise
@@ -555,7 +557,7 @@ def load_apim_compressed_audio_from_list(
 
 def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load image data from a single wrapped packet
+    load image data from a single redvox packet
     :param packet: packet with data to load
     :return: image sensor data if it exists, None otherwise
     """
@@ -588,7 +590,7 @@ def load_apim_image_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load image data from a list of wrapped packets
+    load image data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: image sensor data if it exists, None otherwise
@@ -646,22 +648,21 @@ def __is_only_best_values(loc: api_m.RedvoxPacketM.Sensors.Location) -> bool:
     )
 
 
-def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
+def load_apim_best_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load location data from a single wrapped packet
+    load best location data from a single redvox packet
     :param packet: packet with data to load
-    :return: location sensor data if it exists, None otherwise
+    :return: best location sensor data if it exists, None otherwise
     """
     if __has_sensor(packet, __LOCATION_FIELD_NAME):
         loc: api_m.RedvoxPacketM.Sensors.Location = packet.sensors.location
-
-        if __is_only_best_values(loc):
+        if loc.HasField("last_best_location") or loc.HasField("overall_best_location"):
             best_loc: api_m.RedvoxPacketM.Sensors.Location.BestLocation
             if loc.HasField("last_best_location"):
                 best_loc = loc.last_best_location
             else:
                 best_loc = loc.overall_best_location
-            data_for_df = [
+            data_df = pd.DataFrame([
                 [
                     packet.timing_information.packet_start_mach_timestamp,
                     best_loc.latitude_longitude_timestamp.mach,
@@ -677,41 +678,109 @@ def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
                     best_loc.bearing_accuracy,
                     best_loc.location_provider,
                 ]
-            ]
+            ], columns=LOCATION_COLUMNS)
+            sample_rate = 1 / __packet_duration_s(packet)
+            return SensorData(
+                loc.sensor_description,
+                data_df,
+                SensorType.BEST_LOCATION,
+                sample_rate,
+                1 / sample_rate,
+                np.nan,
+                False,
+            )
+    return None
+
+
+def load_apim_best_location_from_list(
+        packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
+) -> Optional[SensorData]:
+    """
+    load best location data from a list of redvox packets
+    :param packets: packets with data to load
+    :param gaps: the list of non-inclusive start and end times of the gaps in the packets
+    :return: best location sensor data if it exists, None otherwise
+    """
+    data_list: List[List[float]] = [[], [], [], [], [], [], [], [], [], [], [], [], []]
+    loc_stats = StatsContainer("location_sensor")
+    for packet in packets:
+        if __has_sensor(packet, __LOCATION_FIELD_NAME):
+            loc: api_m.RedvoxPacketM.Sensors.Location = packet.sensors.location
+            if loc.HasField("last_best_location") or loc.HasField("overall_best_location"):
+                best_loc: api_m.RedvoxPacketM.Sensors.Location.BestLocation
+                if loc.HasField("last_best_location"):
+                    best_loc = loc.last_best_location
+                else:
+                    best_loc = loc.overall_best_location
+                data_list[0].append(packet.timing_information.packet_start_mach_timestamp)
+                data_list[1].append(best_loc.latitude_longitude_timestamp.mach)
+                data_list[2].append(best_loc.latitude_longitude_timestamp.gps)
+                data_list[3].append(best_loc.latitude)
+                data_list[4].append(best_loc.longitude)
+                data_list[5].append(best_loc.altitude)
+                data_list[6].append(best_loc.speed)
+                data_list[7].append(best_loc.bearing)
+                data_list[8].append(best_loc.horizontal_accuracy)
+                data_list[9].append(best_loc.vertical_accuracy)
+                data_list[10].append(best_loc.speed_accuracy)
+                data_list[11].append(best_loc.bearing_accuracy)
+                data_list[12].append(best_loc.location_provider)
+                loc_stats.add(__packet_duration_us(packet), 0, 1)
+    if len(data_list[0]) > 0:
+        return SensorData(
+            get_sensor_description_list(packets, SensorType.BEST_LOCATION),
+            gpu.fill_gaps(
+                pd.DataFrame(np.transpose(data_list), columns=LOCATION_COLUMNS),
+                gaps,
+                loc_stats.mean_of_means(),
+                True,
+            ),
+            SensorType.BEST_LOCATION,
+            calculate_stats=True,
+        )
+
+
+def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
+    """
+    load location data from a single packet
+    :param packet: packet with data to load
+    :return: location sensor data if it exists, None otherwise
+    """
+    if __has_sensor(packet, __LOCATION_FIELD_NAME):
+        loc: api_m.RedvoxPacketM.Sensors.Location = packet.sensors.location
+        timestamps = loc.timestamps.timestamps
+        if len(timestamps) > 0:
+            gps_timestamps = loc.timestamps_gps.timestamps
+            lat_samples = loc.latitude_samples.values
+            lon_samples = loc.longitude_samples.values
+            alt_samples = loc.altitude_samples.values
+            spd_samples = loc.speed_samples.values
+            bear_samples = loc.bearing_samples.values
+            hor_acc_samples = loc.horizontal_accuracy_samples.values
+            vert_acc_samples = loc.vertical_accuracy_samples.values
+            spd_acc_samples = loc.speed_accuracy_samples.values
+            bear_acc_samples = loc.bearing_accuracy_samples.values
+            loc_prov_samples = loc.location_providers
+            data_for_df = []
+            for i in range(len(timestamps)):
+                new_entry = [
+                    timestamps[i],
+                    timestamps[i],
+                    np.nan if len(gps_timestamps) <= i else gps_timestamps[i],
+                    lat_samples[i],
+                    lon_samples[i],
+                    np.nan if len(alt_samples) <= i else alt_samples[i],
+                    np.nan if len(spd_samples) <= i else spd_samples[i],
+                    np.nan if len(bear_samples) <= i else bear_samples[i],
+                    np.nan if len(hor_acc_samples) <= i else hor_acc_samples[i],
+                    np.nan if len(vert_acc_samples) <= i else vert_acc_samples[i],
+                    np.nan if len(spd_acc_samples) <= i else spd_acc_samples[i],
+                    np.nan if len(bear_acc_samples) <= i else bear_acc_samples[i],
+                    np.nan if len(loc_prov_samples) <= i else loc_prov_samples[i],
+                ]
+                data_for_df.append(new_entry)
         else:
-            timestamps = loc.timestamps.timestamps
-            if len(timestamps) > 0:
-                gps_timestamps = loc.timestamps_gps.timestamps
-                lat_samples = loc.latitude_samples.values
-                lon_samples = loc.longitude_samples.values
-                alt_samples = loc.altitude_samples.values
-                spd_samples = loc.speed_samples.values
-                bear_samples = loc.bearing_samples.values
-                hor_acc_samples = loc.horizontal_accuracy_samples.values
-                vert_acc_samples = loc.vertical_accuracy_samples.values
-                spd_acc_samples = loc.speed_accuracy_samples.values
-                bear_acc_samples = loc.bearing_accuracy_samples.values
-                loc_prov_samples = loc.location_providers
-                data_for_df = []
-                for i in range(len(timestamps)):
-                    new_entry = [
-                        timestamps[i],
-                        timestamps[i],
-                        np.nan if len(gps_timestamps) <= i else gps_timestamps[i],
-                        lat_samples[i],
-                        lon_samples[i],
-                        np.nan if len(alt_samples) <= i else alt_samples[i],
-                        np.nan if len(spd_samples) <= i else spd_samples[i],
-                        np.nan if len(bear_samples) <= i else bear_samples[i],
-                        np.nan if len(hor_acc_samples) <= i else hor_acc_samples[i],
-                        np.nan if len(vert_acc_samples) <= i else vert_acc_samples[i],
-                        np.nan if len(spd_acc_samples) <= i else spd_acc_samples[i],
-                        np.nan if len(bear_acc_samples) <= i else bear_acc_samples[i],
-                        np.nan if len(loc_prov_samples) <= i else loc_prov_samples[i],
-                    ]
-                    data_for_df.append(new_entry)
-            else:
-                return None
+            return None
         data_df = pd.DataFrame(data_for_df, columns=LOCATION_COLUMNS)
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
             data_df
@@ -732,7 +801,7 @@ def load_apim_location_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load location data from a list of wrapped packets
+    load location data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: location sensor data if it exists, None otherwise
@@ -743,83 +812,63 @@ def load_apim_location_from_list(
         if __has_sensor(packet, __LOCATION_FIELD_NAME):
             loc: api_m.RedvoxPacketM.Sensors.Location = packet.sensors.location
 
-            if __is_only_best_values(loc):
-                best_loc: api_m.RedvoxPacketM.Sensors.Location.BestLocation
-                if loc.HasField("last_best_location"):
-                    best_loc = loc.last_best_location
+            num_samples = len(loc.timestamps.timestamps)
+            if num_samples > 0:
+                samples = loc.timestamps.timestamps
+                data_list[0].extend(samples)
+                if num_samples == 1:
+                    loc_stats.add(
+                        __packet_duration_us(packet),
+                        0,
+                        1,
+                    )
                 else:
-                    best_loc = loc.overall_best_location
-                data_list[0].append(packet.timing_information.packet_start_mach_timestamp)
-                data_list[1].append(best_loc.latitude_longitude_timestamp.gps)
-                data_list[2].append(best_loc.latitude)
-                data_list[3].append(best_loc.longitude)
-                data_list[4].append(best_loc.altitude)
-                data_list[5].append(best_loc.speed)
-                data_list[6].append(best_loc.bearing)
-                data_list[7].append(best_loc.horizontal_accuracy)
-                data_list[8].append(best_loc.vertical_accuracy)
-                data_list[9].append(best_loc.speed_accuracy)
-                data_list[10].append(best_loc.bearing_accuracy)
-                data_list[11].append(best_loc.location_provider)
-                loc_stats.add(__packet_duration_us(packet), 0, 1)
-            else:
-                num_samples = len(loc.timestamps.timestamps)
-                if num_samples > 0:
-                    samples = loc.timestamps.timestamps
-                    data_list[0].extend(samples)
-                    if num_samples == 1:
-                        loc_stats.add(
-                            __packet_duration_us(packet),
-                            0,
-                            1,
+                    loc_stats.add(
+                        np.mean(np.diff(samples)),
+                        np.std(np.diff(samples)),
+                        num_samples - 1,
                         )
-                    else:
-                        loc_stats.add(
-                            np.mean(np.diff(samples)),
-                            np.std(np.diff(samples)),
-                            num_samples - 1,
-                            )
-                    for i in range(num_samples):
-                        samples = loc.timestamps_gps.timestamps
-                        data_list[1].append(np.nan if len(samples) <= i else samples[i])
-                        samples = loc.latitude_samples.values
-                        data_list[2].append(samples[i])
-                        samples = loc.longitude_samples.values
-                        data_list[3].append(samples[i])
-                        samples = loc.altitude_samples.values
-                        data_list[4].append(
-                            np.nan if len(samples) < i + 1 else samples[i]
-                        )
-                        samples = loc.speed_samples.values
-                        data_list[5].append(
-                            np.nan if len(samples) < i + 1 else samples[i]
-                        )
-                        samples = loc.bearing_samples.values
-                        data_list[6].append(
-                            np.nan if len(samples) < i + 1 else samples[i]
-                        )
-                        samples = loc.horizontal_accuracy_samples.values
-                        data_list[7].append(
-                            np.nan if len(samples) < i + 1 else samples[i]
-                        )
-                        samples = loc.vertical_accuracy_samples.values
-                        data_list[8].append(
-                            np.nan if len(samples) < i + 1 else samples[i]
-                        )
-                        samples = loc.speed_accuracy_samples.values
-                        data_list[9].append(
-                            np.nan if len(samples) < i + 1 else samples[i]
-                        )
-                        samples = loc.bearing_accuracy_samples.values
-                        data_list[10].append(
-                            np.nan if len(samples) < i + 1 else samples[i]
-                        )
-                        samples = list(loc.location_providers)
-                        data_list[11].append(
-                            api_m.RedvoxPacketM.Sensors.Location.LocationProvider.UNKNOWN
-                            if len(samples) < i + 1
-                            else samples[i]
-                        )
+                for i in range(num_samples):
+                    samples = loc.timestamps_gps.timestamps
+                    data_list[1].append(np.nan if len(samples) <= i else samples[i])
+                    samples = loc.latitude_samples.values
+                    data_list[2].append(samples[i])
+                    samples = loc.longitude_samples.values
+                    data_list[3].append(samples[i])
+                    samples = loc.altitude_samples.values
+                    data_list[4].append(
+                        np.nan if len(samples) < i + 1 else samples[i]
+                    )
+                    samples = loc.speed_samples.values
+                    data_list[5].append(
+                        np.nan if len(samples) < i + 1 else samples[i]
+                    )
+                    samples = loc.bearing_samples.values
+                    data_list[6].append(
+                        np.nan if len(samples) < i + 1 else samples[i]
+                    )
+                    samples = loc.horizontal_accuracy_samples.values
+                    data_list[7].append(
+                        np.nan if len(samples) < i + 1 else samples[i]
+                    )
+                    samples = loc.vertical_accuracy_samples.values
+                    data_list[8].append(
+                        np.nan if len(samples) < i + 1 else samples[i]
+                    )
+                    samples = loc.speed_accuracy_samples.values
+                    data_list[9].append(
+                        np.nan if len(samples) < i + 1 else samples[i]
+                    )
+                    samples = loc.bearing_accuracy_samples.values
+                    data_list[10].append(
+                        np.nan if len(samples) < i + 1 else samples[i]
+                    )
+                    samples = list(loc.location_providers)
+                    data_list[11].append(
+                        api_m.RedvoxPacketM.Sensors.Location.LocationProvider.UNKNOWN
+                        if len(samples) < i + 1
+                        else samples[i]
+                    )
     if len(data_list[0]) > 0:
         data_list.insert(1, data_list[0].copy())
         return SensorData(
@@ -898,7 +947,7 @@ def load_single_from_list(
 
 def load_apim_pressure(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load pressure data from a single wrapped packet
+    load pressure data from a single redvox packet
     :param packet: packet with data to load
     :return: pressure sensor data if it exists, None otherwise
     """
@@ -909,7 +958,7 @@ def load_apim_pressure_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load pressure data from a list of wrapped packets
+    load pressure data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: pressure sensor data if it exists, None otherwise
@@ -923,7 +972,7 @@ def load_apim_pressure_from_list(
 
 def load_apim_light(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load light data from a single wrapped packet
+    load light data from a single redvox packet
     :param packet: packet with data to load
     :return: light sensor data if it exists, None otherwise
     """
@@ -934,7 +983,7 @@ def load_apim_light_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load light data from a list of wrapped packets
+    load light data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: light sensor data if it exists, None otherwise
@@ -948,7 +997,7 @@ def load_apim_light_from_list(
 
 def load_apim_proximity(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load proximity data from a single wrapped packet
+    load proximity data from a single redvox packet
     :param packet: packet with data to load
     :return: proximity sensor data if it exists, None otherwise
     """
@@ -959,7 +1008,7 @@ def load_apim_proximity_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load proximity data from a list of wrapped packets
+    load proximity data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: proximity sensor data if it exists, None otherwise
@@ -975,7 +1024,7 @@ def load_apim_ambient_temp(
         packet: api_m.RedvoxPacketM,
 ) -> Optional[SensorData]:
     """
-    load ambient temperature data from a single wrapped packet
+    load ambient temperature data from a single redvox packet
     :param packet: packet with data to load
     :return: ambient temperature sensor data if it exists, None otherwise
     """
@@ -989,7 +1038,7 @@ def load_apim_ambient_temp_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load ambient temperature data from a list of wrapped packets
+    load ambient temperature data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: ambient temperature sensor data if it exists, None otherwise
@@ -1005,7 +1054,7 @@ def load_apim_rel_humidity(
         packet: api_m.RedvoxPacketM,
 ) -> Optional[SensorData]:
     """
-    load relative humidity data from a single wrapped packet
+    load relative humidity data from a single redvox packet
     :param packet: packet with data to load
     :return: relative humidity sensor data if it exists, None otherwise
     """
@@ -1019,7 +1068,7 @@ def load_apim_rel_humidity_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load relative humidity data from a list of wrapped packets
+    load relative humidity data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: relative humidity sensor data if it exists, None otherwise
@@ -1097,7 +1146,7 @@ def load_apim_accelerometer(
         packet: api_m.RedvoxPacketM,
 ) -> Optional[SensorData]:
     """
-    load accelerometer data from a single wrapped packet
+    load accelerometer data from a single redvox packet
     :param packet: packet with data to load
     :return: accelerometer sensor data if it exists, None otherwise
     """
@@ -1111,7 +1160,7 @@ def load_apim_accelerometer_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load accelerometer data from a list of wrapped packets
+    load accelerometer data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: accelerometer sensor data if it exists, None otherwise
@@ -1127,7 +1176,7 @@ def load_apim_magnetometer(
         packet: api_m.RedvoxPacketM,
 ) -> Optional[SensorData]:
     """
-    load magnetometer data from a single wrapped packet
+    load magnetometer data from a single redvox packet
     :param packet: packet with data to load
     :return: magnetometer sensor data if it exists, None otherwise
     """
@@ -1141,7 +1190,7 @@ def load_apim_magnetometer_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load magnetometer data from a list of wrapped packets
+    load magnetometer data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: magnetometer sensor data if it exists, None otherwise
@@ -1155,7 +1204,7 @@ def load_apim_magnetometer_from_list(
 
 def load_apim_gyroscope(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load gyroscope data from a single wrapped packet
+    load gyroscope data from a single redvox packet
     :param packet: packet with data to load
     :return: gyroscope sensor data if it exists, None otherwise
     """
@@ -1166,7 +1215,7 @@ def load_apim_gyroscope_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load gyroscope data from a list of wrapped packets
+    load gyroscope data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: gyroscope sensor data if it exists, None otherwise
@@ -1180,7 +1229,7 @@ def load_apim_gyroscope_from_list(
 
 def load_apim_gravity(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load gravity data from a single wrapped packet
+    load gravity data from a single redvox packet
     :param packet: packet with data to load
     :return: gravity sensor data if it exists, None otherwise
     """
@@ -1191,7 +1240,7 @@ def load_apim_gravity_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load gravity data from a list of wrapped packets
+    load gravity data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: gravity sensor data if it exists, None otherwise
@@ -1205,7 +1254,7 @@ def load_apim_gravity_from_list(
 
 def load_apim_orientation(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load orientation data from a single wrapped packet
+    load orientation data from a single redvox packet
     :param packet: packet with data to load
     :return: orientation sensor data if it exists, None otherwise
     """
@@ -1219,7 +1268,7 @@ def load_apim_orientation_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load orientation data from a list of wrapped packets
+    load orientation data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: orientation sensor data if it exists, None otherwise
@@ -1235,7 +1284,7 @@ def load_apim_linear_accel(
         packet: api_m.RedvoxPacketM,
 ) -> Optional[SensorData]:
     """
-    load linear acceleration data from a single wrapped packet
+    load linear acceleration data from a single redvox packet
     :param packet: packet with data to load
     :return: linear acceleration sensor data if it exists, None otherwise
     """
@@ -1249,7 +1298,7 @@ def load_apim_linear_accel_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load linear acceleration data from a list of wrapped packets
+    load linear acceleration data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: linear acceleration sensor data if it exists, None otherwise
@@ -1265,7 +1314,7 @@ def load_apim_rotation_vector(
         packet: api_m.RedvoxPacketM,
 ) -> Optional[SensorData]:
     """
-    load rotation vector data from a single wrapped packet
+    load rotation vector data from a single redvox packet
     :param packet: packet with data to load
     :return: rotation vector sensor data if it exists, None otherwise
     """
@@ -1279,7 +1328,7 @@ def load_apim_rotation_vector_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load rotation vector data from a list of wrapped packets
+    load rotation vector data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: rotation vector sensor data if it exists, None otherwise
@@ -1293,7 +1342,7 @@ def load_apim_rotation_vector_from_list(
 
 def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
-    load station health data from a single wrapped packet
+    load station health data from a single redvox packet
     :param packet: packet with data to load
     :return: station health data if it exists, None otherwise
     """
@@ -1351,7 +1400,7 @@ def load_apim_health_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
 ) -> Optional[SensorData]:
     """
-    load station health data from a list of wrapped packets
+    load station health data from a list of redvox packets
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: station health sensor data if it exists, None otherwise

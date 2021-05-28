@@ -1,9 +1,11 @@
 # <img src="../img/redvox_logo.png" height="25"> **RedVox Python SDK Data Window Manual**
 
-The RedVox Python SDK contains routines for reading, creating, and writing RedVox API 900 and RedVox API 1000 data files. The SDK is open-source.
+The RedVox Python SDK contains routines for reading, creating, and writing RedVox API 900 and RedVox API 1000 
+data files. The SDK is open-source.
 
-DataWindow is a Python class designed to fetch data from a source.  It provides many filter options to the user, and will always attempt to get as much information as the user requests.
-It is capable of reading and exporting to various formats.
+DataWindow is a Python class designed to fetch data from a source.  
+It provides many filter options to the focusing on quick returns and
+is capable of reading and exporting to various formats.
 
 If you wish to learn more about the low-level class used to construct DataWindow, refer to the [Station Documentation](station)
 
@@ -19,6 +21,7 @@ If you wish to learn more about the low-level class used to construct DataWindow
     + [Advanced Optional Data Window Parameters](#advanced-optional-data-window-parameters)
   * [Creating Data Windows](#creating-data-windows)
   * [Using the Data Window Results](#using-the-data-window-results)
+  * [Data Window Properties](#data-window-properties)
   * [Data Window Functions](#data-window-functions)
 - [Data Window Methodology](#data-window-methodology)
   * [Data Window Initialization](#data-window-initialization)
@@ -34,11 +37,15 @@ If you wish to learn more about the low-level class used to construct DataWindow
 
 ## Data Window
 
-DataWindow is a module designed to search for data within a specified start and end time.  It will provide the most complete set of data it can find to the user.
+DataWindow is a module designed to search for data within a specified start and end time.  
+It will provide the most complete set of data it can find to the user as efficiently as possible.
 
-Depending on the request, DataWindow may take some time to complete.  Please have patience when requesting large or lengthy data sets.
+Depending on the request, DataWindow may take some time to complete.  
+Please have patience when requesting large or lengthy data sets.
 
-DataWindow is accessible through the Redvox SDK. The source for the latest development version of the SDK capable of reading API M data resides in the [api-m branch of the GitHub repository](https://github.com/RedVoxInc/redvox-python-sdk/tree/api-m). Here, you'll also find links to the API documentation and several sets of examples created from Jupyter notebooks.
+DataWindow is accessible through the Redvox SDK. The source for the latest development version of the SDK capable of reading 
+API M data resides in the [api-m branch of the GitHub repository](https://github.com/RedVoxInc/redvox-python-sdk/tree/api-m). 
+You'll also find links to the API documentation and several sets of examples created from Jupyter notebooks.
 
 We recommend installing the SDK through pip. Select the latest version available on [PyPi](https://pypi.org/project/redvox/#history) and follow the "pip install" instructions.
 
@@ -57,7 +64,7 @@ _[Table of Contents](#table-of-contents)_
 #### Required Data Window Parameter
 This field is required for DataWindow to run.
 
-_input_dir:_ a string representing the path to the data that will be read into the DataWindow.  Absolute paths are preferred.
+`input_dir`: a string representing the path to the data that will be read into the DataWindow.  Absolute paths are preferred.
 
 _Linux/Mac examples_:
 ```python
@@ -80,7 +87,9 @@ If these parameters are not set, your results will not be aligned.
 
 These parameters are not required to run Data Window.  Default values are given.
 
-_start_datetime:_ a datetime object representing the start of the request time for the DataWindow.  All data timestamps*** in the DataWindow will be equal to or greater than this time.  If `None` or not given, uses the earliest timestamp it finds that matches the other filter criteria.  The default value is `None`.
+`start_datetime`: a datetime object representing the start of the request time for the DataWindow.  
+All data timestamps in the DataWindow will be equal to or greater than this time.  If `None` or not given, uses the 
+earliest timestamp it finds that matches the other filter criteria.  The default value is `None`.
 
 _Examples:_
 
@@ -91,7 +100,9 @@ start_datetime=datetime.datetime(2021, 1, 1, 0, 0, 0)
 start_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
 ```
 
-_end_datetime:_ a datetime object representing the end of the request time for the DataWindow.  All data timestamps*** in the DataWindow will be equal to or less than this time.  If `None` or not given, uses the latest timestamp it finds that matches the other filter criteria.  The default value is `None`.
+`end_datetime`: a datetime object representing the end of the request time for the DataWindow.  
+All data timestamps in the DataWindow will be less than this time.  If `None` or not given, uses the latest timestamp 
+it finds that matches the other filter criteria.  The default value is `None`.
 
 _Examples:_
 
@@ -102,8 +113,6 @@ end_datetime=datetime.datetime(2021, 1, 1, 0, 1, 0)
 end_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 1, 0)
 ```
 
-*** There may be some location timestamps which are outside the requested range.  This is normal.  They indicate the best position of the station, and the station has not moved since the timestamp of the best location.
-
 _[Table of Contents](#table-of-contents)_
 
 #### Optional Data Window Parameters
@@ -113,9 +122,11 @@ First, please note that your data must be stored in one of two ways:
 1. `Unstructured`: All files exist in the `input_dir`.
 2. `Structured`: Files are organized by date and time as specified in the [API-M repo](https://github.com/RedVoxInc/redvox-api-1000/blob/master/docs/standards/filenames_and_directory_structures.md#standard-directory-structure).
 
-_structured_layout:_ a boolean value representing the structure of the input directory.  If `True`, the data is stored in the Structured format.  The default value is `True`.
+`structured_layout`: a boolean value representing the structure of the input directory.  If `True`, the data is stored 
+in the Structured format.  The default value is `True`.
 
-_station_ids:_ a list, set, or tuple of station IDs as strings to filter on.  If `None` or not given, will return all IDs that match the other filter criteria.  The default value is `None`.
+`station_ids`: a list, set, or tuple of station IDs as strings to filter on.  If `None` or not given, will return all 
+IDs that match the other filter criteria.  The default value is `None`.
 
 _Examples:_
 
@@ -125,14 +136,17 @@ station_ids={"1234567890", "9876543210", "1122334455"}  # set
 station_ids=("1234567890", "9876543210", "1122334455")  # tuple
 ```
 
-_apply_correction:_ a boolean value representing the option to automatically adjust the timestamps of retrieved data.  If `True`, each Station in the returned data will apply a correction to all of its timestamps.  The default value is `True`.
+`apply_correction`: a boolean value representing the option to automatically adjust the timestamps of retrieved data.
+If `True`, each Station in the returned data will apply a correction to all of its timestamps.  The default value is `True`.
 
-_debug:_ a boolean value that controls the output level of DataWindow.  If `True`, DataWindow will output more information when an error occurs.  The default value is `False`.
+`debug`: a boolean value that controls the output level of DataWindow.  If `True`, DataWindow will output more information 
+when an error occurs.  The default value is `False`.
 
 #### Advanced Optional Data Window Parameters
 We do not recommend changing the following parameters from the defaults.
 
-_start_buffer_td:_ a timedelta object representing how much additional time before the start_datetime to add when looking for data.  If `None` or not given, 120 seconds is added.  The default value is `None`.
+`start_buffer_td`: a timedelta object representing how much additional time before the start_datetime to add when looking for data.
+If `None` or not given, 120 seconds is added.  The default value is `None`.
 
 _Examples:_
 
@@ -143,7 +157,8 @@ start_buffer_td=datetime.timedelta(seconds=120)
 start_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
 
-_end_buffer_td:_ a timedelta object representing how much additional time after the end_datetime to add when looking for data.  If `None` or not given, 120 seconds is added.  The default value is `None`.
+`end_buffer_td`: a timedelta object representing how much additional time after the end_datetime to add when looking for data.
+If `None` or not given, 120 seconds is added.  The default value is `None`.
 
 _Examples:_
 
@@ -154,13 +169,17 @@ end_buffer_td=datetime.timedelta(seconds=120)
 end_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
 
-_gap_time_s:_ a float value representing the minimum number of seconds between data timestamps that indicates a gap in the data.  The default is `0.25` seconds.
+`drop_time_s`: a float value representing the minimum number of seconds between data files that indicates a gap in the data.
+The default is `0.25` seconds.
 
 _Example:_
 
-`gap_time_s=0.25`
+```python
+drop_time_s=0.25
+```
 
-_extensions:_ a set of strings representing the file extensions to filter on.  If `None` or not given, will return all files with extensions that match the other filter criteria.  The default value is `None`.
+`extensions`: a set of strings representing the file extensions to filter on.  If `None` or not given, will return all files 
+with extensions that match the other filter criteria.  The default value is `None`.
 
 _Example:_
 
@@ -168,13 +187,23 @@ _Example:_
 extensions={".rdvxm", ".rdvxz"}
 ```
 
-_api_versions:_ a set of ApiVersion values representing the file types to filter on.  If `None` or not given, will return all file types that match the other filter criteria.  The default value is `None`.
+`api_versions`: a set of ApiVersion values representing the file types to filter on.  If `None` or not given, will return all 
+file types that match the other filter criteria.  The default value is `None`.
 
 _Example:_
 
 ```python
 from redvox.common.io import ApiVersion
 api_versions={ApiVersion.API_900, ApiVersion.API_1000}
+```
+
+`copy_edge_points`: enumerated value representing behavior when creating data points on the edge of the data.  If not given, the default is to copy values.
+The default value is `DataPointCreationMode.COPY`.  Possible values for this parameter are:
+```python
+from redvox.common.gap_and_pad_utils import DataPointCreationMode
+DataPointCreationMode.NAN           # use np.nan (or appropriate defaults) for edge data points
+DataPointCreationMode.COPY          # copy the closest point inside the window
+DataPointCreationMode.INTERPOLATE   # find the interpolation between the closest inside and outside points at the edge
 ```
 
 _[Table of Contents](#table-of-contents)_
@@ -185,17 +214,18 @@ DataWindows can be created in two ways.  The first is by invoking the initialize
 
 ```python
 from redvox.common.data_window import DataWindow
-datawindow = DataWindow(input_dir=input_dir_str),
+datawindow = DataWindow(input_dir=input_dir_str,
                         structured_layout=True_or_False,
                         start_datetime=requested_start_datetime,
                         end_datetime=requested_end_datetime,
                         start_buffer_td=start_padding_timedelta,
                         end_buffer_td=end_padding_timedelta,
-                        gap_time_s=gap_time_in_seconds,
+                        drop_time_s=gap_time_in_seconds,
                         station_ids=list_or_set_of_station_ids,
                         extensions=set_of_extensions,
                         api_versions=set_of_api_versions,
                         apply_correction=True_or_False,
+                        copy_edge_points=edge_point_creation_mode,
                         debug=True_or_False)
 ```
 
@@ -203,7 +233,7 @@ You may prefer a simpler version of the code above that uses the defaults for mo
 
 ```python
 from redvox.common.data_window import DataWindow
-datawindow = DataWindow(input_dir=input_dir_str),
+datawindow = DataWindow(input_dir=input_dir_str,
                         structured_layout=True_or_False,
                         start_datetime=requested_start_datetime,
                         end_datetime=requested_end_datetime,
@@ -217,7 +247,9 @@ _[Example Config File](data_window.config.toml)_
 
 Once the config file is created, you must create the DataWindow using this function:
 
-`datawindow = DataWindow.from_config_file(path/to/data_window.config.toml)`
+```python
+datawindow = DataWindow.from_config_file("path/to/data_window.config.toml")
+```
 
 The DataWindowConfiguration specific API documentation is available [here](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window_configuration.html)
 
@@ -225,16 +257,15 @@ _[Table of Contents](#table-of-contents)_
 
 ### Using the Data Window Results
 
-DataWindow stores all the data gathered in its stations property, which is a dictionary of station IDs to Station data objects.  There are various methods of accessing the Stations:
+DataWindow stores all the data gathered in its stations property, which is a list Station data objects.  There are various methods of accessing the Stations:
 
 ```python
-stations_list = datawindow.get_all_stations()  # All stations as a list
-station = datawindow.get_station(station_id)   # The station identified by station_id
-stations_dict = datawindow.stations            # All id:station entries
-station = datawindow.stations[station_id]      # The station identified by station_id
+station_list = datawindow.stations  # All stations as a list
+# A list of stations identified by station_id, uuid, and start timestamp
+stations = datawindow.get_station(station_id, station_uuid, station_start_timestamp)
 ```
 
-We recommend using the get_all_stations() and get_station(station_id) methods to get the Station objects.
+We recommend using the datawindow.stations get all the Station objects and datawindow.get_station() to get specific Stations.
 
 Each Station contains data from the sensors, as well as some metadata about the Station.
 
@@ -243,8 +274,9 @@ Refer to the [Station](station) documentation or the [Station API documentation]
 Continuing with the example, we will look at the audio sensor of our station in this example:
 
 ```python
+station = station_list[0]
 audio_sensor = station.audio_sensor()
-print(audio_sensor.sample_rate_hz)             # sample rate in hz
+print(audio_sensor.sample_rate_hz)          # sample rate in hz
 print(audio_sensor.is_sample_rate_fixed)    # is sample rate constant
 print(audio_sensor.sample_interval_s)       # sample interval in seconds
 print(audio_sensor.sample_interval_std_s)   # sample interval std dev
@@ -260,7 +292,9 @@ Each line outputs information about the audio sensor.  The data_channels() funct
 
 Audio sensors will typically have two data channels, timestamps and microphone.  We can access data channels in the audio sensor using:
 
-`samples = audio_sensor.get_data_channel("microphone")`
+```python
+samples = audio_sensor.get_data_channel("microphone")
+```
 
 Now that we have access to our data, the possibilities are limitless.  Here is a short pyplot example showing the audio data:
 ```python
@@ -271,7 +305,7 @@ plt.xlabel(f"microseconds from {requested_start_datetime}")
 plt.show()
 ```
 
-We can even save our DataWindow as a file for later.  Saving the DataWindow allows it to be loaded quickly, instead of going through the entire creation process.
+We can even save our DataWindow as a compressed file or JSON representation for later.  Saving the DataWindow allows it to be loaded quickly, instead of going through the entire creation process.
 ```python
 from redvox.common.io import serialize_data_window, data_window_to_json_file
 serialize_data_window(data_window=datawindow,
@@ -285,41 +319,68 @@ data_window_to_json_file(data_window=datawindow,
 
 _[Table of Contents](#table-of-contents)_
 
+### Data Window Properties
+
+This is a list of all properties you can access from DataWindow.  Many of these are set via the parameters above.
+Values not set by parameters will be set by the SDK.  Defaults for values will be given if applicable.
+
+_It is not recommended to set or change the properties of DataWindow after the DataWindow is created._
+
+* `input_directory`: string, directory that contains the files to read data from.  Required parameter.
+* `structured_layout`: bool, if True, the input_directory contains specially named and organized directories of data.  Default True
+* `station_ids`: optional set of strings, representing the station ids to filter on. If empty or None, get any ids found in the input directory.  Default None
+* `extensions`: optional set of strings, representing file extensions to filter on. If None, gets as much data as it can in the input directory.  Default None
+* `api_versions`: optional set of ApiVersions, representing api versions to filter on. If None, get as much data as it can in the input directory.  Default None
+* `start_datetime`: optional datetime, start datetime of the window. If None, uses the first timestamp of the filtered data.  Default None
+* `end_datetime`: optional datetime, non-inclusive end datetime of the window. If None, uses the last timestamp of the filtered data.  Default None
+* `start_buffer_td`: timedelta, the amount of time to include before the start_datetime when filtering data. Default 2 minutes
+* `end_buffer_td`: timedelta, the amount of time to include after the end_datetime when filtering data. Default 2 minutes
+* `drop_time_s`: float, the minimum amount of seconds between data files that would indicate a gap. Default .2 seconds
+* `apply_correction`: bool, if True, update the timestamps in the data based on best station offset.  Default True
+* `copy_edge_points`: enumeration of DataPointCreationMode, determines how new values are created in the station data.
+  Valid values are NAN, COPY, and INTERPOLATE.  Default COPY
+* `debug`: bool, if True, outputs additional information during initialization. Default False
+* `errors`: DataWindowExceptions, class containing a list of all errors encountered by the data window.  This is set by the SDK.
+* `stations`: list of Stations, the results of reading the data from input_directory.  This is set by the SDK.
+* `sdk_version`: str, the version of the Redvox SDK used to create the data window.  This is set by the SDK.
+
+Examples of accessing the properties of a DataWindow:
+```python
+from redvox.common.data_window import DataWindow
+dw = DataWindow("input_dir")
+print(dw.input_directory)
+print(dw.structured_layout)
+print(dw.station_ids)
+for s in dw.stations:
+    print(s.id)
+print(dw.sdk_version)
+```
+
+_[Table of Contents](#table-of-contents)_
+
 ### Data Window Functions
 
-These functions allow you to access the information in DataWindow.
+1. `get_station(station_id: str, station_uuid: Optional[str] = None, start_timestamp: Optional[float] = None) -> Optional[List[Station]]`
 
-1. `get_station(station_id: str)`
+Returns a list of Stations with ID == station_id and if given, UUID == station_uuid and start date == start_timestamp,
+or `None` if the station doesn't exist
 
-Returns the Station with ID = station_id, or `None` if the station doesn't exist
+station_uuid and start_timestamp are optional; the station_id will often be enough to get a result
 
 _Examples:_
 ```python
-station = datawindow.get_station("0000000001")
+station_list = datawindow.get_station("0000000001")
 not_station = datawindow.get_station("not_a_real_station")
 assertIsNone(not_station)
 ```
 
-2. `get_all_stations()`
+2. `print_errors()`
 
-Returns all Stations as a list.
-
-_Example:_
-```python
-stations = datawindow.get_all_stations()
-for station in stations:
-    # do stuff
-```
-
-3. `get_all_station_ids()`
-
-Returns all station IDs as a list.
+Prints the errors encountered while creating a DataWindow:
 
 _Example:_
 ```python
-station_ids = datawindow.get_all_station_ids()
-for s_id in station_ids:
-    print(s_id)
+datawindow.print_errors()
 ```
 
 These functions allow you to save and load DataWindow objects.
@@ -337,7 +398,11 @@ Compression_factor is a value between 1 and 12. Higher values provide better com
 Returns the path to the written file.
 
 _Example:_
+
 ```python
+from redvox.common.data_window import DataWindow
+
+datawindow: DataWindow
 datawindow.serialize(output_dir, "dw_serial.pkl.lz4")
 ```
 
@@ -348,7 +413,11 @@ Decompresses and deserializes a DataWindow written to disk.
 Returns the DataWindow.
 
 _Example:_
+
 ```python
+from redvox.common.data_window import DataWindow
+
+datawindow: DataWindow
 datawindow.deserialize(f"{output_dir}/dw_serial.pkl.lz4")
 ```
 
@@ -356,6 +425,8 @@ datawindow.deserialize(f"{output_dir}/dw_serial.pkl.lz4")
 
 Serializes and compresses the DataWindow to a file, then saves metadata about the DataWindow to a JSON file.
 
+The compressed DataWindow is placed into a subdirectory named "dw" in the base_dir
+
 If no base directory is provided, uses the current directory (".")
 
 If no file name is provided, the default file name is `[start_ts]_[end_ts]_[num_stations]`
@@ -370,7 +441,11 @@ The metadata saved is:
 * List of Station ids
 
 _Example:_
+
 ```python
+from redvox.common.data_window import DataWindow
+
+datawindow: DataWindow
 datawindow.to_json_file(output_dir, "dw_serial", "lz4")
 ```
 
@@ -378,6 +453,8 @@ datawindow.to_json_file(output_dir, "dw_serial", "lz4")
 
 Serializes and compresses the DataWindow to a file, then saves metadata about the DataWindow to a JSON string.
 
+The compressed DataWindow is placed into a subdirectory named "dw" in the base_dir
+
 If no base directory is provided, uses the current directory (".")
 
 If no file name is provided, the default file name is `[start_ts]_[end_ts]_[num_stations]`
@@ -392,11 +469,15 @@ The metadata saved is:
 * List of Station ids
 
 _Example:_
+
 ```python
+from redvox.common.data_window import DataWindow
+
+datawindow: DataWindow
 datawindow.to_json(output_dir, "dw_serial", "lz4")
 ```
 
-5. `from_json_file(path: str, start_dt: Optional[dtu.datetime] = None, end_dt: Optional[dtu.datetime] = None, station_ids: Optional[Iterable[str]] = None)`
+5. `from_json_file(base_dir: str, file_name: str, dw_base_dir: Optional[str] = None, start_dt: Optional[dtu.datetime] = None, end_dt: Optional[dtu.datetime] = None, station_ids: Optional[Iterable[str]] = None)`
 
 Reads a JSON file describing a DataWindow, then checks the metadata against the user's requirements.
 
@@ -410,18 +491,22 @@ In order for the DataWindow to be loaded, all of these must be true:
 If any of the above three parameters are not specified, their respective conditions will be considered True.
 
 _Example:_
+
 ```python
 from redvox.common.data_window import DataWindow
-dw = DataWindow.from_json(json_str)
-dw = DataWindow.from_json(json_str, start_dt=datetime(2020, 1, 1, 0, 0, 0))
-dw = DataWindow.from_json(json_str, end_dt=datetime(2020, 12, 31, 0, 0, 0))
-dw = DataWindow.from_json(json_str, station_ids=["1234567890", "9876543210"])
-dw = DataWindow.from_json(json_str, start_dt=datetime(2020, 1, 1, 0, 0, 0), end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
+
+dw = DataWindow.from_json(base_dir, file_name)
+dw = DataWindow.from_json(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0))
+dw = DataWindow.from_json(base_dir, file_name, end_dt=datetime(2020, 12, 31, 0, 0, 0))
+dw = DataWindow.from_json(base_dir, file_name, station_ids=["1234567890", "9876543210"])
+dw = DataWindow.from_json(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0),
+                          end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
 ```
 
-6. `from_json(json_str: str, start_dt: Optional[dtu.datetime] = None, end_dt: Optional[dtu.datetime] = None, station_ids: Optional[Iterable[str]] = None)`
+6. `from_json(json_str: str, dw_base_dir: str, start_dt: Optional[dtu.datetime] = None, end_dt: Optional[dtu.datetime] = None, station_ids: Optional[Iterable[str]] = None)`
 
 Reads a JSON string describing a DataWindow, then checks the metadata against the user's requirements.
+The compressed DataWindow object must be in the dw_base_dir specified.
 
 Returns a DataWindow if successful and None if not.
 
@@ -433,13 +518,16 @@ In order for the DataWindow to be loaded, all of these must be true:
 If any of the above three parameters are not specified, their respective conditions will be considered True.
 
 _Example:_
+
 ```python
 from redvox.common.data_window import DataWindow
-dw = DataWindow.from_json(json_str)
-dw = DataWindow.from_json(json_str, start_dt=datetime(2020, 1, 1, 0, 0, 0))
-dw = DataWindow.from_json(json_str, end_dt=datetime(2020, 12, 31, 0, 0, 0))
-dw = DataWindow.from_json(json_str, station_ids=["1234567890", "9876543210"])
-dw = DataWindow.from_json(json_str, start_dt=datetime(2020, 1, 1, 0, 0, 0), end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
+
+dw = DataWindow.from_json(json_str, base_dir_dw)
+dw = DataWindow.from_json(json_str, base_dir_dw, start_dt=datetime(2020, 1, 1, 0, 0, 0))
+dw = DataWindow.from_json(json_str, base_dir_dw, end_dt=datetime(2020, 12, 31, 0, 0, 0))
+dw = DataWindow.from_json(json_str, base_dir_dw, station_ids=["1234567890", "9876543210"])
+dw = DataWindow.from_json(json_str, base_dir_dw, start_dt=datetime(2020, 1, 1, 0, 0, 0),
+                          end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
 ```
 
 Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window.html) as needed.
@@ -454,7 +542,8 @@ _[Table of Contents](#table-of-contents)_
 
 ### Data Window Initialization
 
-When creating a Data Window, the parameters of its creation are stored for future reference.  Each parameter used to create the Data Window is saved to its respective property.  If the parameter is not specified, the default value is saved.
+When creating a Data Window, the parameters of its creation are stored for future reference.
+Each parameter used to create the Data Window is saved to its respective property.  If the parameter is not specified, the default value is saved.
 
 This process always occurs, regardless of the exact method of Data Window creation.
 
@@ -464,67 +553,73 @@ Once the parameters are saved, the Data Window begins aggregating and updating t
 
 Data Window uses several methods in the Redvox SDK to gather the files needed to complete the request.
 
-If the user specified a structured directory, we are looking for directories specifically named `api900` and/or `api1000` either as part of the input directory or within the input directory.  Next, we read through the sub-directories of the api directory, which are organized by year, month, day and for api1000 data, by hour as well. 
+If the user specified a structured directory, we are looking for directories specifically named `api900` and/or `api1000` 
+either as part of the input directory or within the input directory.
+
+Next, we read through the sub-directories of the api directory, which are organized by year, month, day and for api1000 data, by hour as well. 
 
 If the user specified an unstructured directory, we are looking at all files within the input directory.
 
-We add the buffer times to the requested start and end times to get our query start and end times, then get any file with a timestamp within our query times.  We index the files for later analysis.
+We add the buffer times to the requested start and end times to get our query start and end times, then get any file 
+with a timestamp within our query times.  We index the files for later analysis.
 
 ### File Indexing and Timestamp Update
 
-1. Once all files are indexed, if we had a requested start or end time, we gather basic information from each file and use that to update the file timestamps to match our request times.
+1. Once all files are indexed, if we had a requested start or end time, we gather basic information from each file and 
+   use that to update the file timestamps to match our request times.
    * If we don't have a requested start and end time, we go straight to Data Aggregation
 
-2. We use UTC as the time zone for our data request.  Each recording device will have some amount of offset (LINK HERE), which is a difference in the device's time to "true" time.
-   * We can account for this offset by utilizing the basic information from each file to create an offset model (LINK HERE).  We _**always**_ ADD our offset values to device time to get "true" time.
+2. We use UTC as the time zone for our data request.  Each recording device will have some amount of offset (LINK HERE), 
+   which is a difference in the device's time to "true" time.
+   * We can account for this offset by utilizing the basic information from each file to create an offset model (LINK HERE).  
+     We _**always**_ ADD our offset values to device time to get "true" time.
 
-3. Once we have the offset model, we can calculate the "true" time for our gathered data.  We simply take our data's timestamps and add the offset from the model to it.
+3. Once we have the offset model, we can calculate the "true" time for our gathered data.  We simply take our data's 
+   timestamps and add the offset from the model to it.
 
-4. If we specified a start and/or end time for our request, we must make sure our data's "true" times are able to satisfy the request. We now want two things to be true:
+4. If we specified a start and/or end time for our request, we must make sure our data's "true" times are able to 
+   satisfy the request. We now want two things to be true:
    * The "true" start time of the data is before our request start time
    * The "true" end time of the data is after our request end time
   
 5. If both of the conditions are true, we have all the data we need and can continue to Data Aggregation.
 
-6. If at least one of the two conditions is not true, we will update the query times by the offset value.  This efficiently expands our search criteria without overloading the query.
-
-7. If the expanded query produces new start and/or end times from the previous query, we use the expanded query times to get more files and start from step 1 again.
-
-8. If the expanded query does not produce new start and/or end times from the previous query, we go to Data Aggregation and use what we have since it won't get any better.
+6. If at least one of the two conditions is not true, we will update the query by increasing the respective side that failed
+   the criteria by 1.5 times the difference in "true" time and request time. This efficiently expands our search criteria 
+   to guarantee our next query will get what we need.
+   
+7. We continue to Data Aggregation after our second query.
 
 ### Data Aggregation
 
-Once the data is verified as within the confines of our request, the data must be aggregated and prepared for the user.
+Once the data is retrieved, it must be aggregated and prepared for the user.
 
 1. All data files are completely read into memory.
 
-2. The data files are organized into Station objects.  Files are put into a station if and only if each of these values are equal across each file: station id, station uuid, station start timestamp and station metadata.
+2. The data files are organized into Station objects.  Files are put into a station if and only if each of these values 
+   are equal across each file: station id, station uuid, station start timestamp and station metadata.
+   * Any change in the station's information will create a new Station object to represent that change.
 
-3. Station objects attempt to fill any recognizable gaps in the data by using other data points to calculate the expected sample interval.
+3. Station objects attempt to fill any recognizable gaps in their sensors.
 
-* Any errors encountered while creating the Station object will cause the Data Window to stop.  Information about which value(s) that were not consistent will be displayed.
+* Any errors encountered while creating the Station object will be recorded and can be displayed to the user.
 
 ### Data Preparation
 
 The data is now organized by Station.  This process will be performed on all Stations in the Data Window.
 
-1. Update all timestamps in the Station using the offset model.  This is the final timestamp update before the user gets the data.
+1. If apply_correction is True, update all timestamps in the Station using the offset model.  This is the final timestamp update before the user gets the data.
 
-2. Check for Audio sensor data.  No Audio sensor data means the Station isn't useful to us, and will be discarded before the user sees it.
+2. Remove any Audio data points outside the request window, then add two empty data points at the request edge points, if they exist.
 
-3. Remove any Audio data points outside the request window.
+3. Remove data points from each non-audio sensor that are outside the request window.
 
-4. Remove data points from each non-audio sensor that are outside the request window.  There is one caveat to this step:
-   * We will create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
-   * The non-timestamp values of the rows are interpolated from existing data, or contain nan or default values (for enumerations) if not enough existing data.
-
-5. For each non-audio sensor, fill gaps in the sensor's data.
-   * The two points created in the previous step are only used as checks to stop creating points.
-   * Points are added using the sensor's mean sample interval, starting from the last non-created data point on each end.
-
-6. Update the Station metadata.
-
-7. Update the Data Window metadata to match the data.
+4. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
+   * The copy_edge_points parameter determines which data values of these fabricated points will contain.
+    
+5. Update the Station metadata.
+   
+6. Update the Data Window metadata to match the data.
 
 ### Data Window Complete
 
@@ -581,7 +676,7 @@ datawindow = DataWindow(input_dir=input_dir,
                         station_ids=station_ids,
                         apply_correction=apply_correction)
 
-station = datawindow.get_station(target_station)
+station = datawindow.get_station(target_station)[0]
 
 print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
       f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz}\n"
@@ -621,7 +716,7 @@ target_station = "id_from_config"
 
 datawindow = DataWindow.from_config_file(config_dir)
 
-station = datawindow.get_station(target_station)
+station = datawindow.get_station(target_station)[0]
 
 print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
       f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz}\n"

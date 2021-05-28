@@ -382,6 +382,39 @@ class Station:
             self._add_sensor(sd.SensorType.LOCATION, loc_sensor)
         return self
 
+    def has_best_location_sensor(self) -> bool:
+        """
+        :return: True if best location sensor exists
+        """
+        return sd.SensorType.BEST_LOCATION in self.get_station_sensor_types()
+
+    def has_best_location_data(self) -> bool:
+        """
+        :return: True if best location sensor exists and has any data
+        """
+        location_sensor: Optional[sd.SensorData] = self.best_location_sensor()
+        return location_sensor is not None and location_sensor.num_samples() > 0
+
+    def best_location_sensor(self) -> Optional[sd.SensorData]:
+        """
+        :return: best location sensor if it exists, None otherwise
+        """
+        return self.get_sensor_by_type(sd.SensorType.BEST_LOCATION)
+
+    def set_best_location_sensor(
+            self, best_loc_sensor: Optional[sd.SensorData] = None
+    ) -> "Station":
+        """
+        sets the best location sensor; can remove location sensor by passing None
+        :param best_loc_sensor: the SensorData to set or None
+        :return: the edited Station
+        """
+        if self.has_best_location_sensor():
+            self._delete_sensor(sd.SensorType.BEST_LOCATION)
+        if best_loc_sensor is not None:
+            self._add_sensor(sd.SensorType.BEST_LOCATION, best_loc_sensor)
+        return self
+
     def has_accelerometer_sensor(self) -> bool:
         """
         :return: True if accelerometer sensor exists
@@ -945,6 +978,7 @@ class Station:
         funcs = [
             sdru.load_apim_compressed_audio_from_list,
             sdru.load_apim_image_from_list,
+            sdru.load_apim_best_location_from_list,
             sdru.load_apim_location_from_list,
             sdru.load_apim_pressure_from_list,
             sdru.load_apim_light_from_list,
@@ -996,6 +1030,7 @@ class Station:
             sdru.load_apim_audio,
             sdru.load_apim_compressed_audio,
             sdru.load_apim_image,
+            sdru.load_apim_best_location,
             sdru.load_apim_location,
             sdru.load_apim_pressure,
             sdru.load_apim_light,

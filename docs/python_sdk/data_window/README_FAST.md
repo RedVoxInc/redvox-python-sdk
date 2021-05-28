@@ -197,32 +197,34 @@ _[Table of Contents](#table-of-contents)_
 DataWindowFast can be created in two ways.  The first is by invoking the initializer function of the class.
 
 ```python
-from redvox.common.data_window import DataWindowFast
-datawindow = DataWindowFast(input_dir=input_dir_str,
-                            structured_layout=True_or_False,
-                            start_datetime=requested_start_datetime,
-                            end_datetime=requested_end_datetime,
-                            start_buffer_td=start_padding_timedelta,
-                            end_buffer_td=end_padding_timedelta,
-                            drop_time_s=gap_time_in_seconds,
-                            station_ids=list_or_set_of_station_ids,
-                            extensions=set_of_extensions,
-                            api_versions=set_of_api_versions,
-                            apply_correction=True_or_False,
-                            copy_edge_points=edge_point_creation_mode,
-                            debug=True_or_False)
+from redvox.common.data_window import DataWindow
+
+datawindow = DataWindow(input_dir=input_dir_str,
+                        structured_layout=True_or_False,
+                        start_datetime=requested_start_datetime,
+                        end_datetime=requested_end_datetime,
+                        start_buffer_td=start_padding_timedelta,
+                        end_buffer_td=end_padding_timedelta,
+                        drop_time_s=gap_time_in_seconds,
+                        station_ids=list_or_set_of_station_ids,
+                        extensions=set_of_extensions,
+                        api_versions=set_of_api_versions,
+                        apply_correction=True_or_False,
+                        copy_edge_points=edge_point_creation_mode,
+                        debug=True_or_False)
 ```
 
 You may prefer a simpler version of the code above that uses the defaults for more complex parameters:
 
 ```python
-from redvox.common.data_window import DataWindowFast
-datawindow = DataWindowFast(input_dir=input_dir_str,
-                            structured_layout=True_or_False,
-                            start_datetime=requested_start_datetime,
-                            end_datetime=requested_end_datetime,
-                            station_ids=list_or_set_of_station_ids,
-                            apply_correction=True_or_False)
+from redvox.common.data_window import DataWindow
+
+datawindow = DataWindow(input_dir=input_dir_str,
+                        structured_layout=True_or_False,
+                        start_datetime=requested_start_datetime,
+                        end_datetime=requested_end_datetime,
+                        station_ids=list_or_set_of_station_ids,
+                        apply_correction=True_or_False)
 ```
 
 The second is via a config file.
@@ -284,22 +286,24 @@ plt.show()
 ```
 
 We can even save our DataWindowFast as a file for later.  Saving the DataWindowFast allows it to be loaded quickly, instead of going through the entire creation process.
+
 ```python
-from redvox.common.io import serialize_data_window_fast, data_window_fast_to_json_file
-serialize_data_window_fast(data_window=datawindow,
-                           base_dir=output_dir,
-                           file_name=serialized_file_name)
-data_window_fast_to_json_file(data_window=datawindow,
-                              base_dir=output_dir,
-                              file_name=json_file_name,
-                              compression_format="lz4")
+from redvox.common.io import serialize_data_window, data_window_to_json_file
+
+serialize_data_window(data_window=datawindow,
+                      base_dir=output_dir,
+                      file_name=serialized_file_name)
+data_window_to_json_file(data_window=datawindow,
+                         base_dir=output_dir,
+                         file_name=json_file_name,
+                         compression_format="lz4")
 ```
 
 _[Table of Contents](#table-of-contents)_
 
 ### Data Window Fast Functions
 
-These functions allow you to access the information in DataWindowFast.
+This function allows you to access the information in DataWindowFast.
 
 1. `get_station(station_id: str, station_uuid: Optional[str] = None, start_timestamp: Optional[float] = None)`
 
@@ -330,9 +334,11 @@ Compression_factor is a value between 1 and 12. Higher values provide better com
 Returns the path to the written file.
 
 _Example:_
+
 ```python
-from redvox.common.data_window import DataWindowFast
-datawindow: DataWindowFast
+from redvox.common.data_window import DataWindow
+
+datawindow: DataWindow
 datawindow.serialize(output_dir, "dw_serial.pkl.lz4")
 ```
 
@@ -343,9 +349,11 @@ Decompresses and deserializes a DataWindow written to disk.
 Returns the DataWindow.
 
 _Example:_
+
 ```python
-from redvox.common.data_window import DataWindowFast
-datawindow: DataWindowFast
+from redvox.common.data_window import DataWindow
+
+datawindow: DataWindow
 datawindow.deserialize(f"{output_dir}/dw_serial.pkl.lz4")
 ```
 
@@ -369,9 +377,11 @@ The metadata saved is:
 * List of Station ids
 
 _Example:_
+
 ```python
-from redvox.common.data_window import DataWindowFast
-datawindow: DataWindowFast
+from redvox.common.data_window import DataWindow
+
+datawindow: DataWindow
 datawindow.to_json_file(output_dir, "dw_serial", "lz4")
 ```
 
@@ -395,9 +405,11 @@ The metadata saved is:
 * List of Station ids
 
 _Example:_
+
 ```python
-from redvox.common.data_window import DataWindowFast
-datawindow: DataWindowFast
+from redvox.common.data_window import DataWindow
+
+datawindow: DataWindow
 datawindow.to_json(output_dir, "dw_serial", "lz4")
 ```
 
@@ -415,13 +427,16 @@ In order for the DataWindowFast to be loaded, all of these must be true:
 If any of the above three parameters are not specified, their respective conditions will be considered True.
 
 _Example:_
+
 ```python
-from redvox.common.data_window import DataWindowFast
-dw = DataWindowFast.from_json(base_dir, file_name)
-dw = DataWindowFast.from_json(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0))
-dw = DataWindowFast.from_json(base_dir, file_name, end_dt=datetime(2020, 12, 31, 0, 0, 0))
-dw = DataWindowFast.from_json(base_dir, file_name, station_ids=["1234567890", "9876543210"])
-dw = DataWindowFast.from_json(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0), end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
+from redvox.common.data_window import DataWindow
+
+dw = DataWindow.from_json(base_dir, file_name)
+dw = DataWindow.from_json(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0))
+dw = DataWindow.from_json(base_dir, file_name, end_dt=datetime(2020, 12, 31, 0, 0, 0))
+dw = DataWindow.from_json(base_dir, file_name, station_ids=["1234567890", "9876543210"])
+dw = DataWindow.from_json(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0),
+                          end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
 ```
 
 6. `from_json(json_str: str, dw_base_dir: str, start_dt: Optional[dtu.datetime] = None, end_dt: Optional[dtu.datetime] = None, station_ids: Optional[Iterable[str]] = None)`
@@ -439,13 +454,16 @@ In order for the DataWindowFast to be loaded, all of these must be true:
 If any of the above three parameters are not specified, their respective conditions will be considered True.
 
 _Example:_
+
 ```python
-from redvox.common.data_window import DataWindowFast
-dw = DataWindowFast.from_json(json_str, base_dir_dw)
-dw = DataWindowFast.from_json(json_str, base_dir_dw, start_dt=datetime(2020, 1, 1, 0, 0, 0))
-dw = DataWindowFast.from_json(json_str, base_dir_dw, end_dt=datetime(2020, 12, 31, 0, 0, 0))
-dw = DataWindowFast.from_json(json_str, base_dir_dw, station_ids=["1234567890", "9876543210"])
-dw = DataWindowFast.from_json(json_str, base_dir_dw, start_dt=datetime(2020, 1, 1, 0, 0, 0), end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
+from redvox.common.data_window import DataWindow
+
+dw = DataWindow.from_json(json_str, base_dir_dw)
+dw = DataWindow.from_json(json_str, base_dir_dw, start_dt=datetime(2020, 1, 1, 0, 0, 0))
+dw = DataWindow.from_json(json_str, base_dir_dw, end_dt=datetime(2020, 12, 31, 0, 0, 0))
+dw = DataWindow.from_json(json_str, base_dir_dw, station_ids=["1234567890", "9876543210"])
+dw = DataWindow.from_json(json_str, base_dir_dw, start_dt=datetime(2020, 1, 1, 0, 0, 0),
+                          end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
 ```
 
 Refer to the [DataWindowFast API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window.html) as needed.
@@ -538,12 +556,12 @@ Below are a few examples of how to use DataWindowFast.  Ensure you have installe
 Update the variables to match your environment before running.
 
 Using the initializer function:
+
 ```python
 import matplotlib.pyplot as plt
 
-from redvox.common.data_window import DataWindowFast
+from redvox.common.data_window import DataWindow
 import redvox.common.date_time_utils as dt
-
 
 # Variables
 input_dir: str = "/path/to/api_dir"
@@ -565,12 +583,12 @@ apply_correction: bool = True_or_False
 structured_layout: bool = True_or_False
 # End Variables
 
-datawindow = DataWindowFast(input_dir=input_dir,
-                            structured_layout=structured_layout,
-                            start_datetime=start_timestamp_s,
-                            end_datetime=end_timestamp_s,
-                            station_ids=station_ids,
-                            apply_correction=apply_correction)
+datawindow = DataWindow(input_dir=input_dir,
+                        structured_layout=structured_layout,
+                        start_datetime=start_timestamp_s,
+                        end_datetime=end_timestamp_s,
+                        station_ids=station_ids,
+                        apply_correction=apply_correction)
 
 station = datawindow.get_station(target_station)[0]
 
@@ -585,7 +603,7 @@ print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoc
       f"the data as an ndarray: {station.audio_sensor().samples()}\n"
       f"the number of data samples: {station.audio_sensor().num_samples()}\n"
       f"the names of the dataframe columns: {station.audio_sensor().data_channels()}\n")
-      
+
 print("Let's plot the mic data: ")
 samples = station.audio_sensor().get_data_channel("microphone")
 plt.plot(station.audio_sensor().data_timestamps() -
@@ -599,18 +617,18 @@ plt.show()
 Using a config file:
 
 _Remember to update your config file to match your environment before running the example_
+
 ```python
 import matplotlib.pyplot as plt
 
-from redvox.common.data_window import DataWindowFast
-
+from redvox.common.data_window import DataWindow
 
 # Variables
 config_dir: str = "path/to/config.file.toml"
 target_station = "id_from_config"
 # End Variables
 
-datawindow = DataWindowFast.from_config_file(config_dir)
+datawindow = DataWindow.from_config_file(config_dir)
 
 station = datawindow.get_station(target_station)[0]
 
@@ -625,7 +643,7 @@ print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoc
       f"the data as an ndarray: {station.audio_sensor().samples()}\n"
       f"the number of data samples: {station.audio_sensor().num_samples()}\n"
       f"the names of the dataframe columns: {station.audio_sensor().data_channels()}\n")
-      
+
 print("Let's plot the mic data: ")
 samples = station.audio_sensor().get_data_channel("microphone")
 plt.plot(station.audio_sensor().data_timestamps() -

@@ -53,6 +53,7 @@ class SensorType(enum.Enum):
     STATION_HEALTH = 18
     # battery charge and current level, phone internal temperature, network source and strength,
     # available RAM of the system, cell service status, amount of hard disk space left, power charging state
+    BEST_LOCATION = 19  # See standard
 
     @staticmethod
     def type_from_str(type_str: str) -> "SensorType":
@@ -88,6 +89,8 @@ class SensorType(enum.Enum):
             return SensorType.LINEAR_ACCELERATION
         elif type_str.lower() == "location" or type_str.lower() == "loc":
             return SensorType.LOCATION
+        elif type_str.lower() == "best_location" or type_str.lower() == "best_loc":
+            return SensorType.BEST_LOCATION
         elif type_str.lower() == "magnetometer" or type_str.lower() == "mag":
             return SensorType.MAGNETOMETER
         elif type_str.lower() == "orientation":

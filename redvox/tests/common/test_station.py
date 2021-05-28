@@ -56,7 +56,7 @@ class StationTest(unittest.TestCase):
         self.assertEqual(loc_sensor.data_df.shape, (2, 13))
 
     def test_apim_station(self):
-        self.assertEqual(len(self.apim_station.data), 2)
+        self.assertEqual(len(self.apim_station.data), 3)
         self.assertEqual(self.apim_station.timesync_analysis.get_best_latency(), 1296.0)
         audio_sensor = self.apim_station.audio_sensor()
         self.assertIsNotNone(audio_sensor)
@@ -95,7 +95,7 @@ class StationTest(unittest.TestCase):
         ).set_start_timestamp(self.apim_station.get_start_timestamp())
         empty_apim_station.metadata = self.apim_station.metadata
         empty_apim_station.append_station(self.apim_station)
-        self.assertEqual(len(empty_apim_station.data), 2)
+        self.assertEqual(len(empty_apim_station.data), 3)
         self.assertEqual(
             empty_apim_station.timesync_analysis.get_best_latency(), 1296.0
         )

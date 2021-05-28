@@ -101,6 +101,7 @@ The table below shows the sensor name and the function call required to access t
 |gyroscope           |gyroscope_sensor()              |
 |gravity             |gravity_sensor()                |
 |location            |location_sensor()               |
+|best location       |best_location_sensor()          |
 |station health      |health_sensor()                 |
 
 *** Some stations may use alternate names for their sensors instead of the ones listed above.
@@ -291,28 +292,29 @@ _[Table of Contents](#table-of-contents)_
 
 The table below shows which columns can be accessed by each sensor
 
-|Sensor name         |Dataframe columns               |
-|--------------------|--------------------------------|
-|all                 |timestamps, unaltered_timestamps|
-|audio               |microphone                      |
-|compressed audio    |compressed_audio, audio_codec   |
-|image               |image, image_codec              |
-|pressure            |pressure                        |
-|light               |light                           |
-|proximity           |proximity                       |
-|ambient temperature |ambient_temp                    |
-|relative humidity   |rel_humidity                    |
-|accelerometer       |accelerometer_x, accelerometer_y, accelerometer_z|
-|magnetometer        |magnetometer_x, magnetometer_y, magnetometer_z|
-|linear acceleration |linear_accel_x, linear_accel_y, linear_accel_z|
-|orientation         |orientation_x, orientation_y, orientation_z|
-|rotation vector     |rotation_vector_x, rotation_vector_y, rotation_vector_z|
-|gyroscope           |gyroscope_x, gyroscope_y, gyroscope_z|
-|gravity             |gravity_x, gravity_y, gravity_z |
-|location            |gps_timestamps, latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
-|station health      |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service|
+|Sensor name            |Dataframe columns               |
+|-----------------------|--------------------------------|
+|all                    |timestamps, unaltered_timestamps|
+|audio                  |microphone                      |
+|compressed audio       |compressed_audio, audio_codec   |
+|image                  |image, image_codec              |
+|pressure               |pressure                        |
+|light                  |light                           |
+|proximity              |proximity                       |
+|ambient temperature    |ambient_temp                    |
+|relative humidity      |rel_humidity                    |
+|accelerometer          |accelerometer_x, accelerometer_y, accelerometer_z|
+|magnetometer           |magnetometer_x, magnetometer_y, magnetometer_z|
+|linear acceleration    |linear_accel_x, linear_accel_y, linear_accel_z|
+|orientation            |orientation_x, orientation_y, orientation_z|
+|rotation vector        |rotation_vector_x, rotation_vector_y, rotation_vector_z|
+|gyroscope              |gyroscope_x, gyroscope_y, gyroscope_z|
+|gravity                |gravity_x, gravity_y, gravity_z |
+|location, best location|gps_timestamps, latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
+|station health         |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service|
 
-*** Please note that entering an invalid channel name for a sensor will raise an error and print the list of allowed names.
+It is intentionaly that location and best location sensors have the same column names
+*** Please note that entering an invalid column name for a sensor will raise an error and print the list of allowed names.
 
 The table below lists the sensors and their data's units
 
@@ -334,7 +336,7 @@ The table below lists the sensors and their data's units
 |proximity               |                        |cm (this is also known as infrared sensor)|
 |relative humidity       |                        |percentage|
 |rotation vector         |                        |Unitless|
-|location                |gps_timestamps          |microseconds since epoch UTC|
+|location, best location |gps_timestamps          |microseconds since epoch UTC|
 |                        |latitude, longitude, bearing, bearing accuracy|degrees| 
 |                        |altitude, horizontal accuracy, vertical accuracy|meters|
 |                        |speed, speed_accuracy   |meters per second|
@@ -350,6 +352,7 @@ The table below lists the sensors and their data's units
 
 If Column Name is blank, then all non-timestamp columns in the dataframe have the unit specified.
 Refer to the previous table for specific column names for each sensor.
+It is intentional that location and best location sensors share the same column names.
 
 #### A note on enumerated types
 Please note that enumerations require you to import them from the [Redvox SDK](https://pypi.org/project/redvox/#history) before you can properly read their values.
