@@ -471,7 +471,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.AuthReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -479,8 +479,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=encode_json)</code></pre>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.AuthReq.to_json"><code class="name flex">
@@ -503,7 +503,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(encode_json=False),
+    return json.dumps(self.to_dict(),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -670,7 +670,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.AuthResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -678,8 +678,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=encode_json)</code></pre>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.AuthResp.to_json"><code class="name flex">
@@ -702,7 +702,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(encode_json=False),
+    return json.dumps(self.to_dict(),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -829,7 +829,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.RefreshTokenReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -837,8 +837,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=encode_json)</code></pre>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.RefreshTokenReq.to_json"><code class="name flex">
@@ -861,7 +861,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(encode_json=False),
+    return json.dumps(self.to_dict(),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -993,7 +993,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.RefreshTokenResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1001,8 +1001,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=encode_json)</code></pre>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.RefreshTokenResp.to_json"><code class="name flex">
@@ -1025,7 +1025,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(encode_json=False),
+    return json.dumps(self.to_dict(),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -1152,7 +1152,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.ValidateTokenReq.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1160,8 +1160,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=encode_json)</code></pre>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.ValidateTokenReq.to_json"><code class="name flex">
@@ -1184,7 +1184,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(encode_json=False),
+    return json.dumps(self.to_dict(),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -1341,7 +1341,7 @@ def schema(cls: Type[A],
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.cloud.auth_api.ValidateTokenResp.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1349,8 +1349,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=encode_json)</code></pre>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.ValidateTokenResp.to_json"><code class="name flex">
@@ -1373,7 +1373,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(encode_json=False),
+    return json.dumps(self.to_dict(),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,

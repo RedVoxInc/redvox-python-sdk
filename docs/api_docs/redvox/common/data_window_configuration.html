@@ -40,7 +40,7 @@ import toml
 
 
 # defaults for configuration
-DEFAULT_GAP_TIME_S: float = 0.25  # seconds to be considered a gap
+DEFAULT_DROP_TIME_S: float = 0.2  # seconds between packets to be considered a gap
 DEFAULT_START_PADDING_S: float = 120.0  # time to add before start time when searching
 DEFAULT_END_PADDING_S: float = 120.0  # time to add after end time when searching
 
@@ -75,9 +75,11 @@ class DataWindowConfig:
                                 when filtering data.  Default DEFAULT_START_PADDING_S
         end_padding_seconds: float representing the amount of seconds to include after the end datetime
                                 when filtering data.  Default DEFAULT_END_PADDING_S
-        gap_time_s: float representing the minimum amount of seconds between data points that would indicate a gap.
-                    Default DEFAULT_GAP_TIME_S
+        drop_time_seconds: float representing the minimum amount of seconds between data packets that would indicate
+                            a gap.  Default DEFAULT_DROP_TIME_S
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
+        edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.  Determines behavior when creating points on the edge
+                            of the data window.  default COPY
         debug: bool, if True, output additional information when processing data window.  Default False
     &#34;&#34;&#34;
 
@@ -100,8 +102,9 @@ class DataWindowConfig:
     end_second: Optional[int] = None
     start_padding_seconds: float = DEFAULT_START_PADDING_S
     end_padding_seconds: float = DEFAULT_END_PADDING_S
-    gap_time_seconds: float = DEFAULT_GAP_TIME_S
+    drop_time_seconds: float = DEFAULT_DROP_TIME_S
     apply_correction: bool = True
+    edge_points_mode: str = &#34;COPY&#34;
     debug: bool = False
 
     @staticmethod
@@ -131,7 +134,7 @@ class DataWindowConfig:
 <dl>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig"><code class="flex name class">
 <span>class <span class="ident">DataWindowConfig</span></span>
-<span>(</span><span>input_directory: str, structured_layout: bool = True, station_ids: Union[List[str], NoneType] = None, extensions: Union[List[str], NoneType] = None, api_versions: Union[List[str], NoneType] = None, start_year: Union[int, NoneType] = None, start_month: Union[int, NoneType] = None, start_day: Union[int, NoneType] = None, start_hour: Union[int, NoneType] = None, start_minute: Union[int, NoneType] = None, start_second: Union[int, NoneType] = None, end_year: Union[int, NoneType] = None, end_month: Union[int, NoneType] = None, end_day: Union[int, NoneType] = None, end_hour: Union[int, NoneType] = None, end_minute: Union[int, NoneType] = None, end_second: Union[int, NoneType] = None, start_padding_seconds: float = 120.0, end_padding_seconds: float = 120.0, gap_time_seconds: float = 0.25, apply_correction: bool = True, debug: bool = False)</span>
+<span>(</span><span>input_directory: str, structured_layout: bool = True, station_ids: Union[List[str], NoneType] = None, extensions: Union[List[str], NoneType] = None, api_versions: Union[List[str], NoneType] = None, start_year: Union[int, NoneType] = None, start_month: Union[int, NoneType] = None, start_day: Union[int, NoneType] = None, start_hour: Union[int, NoneType] = None, start_minute: Union[int, NoneType] = None, start_second: Union[int, NoneType] = None, end_year: Union[int, NoneType] = None, end_month: Union[int, NoneType] = None, end_day: Union[int, NoneType] = None, end_hour: Union[int, NoneType] = None, end_minute: Union[int, NoneType] = None, end_second: Union[int, NoneType] = None, start_padding_seconds: float = 120.0, end_padding_seconds: float = 120.0, drop_time_seconds: float = 0.2, apply_correction: bool = True, edge_points_mode: str = 'COPY', debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="properties">Properties</h2>
@@ -179,10 +182,15 @@ Default DEFAULT_START_PADDING_S
 end_padding_seconds: float representing the amount of seconds to include after the end datetime
 when filtering data.
 Default DEFAULT_END_PADDING_S
-gap_time_s: float representing the minimum amount of seconds between data points that would indicate a gap.
-Default DEFAULT_GAP_TIME_S
+drop_time_seconds: float representing the minimum amount of seconds between data packets that would indicate
+a gap.
+Default DEFAULT_DROP_TIME_S
 apply_correction: bool, if True, update the timestamps in the data based on best station offset.
 Default True
+edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.
+Determines behavior when creating points on the edge
+of the data window.
+default COPY
 debug: bool, if True, output additional information when processing data window.
 Default False</p></div>
 <details class="source">
@@ -217,9 +225,11 @@ Default False</p></div>
                                 when filtering data.  Default DEFAULT_START_PADDING_S
         end_padding_seconds: float representing the amount of seconds to include after the end datetime
                                 when filtering data.  Default DEFAULT_END_PADDING_S
-        gap_time_s: float representing the minimum amount of seconds between data points that would indicate a gap.
-                    Default DEFAULT_GAP_TIME_S
+        drop_time_seconds: float representing the minimum amount of seconds between data packets that would indicate
+                            a gap.  Default DEFAULT_DROP_TIME_S
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
+        edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.  Determines behavior when creating points on the edge
+                            of the data window.  default COPY
         debug: bool, if True, output additional information when processing data window.  Default False
     &#34;&#34;&#34;
 
@@ -242,8 +252,9 @@ Default False</p></div>
     end_second: Optional[int] = None
     start_padding_seconds: float = DEFAULT_START_PADDING_S
     end_padding_seconds: float = DEFAULT_END_PADDING_S
-    gap_time_seconds: float = DEFAULT_GAP_TIME_S
+    drop_time_seconds: float = DEFAULT_DROP_TIME_S
     apply_correction: bool = True
+    edge_points_mode: str = &#34;COPY&#34;
     debug: bool = False
 
     @staticmethod
@@ -272,6 +283,14 @@ Default False</p></div>
 <div class="desc"></div>
 </dd>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig.debug"><code class="name">var <span class="ident">debug</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.drop_time_seconds"><code class="name">var <span class="ident">drop_time_seconds</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.edge_points_mode"><code class="name">var <span class="ident">edge_points_mode</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -304,10 +323,6 @@ Default False</p></div>
 <div class="desc"></div>
 </dd>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig.extensions"><code class="name">var <span class="ident">extensions</span> : Union[List[str], NoneType]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.gap_time_seconds"><code class="name">var <span class="ident">gap_time_seconds</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -475,7 +490,7 @@ def schema(cls: Type[A],
 </details>
 </dd>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -483,8 +498,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=encode_json)</code></pre>
+<pre><code class="python">def to_dict(self) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=False)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig.to_json"><code class="name flex">
@@ -507,7 +522,7 @@ def schema(cls: Type[A],
             default: Callable = None,
             sort_keys: bool = False,
             **kw) -&gt; str:
-    return json.dumps(self.to_dict(encode_json=False),
+    return json.dumps(self.to_dict(),
                       cls=_ExtendedEncoder,
                       skipkeys=skipkeys,
                       ensure_ascii=ensure_ascii,
@@ -544,6 +559,8 @@ def schema(cls: Type[A],
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.api_versions" href="#redvox.common.data_window_configuration.DataWindowConfig.api_versions">api_versions</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.apply_correction" href="#redvox.common.data_window_configuration.DataWindowConfig.apply_correction">apply_correction</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.debug" href="#redvox.common.data_window_configuration.DataWindowConfig.debug">debug</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.drop_time_seconds" href="#redvox.common.data_window_configuration.DataWindowConfig.drop_time_seconds">drop_time_seconds</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.edge_points_mode" href="#redvox.common.data_window_configuration.DataWindowConfig.edge_points_mode">edge_points_mode</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_day" href="#redvox.common.data_window_configuration.DataWindowConfig.end_day">end_day</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_hour" href="#redvox.common.data_window_configuration.DataWindowConfig.end_hour">end_hour</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_minute" href="#redvox.common.data_window_configuration.DataWindowConfig.end_minute">end_minute</a></code></li>
@@ -555,7 +572,6 @@ def schema(cls: Type[A],
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.from_dict" href="#redvox.common.data_window_configuration.DataWindowConfig.from_dict">from_dict</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.from_json" href="#redvox.common.data_window_configuration.DataWindowConfig.from_json">from_json</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.from_path" href="#redvox.common.data_window_configuration.DataWindowConfig.from_path">from_path</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.gap_time_seconds" href="#redvox.common.data_window_configuration.DataWindowConfig.gap_time_seconds">gap_time_seconds</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.input_directory" href="#redvox.common.data_window_configuration.DataWindowConfig.input_directory">input_directory</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.pretty" href="#redvox.common.data_window_configuration.DataWindowConfig.pretty">pretty</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.schema" href="#redvox.common.data_window_configuration.DataWindowConfig.schema">schema</a></code></li>

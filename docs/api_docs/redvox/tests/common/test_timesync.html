@@ -45,7 +45,7 @@ class TimesyncTest(unittest.TestCase):
         with contextlib.redirect_stdout(None):
             result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
                                           read_filter=ReadFilter(station_ids={&#34;1637680001&#34;}))
-            cls.time_sync_analysis = result.get_station_by_id(&#34;1637680001&#34;).timesync_analysis
+            cls.time_sync_analysis = ts.TimeSyncAnalysis().from_raw_packets(result.read_files_by_id(&#34;1637680001&#34;))
 
     def test_validate_sensors(self):
         test_ts = ts.TimeSyncData()
@@ -191,7 +191,7 @@ not have a method with the specified name.</p></div>
         with contextlib.redirect_stdout(None):
             result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
                                           read_filter=ReadFilter(station_ids={&#34;1637680001&#34;}))
-            cls.time_sync_analysis = result.get_station_by_id(&#34;1637680001&#34;).timesync_analysis
+            cls.time_sync_analysis = ts.TimeSyncAnalysis().from_raw_packets(result.read_files_by_id(&#34;1637680001&#34;))
 
     def test_validate_sensors(self):
         test_ts = ts.TimeSyncData()
@@ -304,7 +304,7 @@ def setUpClass(cls) -&gt; None:
     with contextlib.redirect_stdout(None):
         result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
                                       read_filter=ReadFilter(station_ids={&#34;1637680001&#34;}))
-        cls.time_sync_analysis = result.get_station_by_id(&#34;1637680001&#34;).timesync_analysis</code></pre>
+        cls.time_sync_analysis = ts.TimeSyncAnalysis().from_raw_packets(result.read_files_by_id(&#34;1637680001&#34;))</code></pre>
 </details>
 </dd>
 </dl>

@@ -63,6 +63,10 @@ class DataPointCreationMode(enum.Enum):
     COPY: int = 1
     INTERPOLATE: int = 2
 
+    @staticmethod
+    def list_names() -&gt; List[str]:
+        return [n.name for n in DataPointCreationMode]
+
 
 def calc_evenly_sampled_timestamps(
         start: float, samples: int, sample_interval_micros: float
@@ -73,7 +77,7 @@ def calc_evenly_sampled_timestamps(
     :param start: float, start timestamp in microseconds
     :param samples: int, number of samples
     :param sample_interval_micros: float, sample interval in microseconds
-    :return: np.array with evenly spaced timestamps starting at start
+    :return: np.array with number of samples timestamps, evenly spaced starting at start
     &#34;&#34;&#34;
     return start + (np.arange(0, samples) * sample_interval_micros)
 
@@ -288,7 +292,7 @@ def add_data_points_to_df(dataframe: pd.DataFrame,
             * dataframe must not be empty
             * start_index must be non-negative and less than the length of dataframe
             * num_samples_to_add must be greater than 0
-            * the points are added onto the end and the result is not sorted
+            * points are added onto the end and the result is not sorted
         Options for point_creation_mode are:
             * NAN: default values and nans
             * COPY: copies of the start data point
@@ -393,7 +397,6 @@ def create_dataless_timestamps_df(
         num_samples_to_add: int,
         add_to_start: bool = False,
 ) -&gt; pd.DataFrame:
-    # todo: what about bytes columns?
     &#34;&#34;&#34;
     Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
 
@@ -455,7 +458,7 @@ Note:
 * dataframe must not be empty
 * start_index must be non-negative and less than the length of dataframe
 * num_samples_to_add must be greater than 0
-* the points are added onto the end and the result is not sorted
+* points are added onto the end and the result is not sorted
 Options for point_creation_mode are:
 * NAN: default values and nans
 * COPY: copies of the start data point
@@ -483,7 +486,7 @@ add points before the start_index
             * dataframe must not be empty
             * start_index must be non-negative and less than the length of dataframe
             * num_samples_to_add must be greater than 0
-            * the points are added onto the end and the result is not sorted
+            * points are added onto the end and the result is not sorted
         Options for point_creation_mode are:
             * NAN: default values and nans
             * COPY: copies of the start data point
@@ -610,7 +613,7 @@ Note:
 <p>:param start: float, start timestamp in microseconds
 :param samples: int, number of samples
 :param sample_interval_micros: float, sample interval in microseconds
-:return: np.array with evenly spaced timestamps starting at start</p></div>
+:return: np.array with number of samples timestamps, evenly spaced starting at start</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -624,7 +627,7 @@ Note:
     :param start: float, start timestamp in microseconds
     :param samples: int, number of samples
     :param sample_interval_micros: float, sample interval in microseconds
-    :return: np.array with evenly spaced timestamps starting at start
+    :return: np.array with number of samples timestamps, evenly spaced starting at start
     &#34;&#34;&#34;
     return start + (np.arange(0, samples) * sample_interval_micros)</code></pre>
 </details>
@@ -702,7 +705,6 @@ microseconds since epoch UTC</p>
         num_samples_to_add: int,
         add_to_start: bool = False,
 ) -&gt; pd.DataFrame:
-    # todo: what about bytes columns?
     &#34;&#34;&#34;
     Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
 
@@ -983,7 +985,11 @@ calculated sample interval</p>
 
     NAN: int = 0
     COPY: int = 1
-    INTERPOLATE: int = 2</code></pre>
+    INTERPOLATE: int = 2
+
+    @staticmethod
+    def list_names() -&gt; List[str]:
+        return [n.name for n in DataPointCreationMode]</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1002,6 +1008,23 @@ calculated sample interval</p>
 <dt id="redvox.common.gap_and_pad_utils.DataPointCreationMode.NAN"><code class="name">var <span class="ident">NAN</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.gap_and_pad_utils.DataPointCreationMode.list_names"><code class="name flex">
+<span>def <span class="ident">list_names</span></span>(<span>) ‑> List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def list_names() -&gt; List[str]:
+    return [n.name for n in DataPointCreationMode]</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -1039,6 +1062,7 @@ calculated sample interval</p>
 <li><code><a title="redvox.common.gap_and_pad_utils.DataPointCreationMode.COPY" href="#redvox.common.gap_and_pad_utils.DataPointCreationMode.COPY">COPY</a></code></li>
 <li><code><a title="redvox.common.gap_and_pad_utils.DataPointCreationMode.INTERPOLATE" href="#redvox.common.gap_and_pad_utils.DataPointCreationMode.INTERPOLATE">INTERPOLATE</a></code></li>
 <li><code><a title="redvox.common.gap_and_pad_utils.DataPointCreationMode.NAN" href="#redvox.common.gap_and_pad_utils.DataPointCreationMode.NAN">NAN</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils.DataPointCreationMode.list_names" href="#redvox.common.gap_and_pad_utils.DataPointCreationMode.list_names">list_names</a></code></li>
 </ul>
 </li>
 </ul>

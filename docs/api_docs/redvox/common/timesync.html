@@ -312,8 +312,8 @@ class TimeSyncAnalysis:
             self.timesync_data: List[TimeSyncData] = time_sync_data
             self.evaluate_and_validate_data()
         else:
-            self.offset_model = OffsetModel.empty_model()
             self.timesync_data = []
+            self.offset_model = OffsetModel.empty_model()
 
     def evaluate_and_validate_data(self):
         &#34;&#34;&#34;
@@ -323,10 +323,16 @@ class TimeSyncAnalysis:
         self.validate_start_timestamp()
         self.validate_sample_rate()
         self._calc_timesync_stats()
-        self.offset_model = OffsetModel(self.get_latencies(), self.get_offsets(),
-                                        np.array([td.get_best_latency_timestamp() for td in self.timesync_data]),
-                                        self.timesync_data[0].packet_start_timestamp,
-                                        self.timesync_data[-1].packet_end_timestamp)
+        self.offset_model = self.get_offset_model()
+
+    def get_offset_model(self) -&gt; OffsetModel:
+        &#34;&#34;&#34;
+        :return: an OffsetModel based on the information in the timesync analysis
+        &#34;&#34;&#34;
+        return OffsetModel(self.get_latencies(), self.get_offsets(),
+                           np.array([td.get_best_latency_timestamp() for td in self.timesync_data]),
+                           self.timesync_data[0].packet_start_timestamp,
+                           self.timesync_data[-1].packet_end_timestamp)
 
     def _calc_timesync_stats(self):
         &#34;&#34;&#34;
@@ -1377,8 +1383,8 @@ station_start_timestamp: float, the timestamp of when the station became active,
             self.timesync_data: List[TimeSyncData] = time_sync_data
             self.evaluate_and_validate_data()
         else:
-            self.offset_model = OffsetModel.empty_model()
             self.timesync_data = []
+            self.offset_model = OffsetModel.empty_model()
 
     def evaluate_and_validate_data(self):
         &#34;&#34;&#34;
@@ -1388,10 +1394,16 @@ station_start_timestamp: float, the timestamp of when the station became active,
         self.validate_start_timestamp()
         self.validate_sample_rate()
         self._calc_timesync_stats()
-        self.offset_model = OffsetModel(self.get_latencies(), self.get_offsets(),
-                                        np.array([td.get_best_latency_timestamp() for td in self.timesync_data]),
-                                        self.timesync_data[0].packet_start_timestamp,
-                                        self.timesync_data[-1].packet_end_timestamp)
+        self.offset_model = self.get_offset_model()
+
+    def get_offset_model(self) -&gt; OffsetModel:
+        &#34;&#34;&#34;
+        :return: an OffsetModel based on the information in the timesync analysis
+        &#34;&#34;&#34;
+        return OffsetModel(self.get_latencies(), self.get_offsets(),
+                           np.array([td.get_best_latency_timestamp() for td in self.timesync_data]),
+                           self.timesync_data[0].packet_start_timestamp,
+                           self.timesync_data[-1].packet_end_timestamp)
 
     def _calc_timesync_stats(self):
         &#34;&#34;&#34;
@@ -1778,10 +1790,7 @@ station_start_timestamp: float, the timestamp of when the station became active,
     self.validate_start_timestamp()
     self.validate_sample_rate()
     self._calc_timesync_stats()
-    self.offset_model = OffsetModel(self.get_latencies(), self.get_offsets(),
-                                    np.array([td.get_best_latency_timestamp() for td in self.timesync_data]),
-                                    self.timesync_data[0].packet_start_timestamp,
-                                    self.timesync_data[-1].packet_end_timestamp)</code></pre>
+    self.offset_model = self.get_offset_model()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis.evaluate_latencies"><code class="name flex">
@@ -2137,6 +2146,25 @@ outputs warnings if a change in timestamps is detected</p></div>
     :return: number of packets analyzed
     &#34;&#34;&#34;
     return len(self.timesync_data)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.timesync.TimeSyncAnalysis.get_offset_model"><code class="name flex">
+<span>def <span class="ident">get_offset_model</span></span>(<span>self) ‑> <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: an OffsetModel based on the information in the timesync analysis</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_offset_model(self) -&gt; OffsetModel:
+    &#34;&#34;&#34;
+    :return: an OffsetModel based on the information in the timesync analysis
+    &#34;&#34;&#34;
+    return OffsetModel(self.get_latencies(), self.get_offsets(),
+                       np.array([td.get_best_latency_timestamp() for td in self.timesync_data]),
+                       self.timesync_data[0].packet_start_timestamp,
+                       self.timesync_data[-1].packet_end_timestamp)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis.get_offset_stdev"><code class="name flex">
@@ -2718,6 +2746,7 @@ uses negative values to go backwards in time
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_mean_latency" href="#redvox.common.timesync.TimeSyncAnalysis.get_mean_latency">get_mean_latency</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_mean_offset" href="#redvox.common.timesync.TimeSyncAnalysis.get_mean_offset">get_mean_offset</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_num_packets" href="#redvox.common.timesync.TimeSyncAnalysis.get_num_packets">get_num_packets</a></code></li>
+<li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_offset_model" href="#redvox.common.timesync.TimeSyncAnalysis.get_offset_model">get_offset_model</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_offset_stdev" href="#redvox.common.timesync.TimeSyncAnalysis.get_offset_stdev">get_offset_stdev</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_offsets" href="#redvox.common.timesync.TimeSyncAnalysis.get_offsets">get_offsets</a></code></li>
 <li><code><a title="redvox.common.timesync.TimeSyncAnalysis.get_start_times" href="#redvox.common.timesync.TimeSyncAnalysis.get_start_times">get_start_times</a></code></li>

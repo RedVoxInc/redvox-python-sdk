@@ -149,7 +149,7 @@ def download_files(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.data_client.download_files"><code class="name flex">
-<span>def <span class="ident">download_files</span></span>(<span>urls: List[str], out_dir: str, retries: int, num_processes: int = 12, out_queue: Union[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x110b6dbb0>>, NoneType] = None) ‑> NoneType</span>
+<span>def <span class="ident">download_files</span></span>(<span>urls: List[str], out_dir: str, retries: int, num_processes: int = 12, out_queue: Union[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x144b56450>>, NoneType] = None) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Downloads files in parallel from the provided URLs.
@@ -224,7 +224,7 @@ def download_files(
 </details>
 </dd>
 <dt id="redvox.cloud.data_client.download_process"><code class="name flex">
-<span>def <span class="ident">download_process</span></span>(<span>input_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x110b6dbb0>>, result_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x110b6dbb0>>, out_dir: str, retries: int) ‑> NoneType</span>
+<span>def <span class="ident">download_process</span></span>(<span>input_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x144b56450>>, result_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x144b56450>>, out_dir: str, retries: int) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A function that runs in a separate process for downloading RedVox data.

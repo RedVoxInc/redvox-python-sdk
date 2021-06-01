@@ -46,7 +46,7 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
 
-def validate_station_key_list_raw(
+def validate_station_key_list(
     data_packets: List[api_m.RedvoxPacketM], debug: bool = False
 ) -&gt; bool:
     &#34;&#34;&#34;
@@ -98,74 +98,9 @@ def validate_station_key_list_raw(
         if len(result) &gt; 1:
             if debug:
                 print(
-                    f&#34;WARNING: {data_packets[0].station_information.id} &#34;
-                    f&#34;{key} contains multiple unique values: {result}.&#34;
-                )
-                print(
-                    &#34;Current solution is to alter your query to omit or focus on this station.&#34;
-                )
-            return False  # stop processing, one bad key is enough
-
-    return True  # if here, everything is consistent
-
-
-def validate_station_key_list(
-    data_packets: List[WrappedRedvoxPacketM], debug: bool = False
-) -&gt; bool:
-    &#34;&#34;&#34;
-    Checks for consistency in the data packets.  Returns False if discrepancies are found.
-    If debug is True, will output the discrepancies.
-    :param data_packets: list of WrappedRedvoxPacketM to look at
-    :param debug: bool, if True, output any discrepancies found, default False
-    :return: True if no discrepancies found.  False otherwise
-    &#34;&#34;&#34;
-    if len(data_packets) &lt; 2:
-        return True
-    k = np.transpose(
-        [
-            [
-                t.get_station_information().get_id(),
-                t.get_station_information().get_uuid(),
-                t.get_timing_information().get_app_start_mach_timestamp(),
-                t.get_api(),
-                t.get_sub_api(),
-                t.get_station_information().get_make(),
-                t.get_station_information().get_model(),
-                t.get_station_information().get_os().value,
-                t.get_station_information().get_os_version(),
-                t.get_station_information().get_app_version(),
-                t.get_station_information().get_is_private(),
-                t.get_packet_duration_s(),
-            ]
-            for t in data_packets
-        ]
-    )
-
-    k = {
-        &#34;ids&#34;: k[0],
-        &#34;uuids&#34;: k[1],
-        &#34;station_start_times&#34;: k[2],
-        &#34;apis&#34;: k[3],
-        &#34;sub_apis&#34;: k[4],
-        &#34;makes&#34;: k[5],
-        &#34;models&#34;: k[6],
-        &#34;os&#34;: k[7],
-        &#34;os_versions&#34;: k[8],
-        &#34;app_versions&#34;: k[9],
-        &#34;privates&#34;: k[10],
-        &#34;durations&#34;: k[11],
-    }
-
-    for key, value in k.items():
-        result = np.unique(value)
-        if len(result) &gt; 1:
-            if debug:
-                print(
-                    f&#34;WARNING: {data_packets[0].get_station_information().get_id()} &#34;
-                    f&#34;{key} contains multiple unique values: {result}.&#34;
-                )
-                print(
-                    &#34;Current solution is to alter your query to omit or focus on this station.&#34;
+                    f&#34;WARNING from station_utils: {data_packets[0].station_information.id} &#34;
+                    f&#34;{key} contains multiple unique values: {result}.\n&#34;
+                    &#34;Please update your query to focus on one of these values.&#34;
                 )
             return False  # stop processing, one bad key is enough
 
@@ -226,7 +161,7 @@ class StationKey:
 
 
 # todo add event streams?
-class StationMetadataRaw:
+class StationMetadata:
     &#34;&#34;&#34;
     A container for all the packet metadata consistent across all packets
     Properties:
@@ -278,7 +213,7 @@ class StationMetadataRaw:
             self.packet_duration_s = np.nan
             self.station_description = &#34;&#34;
 
-    def validate_metadata(self, other_metadata: &#34;StationMetadataRaw&#34;) -&gt; bool:
+    def validate_metadata(self, other_metadata: &#34;StationMetadata&#34;) -&gt; bool:
         &#34;&#34;&#34;
         :param other_metadata: another StationMetadata object to compare
         :return: True if other_metadata is equal to the calling metadata
@@ -298,7 +233,7 @@ class StationMetadataRaw:
         )
 
 
-class StationMetadata:
+class StationMetadataWrapped:
     &#34;&#34;&#34;
     A container for all the packet metadata consistent across all packets
     Properties:
@@ -349,7 +284,7 @@ class StationMetadata:
             self.packet_duration_s = np.nan
             self.station_description = &#34;&#34;
 
-    def validate_metadata(self, other_metadata: &#34;StationMetadata&#34;) -&gt; bool:
+    def validate_metadata(self, other_metadata: &#34;StationMetadataWrapped&#34;) -&gt; bool:
         &#34;&#34;&#34;
         :param other_metadata: another StationMetadata object to compare
         :return: True if other_metadata is equal to the calling metadata
@@ -369,7 +304,7 @@ class StationMetadata:
         )
 
 
-class StationPacketMetadataRaw:
+class StationPacketMetadata:
     &#34;&#34;&#34;
     A container for all the packet metadata that isn&#39;t consistent across all packets
     Properties:
@@ -421,7 +356,7 @@ class StationPacketMetadataRaw:
         self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)
 
 
-class StationPacketMetadata:
+class StationPacketMetadataWrapped:
     &#34;&#34;&#34;
     A container for all the packet metadata that isn&#39;t consistent across all packets
     Properties:
@@ -481,7 +416,7 @@ class StationPacketMetadata:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.common.station_utils.validate_station_key_list"><code class="name flex">
-<span>def <span class="ident">validate_station_key_list</span></span>(<span>data_packets: List[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>], debug: bool = False) ‑> bool</span>
+<span>def <span class="ident">validate_station_key_list</span></span>(<span>data_packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], debug: bool = False) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Checks for consistency in the data packets.
@@ -496,84 +431,6 @@ False otherwise</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_station_key_list(
-    data_packets: List[WrappedRedvoxPacketM], debug: bool = False
-) -&gt; bool:
-    &#34;&#34;&#34;
-    Checks for consistency in the data packets.  Returns False if discrepancies are found.
-    If debug is True, will output the discrepancies.
-    :param data_packets: list of WrappedRedvoxPacketM to look at
-    :param debug: bool, if True, output any discrepancies found, default False
-    :return: True if no discrepancies found.  False otherwise
-    &#34;&#34;&#34;
-    if len(data_packets) &lt; 2:
-        return True
-    k = np.transpose(
-        [
-            [
-                t.get_station_information().get_id(),
-                t.get_station_information().get_uuid(),
-                t.get_timing_information().get_app_start_mach_timestamp(),
-                t.get_api(),
-                t.get_sub_api(),
-                t.get_station_information().get_make(),
-                t.get_station_information().get_model(),
-                t.get_station_information().get_os().value,
-                t.get_station_information().get_os_version(),
-                t.get_station_information().get_app_version(),
-                t.get_station_information().get_is_private(),
-                t.get_packet_duration_s(),
-            ]
-            for t in data_packets
-        ]
-    )
-
-    k = {
-        &#34;ids&#34;: k[0],
-        &#34;uuids&#34;: k[1],
-        &#34;station_start_times&#34;: k[2],
-        &#34;apis&#34;: k[3],
-        &#34;sub_apis&#34;: k[4],
-        &#34;makes&#34;: k[5],
-        &#34;models&#34;: k[6],
-        &#34;os&#34;: k[7],
-        &#34;os_versions&#34;: k[8],
-        &#34;app_versions&#34;: k[9],
-        &#34;privates&#34;: k[10],
-        &#34;durations&#34;: k[11],
-    }
-
-    for key, value in k.items():
-        result = np.unique(value)
-        if len(result) &gt; 1:
-            if debug:
-                print(
-                    f&#34;WARNING: {data_packets[0].get_station_information().get_id()} &#34;
-                    f&#34;{key} contains multiple unique values: {result}.&#34;
-                )
-                print(
-                    &#34;Current solution is to alter your query to omit or focus on this station.&#34;
-                )
-            return False  # stop processing, one bad key is enough
-
-    return True  # if here, everything is consistent</code></pre>
-</details>
-</dd>
-<dt id="redvox.common.station_utils.validate_station_key_list_raw"><code class="name flex">
-<span>def <span class="ident">validate_station_key_list_raw</span></span>(<span>data_packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], debug: bool = False) ‑> bool</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Checks for consistency in the data packets.
-Returns False if discrepancies are found.
-If debug is True, will output the discrepancies.
-:param data_packets: list of WrappedRedvoxPacketM to look at
-:param debug: bool, if True, output any discrepancies found, default False
-:return: True if no discrepancies found.
-False otherwise</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def validate_station_key_list_raw(
     data_packets: List[api_m.RedvoxPacketM], debug: bool = False
 ) -&gt; bool:
     &#34;&#34;&#34;
@@ -625,11 +482,9 @@ False otherwise</p></div>
         if len(result) &gt; 1:
             if debug:
                 print(
-                    f&#34;WARNING: {data_packets[0].station_information.id} &#34;
-                    f&#34;{key} contains multiple unique values: {result}.&#34;
-                )
-                print(
-                    &#34;Current solution is to alter your query to omit or focus on this station.&#34;
+                    f&#34;WARNING from station_utils: {data_packets[0].station_information.id} &#34;
+                    f&#34;{key} contains multiple unique values: {result}.\n&#34;
+                    &#34;Please update your query to focus on one of these values.&#34;
                 )
             return False  # stop processing, one bad key is enough
 
@@ -799,7 +654,7 @@ If the parameter is None, any value will match.
 </dd>
 <dt id="redvox.common.station_utils.StationMetadata"><code class="flex name class">
 <span>class <span class="ident">StationMetadata</span></span>
-<span>(</span><span>app: str, packet: Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType] = None)</span>
+<span>(</span><span>app: str, packet: Union[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A container for all the packet metadata consistent across all packets</p>
@@ -841,7 +696,7 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
         other_metadata: dict, str: str of other metadata from the packet, default empty list
     &#34;&#34;&#34;
 
-    def __init__(self, app: str, packet: Optional[WrappedRedvoxPacketM] = None):
+    def __init__(self, app: str, packet: Optional[api_m.RedvoxPacketM] = None):
         &#34;&#34;&#34;
         initialize the metadata
         :param app: app name
@@ -850,18 +705,19 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
         self.app = app
         self.other_metadata = {}
         if packet:
-            self.api = packet.get_api()
-            self.sub_api = packet.get_sub_api()
-            self.make = packet.get_station_information().get_make()
-            self.model = packet.get_station_information().get_model()
-            self.os = packet.get_station_information().get_os()
-            self.os_version = packet.get_station_information().get_os_version()
-            self.app_version = packet.get_station_information().get_app_version()
-            self.is_private = packet.get_station_information().get_is_private()
-            self.packet_duration_s = packet.get_packet_duration_s()
-            self.station_description = (
-                packet.get_station_information().get_description()
+            self.api = packet.api
+            self.sub_api = packet.sub_api
+            self.make = packet.station_information.make
+            self.model = packet.station_information.model
+            self.os = packet.station_information.os
+            self.os_version = packet.station_information.os_version
+            self.app_version = packet.station_information.app_version
+            self.is_private = packet.station_information.is_private
+            self.packet_duration_s = (
+                len(packet.sensors.audio.samples.values)
+                / packet.sensors.audio.sample_rate
             )
+            self.station_description = packet.station_information.description
         else:
             self.api = np.nan
             self.sub_api = np.nan
@@ -927,9 +783,9 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
 </dd>
 </dl>
 </dd>
-<dt id="redvox.common.station_utils.StationMetadataRaw"><code class="flex name class">
-<span>class <span class="ident">StationMetadataRaw</span></span>
-<span>(</span><span>app: str, packet: Union[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, NoneType] = None)</span>
+<dt id="redvox.common.station_utils.StationMetadataWrapped"><code class="flex name class">
+<span>class <span class="ident">StationMetadataWrapped</span></span>
+<span>(</span><span>app: str, packet: Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A container for all the packet metadata consistent across all packets</p>
@@ -953,7 +809,7 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StationMetadataRaw:
+<pre><code class="python">class StationMetadataWrapped:
     &#34;&#34;&#34;
     A container for all the packet metadata consistent across all packets
     Properties:
@@ -971,7 +827,7 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
         other_metadata: dict, str: str of other metadata from the packet, default empty list
     &#34;&#34;&#34;
 
-    def __init__(self, app: str, packet: Optional[api_m.RedvoxPacketM] = None):
+    def __init__(self, app: str, packet: Optional[WrappedRedvoxPacketM] = None):
         &#34;&#34;&#34;
         initialize the metadata
         :param app: app name
@@ -980,19 +836,18 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
         self.app = app
         self.other_metadata = {}
         if packet:
-            self.api = packet.api
-            self.sub_api = packet.sub_api
-            self.make = packet.station_information.make
-            self.model = packet.station_information.model
-            self.os = packet.station_information.os
-            self.os_version = packet.station_information.os_version
-            self.app_version = packet.station_information.app_version
-            self.is_private = packet.station_information.is_private
-            self.packet_duration_s = (
-                len(packet.sensors.audio.samples.values)
-                / packet.sensors.audio.sample_rate
+            self.api = packet.get_api()
+            self.sub_api = packet.get_sub_api()
+            self.make = packet.get_station_information().get_make()
+            self.model = packet.get_station_information().get_model()
+            self.os = packet.get_station_information().get_os()
+            self.os_version = packet.get_station_information().get_os_version()
+            self.app_version = packet.get_station_information().get_app_version()
+            self.is_private = packet.get_station_information().get_is_private()
+            self.packet_duration_s = packet.get_packet_duration_s()
+            self.station_description = (
+                packet.get_station_information().get_description()
             )
-            self.station_description = packet.station_information.description
         else:
             self.api = np.nan
             self.sub_api = np.nan
@@ -1005,7 +860,7 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
             self.packet_duration_s = np.nan
             self.station_description = &#34;&#34;
 
-    def validate_metadata(self, other_metadata: &#34;StationMetadataRaw&#34;) -&gt; bool:
+    def validate_metadata(self, other_metadata: &#34;StationMetadataWrapped&#34;) -&gt; bool:
         &#34;&#34;&#34;
         :param other_metadata: another StationMetadata object to compare
         :return: True if other_metadata is equal to the calling metadata
@@ -1026,8 +881,8 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="redvox.common.station_utils.StationMetadataRaw.validate_metadata"><code class="name flex">
-<span>def <span class="ident">validate_metadata</span></span>(<span>self, other_metadata: <a title="redvox.common.station_utils.StationMetadataRaw" href="#redvox.common.station_utils.StationMetadataRaw">StationMetadataRaw</a>) ‑> bool</span>
+<dt id="redvox.common.station_utils.StationMetadataWrapped.validate_metadata"><code class="name flex">
+<span>def <span class="ident">validate_metadata</span></span>(<span>self, other_metadata: <a title="redvox.common.station_utils.StationMetadataWrapped" href="#redvox.common.station_utils.StationMetadataWrapped">StationMetadataWrapped</a>) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param other_metadata: another StationMetadata object to compare
@@ -1036,7 +891,7 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def validate_metadata(self, other_metadata: &#34;StationMetadataRaw&#34;) -&gt; bool:
+<pre><code class="python">def validate_metadata(self, other_metadata: &#34;StationMetadataWrapped&#34;) -&gt; bool:
     &#34;&#34;&#34;
     :param other_metadata: another StationMetadata object to compare
     :return: True if other_metadata is equal to the calling metadata
@@ -1060,103 +915,6 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
 </dd>
 <dt id="redvox.common.station_utils.StationPacketMetadata"><code class="flex name class">
 <span>class <span class="ident">StationPacketMetadata</span></span>
-<span>(</span><span>packet: Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType] = None)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A container for all the packet metadata that isn't consistent across all packets</p>
-<h2 id="properties">Properties</h2>
-<p>packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
-packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
-packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
-packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
-timing_info_score: float, quality of timing information
-other_metadata: dict, str: str of other metadata from the packet</p>
-<p>initialize the metadata
-:param packet: Optional WrappedRedvoxPacketM to read data from</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class StationPacketMetadata:
-    &#34;&#34;&#34;
-    A container for all the packet metadata that isn&#39;t consistent across all packets
-    Properties:
-        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
-        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
-        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
-        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
-        timing_info_score: float, quality of timing information
-        other_metadata: dict, str: str of other metadata from the packet
-    &#34;&#34;&#34;
-
-    def __init__(self, packet: Optional[WrappedRedvoxPacketM] = None):
-        &#34;&#34;&#34;
-        initialize the metadata
-        :param packet: Optional WrappedRedvoxPacketM to read data from
-        &#34;&#34;&#34;
-        self.other_metadata = {}
-        if packet:
-            self.packet_start_mach_timestamp = (
-                packet.get_timing_information().get_packet_start_mach_timestamp()
-            )
-            self.packet_end_mach_timestamp = (
-                packet.get_timing_information().get_packet_end_mach_timestamp()
-            )
-            self.packet_start_os_timestamp = (
-                packet.get_timing_information().get_packet_start_os_timestamp()
-            )
-            self.packet_end_os_timestamp = (
-                packet.get_timing_information().get_packet_end_os_timestamp()
-            )
-            self.timing_info_score = packet.get_timing_information().get_score()
-        else:
-            self.packet_start_mach_timestamp = np.nan
-            self.packet_end_mach_timestamp = np.nan
-            self.packet_start_os_timestamp = np.nan
-            self.packet_end_os_timestamp = np.nan
-            self.timing_info_score = np.nan
-
-    def update_timestamps(self, om: OffsetModel):
-        &#34;&#34;&#34;
-        updates the timestamps in the metadata using the offset model
-        :param om: OffsetModel to apply to data
-        &#34;&#34;&#34;
-        self.packet_start_mach_timestamp = om.update_time(
-            self.packet_start_mach_timestamp
-        )
-        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="redvox.common.station_utils.StationPacketMetadata.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>updates the timestamps in the metadata using the offset model
-:param om: OffsetModel to apply to data</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def update_timestamps(self, om: OffsetModel):
-    &#34;&#34;&#34;
-    updates the timestamps in the metadata using the offset model
-    :param om: OffsetModel to apply to data
-    &#34;&#34;&#34;
-    self.packet_start_mach_timestamp = om.update_time(
-        self.packet_start_mach_timestamp
-    )
-    self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-    self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-    self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="redvox.common.station_utils.StationPacketMetadataRaw"><code class="flex name class">
-<span>class <span class="ident">StationPacketMetadataRaw</span></span>
 <span>(</span><span>packet: Union[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, NoneType] = None)</span>
 </code></dt>
 <dd>
@@ -1174,7 +932,7 @@ other_metadata: dict, str: str of other metadata from the packet</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StationPacketMetadataRaw:
+<pre><code class="python">class StationPacketMetadata:
     &#34;&#34;&#34;
     A container for all the packet metadata that isn&#39;t consistent across all packets
     Properties:
@@ -1227,7 +985,104 @@ other_metadata: dict, str: str of other metadata from the packet</p>
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="redvox.common.station_utils.StationPacketMetadataRaw.update_timestamps"><code class="name flex">
+<dt id="redvox.common.station_utils.StationPacketMetadata.update_timestamps"><code class="name flex">
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>updates the timestamps in the metadata using the offset model
+:param om: OffsetModel to apply to data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_timestamps(self, om: OffsetModel):
+    &#34;&#34;&#34;
+    updates the timestamps in the metadata using the offset model
+    :param om: OffsetModel to apply to data
+    &#34;&#34;&#34;
+    self.packet_start_mach_timestamp = om.update_time(
+        self.packet_start_mach_timestamp
+    )
+    self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
+    self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
+    self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.station_utils.StationPacketMetadataWrapped"><code class="flex name class">
+<span>class <span class="ident">StationPacketMetadataWrapped</span></span>
+<span>(</span><span>packet: Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A container for all the packet metadata that isn't consistent across all packets</p>
+<h2 id="properties">Properties</h2>
+<p>packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+timing_info_score: float, quality of timing information
+other_metadata: dict, str: str of other metadata from the packet</p>
+<p>initialize the metadata
+:param packet: Optional WrappedRedvoxPacketM to read data from</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class StationPacketMetadataWrapped:
+    &#34;&#34;&#34;
+    A container for all the packet metadata that isn&#39;t consistent across all packets
+    Properties:
+        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        timing_info_score: float, quality of timing information
+        other_metadata: dict, str: str of other metadata from the packet
+    &#34;&#34;&#34;
+
+    def __init__(self, packet: Optional[WrappedRedvoxPacketM] = None):
+        &#34;&#34;&#34;
+        initialize the metadata
+        :param packet: Optional WrappedRedvoxPacketM to read data from
+        &#34;&#34;&#34;
+        self.other_metadata = {}
+        if packet:
+            self.packet_start_mach_timestamp = (
+                packet.get_timing_information().get_packet_start_mach_timestamp()
+            )
+            self.packet_end_mach_timestamp = (
+                packet.get_timing_information().get_packet_end_mach_timestamp()
+            )
+            self.packet_start_os_timestamp = (
+                packet.get_timing_information().get_packet_start_os_timestamp()
+            )
+            self.packet_end_os_timestamp = (
+                packet.get_timing_information().get_packet_end_os_timestamp()
+            )
+            self.timing_info_score = packet.get_timing_information().get_score()
+        else:
+            self.packet_start_mach_timestamp = np.nan
+            self.packet_end_mach_timestamp = np.nan
+            self.packet_start_os_timestamp = np.nan
+            self.packet_end_os_timestamp = np.nan
+            self.timing_info_score = np.nan
+
+    def update_timestamps(self, om: OffsetModel):
+        &#34;&#34;&#34;
+        updates the timestamps in the metadata using the offset model
+        :param om: OffsetModel to apply to data
+        &#34;&#34;&#34;
+        self.packet_start_mach_timestamp = om.update_time(
+            self.packet_start_mach_timestamp
+        )
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.station_utils.StationPacketMetadataWrapped.update_timestamps"><code class="name flex">
 <span>def <span class="ident">update_timestamps</span></span>(<span>self, om: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>)</span>
 </code></dt>
 <dd>
@@ -1269,7 +1124,6 @@ other_metadata: dict, str: str of other metadata from the packet</p>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="redvox.common.station_utils.validate_station_key_list" href="#redvox.common.station_utils.validate_station_key_list">validate_station_key_list</a></code></li>
-<li><code><a title="redvox.common.station_utils.validate_station_key_list_raw" href="#redvox.common.station_utils.validate_station_key_list_raw">validate_station_key_list_raw</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -1292,9 +1146,9 @@ other_metadata: dict, str: str of other metadata from the packet</p>
 </ul>
 </li>
 <li>
-<h4><code><a title="redvox.common.station_utils.StationMetadataRaw" href="#redvox.common.station_utils.StationMetadataRaw">StationMetadataRaw</a></code></h4>
+<h4><code><a title="redvox.common.station_utils.StationMetadataWrapped" href="#redvox.common.station_utils.StationMetadataWrapped">StationMetadataWrapped</a></code></h4>
 <ul class="">
-<li><code><a title="redvox.common.station_utils.StationMetadataRaw.validate_metadata" href="#redvox.common.station_utils.StationMetadataRaw.validate_metadata">validate_metadata</a></code></li>
+<li><code><a title="redvox.common.station_utils.StationMetadataWrapped.validate_metadata" href="#redvox.common.station_utils.StationMetadataWrapped.validate_metadata">validate_metadata</a></code></li>
 </ul>
 </li>
 <li>
@@ -1304,9 +1158,9 @@ other_metadata: dict, str: str of other metadata from the packet</p>
 </ul>
 </li>
 <li>
-<h4><code><a title="redvox.common.station_utils.StationPacketMetadataRaw" href="#redvox.common.station_utils.StationPacketMetadataRaw">StationPacketMetadataRaw</a></code></h4>
+<h4><code><a title="redvox.common.station_utils.StationPacketMetadataWrapped" href="#redvox.common.station_utils.StationPacketMetadataWrapped">StationPacketMetadataWrapped</a></code></h4>
 <ul class="">
-<li><code><a title="redvox.common.station_utils.StationPacketMetadataRaw.update_timestamps" href="#redvox.common.station_utils.StationPacketMetadataRaw.update_timestamps">update_timestamps</a></code></li>
+<li><code><a title="redvox.common.station_utils.StationPacketMetadataWrapped.update_timestamps" href="#redvox.common.station_utils.StationPacketMetadataWrapped.update_timestamps">update_timestamps</a></code></li>
 </ul>
 </li>
 </ul>

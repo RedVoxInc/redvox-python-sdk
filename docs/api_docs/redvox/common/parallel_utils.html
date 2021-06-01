@@ -57,6 +57,7 @@ def maybe_parallel_map(pool: Optional[Pool],
     &#34;&#34;&#34;
     Maps a function over a set of values. This will either be run in parallel or serially depending on the value
     of redvox.settings.
+
     :param pool: An optional pool. If a pool is provided, the user is responsible for closing the pool. If the pool
                  is not provided, one is created by this process and then closed at the end of this process.
     :param map_fn: A function that maps each value in the provided iterator.
@@ -107,8 +108,8 @@ def maybe_parallel_map(pool: Optional[Pool],
 </code></dt>
 <dd>
 <div class="desc"><p>Maps a function over a set of values. This will either be run in parallel or serially depending on the value
-of redvox.settings.
-:param pool: An optional pool. If a pool is provided, the user is responsible for closing the pool. If the pool
+of redvox.settings.</p>
+<p>:param pool: An optional pool. If a pool is provided, the user is responsible for closing the pool. If the pool
 is not provided, one is created by this process and then closed at the end of this process.
 :param map_fn: A function that maps each value in the provided iterator.
 :param iterator: An iterator of elements to be mapped.
@@ -132,6 +133,7 @@ describing which mapping strategy was used.
     &#34;&#34;&#34;
     Maps a function over a set of values. This will either be run in parallel or serially depending on the value
     of redvox.settings.
+
     :param pool: An optional pool. If a pool is provided, the user is responsible for closing the pool. If the pool
                  is not provided, one is created by this process and then closed at the end of this process.
     :param map_fn: A function that maps each value in the provided iterator.

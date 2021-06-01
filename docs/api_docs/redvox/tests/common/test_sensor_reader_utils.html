@@ -63,7 +63,7 @@ class ReaderTests(unittest.TestCase):
     def setUpClass(cls) -&gt; None:
         cls.apim_files = index_unstructured(tests.TEST_DATA_DIR,
                                             ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;})
-                                            ).read()
+                                            ).read_raw()
 
     def test_load_audio(self):
         audio = sdru.load_apim_audio(self.apim_files[0])
@@ -205,7 +205,7 @@ not have a method with the specified name.</p></div>
     def setUpClass(cls) -&gt; None:
         cls.apim_files = index_unstructured(tests.TEST_DATA_DIR,
                                             ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;})
-                                            ).read()
+                                            ).read_raw()
 
     def test_load_audio(self):
         audio = sdru.load_apim_audio(self.apim_files[0])
@@ -246,7 +246,7 @@ not have a method with the specified name.</p></div>
 def setUpClass(cls) -&gt; None:
     cls.apim_files = index_unstructured(tests.TEST_DATA_DIR,
                                         ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;})
-                                        ).read()</code></pre>
+                                        ).read_raw()</code></pre>
 </details>
 </dd>
 </dl>
