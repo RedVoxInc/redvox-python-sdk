@@ -9,6 +9,13 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0rc38 (2021-6-1)
+
+* Moved Best Location values into their own sensor
+* Fixed missing apply_correction flag check in DataWindowFast
+* Updated DataWindow to use DataWindowFast implementation
+* Removed DataWindowFast references from SDK
+
 ### 3.0.0rc37 (2021-5-25)
 
 * Api900 conversion will report error when api900 file doesn't contain audio data

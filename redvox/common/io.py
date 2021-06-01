@@ -42,7 +42,7 @@ from redvox.common.parallel_utils import maybe_parallel_map
 
 if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-    from redvox.common.data_window import DataWindow, DataWindow
+    from redvox.common.data_window import DataWindow
     from redvox.api900.lib.api900_pb2 import RedvoxPacket
 
 
