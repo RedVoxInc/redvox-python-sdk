@@ -23,10 +23,10 @@ class ApiReaderTest(unittest.TestCase):
             self.input_dir,
             True,
             ReadFilter(start_dt_buf=timedelta(seconds=30),
-                       start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
+                       start_dt=dtu.datetime_from_epoch_seconds_utc(1611696200)),
         )
         result = reader.index_summary.total_packets()
-        self.assertEqual(result, 2)
+        self.assertEqual(result, 3)
         result_by_id = reader.read_files_by_id("1000001000")
         self.assertEqual(len(result_by_id), 1)
         self.assertEqual(

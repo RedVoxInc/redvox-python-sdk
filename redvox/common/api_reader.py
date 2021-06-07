@@ -158,28 +158,44 @@ class ApiReader:
 
         diff_s = diff_e = timedelta(seconds=0)
 
-        # if our filtered files do not encompass the request even when the packet times are updated, increase buffers
-        # by 1.5 times the difference of the expected start/end and the start/end of the data
+        # if our filtered files do not encompass the request even when the packet times are updated
+        # try getting 1.5 times the difference of the expected start/end and the start/end of the data
         insufficient_str = ""
         if self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt:
             insufficient_str += " start"
-            diff_s = self.filter.start_dt_buf + 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
-        if self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt:
-            insufficient_str += " end"
-            diff_e = self.filter.end_dt_buf + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
-        if len(insufficient_str) > 0:
-            if self.debug:
-                print(f"Api Reader: {station_index.summarize().station_ids()} not enough data at{insufficient_str}")
+            # diff_s = self.filter.start_dt_buf + 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
+            new_end = self.filter.start_dt - self.filter.start_dt_buf
+            new_start = new_end - 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
             new_index = self._apply_filter(io.ReadFilter()
-                                           .with_start_dt(self.filter.start_dt)
-                                           .with_end_dt(self.filter.end_dt)
+                                           .with_start_dt(new_start)
+                                           .with_end_dt(new_end)
                                            .with_extensions(self.filter.extensions)
                                            .with_api_versions(self.filter.api_versions)
                                            .with_station_ids(set(station_index.summarize().station_ids()))
                                            .with_start_dt_buf(diff_s)
                                            .with_end_dt_buf(diff_e))
-            station_index = new_index
-            stats = fs.extract_stats(station_index, pool=_pool)
+            if len(new_index.entries) > 0:
+                station_index.append(new_index.entries)
+                stats.extend(fs.extract_stats(new_index))
+        if self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt:
+            insufficient_str += " end"
+            # diff_e = self.filter.end_dt_buf + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
+            new_start = self.filter.end_dt + self.filter.end_dt_buf
+            new_end = new_start + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
+            new_index = self._apply_filter(io.ReadFilter()
+                                           .with_start_dt(new_start)
+                                           .with_end_dt(new_end)
+                                           .with_extensions(self.filter.extensions)
+                                           .with_api_versions(self.filter.api_versions)
+                                           .with_station_ids(set(station_index.summarize().station_ids()))
+                                           .with_start_dt_buf(diff_s)
+                                           .with_end_dt_buf(diff_e))
+            if len(new_index.entries) > 0:
+                station_index.append(new_index.entries)
+                stats.extend(fs.extract_stats(new_index))
+        if len(insufficient_str) > 0:
+            if self.debug:
+                print(f"Api Reader: {station_index.summarize().station_ids()} not enough data at{insufficient_str}")
 
         results = {}
         keys = []
