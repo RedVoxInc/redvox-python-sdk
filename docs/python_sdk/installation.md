@@ -53,25 +53,25 @@ The following syntax is used to install a dependency with extras:
 For example, to install the `GUI` extra:
 
 ```
-pip install "redvox[GUI] --upgrade"
+pip install "redvox[GUI]" --upgrade
 ```
 
 To install the `native` extra:
 
 ```
-pip install "redvox[native] --upgrade"
+pip install "redvox[native]" --upgrade
 ```
 
 To install both extras:
 
 ```
-pip install "redvox[GUI,native] --upgrade"
+pip install "redvox[GUI,native]" --upgrade
 ```
 
 To install both extras with the `full` extra shortcut.
 
 ```
-pip install redvox[full] --upgrade
+pip install "redvox[full]" --upgrade
 ```
 
 ##### Verifying installation of the GUI extra
