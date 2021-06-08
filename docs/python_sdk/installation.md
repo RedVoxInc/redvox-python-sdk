@@ -43,7 +43,7 @@ The following table describes the available extras and their limitations.
 | Extra Name | Description | Additional Libraries | Caveats |
 |------------|-------------|----------------------|---------|
 | GUI        | Provides additional graphical user interfaces and plotting | [PySide6](https://pypi.org/project/PySide6/), [matplotlib](https://pypi.org/project/matplotlib/) | PySide6 may not be available for all platforms |
-| native     | Increase performance by providing natively compiled alternatives for selected code routines | [redvox_native](https://pypi.org/project/redvox-native/) | Only available on Linux and Intel based OS X (does not currently support Apple M1 or Windows) |
+| native     | Increase performance by providing natively compiled alternatives for selected code routines | [redvox_native](https://pypi.org/project/redvox-native/) | Only available on Linux, Windows, and Intel based OS X (does not currently support Apple M1) |
 | all | Installs both the GUI and the native extras | See above | See above |
 
 The following syntax is used to install a dependency with extras:
