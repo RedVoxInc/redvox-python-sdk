@@ -1,4 +1,4 @@
-# <img src="../img/redvox_logo.png" height="25"> **RedVox Python SDK Station and SensorData Manual**
+# <img src="../../img/redvox_logo.png" height="25"> **RedVox Python SDK Station and SensorData Manual**
 
 The RedVox Python SDK contains routines for reading, creating, and writing RedVox API 900 and RedVox API 1000 data files. The SDK is open-source.
 
@@ -252,7 +252,7 @@ SensorData represents a single real world recording device like a microphone or 
 
 Each SensorData object is a Pandas DataFrame with some additional metadata.
 
-Refer to the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station_data.html) as needed.
+Refer to the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/sensor_data.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
 

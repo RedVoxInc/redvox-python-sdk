@@ -4,8 +4,8 @@ The RedVox Python SDK contains routines for reading, creating, and writing RedVo
 data files. The SDK is open-source.
 
 DataWindow is a Python class designed to fetch data from a source.  
-It provides many filter options to the focusing on quick returns and
-is capable of reading and exporting to various formats.
+It provides many filter options, is capable of reading and exporting to various formats,
+and focuses on quickly returning results.
 
 If you wish to learn more about the low-level class used to construct DataWindow, refer to the [Station Documentation](station)
 
@@ -170,12 +170,12 @@ end_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
 
 `drop_time_s`: a float value representing the minimum number of seconds between data files that indicates a gap in the data.
-The default is `0.25` seconds.
+The default is `0.2` seconds.
 
 _Example:_
 
 ```python
-drop_time_s=0.25
+drop_time_s=0.2
 ```
 
 `extensions`: a set of strings representing the file extensions to filter on.  If `None` or not given, will return all files 
@@ -257,7 +257,7 @@ _[Table of Contents](#table-of-contents)_
 
 ### Using the Data Window Results
 
-DataWindow stores all the data gathered in its stations property, which is a list Station data objects.  There are various methods of accessing the Stations:
+DataWindow stores all the data gathered in its stations property, which is a list of Station data objects.  There are various methods of accessing the Stations:
 
 ```python
 station_list = datawindow.stations  # All stations as a list
@@ -265,7 +265,7 @@ station_list = datawindow.stations  # All stations as a list
 stations = datawindow.get_station(station_id, station_uuid, station_start_timestamp)
 ```
 
-We recommend using the datawindow.stations get all the Station objects and datawindow.get_station() to get specific Stations.
+We recommend using the datawindow.stations to get all the Station objects and datawindow.get_station() to get specific Stations.
 
 Each Station contains data from the sensors, as well as some metadata about the Station.
 
@@ -495,12 +495,12 @@ _Example:_
 ```python
 from redvox.common.data_window import DataWindow
 
-dw = DataWindow.from_json(base_dir, file_name)
-dw = DataWindow.from_json(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0))
-dw = DataWindow.from_json(base_dir, file_name, end_dt=datetime(2020, 12, 31, 0, 0, 0))
-dw = DataWindow.from_json(base_dir, file_name, station_ids=["1234567890", "9876543210"])
-dw = DataWindow.from_json(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0),
-                          end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
+dw = DataWindow.from_json_file(base_dir, file_name)
+dw = DataWindow.from_json_file(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0))
+dw = DataWindow.from_json_file(base_dir, file_name, end_dt=datetime(2020, 12, 31, 0, 0, 0))
+dw = DataWindow.from_json_file(base_dir, file_name, station_ids=["1234567890", "9876543210"])
+dw = DataWindow.from_json_file(base_dir, file_name, start_dt=datetime(2020, 1, 1, 0, 0, 0),
+                               end_dt=datetime(2020, 12, 31, 0, 0, 0), station_ids=["1234567890", "9876543210"])
 ```
 
 6. `from_json(json_str: str, dw_base_dir: str, start_dt: Optional[dtu.datetime] = None, end_dt: Optional[dtu.datetime] = None, station_ids: Optional[Iterable[str]] = None)`
@@ -569,9 +569,9 @@ with a timestamp within our query times.  We index the files for later analysis.
    use that to update the file timestamps to match our request times.
    * If we don't have a requested start and end time, we go straight to Data Aggregation
 
-2. We use UTC as the time zone for our data request.  Each recording device will have some amount of offset (LINK HERE), 
+2. We use UTC as the time zone for our data request.  Each recording device will have some amount of offset, 
    which is a difference in the device's time to "true" time.
-   * We can account for this offset by utilizing the basic information from each file to create an offset model (LINK HERE).  
+   * We can account for this offset by utilizing the basic information from each file to create an offset model.  
      We _**always**_ ADD our offset values to device time to get "true" time.
 
 3. Once we have the offset model, we can calculate the "true" time for our gathered data.  We simply take our data's 
@@ -583,10 +583,10 @@ with a timestamp within our query times.  We index the files for later analysis.
    * The "true" end time of the data is after our request end time
   
 5. If both of the conditions are true, we have all the data we need and can continue to Data Aggregation.
-
-6. If at least one of the two conditions is not true, we will update the query by increasing the respective side that failed
-   the criteria by 1.5 times the difference in "true" time and request time. This efficiently expands our search criteria 
-   to guarantee our next query will get what we need.
+   
+6. If at least one of the two conditions is not true, we will update the query by increasing the corresponding side's
+   buffer (default 2 minutes) that failed the criteria by 1.5 times the difference in "true" time and request time. 
+   This efficiently expands our search criteria to guarantee our next query will get what we need.
    
 7. We continue to Data Aggregation after our second query.
 
