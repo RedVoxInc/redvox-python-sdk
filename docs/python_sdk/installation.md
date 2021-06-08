@@ -1,5 +1,18 @@
 # <img src="img/redvox_logo.png" height="25"> **RedVox SDK Installation**
 
+## Table of Contents
+
+<!-- toc -->
+
+- [Installing/upgrading with pip](#installingupgrading-with-pip)
+- [Verifying the installation](#verifying-the-installation)
+- [Installing optional dependencies](#installing-optional-dependencies)
+    + [Verifying installation of the GUI extra](#verifying-installation-of-the-gui-extra)
+    + [Verifying installation of the native extra](#verifying-installation-of-the-native-extra)
+- [Source Distributions](#source-distributions)
+
+<!-- tocstop -->
+
 ### Installing/upgrading with pip
 
 The recommended way of installing the RedVox SDK is through [pip](https://pip.pypa.io/en/stable/). The RedVox SDK pip distribution is hosted on PyPI at https://pypi.org/project/redvox/.
@@ -30,7 +43,7 @@ The following table describes the available extras and their limitations.
 | Extra Name | Description | Additional Libraries | Caveats |
 |------------|-------------|----------------------|---------|
 | GUI        | Provides additional graphical user interfaces and plotting | [PySide6](https://pypi.org/project/PySide6/), [matplotlib](https://pypi.org/project/matplotlib/) | PySide6 may not be available for all platforms |
-| native     | Increase performance by providing natively compiled alternatives for selected code routines | [redvox_native](https://pypi.org/project/redvox-native/) | Only on Linux and Intel based OS X (does not currently support Apple M1 or Windows) |
+| native     | Increase performance by providing natively compiled alternatives for selected code routines | [redvox_native](https://pypi.org/project/redvox-native/) | Only available on Linux and Intel based OS X (does not currently support Apple M1 or Windows) |
 | all | Installs both the GUI and the native extras | See above | See above |
 
 The following syntax is used to install a dependency with extras:
