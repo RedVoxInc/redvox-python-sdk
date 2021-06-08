@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.0 (2021-6-7)
+
+* Official release 3.0.0
+
 ### 3.0.0rc38 (2021-6-1)
 
 * Moved Best Location values into their own sensor
