@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as requirements_file:
 
 setup(name=redvox.NAME,
       version=redvox.VERSION,
-      url='https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/',
+      url='https://github.com/RedVoxInc/redvox-python-sdk',
       license='Apache',
       author='RedVox',
       author_email='dev@redvoxsound.com',
