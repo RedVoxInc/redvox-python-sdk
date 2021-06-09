@@ -9,6 +9,10 @@ This repository contains code for reading and working with the RedVox API 900 an
 
 ## Changelog
 
+### 3.0.2 (2021-6-9)
+
+Update long description content type for better display on PyPI
+
 ### 3.0.1 (2021-6-9)
 
 * Update homepage links
