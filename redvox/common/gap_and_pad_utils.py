@@ -1,6 +1,9 @@
 from typing import List, Tuple, Optional
 import enum
+from math import modf
+from dataclasses import dataclass, field
 
+from dataclasses_json import dataclass_json
 import pandas as pd
 import numpy as np
 
@@ -23,6 +26,37 @@ NON_INTERPOLATED_COLUMNS = ["compressed_audio", "image"]
 # columns that are not numeric but can be interpolated
 NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec",
                        "network_type", "power_state", "cell_service"]
+
+
+@dataclass_json()
+@dataclass
+class GapAndPadExceptions:
+    """
+    all the errors go here
+    """
+    errors: List[str] = field(default_factory=list)
+
+    def get(self) -> List[str]:
+        """
+        :return: the list of errors
+        """
+        return self.errors
+
+    def append(self, msg: str):
+        """
+        append an error message to the list of errors
+        :param msg: error message to add
+        """
+        self.errors.append(msg)
+
+    def print(self):
+        """
+        print all errors
+        """
+        if len(self.errors) > 0:
+            print("Errors encountered while creating station:")
+            for error in self.errors:
+                print(error)
 
 
 # noinspection Mypy,DuplicatedCode
@@ -207,7 +241,7 @@ def fill_audio_gaps(
       * converts gaps with duration greater than or equal to packet length * gap_upper_limit into a multiple of
         packet length
 
-    :param packet_data: list of tuples, each tuple containing three pieces of packet information:
+    :param packet_data: list of tuples, each tuple containing two pieces of packet information:
         * packet_start_timestamps: float of packet start timestamp in microseconds
         * audio_data: array of data points
     :param sample_interval_micros: sample interval in microseconds
@@ -224,19 +258,20 @@ def fill_audio_gaps(
         start_ts = packet[0]
         packet_length = sample_interval_micros * samples_in_packet
         if last_data_timestamp:
+            last_data_timestamp += sample_interval_micros
             # check if start_ts is close to the last timestamp in data_timestamps
             last_timestamp_diff = start_ts - last_data_timestamp
-            if np.abs(last_timestamp_diff) < gap_lower_limit * packet_length:
-                start_ts = last_data_timestamp + sample_interval_micros
-            elif last_timestamp_diff < 0:
+            if last_timestamp_diff < 0:
                 raise ValueError(f"ERROR: Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} is before "
                                  f"last timestamp of previous "
                                  f"packet: {dtu.microseconds_to_seconds(last_data_timestamp)}")
-            else:
-                if last_timestamp_diff > gap_upper_limit * packet_length:
-                    num_samples = samples_in_packet
+            elif np.abs(last_timestamp_diff) > gap_lower_limit * packet_length:
+                fractional_packet, num_packets = modf(last_timestamp_diff /
+                                                      (samples_in_packet * sample_interval_micros))
+                if fractional_packet > gap_upper_limit * packet_length:
+                    num_samples = samples_in_packet * (num_packets + 1)
                 else:
-                    num_samples = np.ceil(last_timestamp_diff / sample_interval_micros) - 1
+                    num_samples = np.ceil((fractional_packet + num_packets) * samples_in_packet)
                 gap_ts = calc_evenly_sampled_timestamps(last_data_timestamp, num_samples, sample_interval_micros)
                 gap_array = [gap_ts, np.full(len(gap_ts), np.nan)]
                 start_ts = gap_ts[-1] + sample_interval_micros

@@ -231,3 +231,11 @@ class InterpolateGapsTest(unittest.TestCase):
         gaps = [(4000, 6000), (1000, 8000), (9000, 15000)]
         filled_df = gpu.fill_gaps(my_df, gaps, 1000)
         self.assertEqual(len(filled_df["timestamps"]), 15)
+
+
+class AudioGapFillTest(unittest.TestCase):
+    def test_create_simple_df(self):
+        my_data = ([(1000, [10, 20, 30, 40]), (2000, [40, 30, 20, 10]), (5000, [5, 15, 25, 35])])
+        sample_interval = 250
+        filled_df, gaps = gpu.fill_audio_gaps(my_data, sample_interval)
+        self.assertEqual(len(filled_df["timestamps"]), 20)
