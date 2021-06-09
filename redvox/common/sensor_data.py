@@ -10,6 +10,7 @@ import pandas as pd
 
 import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
+from redvox.common.errors import RedVoxExceptions
 from redvox.common.gap_and_pad_utils import calc_evenly_sampled_timestamps
 from redvox.api1000.wrapped_redvox_packet.station_information import (
     NetworkType,
@@ -166,6 +167,7 @@ class SensorData:
         self.sample_interval_std_s: float = sample_interval_std_s
         self.is_sample_rate_fixed: bool = is_sample_rate_fixed
         self.timestamps_altered: bool = are_timestamps_altered
+        self.errors: RedVoxExceptions = RedVoxExceptions("Sensor")
         if calculate_stats:
             self.organize_and_update_stats()
         else:

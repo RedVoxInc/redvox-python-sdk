@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from redvox.common import date_time_utils as dtu
+from redvox.common.errors import RedVoxExceptions, RedVoxError
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
@@ -28,37 +29,6 @@ NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec",
                        "network_type", "power_state", "cell_service"]
 
 
-@dataclass_json()
-@dataclass
-class GapAndPadExceptions:
-    """
-    all the errors go here
-    """
-    errors: List[str] = field(default_factory=list)
-
-    def get(self) -> List[str]:
-        """
-        :return: the list of errors
-        """
-        return self.errors
-
-    def append(self, msg: str):
-        """
-        append an error message to the list of errors
-        :param msg: error message to add
-        """
-        self.errors.append(msg)
-
-    def print(self):
-        """
-        print all errors
-        """
-        if len(self.errors) > 0:
-            print("Errors encountered while creating station:")
-            for error in self.errors:
-                print(error)
-
-
 # noinspection Mypy,DuplicatedCode
 class DataPointCreationMode(enum.Enum):
     """
@@ -72,6 +42,24 @@ class DataPointCreationMode(enum.Enum):
     @staticmethod
     def list_names() -> List[str]:
         return [n.name for n in DataPointCreationMode]
+
+
+@dataclass_json()
+@dataclass
+class GapPadResult:
+    """
+    The result of filling gaps or padding a time series
+    """
+    result_df: Optional[pd.DataFrame] = None
+    gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
+    errors: RedVoxExceptions = field(default_factory=lambda: RedVoxExceptions("GapPadResult"))
+
+    def add_error(self, error: str):
+        """
+        add an error to the result
+        :param error: error message to add
+        """
+        self.errors.append(error)
 
 
 def calc_evenly_sampled_timestamps(
@@ -234,7 +222,7 @@ def fill_audio_gaps(
         sample_interval_micros: float,
         gap_upper_limit: float = DEFAULT_GAP_UPPER_LIMIT,
         gap_lower_limit: float = DEFAULT_GAP_LOWER_LIMIT
-) -> (pd.DataFrame, List[Tuple[float, float]]):
+) -> GapPadResult:
     """
     fills gaps in the dataframe with np.nan by interpolating timestamps based on the expected sample interval
       * ignores gaps with duration less than or equal to packet length * gap_lower_limit
@@ -261,17 +249,13 @@ def fill_audio_gaps(
             last_data_timestamp += sample_interval_micros
             # check if start_ts is close to the last timestamp in data_timestamps
             last_timestamp_diff = start_ts - last_data_timestamp
-            if last_timestamp_diff < 0:
-                raise ValueError(f"ERROR: Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} is before "
-                                 f"last timestamp of previous "
-                                 f"packet: {dtu.microseconds_to_seconds(last_data_timestamp)}")
-            elif np.abs(last_timestamp_diff) > gap_lower_limit * packet_length:
+            if last_timestamp_diff > gap_lower_limit * packet_length:
                 fractional_packet, num_packets = modf(last_timestamp_diff /
                                                       (samples_in_packet * sample_interval_micros))
-                if fractional_packet > gap_upper_limit * packet_length:
+                if fractional_packet >= gap_upper_limit:
                     num_samples = samples_in_packet * (num_packets + 1)
                 else:
-                    num_samples = np.ceil((fractional_packet + num_packets) * samples_in_packet)
+                    num_samples = np.max([np.floor((fractional_packet + num_packets) * samples_in_packet), 1])
                 gap_ts = calc_evenly_sampled_timestamps(last_data_timestamp, num_samples, sample_interval_micros)
                 gap_array = [gap_ts, np.full(len(gap_ts), np.nan)]
                 start_ts = gap_ts[-1] + sample_interval_micros
@@ -279,12 +263,18 @@ def fill_audio_gaps(
                 result_array[0].extend(gap_array[0])
                 result_array[1].extend(gap_array[0])
                 result_array[2].extend(gap_array[1])
+            elif last_timestamp_diff < -gap_lower_limit * packet_length:
+                result = GapPadResult()
+                result.add_error(f"ERROR: Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} is before "
+                                 f"last timestamp of previous "
+                                 f"packet: {dtu.microseconds_to_seconds(last_data_timestamp)}")
+                return result
         estimated_ts = calc_evenly_sampled_timestamps(start_ts, samples_in_packet, sample_interval_micros)
         last_data_timestamp = estimated_ts[-1]
         result_array[0].extend(estimated_ts)
         result_array[1].extend(estimated_ts)
         result_array[2].extend(packet[1])
-    return pd.DataFrame(np.transpose(result_array), columns=AUDIO_DF_COLUMNS), gaps
+    return GapPadResult(pd.DataFrame(np.transpose(result_array), columns=AUDIO_DF_COLUMNS), gaps)
 
 
 def add_data_points_to_df(dataframe: pd.DataFrame,

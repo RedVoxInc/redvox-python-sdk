@@ -447,37 +447,39 @@ def load_apim_audio_from_list(
         if __has_sensor(
                 packets[0], __AUDIO_FIELD_NAME
         ):  # and packets[0].get_sensors().validate_audio():
-            try:
-                sample_rate_hz: float = packets[0].sensors.audio.sample_rate
-                packet_info = [
-                    (
-                        p.sensors.audio.first_sample_timestamp,
-                        np.array(p.sensors.audio.samples.values),
-                    )
-                    for p in packets
-                ]
-                df, gaps = gpu.fill_audio_gaps(
-                    packet_info, dtu.seconds_to_microseconds(1 / sample_rate_hz)
+            sample_rate_hz: float = packets[0].sensors.audio.sample_rate
+            packet_info = [
+                (
+                    p.sensors.audio.first_sample_timestamp,
+                    np.array(p.sensors.audio.samples.values),
                 )
+                for p in packets
+            ]
+            gp_result = gpu.fill_audio_gaps(
+                packet_info, dtu.seconds_to_microseconds(1 / sample_rate_hz)
+            )
+            sensor_data = SensorData(
+                get_sensor_description_list(packets, SensorType.AUDIO),
+                gp_result.result_df,
+                SensorType.AUDIO,
+                sample_rate_hz,
+                1 / sample_rate_hz,
+                0.0,
+                True,
+                )
+            if len(gp_result.errors.get()) > 0:
+                sensor_data.errors.extend_error(gp_result.errors.get())
 
-                return (
-                    SensorData(
-                        get_sensor_description_list(packets, SensorType.AUDIO),
-                        df,
-                        SensorType.AUDIO,
-                        sample_rate_hz,
-                        1 / sample_rate_hz,
-                        0.0,
-                        True,
-                        ),
-                    gaps,
-                )
-            except ValueError as error:
-                print(
-                    "Error occurred while loading audio data for station "
-                    f"{packets[0].station_information.id}.\n"
-                    f"Original error message: {error}"
-                )
+            return (
+                sensor_data,
+                gp_result.gaps,
+            )
+            # except ValueError as error:
+            #     print(
+            #         "Error occurred while loading audio data for station "
+            #         f"{packets[0].station_information.id}.\n"
+            #         f"Original error message: {error}"
+            #     )
     return None, []
 
 

@@ -234,8 +234,44 @@ class InterpolateGapsTest(unittest.TestCase):
 
 
 class AudioGapFillTest(unittest.TestCase):
-    def test_create_simple_df(self):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.sample_interval = 250
+
+    def test_audio_gap_df(self):
         my_data = ([(1000, [10, 20, 30, 40]), (2000, [40, 30, 20, 10]), (5000, [5, 15, 25, 35])])
-        sample_interval = 250
-        filled_df, gaps = gpu.fill_audio_gaps(my_data, sample_interval)
+        result = gpu.fill_audio_gaps(my_data, self.sample_interval)
+        filled_df = result.result_df
+        gaps = result.gaps
         self.assertEqual(len(filled_df["timestamps"]), 20)
+        self.assertEqual(len(gaps), 1)
+
+    def test_misshapen_audio_gap_df(self):
+        my_data = ([(1000, [10, 20, 30, 40]), (2000, [40, 30, 20, 10]), (4500, [5, 15, 25, 35])])
+        result = gpu.fill_audio_gaps(my_data, self.sample_interval)
+        filled_df = result.result_df
+        gaps = result.gaps
+        self.assertEqual(len(filled_df["timestamps"]), 18)
+        self.assertEqual(len(gaps), 1)
+
+    def test_tiny_audio_gap_df(self):
+        my_data = ([(1000, [10, 20, 30, 40]), (2000, [40, 30, 20, 10]), (3005, [5, 15, 25, 35])])
+        result = gpu.fill_audio_gaps(my_data, self.sample_interval)
+        filled_df = result.result_df
+        gaps = result.gaps
+        self.assertEqual(len(filled_df["timestamps"]), 12)
+        self.assertEqual(len(gaps), 0)
+
+    def test_undersized_audio_gap_df(self):
+        my_data = ([(1000, [10, 20, 30, 40]), (2000, [40, 30, 20, 10]), (3100, [5, 15, 25, 35])])
+        result = gpu.fill_audio_gaps(my_data, self.sample_interval)
+        filled_df = result.result_df
+        gaps = result.gaps
+        self.assertEqual(len(filled_df["timestamps"]), 13)
+        self.assertEqual(len(gaps), 1)
+
+    def test_failure_audio_gap_df(self):
+        my_data = ([(1000, [10, 20, 30, 40]), (1500, [40, 30, 20, 10])])
+        result = gpu.fill_audio_gaps(my_data, self.sample_interval)
+        error = result.errors.get()
+        self.assertEqual(len(error), 1)

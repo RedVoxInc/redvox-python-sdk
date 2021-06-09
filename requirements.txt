@@ -11,5 +11,5 @@ protobuf>=3.12.2
 pyserde
 requests>=2.24.0
 scipy>=1.5.1
-sklearn
+scikit-learn
 toml

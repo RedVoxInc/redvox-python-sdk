@@ -6,47 +6,15 @@ Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due
 from typing import List, Optional, Tuple
 from itertools import repeat
 from types import FunctionType
-from dataclasses import dataclass, field
 
-from dataclasses_json import dataclass_json
 import numpy as np
 
 from redvox.common import sensor_data as sd
 from redvox.common import sensor_reader_utils as sdru
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSyncAnalysis
+from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
-
-
-@dataclass_json()
-@dataclass
-class StationExceptions:
-    """
-    all the errors go here
-    """
-    errors: List[str] = field(default_factory=list)
-
-    def get(self) -> List[str]:
-        """
-        :return: the list of errors
-        """
-        return self.errors
-
-    def append(self, msg: str):
-        """
-        append an error message to the list of errors
-        :param msg: error message to add
-        """
-        self.errors.append(msg)
-
-    def print(self):
-        """
-        print all errors
-        """
-        if len(self.errors) > 0:
-            print("Errors encountered while creating station:")
-            for error in self.errors:
-                print(error)
 
 
 class Station:
@@ -88,7 +56,7 @@ class Station:
         self.packet_metadata: List[st_utils.StationPacketMetadata] = []
         self.is_timestamps_updated = False
         self._gaps: List[Tuple[float, float]] = []
-        self.errors: StationExceptions = StationExceptions()
+        self.errors: RedVoxExceptions = RedVoxExceptions("Station")
         if data_packets and st_utils.validate_station_key_list(data_packets, True):
             # noinspection Mypy
             self._load_metadata_from_packet(data_packets[0])

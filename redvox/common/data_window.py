@@ -5,16 +5,13 @@ combine the data packets into a new data packet based on the user parameters
 from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
-from dataclasses import dataclass, field
 
-import redvox
-from dataclasses_json import dataclass_json
 import multiprocessing
 import multiprocessing.pool
 import pickle
-
 import numpy as np
 
+import redvox
 from redvox.common import date_time_utils as dtu
 from redvox.common import io
 from redvox.common.parallel_utils import maybe_parallel_map
@@ -23,51 +20,12 @@ from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader import ApiReader
 from redvox.common.data_window_configuration import DataWindowConfig
 from redvox.common import gap_and_pad_utils as gpu
+from redvox.common.errors import RedVoxExceptions
 
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
 DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
 # minimum default length of time in seconds for data to be off by to be considered suspicious
 DATA_DROP_DURATION_S: float = 0.2
-
-
-@dataclass_json()
-@dataclass
-class DataWindowExceptions:
-    """
-    all the errors go here
-    """
-    errors: List[str] = field(default_factory=list)
-
-    def get(self) -> List[str]:
-        """
-        :return: the list of errors
-        """
-        return self.errors
-
-    def append(self, msg: str):
-        """
-        append an error message to the list of errors
-
-        :param msg: error message to add
-        """
-        self.errors.append(msg)
-
-    def extend(self, msgs: List[str]):
-        """
-        extend a list of error messages to the list of errors
-
-        :param msgs: error messages to add
-        """
-        self.errors.extend(msgs)
-
-    def print(self):
-        """
-        print all errors
-        """
-        if len(self.errors) > 0:
-            print("Errors encountered while creating data window:")
-            for error in self.errors:
-                print(error)
 
 
 class DataWindow:
@@ -118,7 +76,7 @@ class DataWindow:
         copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
         debug: bool = False
     ):
-        self.errors = DataWindowExceptions()
+        self.errors = RedVoxExceptions("DataWindow")
         self.input_directory: str = input_dir
         self.structured_layout: bool = structured_layout
         self.start_datetime: Optional[dtu.datetime] = start_datetime
@@ -364,7 +322,7 @@ class DataWindow:
         return None
 
     def _add_sensor_to_window(self, station: Station):
-        self.errors.extend(station.errors.get())
+        self.errors.extend_error(station.errors.get())
         # set the window start and end if they were specified, otherwise use the bounds of the data
         self.create_window_in_sensors(station, self.start_datetime, self.end_datetime)
 
