@@ -89,7 +89,7 @@ class Station:
         self.start_timestamp = packet.timing_information.app_start_mach_timestamp
         if self.start_timestamp < 0:
             self.errors.append(
-                f"WARNING: Station {self.id} has station start date before epoch.  "
+                f"Station {self.id} has station start date before epoch.  "
                 f"Station start date reset to np.nan"
             )
             self.start_timestamp = np.nan
@@ -166,13 +166,13 @@ class Station:
         """
         if self.id:
             if self.uuid:
-                # if not np.isnan(self.start_timestamp):
+                if np.isnan(self.start_timestamp):
+                    self.errors.append("Station start timestamp not defined.")
                 return True
-                # self.errors.append("WARNING: Station start timestamp is not valid.")
             else:
-                self.errors.append("WARNING: Station uuid is not valid.")
+                self.errors.append("Station uuid is not valid.")
         else:
-            self.errors.append("WARNING: Station id is not set.")
+            self.errors.append("Station id is not set.")
         return False
 
     def get_key(self) -> Optional[st_utils.StationKey]:
@@ -1027,7 +1027,7 @@ class Station:
         updates the timestamps in the station using the offset model
         """
         if self.is_timestamps_updated:
-            self.errors.append("WARNING: Timestamps already corrected!")
+            self.errors.append("Timestamps already corrected!")
         else:
             for sensor in self.data:
                 sensor.update_data_timestamps(self.timesync_analysis.offset_model)

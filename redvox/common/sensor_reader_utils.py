@@ -446,7 +446,7 @@ def load_apim_audio_from_list(
     if len(packets) > 0:
         if __has_sensor(
                 packets[0], __AUDIO_FIELD_NAME
-        ):  # and packets[0].get_sensors().validate_audio():
+        ):
             sample_rate_hz: float = packets[0].sensors.audio.sample_rate
             packet_info = [
                 (
@@ -474,12 +474,6 @@ def load_apim_audio_from_list(
                 sensor_data,
                 gp_result.gaps,
             )
-            # except ValueError as error:
-            #     print(
-            #         "Error occurred while loading audio data for station "
-            #         f"{packets[0].station_information.id}.\n"
-            #         f"Original error message: {error}"
-            #     )
     return None, []
 
 

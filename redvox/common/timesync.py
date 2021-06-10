@@ -584,8 +584,8 @@ class TimeSyncAnalysis:
                     != self.station_start_timestamp
             ):
                 self.errors.append(
-                    f"Warning!  Change in station start timestamp detected!  "
-                    f"Expected: {self.station_start_timestamp}, read: "
+                    f"Change in station start timestamp detected; "
+                    f"expected: {self.station_start_timestamp}, read: "
                     f"{self.timesync_data[index].station_start_timestamp}"
                 )
                 if debug:
@@ -608,8 +608,8 @@ class TimeSyncAnalysis:
                     or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
             ):
                 self.errors.append(
-                    f"Warning!  Change in station sample rate detected!  "
-                    f"Expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}"
+                    f"Change in station sample rate detected; "
+                    f"expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}"
                 )
                 if debug:
                     self.errors.print()
@@ -639,7 +639,7 @@ class TimeSyncAnalysis:
                         )
                         > gap_duration_s
                 ):
-                    self.errors.append(f"Warning!  Gap detected at packet number: {index}")
+                    self.errors.append(f"Gap detected at packet number: {index}")
                     if debug:
                         self.errors.print()
                     return False

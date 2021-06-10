@@ -21,6 +21,7 @@ def validate_station_key_list(
     """
     Checks for consistency in the data packets.  Returns False if discrepancies are found.
     If debug is True, will output the discrepancies.
+
     :param data_packets: list of WrappedRedvoxPacketM to look at
     :param debug: bool, if True, output any discrepancies found, default False
     :return: True if no discrepancies found.  False otherwise
@@ -103,6 +104,9 @@ class StationKey:
                   start_timestamp: Optional[float] = None) -> bool:
         """
         check if the key has the values specified.  If the parameter is None, any value will match.
+        Note that NAN is a valid value for start_timestamps, but any station with start_timestamp = NAN
+        will not match any value, including another NAN.
+
         :param station_id: station id, default None
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
@@ -114,7 +118,8 @@ class StationKey:
         if station_uuid is not None and station_uuid != self.uuid:
             # print(f"Uuid {station_uuid} does not equal station's uuid: {self.uuid}")
             return False
-        if start_timestamp is not None and start_timestamp != self.start_timestamp_micros:
+        if start_timestamp is not None and start_timestamp != self.start_timestamp_micros \
+                or np.isnan(start_timestamp) or np.isnan(self.start_timestamp_micros):
             # print(f"Start timestamp {start_timestamp} does not equal station's "
             #       f"start timestamp: {self.start_timestamp_micros}")
             return False
@@ -123,6 +128,7 @@ class StationKey:
     def compare_key(self, other_key: "StationKey") -> bool:
         """
         compare key to another station's key
+
         :param other_key: another station's key
         :return: True if the keys match
         """
@@ -151,6 +157,7 @@ class StationMetadata:
     def __init__(self, app: str, packet: Optional[api_m.RedvoxPacketM] = None):
         """
         initialize the metadata
+
         :param app: app name
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
@@ -223,6 +230,7 @@ class StationMetadataWrapped:
     def __init__(self, app: str, packet: Optional[WrappedRedvoxPacketM] = None):
         """
         initialize the metadata
+
         :param app: app name
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
@@ -288,6 +296,7 @@ class StationPacketMetadata:
     def __init__(self, packet: Optional[api_m.RedvoxPacketM] = None):
         """
         initialize the metadata
+
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
         self.other_metadata = {}
@@ -340,6 +349,7 @@ class StationPacketMetadataWrapped:
     def __init__(self, packet: Optional[WrappedRedvoxPacketM] = None):
         """
         initialize the metadata
+
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
         self.other_metadata = {}
@@ -367,6 +377,7 @@ class StationPacketMetadataWrapped:
     def update_timestamps(self, om: OffsetModel):
         """
         updates the timestamps in the metadata using the offset model
+
         :param om: OffsetModel to apply to data
         """
         self.packet_start_mach_timestamp = om.update_time(
