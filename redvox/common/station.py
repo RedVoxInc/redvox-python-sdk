@@ -63,6 +63,8 @@ class Station:
             self.timesync_analysis = TimeSyncAnalysis(
                 self.id, self.audio_sample_rate_nominal_hz, self.start_timestamp
             ).from_raw_packets(data_packets)
+            if self.timesync_analysis.errors.get_num_errors() > 0:
+                self.errors.extend_error(self.timesync_analysis.errors)
             self._set_all_sensors(data_packets)
             self._get_start_and_end_timestamps()
         else:
@@ -195,14 +197,13 @@ class Station:
             self.packet_metadata.extend(new_station.packet_metadata)
             self._sort_metadata_packets()
             self._get_start_and_end_timestamps()
-            new_timesync_analysis = TimeSyncAnalysis(
+            self.timesync_analysis = TimeSyncAnalysis(
                 self.id,
                 self.audio_sample_rate_nominal_hz,
                 self.start_timestamp,
                 self.timesync_analysis.timesync_data
                 + new_station.timesync_analysis.timesync_data,
                 )
-            self.timesync_analysis = new_timesync_analysis
 
     def append_station_data(self, new_station_data: List[sd.SensorData]):
         """
@@ -237,6 +238,7 @@ class Station:
             self.get_sensor_by_type(sensor_data.type).append_data(sensor_data.data_df)
         else:
             self._add_sensor(sensor_data.type, sensor_data)
+        self.errors.extend_error(sensor_data.errors)
 
     def _delete_sensor(self, sensor_type: sd.SensorType):
         """

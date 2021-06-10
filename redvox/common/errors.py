@@ -36,7 +36,7 @@ class RedVoxExceptions:
 
         :param msg: error message to add
         """
-        self._errors.append(RedVoxError(msg))
+        self._errors.append(RedVoxError(f"{self._obj_class}: {msg}"))
         self._num_errors += 1
 
     def append_error(self, error: RedVoxError):
@@ -57,14 +57,14 @@ class RedVoxExceptions:
         self._errors.extend([RedVoxError(msg) for msg in msgs])
         self._num_errors += len(msgs)
 
-    def extend_error(self, errors: List[RedVoxError]):
+    def extend_error(self, errors: "RedVoxExceptions"):
         """
         extend a list of error messages to the list of errors
 
         :param errors: errors to add
         """
-        self._errors.extend(errors)
-        self._num_errors += len(errors)
+        self._errors.extend(errors.get())
+        self._num_errors += errors.get_num_errors()
 
     def get_num_errors(self) -> int:
         """

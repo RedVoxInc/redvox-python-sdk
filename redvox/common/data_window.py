@@ -322,7 +322,7 @@ class DataWindow:
         return None
 
     def _add_sensor_to_window(self, station: Station):
-        self.errors.extend_error(station.errors.get())
+        self.errors.extend_error(station.errors)
         # set the window start and end if they were specified, otherwise use the bounds of the data
         self.create_window_in_sensors(station, self.start_datetime, self.end_datetime)
 
