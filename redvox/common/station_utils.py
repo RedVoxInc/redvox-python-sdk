@@ -118,8 +118,8 @@ class StationKey:
         if station_uuid is not None and station_uuid != self.uuid:
             # print(f"Uuid {station_uuid} does not equal station's uuid: {self.uuid}")
             return False
-        if start_timestamp is not None and start_timestamp != self.start_timestamp_micros \
-                or np.isnan(start_timestamp) or np.isnan(self.start_timestamp_micros):
+        if start_timestamp is not None and (start_timestamp != self.start_timestamp_micros
+                                            or np.isnan(start_timestamp) or np.isnan(self.start_timestamp_micros)):
             # print(f"Start timestamp {start_timestamp} does not equal station's "
             #       f"start timestamp: {self.start_timestamp_micros}")
             return False
