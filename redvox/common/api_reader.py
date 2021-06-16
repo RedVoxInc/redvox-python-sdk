@@ -1,15 +1,11 @@
 """
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
-The ReadResult object converts api900 data into api 1000 format
 """
-from collections import defaultdict
-from typing import List, Optional, Dict, Iterator
+from typing import List, Optional
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
-
-import numpy as np
 
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import offset_model
@@ -284,34 +280,3 @@ class ApiReader:
         if len(result) < 1:
             return None
         return result
-
-    # def _stations_by_key(self, get_id: str) -> List[Station]:
-    #     """
-    #     return the start datetime and the list of packets that have the start datetime for a single station id
-    #     :param get_id: the single id to get data for
-    #     :return: list of stations where each station has different start datetimes but the same station id
-    #     """
-    #     packets = self.read_files_by_id(get_id)
-    #     if packets:
-    #         result = {}
-    #         if packets[0].timing_information.app_start_mach_timestamp \
-    #                 != packets[-1].timing_information.app_start_mach_timestamp:
-    #             sts = np.unique([p.timing_information.app_start_mach_timestamp for p in packets])
-    #             for st in sts:
-    #                 result[st] = [p for p in packets if p.timing_information.app_start_mach_timestamp == st]
-    #         else:
-    #             result[packets[0].timing_information.app_start_mach_timestamp] = packets
-    #         return [Station(d) for d in result.values()]
-    #     else:
-    #         return []
-
-    # def sort_files_by_station(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[Station]:
-    #     stations_opt = maybe_parallel_map(
-    #         pool,
-    #         self._stations_by_key,
-    #         iter(self.read_files().keys()),
-    #         lambda: len(self.read_files().keys()) > 2,
-    #         chunk_size=1
-    #     )
-    #     # return result
-    #     return [item for sublist in stations_opt for item in sublist]

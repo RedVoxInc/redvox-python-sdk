@@ -570,7 +570,6 @@ class IndexTests(IoTestCase):
 
         self.assertEqual(8, len(index.entries))
 
-
     def test_read_all_raw(self):
         from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
