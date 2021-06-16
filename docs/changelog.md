@@ -1,8 +1,14 @@
 ## Changelog
 
+### 3.0.3 (2021-6-16)
+
+* Removed NaN padding from edges of audio sensors
+* Streamlined gap-filling method
+* Low-level API docs and links updated
+
 ### 3.0.2 (2021-6-9)
 
-Update long description content type for better display on PyPI
+* Update long description content type for better display on PyPI
 
 ### 3.0.1 (2021-6-9)
 
