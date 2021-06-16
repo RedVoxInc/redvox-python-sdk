@@ -505,18 +505,18 @@ class DataWindow:
                     drop=True
                 )
                 # if sensor is audio or location, we want nan'd edge points
-                if is_audio or sensor.type == SensorType.LOCATION:
+                if sensor.type == SensorType.LOCATION:
                     new_point_mode = gpu.DataPointCreationMode["NAN"]
                 else:
                     new_point_mode = self.copy_edge_points
                 # add in the data points at the edges of the window if there are defined start and/or end times
                 # or the sensor is not audio
-                if not is_audio or self.end_datetime:
+                if not is_audio:
+                    # add to end
                     sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, sensor.num_samples() - 1,
                                                                end_date_timestamp - sensor.last_data_timestamp(),
                                                                point_creation_mode=new_point_mode)
-
-                if not is_audio or self.start_datetime:
+                    # add to begin
                     sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, 0,
                                                                start_date_timestamp - sensor.first_data_timestamp(),
                                                                point_creation_mode=new_point_mode)
