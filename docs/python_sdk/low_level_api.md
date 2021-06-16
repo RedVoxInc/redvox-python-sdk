@@ -7,7 +7,7 @@ The SDK provides a lower level API as well as direct access to the underlying pr
 <!-- toc -->
 
 - [SDK Low-Level API and Usage](#sdk-low-level-api-and-usage)
-  * [Index Module](#index-module)
+  * [Index Class](#index-class)
     + [Reading data from the file system](#reading-data-from-the-file-system)
     + [Streaming data from the file system](#streaming-data-from-the-file-system)
     + [Selectively filtering data](#selectively-filtering-data)
@@ -33,10 +33,10 @@ The SDK provides a lower level API as well as direct access to the underlying pr
 <!-- tocstop -->
 
 ## SDK Low-Level API and Usage
-### Index Module
+### Index Class
 
-The [Index](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html) module is used for reading or 
-streaming API M ".rdvxm" files from disk or byte streams.
+The [Index](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.Index) class is used 
+for reading or streaming API M ".rdvxm" files from disk or byte streams.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -53,7 +53,7 @@ These methods skim the directory specified to create an index of files to read.
 
 You can then read the files directly into memory using the index's [read_raw](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.Index.read_raw) 
 or [read](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.Index.read) method. 
-The `read_raw` method uses the low-level representation, while `read` uses [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM) 
+The `read_raw` method uses the low-level representation, while `read` uses [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) 
 objects, which will be explained later in the manual. 
 While these methods make it convenient to work with the data, they can consume large amounts of memory for large data sets. If this is a concern, consider the streaming alternatives described later in this manual.
 
@@ -88,7 +88,7 @@ When working with large data sets, the `index.read` and `index.read_raw` methods
 [stream_raw](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.Index.stream_raw)
 provide lazy streaming alternatives.
 
-The `stream` method lazily loads and iterates over a single [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM) 
+The `stream` method lazily loads and iterates over a single [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) 
 at a time.  The `stream_raw` method does the same but over single low-level representations. While this is memory 
 efficient, it is up to the programmer to implement their own aggregation and analysis logic on top of this iterator.
 
@@ -107,6 +107,7 @@ unstructured_iterator: Iterator['WrappedRedvoxPacketM'] = index.stream()
 
 packet: 'WrappedRedvoxPacketM'
 for packet in unstructured_iterator:
+  # iterating over mid-level representations
   print(packet.default_filename())
 ```
 
@@ -144,6 +145,8 @@ structured_iterator: Iterator['RedvoxPacketM'] = index.stream_raw()
 
 packet: 'RedvoxPacketM'
 for packet in structured_iterator:
+  # iterating over low-level representations
+  # note how much more code is required to get the same information as above
   print(f"{packet.get_station_information().get_id():0>10}_{round(packet.get_timing_information().get_packet_start_mach_timestamp())}.rdvxm")
 ```
 
@@ -234,10 +237,11 @@ _[Table of Contents](#table-of-contents)_
 
 ### The WrappedRedvoxPacketM Type
 
-When data is read by the mid-level API, [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.RedvoxPacketM) 
+When data is read by the mid-level API, [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) 
 objects are returned.
 
-This type encapsulates the underlying protobuf and provides a mid-level interface for accessing and setting the underlying protobuf data in a semi type-safe way. All API M data for a single packet is accessible through this type.
+This type encapsulates the underlying protobuf and provides a mid-level interface for accessing and setting the 
+underlying protobuf data in a semi type-safe way. All API M data for a single packet is accessible through this type.
 
 The following sections will describe the `WrappedRedvoxPacketM` in detail.
 
@@ -245,9 +249,11 @@ _[Table of Contents](#table-of-contents)_
 
 ### Working with Station Information
 
-The [StationInformation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation) encapsulates the station state, a copy of the station's AppSettings, and a collection of `StationMetrics`.
+The [StationInformation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation) 
+encapsulates the station state, a copy of the station's AppSettings, and a collection of `StationMetrics`.
 
-The `StationInformation` can be retrieved by calling [get_station_information](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_station_information) on an instance of a `WrappedRedvoxPacketM`.
+The `StationInformation` can be retrieved by calling [get_station_information](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_station_information) 
+ on an instance of a `WrappedRedvoxPacketM`.
 
 To get a quick idea about what resides in a `StationInformation`, let's retrieve one and print it out which will print 
 out the JSON representation of the `StationInformation`.
@@ -1791,8 +1797,8 @@ recent location estimate of that station.
 The `overall_best_location` field stores the best computed location since the station started recording.
 
 Each `BestLocation` type has fields that represent various location metrics at potentially different points in time. 
-For example, the best latitude and longitude with associated timestamp. The best altitude with associated timestamp. 
-The best bearing with associated timestamp. The best speed with associated timestamp. Associated accuracies and 
+For example, the best latitude and longitude have an associated timestamp. The best altitude, the best bearing and the 
+best speed each have their own associated timestamp. Associated accuracies and 
 scores are set when available.
 
 Timestamps within the `BestLocation` type are represented using the 
