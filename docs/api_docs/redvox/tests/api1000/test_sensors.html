@@ -172,7 +172,14 @@ not have a method with the specified name.</p></div>
         self.assertEqual(self.non_empty_sensors.get_gyroscope(), None)
         self.assertFalse(self.non_empty_sensors.validate_velocity())
         self.assertTrue(self.non_empty_sensors.validate_audio())
-        self.assertEqual(len(sensor.validate_sensors(self.non_empty_sensors)), 0)</code></pre>
+        self.assertEqual(len(sensor.validate_sensors(self.non_empty_sensors)), 0)
+
+    # todo: location sensors need to have best locations validated
+    # def test_validate_sensors(self):
+    #     error_list = sensor.validate_sensors(self.non_empty_sensors)
+    #     self.assertEqual(error_list, [])
+    #     error_list = sensor.validate_sensors(self.empty_sensors)
+    #     self.assertNotEqual(error_list, [])</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

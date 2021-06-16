@@ -7,10 +7,8 @@ The SDK provides a lower level API as well as direct access to the underlying pr
 <!-- toc -->
 
 - [SDK Low-Level API and Usage](#sdk-low-level-api-and-usage)
-  * [Reading API M files](#reading-api-m-files)
-    + [Reading byte streams](#reading-byte-streams)
+  * [Index Class](#index-class)
     + [Reading data from the file system](#reading-data-from-the-file-system)
-    + [Understanding the ReadResult type](#understanding-the-readresult-type)
     + [Streaming data from the file system](#streaming-data-from-the-file-system)
     + [Selectively filtering data](#selectively-filtering-data)
   * [The WrappedRedvoxPacketM Type](#the-wrappedredvoxpacketm-type)
@@ -35,197 +33,81 @@ The SDK provides a lower level API as well as direct access to the underlying pr
 <!-- tocstop -->
 
 ## SDK Low-Level API and Usage
-### Reading API M files
+### Index Class
 
-The [redvox.api1000.io_raw](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html) module is used for reading or streaming API M ".rdvxm" files from disk or byte streams.
-
-_[Table of Contents](#table-of-contents)_
-
-#### Reading byte streams
-
-At the lowest level, the SDK is able to load serialized and compressed API M packets composed as a list of bytes with the [read_bufs](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.read_bufs) method.
-
-_Example_:
-
-```python
-import redvox.api1000.io_raw as io_raw
-
-
-def read_bytes(path: str) -> bytes:
-  with open(path, "rb") as fin:
-    return fin.read()
-
-# Load three files as bytes using a helper function
-buf_1: bytes = read_bytes("/data/api-m/1637110001_1608073205947798.rdvxm")
-buf_2: bytes = read_bytes("/data/api-m/1637110001_1608073257146769.rdvxm")
-buf_3: bytes = read_bytes("/data/api-m/1637610017_1608074008525772.rdvxm")
-
-# First, try reading a single buffer
-read_res_single: io_raw.ReadResult = io_raw.read_bufs([buf_1])
-print(f"ReadResult single: {read_res_single.get_station_summaries()}")
-
-# Next, try reading multiple buffers
-read_res_multi: io_raw.ReadResult = io_raw.read_bufs([buf_1, buf_2, buf_3])
-print(f"ReadResult multi: {read_res_multi.get_station_summaries()}")
-```
-
-This produces output similar to:
-
-```text
-ReadResult single: [StationSummary(station_id='1637110001', 
- station_uuid='2306685882', auth_id='redvoxcore@gmail.com', 
- os=<OsType.IOS: 2>, 
- os_version='13.5.1', app_version='4.0.14', audio_sampling_rate=80.0, 
- total_packets=1, 
- total_duration=datetime.timedelta(seconds=51, microseconds=200000), 
- start_dt=datetime.datetime(2020, 12, 15, 23, 0, 5, 947798), 
- end_dt=datetime.datetime(2020, 12, 15, 23, 0, 57, 147798))]
-ReadResult multi: [StationSummary(station_id='1637110001', 
- station_uuid='2306685882', auth_id='redvoxcore@gmail.com',
- os=<OsType.IOS: 2>, 
- os_version='13.5.1', app_version='4.0.14', audio_sampling_rate=80.0, 
- total_packets=2, 
- total_duration=datetime.timedelta(seconds=102, microseconds=400000), 
- start_dt=datetime.datetime(2020, 12, 15, 23, 0, 5, 947798), 
- end_dt=datetime.datetime(2020, 12, 15, 23, 1, 48, 346769)), 
- StationSummary(station_id='1637610017', station_uuid='1672343294', 
- auth_id='redvoxcore@gmail.com', os=<OsType.ANDROID: 1>, 
- os_version='10', 
- app_version='3.1.16', audio_sampling_rate=800.0, total_packets=1, 
- total_duration=datetime.timedelta(seconds=2, microseconds=560000), 
- start_dt=datetime.datetime(2020, 12, 15, 23, 13, 28, 525772), 
- end_dt=datetime.datetime(2020, 12, 15, 23, 13, 31, 85772))]
-```
-
-We won't worry about the `ReadResult` type just yet as an entire section is dedicated to it. For now, it's enough to know that `ReadResult` aggregates API M packets by station ID and provides metadata about the resulting files that were read making it easier to inspect and retrieve specific API M packets.
+The [Index](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.Index) class is used 
+for reading or streaming API M ".rdvxm" files from disk or byte streams.
 
 _[Table of Contents](#table-of-contents)_
 
 #### Reading data from the file system
 
-API M file can be stored to the file system using two schemes:
+API M files can be stored to the file system using two schemes:
 
 1. `Unstructured`: All API M files exist in the same directory.
 2. `Structured`: API M files are organized by date and time as specified in the [API-M repo](https://github.com/RedVoxInc/redvox-api-1000/blob/master/docs/standards/filenames_and_directory_structures.md#standard-directory-structure).
 
-The Python SDK provides support for both with the [read_structured](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.read_structured) and [read_unstructured](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.read_unstructured) methods.
+The Python SDK provides support for both with the [index_structured](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.index_structured) and [index_unstructured](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.index_unstructured) methods.
 
-These methods read requested data directly into memory. While this makes it convenient to work with the data, it can consume large amounts of memory for large data sets. If this is a concern, consider the streaming alternatives described later in this manual.
+These methods skim the directory specified to create an index of files to read.
 
-Read unstructured data.
+You can then read the files directly into memory using the index's [read_raw](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.Index.read_raw) 
+or [read](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.Index.read) method. 
+The `read_raw` method uses the low-level representation, while `read` uses [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) 
+objects, which will be explained later in the manual. 
+While these methods make it convenient to work with the data, they can consume large amounts of memory for large data sets. If this is a concern, consider the streaming alternatives described later in this manual.
 
-```python
-import redvox.api1000.io_raw as io_raw
-
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/unstructured")
-print(read_res.get_station_summaries())
-```
-
-which produces output similar to:
-
-```
-[StationSummary(station_id='1637610017', station_uuid='1672343294',
- auth_id='redvoxcore@gmail.com', os=<OsType.ANDROID: 1>, 
- os_version='10', 
- app_version='3.1.16', audio_sampling_rate=800.0, total_packets=14, 
- total_duration=datetime.timedelta(seconds=35, microseconds=840000), 
- start_dt=datetime.datetime(2020, 12, 15, 23, 12, 55, 245765), 
- end_dt=datetime.datetime(2020, 12, 15, 23, 13, 31, 85772))]
-```
-
-Read structured data.
+Read unstructured data:
 
 ```python
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/unstructured/api1000")
-print(read_res.get_station_summaries())
+read_index: rdvx_io.Index = rdvx_io.index_unstructured("/data/unstructured")
+for ind in read_index.read_raw():
+    # operate on low-level packet representation
+    print(ind.station_information.id)
 ```
 
-which produces output similar to:
-
-```
-[StationSummary(station_id='1637610019', station_uuid='26027911',
- auth_id='redvoxcore@gmail.com', os=<OsType.ANDROID: 1>, 
- os_version='10', 
- app_version='3.1.16', audio_sampling_rate=800.0, total_packets=2813, 
- total_duration=datetime.timedelta(seconds=7201, microseconds=280000), 
- start_dt=datetime.datetime(2020, 12, 22, 23, 0, 0, 804745), 
- end_dt=datetime.datetime(2020, 12, 23, 1, 0, 2, 84742)), 
- StationSummary(station_id='1637610015', station_uuid='1809173354', 
- auth_id='redvoxcore@gmail.com', os=<OsType.ANDROID: 1>, 
- os_version='10', 
- app_version='3.1.16', audio_sampling_rate=80.0, total_packets=562, 
- total_duration=datetime.timedelta(seconds=7193, microseconds=600000), 
- start_dt=datetime.datetime(2020, 12, 22, 23, 0, 9, 651382), 
- end_dt=datetime.datetime(2020, 12, 23, 1, 0, 3, 251378))]
-```
-
-_[Table of Contents](#table-of-contents)_
-
-#### Understanding the ReadResult type
-
-The [ReadResult](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadResult) type sorts and aggregates API M data by station ID. This type also provides methods that describe the aggregated data.
-
-[get_station_summaries](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadResult.get_station_summaries) returns a list of [StationSummary](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.StationSummary) objects that describes the main attributes of each station.
-
-This is useful for exploring what types of data were read in. Perhaps most importantly, this provides a list of station IDs and UUIDs which can then be used to further extract data from the `ReadResult` using the [get_packets_for_station_id](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadResult.get_packets_for_station_id) method.
-
-[get_packets_for_station_id](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadResult.get_packets_for_station_id) takes either just the station ID (e.g. `1637610017`) or the station ID and UUID (e.g. `1637610017:1672343294`) and returns a list of [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) types. Although rare, using the station ID and UUID may be required if two stations have the same ID.
-
+Read structured data:
 
 ```python
-from typing import List, TYPE_CHECKING
+import redvox.common.io as rdvx_io
 
-import redvox.api1000.io_raw as io_raw
-
-if TYPE_CHECKING:
-    from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
-
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/unstructured")
-station_summary: io_raw.StationSummary
-for station_summary in read_res.get_station_summaries():
-  print(station_summary)
-
-wrapped_packets: List['WrappedRedvoxPacketM'] = read_res.get_packets_for_station_id("1637610017")
-print(f"Retrieved {len(wrapped_packets)} packets from read_res")
-```
-
-produces output similar to:
-
-```
-StationSummary(station_id='1637610017', station_uuid='1672343294',
- auth_id='redvoxcore@gmail.com', os=<OsType.ANDROID: 1>, 
- os_version='10', 
- app_version='3.1.16', audio_sampling_rate=800.0, total_packets=14, 
- total_duration=datetime.timedelta(seconds=35, microseconds=840000), 
- start_dt=datetime.datetime(2020, 12, 15, 23, 12, 55, 245765), 
- end_dt=datetime.datetime(2020, 12, 15, 23, 13, 31, 85772))
-Retrieved 14 packets from read_res
+read_index: rdvx_io.Index = rdvx_io.index_structured("/data/structured/api1000")
+for ind in read_index.read():
+    # operate on mid-level packet representation
+    print(ind.redvox_id())
 ```
 
 _[Table of Contents](#table-of-contents)_
 
 #### Streaming data from the file system
 
-When working with large data sets, the `io_raw.read_*` methods may consume large amounts of memory. [stream_structured](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.stream_structured) and [stream_unstructured](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.stream_unstructured) provide lazy streaming alternatives.
+When working with large data sets, the `index.read` and `index.read_raw` methods may consume large amounts of memory. 
+[stream](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.Index.stream) and
+[stream_raw](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.Index.stream_raw)
+provide lazy streaming alternatives.
 
-These methods lazily load and iterate over a single [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) at a time. While this is memory efficient, it is up to the programmer to implement their own aggregation and analysis logic on top of this iterator.
+The `stream` method lazily loads and iterates over a single [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) 
+at a time.  The `stream_raw` method does the same but over single low-level representations. While this is memory 
+efficient, it is up to the programmer to implement their own aggregation and analysis logic on top of this iterator.
 
 Iterating over unstructured data:
 
 ```python
 from typing import Iterator, TYPE_CHECKING
 
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 
 if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
-unstructured_iterator: Iterator['WrappedRedvoxPacketM'] = io_raw.stream_unstructured("/data/unstructured")
+index = rdvx_io.index_unstructured("/data/unstructured")
+unstructured_iterator: Iterator['WrappedRedvoxPacketM'] = index.stream()
 
 packet: 'WrappedRedvoxPacketM'
 for packet in unstructured_iterator:
+  # iterating over mid-level representations
   print(packet.default_filename())
 ```
 
@@ -253,25 +135,28 @@ Iterating over structured data:
 ```python
 from typing import Iterator, TYPE_CHECKING
 
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 
 if TYPE_CHECKING:
-    from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+    from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 
-structured_iterator: Iterator['WrappedRedvoxPacketM'] = io_raw.stream_unstructured("/data/structured/api1000")
+index = rdvx_io.index_structured("/data/structured/api1000")
+structured_iterator: Iterator['RedvoxPacketM'] = index.stream_raw()
 
-packet: 'WrappedRedvoxPacketM'
+packet: 'RedvoxPacketM'
 for packet in structured_iterator:
-  print(packet.default_filename())
+  # iterating over low-level representations
+  print(f"{packet.get_station_information().get_id():0>10}_{round(packet.get_timing_information().get_packet_start_mach_timestamp())}.rdvxm")
+  # you may notice that it takes a little more code to get the same information as the mid-level function call above.
 ```
 
 which produces output similar to:
 
 ```
 1637610015_1608679161651390.rdvxm
+1637610015_1608680697651378.rdvxm
 1637610019_1608679426724729.rdvxm
 1637610019_1608678282404751.rdvxm
-1637610015_1608680697651378.rdvxm
 1637610019_1608681280164753.rdvxm
 ...
 ```
@@ -281,12 +166,13 @@ _[Table of Contents](#table-of-contents)_
 #### Selectively filtering data
 
 Up to this point, we've only looked at examples of reading entire directories.
-All of the `io_raw.read_*` and 'io_raw.stream_*' methods accept a second
-optional [ReadFilter](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/io_raw.html#redvox.api1000.io_raw.ReadFilter)
+All of the `io.read*` and `index.stream*` methods accept a second
+optional [ReadFilter](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/io.html#redvox.common.io.ReadFilter)
 argument which can be used to select (filter) which files that are read by timestamp, station ID,
 or file extension.
 
-`ReadFilter`s can be created using two methods. Filters can be specified in the constuctor or by using the builder pattern. The following filters are provided:
+`ReadFilter`s can be created using two methods. Filters can be specified in the constructor or by using the builder 
+pattern. The following filters are provided:
 
 | Filter | Type | Description |
 |--------|------|-------------|
@@ -300,70 +186,77 @@ Let's look at some different filters created using both approaches.
 ```python
 from datetime import datetime
 
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 
 
-read_filter: io_raw.ReadFilter
+read_filter: rdvx_io.ReadFilter
 
 # Filter for packets after Dec 1 2020
-read_filter = io_raw.ReadFilter(start_dt=datetime(2020, 12, 1))
+read_filter = rdvx_io.ReadFilter(start_dt=datetime(2020, 12, 1))
 # or
-read_filter = io_raw.ReadFilter().with_start_dt(datetime(2020, 12, 1))
+read_filter = rdvx_io.ReadFilter().with_start_dt(datetime(2020, 12, 1))
 # or
-read_filter = io_raw.ReadFilter().with_start_ts(1606780800)
+read_filter = rdvx_io.ReadFilter().with_start_ts(1606780800)
 
 # Filter for packets before Dec 2 2020
-read_filter = io_raw.ReadFilter(end_dt=datetime(2020, 12, 2))
+read_filter = rdvx_io.ReadFilter(end_dt=datetime(2020, 12, 2))
 # or
-read_filter = io_raw.ReadFilter().with_end_dt(datetime(2020, 12, 2))
+read_filter = rdvx_io.ReadFilter().with_end_dt(datetime(2020, 12, 2))
 # or
-read_filter = io_raw.ReadFilter().with_end_ts(1606867200)
+read_filter = rdvx_io.ReadFilter().with_end_ts(1606867200)
 
 # Bound packets by a specific time window between Dec 1 to Dec 2 2020
-read_filter = io_raw.ReadFilter(start_dt=datetime(2020, 12, 1), end_dt=datetime(2020, 12, 2))
+read_filter = rdvx_io.ReadFilter(start_dt=datetime(2020, 12, 1), end_dt=datetime(2020, 12, 2))
 # or
-read_filter = io_raw.ReadFilter().with_start_dt(datetime(2020, 12, 1)).with_end_dt(datetime(2020, 12, 2))
+read_filter = rdvx_io.ReadFilter().with_start_dt(datetime(2020, 12, 1)).with_end_dt(datetime(2020, 12, 2))
 # or
-read_filter = io_raw.ReadFilter().with_start_ts(1606780800).with_end_ts(1606867200)
+read_filter = rdvx_io.ReadFilter().with_start_ts(1606780800).with_end_ts(1606867200)
 
 # Only load specific station IDs
-read_filter = io_raw.ReadFilter(station_ids={"0000000001", "0000000002"})
+read_filter = rdvx_io.ReadFilter(station_ids={"0000000001", "0000000002"})
 # or
-read_filter = io_raw.ReadFilter().with_station_ids({"0000000001", "0000000002"})
+read_filter = rdvx_io.ReadFilter().with_station_ids({"0000000001", "0000000002"})
 
 # It's common to combine these all into a single filter
-read_filter = io_raw.ReadFilter(start_dt=datetime(2020, 12, 1),
-                                end_dt=datetime(2020, 12, 2),
-                                station_ids={"0000000001", "0000000002"})
+read_filter = rdvx_io.ReadFilter(start_dt=datetime(2020, 12, 1),
+                                 end_dt=datetime(2020, 12, 2),
+                                 station_ids={"0000000001", "0000000002"})
 # or
-read_filter = io_raw.ReadFilter() \
+read_filter = rdvx_io.ReadFilter() \
   .with_start_dt(datetime(2020, 12, 1)) \
   .with_end_dt(datetime(2020, 12, 2)) \
   .with_station_ids({"0000000001", "0000000002"})
 
-# Once the filter is created, you can pass it directly to one of the read_ or stream_ methods. As an example:
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/unstructured", read_filter)
+# Once the filter is created, you can pass it directly to one of the read or stream methods. As an example:
+read_res: rdvx_io.Index = rdvx_io.index_unstructured("/data/unstructured")
+read_raw = read_res.read_raw(read_filter)
+stream = read_res.stream(read_filter)
 ```
 
 _[Table of Contents](#table-of-contents)_
 
 ### The WrappedRedvoxPacketM Type
 
-When data is read by the mid-level API, [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) objects are returned.
+When data is read by the mid-level API, [WrappedRedvoxPacketM](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM) 
+objects are returned.
 
-This type encapsulates the underlying protobuf and provides a mid-level interface for accessing and setting the underlying protobuf data in a semi type-safe way. All API M data for a single packet is accessible through this type.
+This type encapsulates the underlying protobuf and provides a mid-level interface for accessing and setting the 
+underlying protobuf data in a semi type-safe way. All API M data for a single packet is accessible through this type.
 
-The following sections will describe `WrappedRedvocPacketM`s in detail.
+The following sections will describe the `WrappedRedvoxPacketM` in detail.
 
 _[Table of Contents](#table-of-contents)_
 
 ### Working with Station Information
 
-The [StationInformation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation) encapsulates the station state, a copy of the station's AppSettings, and a collection of `StationMetrics`.
+The [StationInformation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation) 
+encapsulates the station state, a copy of the station's AppSettings, and a collection of `StationMetrics`.
 
-The `StationInformation` can be retrieved by calling [get_station_information](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_station_information) on an instance of a `WrappedRedvoxPacketM`.
+The `StationInformation` can be retrieved by calling [get_station_information](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_station_information) 
+ on an instance of a `WrappedRedvoxPacketM`.
 
-To get a quick idea about what resides in a `StationInformation`, let's retrieve one and print it out which will print out the JSON representation of the `StationInformation`.
+To get a quick idea about what resides in a `StationInformation`, let's retrieve one and print it out which will print 
+out the JSON representation of the `StationInformation`.
 
 ```python
 from typing import TYPE_CHECKING
@@ -628,7 +521,9 @@ acquisition URL: wss://redvox.io/acquisition/v1000
 synch URL: wss://redvox.io/synch/v3
 ```
 
-It should be noted that [OsType](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.OsType) is an [enumeration](https://docs.python.org/3.6/library/enum.html) provided by the SDK. API-M and this SDK provide enumerations for any field that can hold a finite number of known values.
+It should be noted that [OsType](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.OsType) 
+is an [enumeration](https://docs.python.org/3.8/library/enum.html) provided by the SDK. API-M and this SDK provide 
+enumerations for any field that can hold a finite number of known values.
 
 We examine the embedded `AppSettings` and `StationMetrics` in the following sections.
 
@@ -636,7 +531,9 @@ _[Table of Contents](#table-of-contents)_
 
 ### Working with App Settings
 
-Each API M packet stores a copy of the settings used to configure it. These are stored in an instance of [AppSettings](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings) which can be retrieved from an instance of `StationInformation` with [get_app_settings](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation.get_app_settings).
+Each API M packet stores a copy of the settings used to configure it. These are stored in an instance of 
+[AppSettings](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.AppSettings) 
+which can be retrieved from an instance of `StationInformation` with [get_app_settings](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationInformation.get_app_settings).
 
 The following example shows which fields are accessible in the `AppSettings`.
 
@@ -739,17 +636,20 @@ use SD card for storage?: False
 metric collection rate: MetricsRate.ONCE_PER_PACKET
 ```
 
-In the next section, we will examine the final embedded type of `StationInforamtion`, the `StationMetrics`.
+In the next section, we will examine the final embedded type of `StationInformation`, the `StationMetrics`.
 
 _[Table of Contents](#table-of-contents)_
 
 ### Working with TimingPayloads, SamplePayloads, and ProtoRepeatedMessages
 
-Associated API M timestamps and sample payloads are encapsulated by the [TimingPayload](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.TimingPayload) and [SamplePayload](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.SamplePayload) types. Each of these types also contain a [SummaryStatistics](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.SummaryStatistics) type which provide descriptive statistics either over the timestamps or the samples.
+Associated API M timestamps and sample payloads are encapsulated by the [TimingPayload](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.TimingPayload)
+and [SamplePayload](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.SamplePayload) 
+types. Each of these types also contain a [SummaryStatistics](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.SummaryStatistics) 
+type which provide descriptive statistics either over the timestamps or the samples.
 
 The timestamps and samples themselves are returned as [numpy ndarrays](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html).
 
-These types are used both within the `StationMetrics` as well as within the individual sensor types.
+These types are used within the `StationMetrics` as well as the individual sensor types.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -847,7 +747,8 @@ _[Table of Contents](#table-of-contents)_
 
 #### SummaryStatistics
 
-Every `TimingPayload` and every `SamplePayload` has an associated [SummaryStatistics](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.SummaryStatistics) sub-type.
+Every `TimingPayload` and every `SamplePayload` has an associated 
+[SummaryStatistics](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.SummaryStatistics) sub-type.
 
 Let's look at example summary statistics calculated over the samples of a pressure sensor.
 
@@ -881,9 +782,13 @@ _[Table of Contents](#table-of-contents)_
 
 #### ProtoRepeatedMessage
 
-Finally, protobuf has the concept of [repeated fields](https://developers.google.com/protocol-buffers/docs/proto3#specifying_field_rules). This SDK provides a special wrapper type [ProtoRepeatedMessage](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage) that makes working with underlying repeated fields easier. Any getter that returns a list of items that can't be represented by a numpy ndarray is represented by a `ProtoRepeatedMessage`.
+Finally, protobuf has the concept of [repeated fields](https://developers.google.com/protocol-buffers/docs/proto3#specifying_field_rules). 
+This SDK provides a special wrapper type [ProtoRepeatedMessage](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage) 
+that makes working with underlying repeated fields easier. Any getter that returns a list of items that can't be 
+represented by a numpy ndarray is represented by a `ProtoRepeatedMessage`.
 
-Calling [get_values](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage.get_values) on a `ProtoRepeatedMessage` will convert the contents into a list of those items.
+Calling [get_values](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/common/generic.html#redvox.api1000.common.generic.ProtoRepeatedMessage.get_values) 
+on a `ProtoRepeatedMessage` will convert the contents into a list of those items.
 
 An example of this is accessing the additional sensors from the `AppSettings`.
 
@@ -921,9 +826,14 @@ _[Table of Contents](#table-of-contents)_
 
 ### Working with Station Metrics
 
-[StationMetrics](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationMetrics) contains timeseries information providing health and status metrics associated with the station. These include computational metrics such as CPU, RAM, and disk usage as well as information on power consumption, network state, temperature, and screen state.
+[StationMetrics](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/station_information.html#redvox.api1000.wrapped_redvox_packet.station_information.StationMetrics) 
+contains timeseries information providing health and status metrics associated with the station. These include 
+computational metrics such as CPU, RAM, and disk usage as well as information on power consumption, network state, 
+temperature, and screen state.
 
-There is a single [TimingPayload](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.TimingPayload) that contains timestamps. Every metric index corresponds to the timestamp at the same index. If a given metric is not available, `nan` is used to represent that particular sample.
+There is a single [TimingPayload](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/common/common.html#redvox.api1000.common.common.TimingPayload) 
+that contains timestamps. Every metric index corresponds to the timestamp at the same index. If a given metric is not 
+available, `nan` is used to represent that particular sample.
 
 Currently, metrics are either captured once per second or once per packet.
 
@@ -1019,7 +929,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # noinspection Mypy
-import redvox.api1000.io_raw as io
+import redvox.common.io as rdvx_io
 # noinspection Mypy
 from redvox.api1000.wrapped_redvox_packet.station_information import CellServiceState, NetworkType, PowerState
 
@@ -1051,8 +961,8 @@ def yticks_for_enum(enum: 'Enum') -> Tuple[List[int], List[str]]:
 
 # Load the data
 path: str = "/data/api_m"
-res: io.ReadResult = io.read_unstructured(path)
-packets: List['WrappedRedvoxPacketM'] = res.get_packets_for_station_id("2553")
+res: rdvx_io.Index = rdvx_io.index_unstructured(path)
+packets: List['WrappedRedvoxPacketM'] = res.get_index_for_station_id("2553").read()
 
 # Prepare to aggregate metrics
 ts: np.ndarray = np.array([])
@@ -1164,7 +1074,11 @@ _[Table of Contents](#table-of-contents)_
 
 ### Working with Timing Information
 
-The [TimingInformation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/timing_information.html#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation) type contains several types of timestamps as well as metadata describing the quality of the timing. Let's examine the contents of the `TimingInformation` type: All timestamps are represented as microseconds since the Unix epoch.
+The [TimingInformation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/timing_information.html#redvox.api1000.wrapped_redvox_packet.timing_information.TimingInformation) 
+type contains several types of timestamps as well as metadata describing the quality of the timing. Let's examine the 
+contents of the `TimingInformation` type: 
+
+All timestamps are represented as microseconds since the Unix epoch.
 
 | Value | Description |
 |-------|-------------|
@@ -1181,7 +1095,8 @@ The [TimingInformation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_doc
 | synch_exchanges | A list of completed time synchronization exchanges. |
 
 
-Each [SynchExchange](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/timing_information.html#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange) contains coefficients that represent timings between the station and the time synchronization server.
+Each [SynchExchange](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/timing_information.html#redvox.api1000.wrapped_redvox_packet.timing_information.SynchExchange) 
+contains coefficients that represent timings between the station and the time synchronization server.
 
 Let's look at an example:
 
@@ -1261,15 +1176,26 @@ _[Table of Contents](#table-of-contents)_
 
 ### Working with Sensors
 
-Calling [get_sensors](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sensors) on an instance of `WrappedRedvoxPacketM` will return a [Sensors](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/sensors.html#redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors) type. This type provides access to all underlying sensor data within a RedVox API M packet.
+Calling [get_sensors](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM.get_sensors) 
+on an instance of `WrappedRedvoxPacketM` will return a [Sensors](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/sensors.html#redvox.api1000.wrapped_redvox_packet.sensors.sensors.Sensors) 
+type. This type provides access to all underlying sensor data within a RedVox API M packet.
 
-The corresponding `has_*` methods return True if a sensor is present of False otherwise. The corresponding `get_*` methods return the sensor if it is present or `None`.
+The corresponding `has_*` methods return True if a sensor is present of False otherwise. The corresponding `get_*` 
+methods return the sensor if it is present or `None`.
 
-Returned sensors are either specialized or generic. Specialized sensors contain layouts or methods that match a specific sensor type while generic sensors can contain data from multiple sensor types.
+Returned sensors are either specialized or generic. Specialized sensors contain layouts or methods that match a specific 
+sensor type while generic sensors can contain data from multiple sensor types.
 
-Specialized sensors include [Audio](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio), [CompressedAudio](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.CompressedAudio), [Image](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/image.html#redvox.api1000.wrapped_redvox_packet.sensors.image.Image), and [Location](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.Location) sensors.
+Specialized sensors include [Audio](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio), 
+[CompressedAudio](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.CompressedAudio), 
+[Image](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/image.html#redvox.api1000.wrapped_redvox_packet.sensors.image.Image), 
+and [Location](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.Location) sensors.
 
-Generic sensors are represented by the types [Single](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single) (which contains a single channel of timestamped sensor data and includes `ambient_temperature`, `light`, `pressure`, `proximity`, abd `relative_humidity`) and [XYZ](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz) (which contains three channels of timestamped sensor data and includes `accelerometer`, `gravity`, `gyroscope`, `linear_acceleration`, `magnetometer`, `orientation`, `rotation_vector`, and `velocity`).
+Generic sensors are represented by the types [Single](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single) 
+(which contains a single channel of timestamped sensor data and includes `ambient_temperature`, `light`, `pressure`, 
+`proximity`, and `relative_humidity`) and [XYZ](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz) 
+(which contains three channels of timestamped sensor data and includes `accelerometer`, `gravity`, `gyroscope`, 
+`linear_acceleration`, `magnetometer`, `orientation`, `rotation_vector`, and `velocity`).
 
 It's best practice to retrieve a sensor, and then check that it's not `None` before working with it.
 
@@ -1287,7 +1213,7 @@ The following is a full example:
 ```python
 from typing import TYPE_CHECKING, List, Optional
 
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 
 if TYPE_CHECKING:
   from redvox.api1000.wrapped_redvox_packet.sensors.audio import Audio, CompressedAudio
@@ -1300,8 +1226,8 @@ if TYPE_CHECKING:
 
 
 # First, read some packets
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/ios")
-packets: List['WrappedRedvoxPacketM'] = read_res.get_packets_for_station_id("3264984082")
+read_res: rdvx_io.Index = rdvx_io.index_unstructured("/data/ios")
+packets: List['WrappedRedvoxPacketM'] = read_res.get_index_for_station_id("3264984082").read()
 
 # Let's examine data from a single packet
 packet: 'WrappedRedvoxPacketM' = packets[0]
@@ -1455,9 +1381,11 @@ _[Table of Contents](#table-of-contents)_
 
 ### Working with the Audio Sensor
 
-The [Audio](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio) sensor type encapsulates audio data and metadata.
+The [Audio](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio) 
+sensor type encapsulates audio data and metadata.
 
-The `Audio` type provides audio samples through the [get_samples](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio.get_samples) which returns a `SamplePayload'. The rest of the methods are used for accessing the associated metadata.
+The `Audio` type provides audio samples through the [get_samples](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/audio.html#redvox.api1000.wrapped_redvox_packet.sensors.audio.Audio.get_samples) 
+which returns a `SamplePayload'. The rest of the methods are used for accessing the associated metadata.
 
 Let's look at an example:
 
@@ -1466,7 +1394,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 import redvox.common.date_time_utils as dt_utils
 
 if TYPE_CHECKING:
@@ -1475,7 +1403,7 @@ if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.sensors.audio import Audio
     from redvox.api1000.common.common import SamplePayload, SummaryStatistics
 
-
+    
 def plot_audio(audio_sensor: 'Audio') -> None:
     fig: plt.Figure
     ax: plt.Axes
@@ -1490,14 +1418,14 @@ def plot_audio(audio_sensor: 'Audio') -> None:
     ax.set_ylabel("PCM Normalized Floating Point")
     first_ts = audio_sensor.get_first_sample_timestamp()
     first_ts_dt = dt_utils.datetime_from_epoch_microseconds_utc(first_ts) 
-    ax.set_xlabel(f"{(first_ts_dt)} UTC + seconds")
+    ax.set_xlabel(f"{first_ts_dt} UTC + seconds")
 
     fig.savefig("audio_wf.png")
 
     
 # First, read some packets
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/ios")
-packets: List['WrappedRedvoxPacketM'] = read_res.get_packets_for_station_id("3264984082")
+read_res: rdvx_io.Index = rdvx_io.index_unstructured("/data/ios")
+packets: List['WrappedRedvoxPacketM'] = read_res.get_index_for_station_id("3264984082").read()
 
 # Let's examine the audio data from a single packet
 packet: 'WrappedRedvoxPacketM' = packets[0]
@@ -1560,9 +1488,11 @@ _[Table of Contents](#table-of-contents)_
 
 ### Working with Other Single Channel Sensors
 
-Sensors with a single channel (such as the pressure sensor) are represented using the [Single](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single) sensor type.
+Sensors with a single channel (such as the pressure sensor) are represented using the 
+[Single](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/single.html#redvox.api1000.wrapped_redvox_packet.sensors.single.Single) sensor type.
 
-The `Single` type provides access to the sensor's samples (via the `SamplePayload` type), timestamps (via the `TimingPayload` type), and sensor description. Let's look at an example.
+The `Single` type provides access to the sensor's samples (via the `SamplePayload` type), timestamps (via the 
+`TimingPayload` type), and sensor description. Let's look at an example.
 
 ```python
 from datetime import datetime
@@ -1570,7 +1500,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 import redvox.common.date_time_utils as dt_utils
 
 if TYPE_CHECKING:
@@ -1599,8 +1529,8 @@ def plot_single(single_sensor: 'Single') -> None:
 
 
 # First, read some packets
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/ios")
-packets: List['WrappedRedvoxPacketM'] = read_res.get_packets_for_station_id("3264984082")
+read_res: rdvx_io.Index = rdvx_io.index_unstructured("/data/ios")
+packets: List['WrappedRedvoxPacketM'] = read_res.get_index_for_station_id("3264984082").read()
 
 # Let's examine the pressure data from a single packet
 packet: 'WrappedRedvoxPacketM' = packets[0]
@@ -1631,7 +1561,10 @@ _[Table of Contents](#table-of-contents)_
 
 ### Working with Three Channel Sensors
 
-Three channel sensors (such as the gyroscope) are represented by the [Xyz](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz) type. This type encapsulates timestamped data that has X, Y, and Z channels. Like other types, the `Xyz` type provides samples as `SamplePayload`s and timestamps as a `TimingPayload`.
+Three channel sensors (such as the gyroscope) are represented by the 
+[Xyz](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/xyz.html#redvox.api1000.wrapped_redvox_packet.sensors.xyz.Xyz) 
+type. This type encapsulates timestamped data that has X, Y, and Z channels. Like other types, the `Xyz` type provides 
+samples as `SamplePayload`s and timestamps as a `TimingPayload`.
 
 Let's look at an example and plot gyroscope data.
 
@@ -1641,7 +1574,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 import redvox.common.date_time_utils as dt_utils
 
 if TYPE_CHECKING:
@@ -1678,8 +1611,8 @@ def plot_xyz(xyz_sensor: 'Xyz') -> None:
 
     fig.savefig("gyro_wf.png")
 
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/ios")
-packets: List['WrappedRedvoxPacketM'] = read_res.get_packets_for_station_id("3264984082")
+read_res: rdvx_io.Index = rdvx_io.index_unstructured("/data/ios")
+packets: List['WrappedRedvoxPacketM'] = read_res.get_index_for_station_id("3264984082").read()
 packet: 'WrappedRedvoxPacketM' = packets[0]
 sensors: 'Sensors' = packet.get_sensors()
 gyroscope_sensor: Optional['Xyz'] = sensors.get_gyroscope()
@@ -1711,13 +1644,16 @@ _[Table of Contents](#table-of-contents)_
 
 ### Working with the Location Sensor
 
-The [Location](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.Location) type encapsulates location information.
+The [Location](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.Location) 
+type encapsulates location information.
 
-Location samples are stored as `SamplePayload`s and samples can be provided for latitude, longitude, altitude, speed, and bearing fields. If a location provider does not provide one of these fields, samples for that field will be set to `nan`s.
+Location samples are stored as `SamplePayload`s and samples can be provided for latitude, longitude, altitude, speed, 
+and bearing fields. If a location provider does not provide one of these fields, samples for that field will be set to `nan`s.
 
 Accuracy `SamplePayload`s are also provided for each of the above location fields.
 
-Machine based timestamps are always provided, but when available, GPS timestamps are additionally provided. It should be noted that GPS timestamps when provided may be used to correct for machine based timestamps in other sensor channels.
+Machine based timestamps are always provided, but when available, GPS timestamps are additionally provided. It should be 
+noted that GPS timestamps when provided may be used to correct for machine based timestamps in other sensor channels.
 
 Let's look at some examples of the top-level location data.
 
@@ -1726,7 +1662,7 @@ from datetime import datetime
 from typing import List, Optional, TYPE_CHECKING
 
 import numpy as np
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 import redvox.common.date_time_utils as dt_utils
 
 if TYPE_CHECKING:
@@ -1735,8 +1671,8 @@ if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
     
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/data/movement")
-packets: List['WrappedRedvoxPacketM'] = read_res.get_packets_for_station_id("2553")
+read_res: rdvx_io.Index = rdvx_io.index_unstructured("/data/movement")
+packets: List['WrappedRedvoxPacketM'] = read_res.get_index_for_station_id("2553").read()
 packet: 'WrappedRedvoxPacketM' = packets[0]
 sensors: 'Sensors' = packet.get_sensors()
 location_sensor: Optional['Location'] = sensors.get_location()
@@ -1851,22 +1787,30 @@ _[Table of Contents](#table-of-contents)_
 
 #### Working with the BestLocation type
 
-Previous "best" locations can be stored in the packet which represent the best recorded locations (or those with the highest accuracy) captured at previous point in time. These are represented using the [BestLocation](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation) type.
+Previous "best" locations can be stored in the packet which represent the best recorded locations (or those with the 
+highest accuracy) captured at previous point in time. These are represented using the [BestLocation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.BestLocation) type.
 
-The `last_best_location` field represents the best location out of a set of locations that was __most recently received__. When a station loses its ability to ascertain the location, the `last_best_location` provides the most recent location estimate of that station.
+The `last_best_location` field represents the best location out of a set of locations that was __most recently 
+received__. When a station loses its ability to ascertain the location, the `last_best_location` provides the most 
+recent location estimate of that station.
 
 The `overall_best_location` field stores the best computed location since the station started recording.
 
-Each `BestLocation` type has fields that represent various location metrics at potentially different points in time. For example, the best latitude and longitude with associated timestamp. The best altitude with associated timestamp. The best bearing with associated timestamp. The best speed with associated timestamp. Associated accuracies and scores are set when available.
+Each `BestLocation` type has fields that represent various location metrics at potentially different points in time. 
+For example, the best latitude and longitude have an associated timestamp. The best altitude, the best bearing and the 
+best speed each have their own associated timestamp. Associated accuracies and 
+scores are set when available.
 
-Timestamps within the `BestLocation` type are represented using the [BestTimestamp](https://redvoxinc.github.io/redvox-sdk/v3.0.0a21/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp) type which encapsulates both the mach and GPS times for a particular location metric.
+Timestamps within the `BestLocation` type are represented using the 
+[BestTimestamp](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/sensors/location.html#redvox.api1000.wrapped_redvox_packet.sensors.location.BestTimestamp) 
+type which encapsulates both the mach and GPS times for a particular location metric.
 
 Let's look at an example:
 
 ```python
 from typing import List, Optional, TYPE_CHECKING
 
-import redvox.api1000.io_raw as io_raw
+import redvox.common.io as rdvx_io
 
 if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.sensors.location import Location, BestLocation
@@ -1874,8 +1818,8 @@ if TYPE_CHECKING:
     from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 
 
-read_res: io_raw.ReadResult = io_raw.read_unstructured("/home/opq/data/movement/anthony")
-packets: List['WrappedRedvoxPacketM'] = read_res.get_packets_for_station_id("2553")
+read_res: rdvx_io.Index = rdvx_io.index_unstructured("/home/opq/data/movement/unstructured")
+packets: List['WrappedRedvoxPacketM'] = read_res.get_index_for_station_id("2553").read()
 packet: 'WrappedRedvoxPacketM' = packets[0]
 sensors: 'Sensors' = packet.get_sensors()
 location_sensor: Optional['Location'] = sensors.get_location()
@@ -1932,7 +1876,8 @@ The SDK now defines globally accessible settings that can be tweaked either thro
 
 ### Enabling and Disabling Parallelism
 
-Where possible, the SDK provides the ability to perform certain tasks concurrently using multiple processes. Enabling parallelism is useful for very large data sets, whereas the overhead of parallelism can slow down the processing of small data sets.
+Where possible, the SDK provides the ability to perform certain tasks concurrently using multiple processes. 
+Enabling parallelism is useful for very large data sets, whereas the overhead of parallelism can slow down the processing of small data sets.
 
 By default, parallelism is disabled. It can be enabled either through a global setting or by setting an environmental variable.
 
@@ -1945,5 +1890,3 @@ settings.set_parallelism_enabled(True)
 ```
 
 To enable or disable parallelism through an environment variable, set the environment variable `REDVOX_ENABLE_PARALLELISM` to either `true` or `false`.
-
-

@@ -8,7 +8,7 @@ with open("requirements.txt", "r") as requirements_file:
 
 setup(name=redvox.NAME,
       version=redvox.VERSION,
-      url='https://bitbucket.org/redvoxhi/redvox-api900-python-reader/src/master/',
+      url='https://github.com/RedVoxInc/redvox-python-sdk',
       license='Apache',
       author='RedVox',
       author_email='dev@redvoxsound.com',
@@ -34,6 +34,7 @@ setup(name=redvox.NAME,
                                       ],
                              exclude=['tests']),
       long_description=open('README.md').read(),
+      long_description_content_type='text/markdown',
       install_requires=requirements,
       extras_require={
           "GUI":  ["PySide6>=6.0.4", "matplotlib>=3.4.2"],

@@ -40,7 +40,7 @@ Command line tools for viewing, converting, and downloading RedVox data.
 positional arguments:
   {gallery,rdvxz-to-rdvxm,rdvxm-to-rdvxz,rdvxz-to-json,rdvxm-to-json,json-to-rdvxz,json-to-rdvxm,sort-unstructured,print-z,print-m,validate-m,data-req,data-req-report}
     rdvxz-to-rdvxm      Convert rdvxz (API 900) to rdvxm (API 1000/M) files
-    rdvxm-to-rdvxz      Convert rdvxm (API 1000/M) to rdvxx (API 900) files
+    rdvxm-to-rdvxz      Convert rdvxm (API 1000/M) to rdvxz (API 900) files
     rdvxz-to-json       Convert rdvxz files to json files
     rdvxm-to-json       Convert rdvxm files to json files
     json-to-rdvxz       Convert json files to rdvxz files
@@ -49,8 +49,8 @@ positional arguments:
     print-z             Print contents of rdvxz files to stdout
     print-m             Print contents of rdvxm files to stdout
     validate-m          Validate the structure of API M files
-    data-req            Request bulk RedVox data from RedVox servers
-    data-req-report     Request bulk RedVox data from the RedVox servers
+    data-req            Requests a range of RedVox data from RedVox servers
+    data-req-report     Request aggregated report data from RedVox servers
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -71,7 +71,7 @@ The `cloud-download` command can be provided to open a GUI that makes it easy to
 
 This feature requires a RedVox Premium Subscription. 
 
-This feature is only provided when the SDK is installed with the `GUI` extra (i.e. `pip install "redvox[GUI]"==[latest version here]`)
+This feature is only provided when the SDK is installed with the `GUI` extra (i.e. `pip install "redvox[GUI]" --upgrade`)
 
 When ran, you should see a GUI appear with options.
 
