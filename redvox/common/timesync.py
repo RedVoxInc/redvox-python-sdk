@@ -153,6 +153,7 @@ class TimeSyncData:
     def num_tri_messages(self) -> int:
         """
         return the number of tri-message exchanges
+
         :return: number of tri-message exchanges
         """
         return np.size(self.time_sync_exchanges_list)
@@ -161,8 +162,8 @@ class TimeSyncData:
         """
         update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
             uses negative values to go backwards in time
+
         :param om: OffsetModel to calculate offsets, default None
-        # :param delta: microseconds to add to timestamps, default None
         """
         if not om:
             delta = self.best_offset
@@ -174,7 +175,10 @@ class TimeSyncData:
             self.packet_start_timestamp = om.update_time(self.packet_start_timestamp)
             self.packet_end_timestamp = om.update_time(self.packet_end_timestamp)
 
-    def get_best_latency_timestamp(self):
+    def get_best_latency_timestamp(self) -> float:
+        """
+        :return: timestamp of best latency, or start of the packet if no best latency.
+        """
         if self.best_msg_timestamp_index == 1:
             return self.time_sync_exchanges_list[3][self.best_latency_index]
         elif self.best_msg_timestamp_index == 3:
@@ -184,6 +188,10 @@ class TimeSyncData:
 
 
 def time_sync_data_from_raw_packet(packet: Union[RedvoxPacketM, RedvoxPacket]) -> TimeSyncData:
+    """
+    :param packet: data packet to get time sync data from
+    :return: TimeSyncData object from data packet
+    """
     tsd: TimeSyncData
     if isinstance(packet, RedvoxPacketM):
         exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
@@ -264,6 +272,7 @@ class TimeSyncAnalysis:
     ):
         """
         Initialize the object
+
         :param station_id: id of the station to analyze, default empty string
         :param audio_sample_rate_hz: audio sample rate in hz of the station, default np.nan
         :param station_start_timestamp: timestamp of when station started recording, default np.nan
@@ -330,6 +339,7 @@ class TimeSyncAnalysis:
     def from_packets(self, packets: List[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]) -> 'TimeSyncAnalysis':
         """
         converts packets into TimeSyncData objects, then performs analysis
+
         :param packets: list of WrappedRedvoxPacketM to convert
         :return: modified version of self
         """
@@ -364,6 +374,7 @@ class TimeSyncAnalysis:
     def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -> 'TimeSyncAnalysis':
         """
         converts packets into TimeSyncData objects, then performs analysis
+
         :param packets: list of WrappedRedvoxPacketM to convert
         :return: modified version of self
         """
@@ -437,6 +448,7 @@ class TimeSyncAnalysis:
     def add_timesync_data(self, timesync_data: TimeSyncData):
         """
         adds a TimeSyncData object to the analysis
+
         :param timesync_data: TimeSyncData to add
         """
         self.timesync_data.append(timesync_data)
@@ -444,14 +456,12 @@ class TimeSyncAnalysis:
 
     def get_num_packets(self) -> int:
         """
-        return the number of packets in the TimeSyncAnalysis
         :return: number of packets analyzed
         """
         return len(self.timesync_data)
 
     def get_best_latency(self) -> float:
         """
-        return the best latency
         :return: the best latency
         """
         if np.isnan(self.best_latency_index):
@@ -460,28 +470,24 @@ class TimeSyncAnalysis:
 
     def get_latencies(self) -> np.array:
         """
-        return all the latencies
         :return: np.array containing all the latencies
         """
         return np.array([ts_data.best_latency for ts_data in self.timesync_data])
 
     def get_mean_latency(self) -> float:
         """
-        return the mean of the latencies
         :return: the mean of the latencies, or np.nan if it doesn't exist
         """
         return self.latency_stats.mean_of_means()
 
     def get_latency_stdev(self) -> float:
         """
-        return the standard deviation of the latencies
         :return: the standard deviation of the latencies, or np.nan if it doesn't exist
         """
         return self.latency_stats.total_std_dev()
 
     def get_best_offset(self) -> float:
         """
-        returns the offset associated with the best latency
         :return: offset associated with the best latency
         """
         if np.isnan(self.best_latency_index):
@@ -490,28 +496,24 @@ class TimeSyncAnalysis:
 
     def get_offsets(self) -> np.array:
         """
-        return all the offsets
         :return: np.array containing all the offsets
         """
         return np.array([ts_data.best_offset for ts_data in self.timesync_data])
 
     def get_mean_offset(self) -> float:
         """
-        return the mean of the offsets
         :return: the mean of the offsets, or np.nan if it doesn't exist
         """
         return self.offset_stats.mean_of_means()
 
     def get_offset_stdev(self) -> float:
         """
-        return the standard deviation of the offsets
         :return: the standard deviation of the offsets, or np.nan if it doesn't exist
         """
         return self.offset_stats.total_std_dev()
 
     def get_best_packet_latency_index(self) -> int:
         """
-        returns the index of the best latency in the packet with the best latency
         :return: the best latency's index in the packet with the best latency
         """
         if np.isnan(self.best_latency_index):
@@ -520,7 +522,6 @@ class TimeSyncAnalysis:
 
     def get_best_start_time(self) -> float:
         """
-        return the start timestamp associated with the best latency
         :return: start timestamp associated with the best latency
         """
         if np.isnan(self.best_latency_index):
@@ -529,7 +530,6 @@ class TimeSyncAnalysis:
 
     def get_start_times(self) -> np.array:
         """
-        returns the start timestamps of all the packets
         :return: list of the start timestamps of each packet
         """
         start_times = []
@@ -539,7 +539,6 @@ class TimeSyncAnalysis:
 
     def get_bad_packets(self) -> List[int]:
         """
-        returns all the packets that have invalid data
         :return: list of all packets that contains invalid data
         """
         bad_packets = []
@@ -574,6 +573,7 @@ class TimeSyncAnalysis:
         """
         confirms if station_start_timestamp differs in any of the timesync_data
         outputs warnings if a change in timestamps is detected
+
         :param debug: if True, output warning message, default False
         :return: True if no change
         """
@@ -598,6 +598,7 @@ class TimeSyncAnalysis:
         """
         confirms if sample rate is the same across all timesync_data
         outputs warning if a change in sample rate is detected
+
         :param debug: if True, output warning message, default False
         :return: True if no change
         """
@@ -621,6 +622,7 @@ class TimeSyncAnalysis:
         """
         confirms there are no data gaps between packets
         outputs warning if a gap is detected
+
         :param gap_duration_s: length of time in seconds to be detected as a gap
         :param debug: if True, output warning message, default False
         :return: True if no gap
@@ -659,6 +661,7 @@ class TimeSyncAnalysis:
 def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:
     """
     Examine all sample rates and mach time zeros to ensure that sensor settings do not change
+
     :param tsa_data: the TimeSyncAnalysis data to validate
     :return: True if sensor settings do not change
     """
@@ -683,6 +686,7 @@ def update_evenly_sampled_time_array(
     Expects tsd to have the same number of packets as elements in time_start_array.
     Expects there are no gaps in the data or changes in station sample rate or start time.
     Throws an exception if the number of packets in tsa does not match the length of time_start_array
+
     :param ts_analysis: TimeSyncAnalysis object that contains the information needed to update the time array
     :param num_samples: number of samples in one file; optional, uses number based on sample rate if not given
     :param time_start_array_s: the array of timestamps to correct in seconds; optional, uses the start times in the
@@ -743,6 +747,7 @@ def update_evenly_sampled_time_array(
 def update_time_array(ts_data: TimeSyncData, time_array_s: np.array) -> np.ndarray:
     """
     Correct timestamps in time_array using information from TimeSyncData
+
     :param ts_data: TimeSyncData object that contains the information needed to update the time array
     :param time_array_s: the list of timestamps to correct in seconds
     :return: Revised time array in epoch seconds
@@ -755,6 +760,7 @@ def update_time_array_from_analysis(
 ) -> np.ndarray:
     """
     Correct timestamps in time_array using information from TimeSyncAnalysis
+
     :param ts_analysis: TimeSyncAnalysis object that contains the information needed to update the time array
     :param time_array_s: the list of timestamps to correct in seconds
     :return: Revised time array in epoch seconds

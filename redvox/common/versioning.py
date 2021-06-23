@@ -39,6 +39,7 @@ def check_version_buf(buf: bytes) -> ApiVersion:
     """
     Attempts to check the API version of a given RedVox buffer by looking for the LZ4 frame header which is only present
     in API M compressed data.
+
     :param buf: Buffer of RedVox data.
     :return: An enum that represents the API version of the file.
     """
@@ -52,6 +53,7 @@ def check_version(path: str) -> ApiVersion:
     """
     Attempts to check the API version of a given RedVox file by looking for the LZ4 frame header which is only present
     in API M compressed data.
+
     :param path: Path of file to check.
     :return: An enum that represents the API version of the file.
     """

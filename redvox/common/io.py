@@ -49,6 +49,7 @@ if TYPE_CHECKING:
 def _is_int(value: str) -> Optional[int]:
     """
     Tests if a given str is a valid integer. If it is, the integer is returned, if it is not, None is returned.
+
     :param value: The string to test.
     :return: The integer value if it is valid, or None if it is not valid.
     """
@@ -61,6 +62,7 @@ def _is_int(value: str) -> Optional[int]:
 def _not_none(value: Optional[Any]) -> bool:
     """
     Tests that the given value is not None.
+
     :param value: The value to test.
     :return: True if the value is not None, False if it is None.
     """
@@ -85,6 +87,7 @@ class IndexEntry:
         """
         Attempts to parse a file path into an IndexEntry. If a given path is not recognized as a valid RedVox file,
         None will be returned instead.
+
         :param path_str: The file system path to attempt to parse.
         :param strict: When set, None is returned if the referenced file DNE.
         :return: Either an IndexEntry or successful parse or None.
@@ -135,6 +138,7 @@ class IndexEntry:
     def from_native(entry) -> "IndexEntry":
         """
         Converts a native index entry into a python index entry.
+
         :param entry: A native index entry.
         :return: A python index entry.
         """
@@ -161,6 +165,7 @@ class IndexEntry:
     def read(self) -> Optional[Union[WrappedRedvoxPacketM, "WrappedRedvoxPacket"]]:
         """
         Reads, decompresses, deserializes, and wraps the RedVox file pointed to by this entry.
+
         :return: One of WrappedRedvoxPacket, WrappedRedvoxPacketM, or None.
         """
         if self.api_version == ApiVersion.API_900:
@@ -173,6 +178,7 @@ class IndexEntry:
     def read_raw(self) -> Optional[Union["RedvoxPacket", RedvoxPacketM]]:
         """
         Reads, decompresses, and deserializes the RedVox file pointed to by this entry.
+
         :return: One of RedvoxPacket, RedvoxPacketM, or None. Note that these are the raw protobuf types.
         """
         if self.api_version == ApiVersion.API_900:
@@ -192,9 +198,9 @@ class IndexEntry:
     def __eq__(self, other: object) -> bool:
         """
         Tests if this value is equal to another value.
-
         This along with __lt__ are used to fulfill the total ordering contract. Compares this entry's full path to
         another entries full path.
+
         :param other: Other IndexEntry to compare against.
         :return: True if this full path is less than the other full path.
         """
@@ -247,6 +253,7 @@ class ReadFilter:
     def with_start_dt(self, start_dt: Optional[datetime]) -> "ReadFilter":
         """
         Adds a start datetime filter.
+
         :param start_dt: Start datetime that files should come after.
         :return: A modified instance of this filter
         """
@@ -257,6 +264,7 @@ class ReadFilter:
     def with_start_ts(self, start_ts: Optional[float]) -> "ReadFilter":
         """
         Adds a start time filter.
+
         :param start_ts: Start timestamp (microseconds)
         :return: A modified instance of this filter
         """
@@ -269,6 +277,7 @@ class ReadFilter:
     def with_end_dt(self, end_dt: Optional[datetime]) -> "ReadFilter":
         """
         Adds an end datetime filter.
+
         :param end_dt: Filter for which packets should come before.
         :return: A modified instance of this filter
         """
@@ -279,6 +288,7 @@ class ReadFilter:
     def with_end_ts(self, end_ts: Optional[float]) -> "ReadFilter":
         """
         Like with_end_dt, but uses a microsecond timestamp.
+
         :param end_ts: Timestamp microseconds.
         :return: A modified instance of this filter
         """
@@ -291,6 +301,7 @@ class ReadFilter:
     def with_station_ids(self, station_ids: Optional[Set[str]]) -> "ReadFilter":
         """
         Add a station id filter. Filters against provided station ids.
+
         :param station_ids: Station ids to filter against.
         :return: A modified instance of this filter
         """
@@ -301,6 +312,7 @@ class ReadFilter:
     def with_extensions(self, extensions: Optional[Set[str]]) -> "ReadFilter":
         """
         Filters against known file extensions.
+
         :param extensions: One or more extensions to filter against
         :return: A modified instance of this filter
         """
@@ -311,6 +323,7 @@ class ReadFilter:
     def with_start_dt_buf(self, start_dt_buf: Optional[timedelta]) -> "ReadFilter":
         """
         Modifies the time buffer prepended to the start time.
+
         :param start_dt_buf: Amount of time to buffer before start time.
         :return: A modified instance of self.
         """
@@ -321,6 +334,7 @@ class ReadFilter:
     def with_end_dt_buf(self, end_dt_buf: Optional[timedelta]) -> "ReadFilter":
         """
         Modifies the time buffer appended to the end time.
+
         :param end_dt_buf: Amount of time to buffer after end time.
         :return: A modified instance of self.
         """
@@ -333,6 +347,7 @@ class ReadFilter:
     ) -> "ReadFilter":
         """
         Filters for specified API versions.
+
         :param api_versions: A set containing valid ApiVersion enums that should be included.
         :return: A modified instance of self.
         """
@@ -345,6 +360,7 @@ class ReadFilter:
     ) -> bool:
         """
         Tests if a given datetime passes this filter.
+
         :param date_time: Datetime to test
         :param dt_fn: An (optional) function that will transform one datetime into another.
         :return: True if the datetime is included, False otherwise
@@ -367,6 +383,7 @@ class ReadFilter:
     def apply(self, entry: IndexEntry) -> bool:
         """
         Applies this filter to the given IndexEntry.
+
         :param entry: The entry to test.
         :return: True if the entry is accepted by the filter, False otherwise.
         """
@@ -403,6 +420,7 @@ class IndexStationSummary:
     def from_entry(entry: IndexEntry) -> "IndexStationSummary":
         """
         Instantiates a new summary from a given IndexEntry.
+
         :param entry: Entry to copy information from.
         :return: An instance of IndexStationSummary.
         """
@@ -417,6 +435,7 @@ class IndexStationSummary:
     def update(self, entry: IndexEntry) -> None:
         """
         Updates this summary given a new index entry.
+
         :param entry: Entry to update this summary from.
         """
         self.total_packets += 1
@@ -438,6 +457,7 @@ class IndexSummary:
     def station_ids(self, api_version: ApiVersion = None) -> List[str]:
         """
         Returns the station IDs referenced by this index.
+
         :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
                             None will collect station IDs from all API versions.
         :return: The station IDs referenced by this index.
@@ -472,6 +492,7 @@ class IndexSummary:
     def total_packets(self, api_version: ApiVersion = None) -> int:
         """
         Returns the total number of packets referenced by this index.
+
         :param api_version: An (optional) filter to only return packets for a specified RedVox API version.
                             None will count packets from all API versions.
         :return: The total number of packets referenced by this index.
@@ -501,6 +522,7 @@ class IndexSummary:
     def from_index(index: "Index") -> "IndexSummary":
         """
         Builds an IndexSummary from a given index.
+
         :param index: Index to build summary from.
         :return: An instance of IndexSummary.
         """
@@ -535,6 +557,7 @@ class Index:
     def from_native(index_native) -> "Index":
         """
         Converts a native index into a python index.
+
         :param index_native: A native index.
         :return: A Python index.
         """
@@ -562,6 +585,7 @@ class Index:
     def append(self, entries: Iterator[IndexEntry]) -> None:
         """
         Appends new entries to this index.
+
         :param entries: Entries to append.
         """
         self.entries.extend(entries)
@@ -584,6 +608,7 @@ class Index:
     ) -> Iterator[Union["RedvoxPacket", RedvoxPacketM]]:
         """
         Read, decompress, deserialize, and then stream RedVox data pointed to by this index.
+
         :param read_filter: Additional filtering to specify which data should be streamed.
         :return: An iterator over RedvoxPacket and RedvoxPacketM instances.
         """
@@ -596,6 +621,7 @@ class Index:
     ) -> Iterator[Union["WrappedRedvoxPacket", WrappedRedvoxPacketM]]:
         """
         Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.
+
         :param read_filter: Additional filtering to specify which data should be streamed.
         :return: An iterator over WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         """
@@ -608,6 +634,7 @@ class Index:
     ) -> List[Union["RedvoxPacket", RedvoxPacketM]]:
         """
         Read, decompress, and deserialize RedVox data pointed to by this index.
+
         :param read_filter: Additional filtering to specify which data should be read.
         :return: An list of RedvoxPacket and RedvoxPacketM instances.
         """
@@ -618,6 +645,7 @@ class Index:
     ) -> List[Union["WrappedRedvoxPacket", WrappedRedvoxPacketM]]:
         """
         Read, decompress, deserialize, and wrap RedVox data pointed to by this index.
+
         :param read_filter: Additional filtering to specify which data should be read.
         :return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         """
@@ -634,6 +662,7 @@ __VALID_HOURS: Set[str] = {f"{i:02}" for i in range(0, 24)}
 def _list_subdirs(base_dir: str, valid_choices: Set[str]) -> Iterator[str]:
     """
     Lists sub-directors in a given base directory that match the provided choices.
+
     :param base_dir: Base dir to find sub dirs in.
     :param valid_choices: A list of valid directory names.
     :return: A list of valid subdirs.
@@ -662,6 +691,7 @@ __INDEX_UNSTRUCTURED_FN: Callable[
 def __map_opt(fn, v):
     """
     Maps the provided function on the value if v is not None, otherwise, returns None.
+
     :param fn: The mapping function.
     :param v: The optional value to map.
     :return: The optional mapped value.
@@ -674,6 +704,7 @@ def __map_opt(fn, v):
 def __dur2us(dur: timedelta) -> float:
     """
     Converts a timedelta into microseconds.
+
     :param dur: timedelta to convert
     :return: Number of microseconds in the time delta.
     """
@@ -683,6 +714,7 @@ def __dur2us(dur: timedelta) -> float:
 def __api_native(apis_py: Set[ApiVersion]) -> Set[str]:
     """
     Convert python ApiVersions into native ApiVersions.
+
     :param apis_py: Python API versions.
     :return: Native API versions.
     """
@@ -705,6 +737,7 @@ def index_unstructured_py(
 ) -> Index:
     """
     Returns the list of file paths that match the given filter for unstructured data.
+
     :param base_dir: Directory containing unstructured data.
     :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
     :param sort: When True, the resulting Index will be sorted before being returned (default=True).
@@ -766,6 +799,7 @@ def index_structured_api_900_py(
 ) -> Index:
     """
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
+
     :param base_dir: Base directory (should be named api900)
     :param read_filter: Filter to filter files with
     :param sort: When True, the resulting Index will be sorted before being returned (default=True).
@@ -812,6 +846,7 @@ def index_structured_api_1000_py(
 ) -> Index:
     """
     This parses a structured API M directory structure and identifies files that match the provided filter.
+
     :param base_dir: Base directory (should be named api1000)
     :param read_filter: Filter to filter files with
     :param sort: When True, the resulting Index will be sorted before being returned (default=True).
@@ -861,6 +896,7 @@ def index_structured_py(
 ) -> Index:
     """
     Indexes both API 900 and API 1000 structured directory layouts.
+
     :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
                      API 900 and API 1000.
     :param read_filter: Filter to further filter results.
@@ -922,6 +958,7 @@ try:
     def __into_read_filter_native(read_filter: ReadFilter):
         """
         Converts a python read filter into a native read filter.
+
         :param read_filter: Python read filter to convert.
         :return: A native read filter.
         """
@@ -946,6 +983,7 @@ try:
     ) -> Index:
         """
         This parses a structured API 900 directory structure and identifies files that match the provided filter.
+
         :param base_dir: Base directory (should be named api900)
         :param read_filter: Filter to filter files with
         :param sort: When True, the resulting Index will be sorted before being returned (default=True).
@@ -965,6 +1003,7 @@ try:
     ) -> Index:
         """
         This parses a structured API M directory structure and identifies files that match the provided filter.
+
         :param base_dir: Base directory (should be named api1000)
         :param read_filter: Filter to filter files with
         :param sort: When True, the resulting Index will be sorted before being returned (default=True).
@@ -983,6 +1022,7 @@ try:
     ) -> Index:
         """
         Indexes both API 900 and API 1000 structured directory layouts.
+
         :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
                          API 900 and API 1000.
         :param read_filter: Filter to further filter results.
@@ -1000,6 +1040,7 @@ try:
     ) -> Index:
         """
         Returns the list of file paths that match the given filter for unstructured data.
+
         :param base_dir: Directory containing unstructured data.
         :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
         :param sort: When True, the resulting Index will be sorted before being returned (default=True).
@@ -1030,6 +1071,7 @@ def index_unstructured(
 ) -> Index:
     """
     Returns the list of file paths that match the given filter for unstructured data.
+
     :param base_dir: Directory containing unstructured data.
     :param read_filter: An (optional) ReadFilter for specifying station IDs and time windows.
     :param sort: When True, the resulting Index will be sorted before being returned (default=True).
@@ -1047,6 +1089,7 @@ def index_structured_api_900(
 ) -> Index:
     """
     This parses a structured API 900 directory structure and identifies files that match the provided filter.
+
     :param base_dir: Base directory (should be named api900)
     :param read_filter: Filter to filter files with
     :param sort: When True, the resulting Index will be sorted before being returned (default=True).
@@ -1064,6 +1107,7 @@ def index_structured_api_1000(
 ) -> Index:
     """
     This parses a structured API M directory structure and identifies files that match the provided filter.
+
     :param base_dir: Base directory (should be named api1000)
     :param read_filter: Filter to filter files with
     :param sort: When True, the resulting Index will be sorted before being returned (default=True).
@@ -1080,6 +1124,7 @@ def index_structured(
 ) -> Index:
     """
     Indexes both API 900 and API 1000 structured directory layouts.
+
     :param base_dir: The base_dir may either end with api900, api1000, or be a parent directory to one or both of
                      API 900 and API 1000.
     :param read_filter: Filter to further filter results.
@@ -1097,6 +1142,7 @@ def sort_unstructured_redvox_data(
 ) -> bool:
     """
     takes all redvox files in input_dir and sorts them into appropriate sub-directories
+
     :param input_dir: directory containing all the files to sort
     :param output_dir: optional directory to put the results in; if this is None, uses the input_dir, default None.
     :param read_filter: optional ReadFilter to limit which files to sort, default empty filter (sort everything)
@@ -1178,6 +1224,7 @@ def sort_unstructured_redvox_data(
 def json_to_data_window(json_str: str) -> Dict:
     """
     load a data window from json string
+
     :param json_str: json string to read
     :return: a dictionary of a data window
     """
@@ -1199,6 +1246,7 @@ def serialize_data_window(
 ) -> Path:
     """
     Serializes and compresses a DataWindow to a file.
+
     :param data_window: The data window to serialize and compress.
     :param base_dir: The base directory to write the serialized file to (default=.).
     :param file_name: The optional file name. If None, a default filename with the following format is used:
@@ -1229,6 +1277,7 @@ def serialize_data_window(
 def deserialize_data_window(path: str) -> "DataWindow":
     """
     Decompresses and deserializes a DataWindow written to disk.
+
     :param path: Path to the serialized and compressed data window.
     :return: An instance of a DataWindow.
     """
@@ -1239,6 +1288,7 @@ def deserialize_data_window(path: str) -> "DataWindow":
 def json_file_to_data_window(base_dir: str, file_name: str) -> Dict:
     """
     load a data window from json written to disk
+
     :param base_dir: directory where json file is saved
     :param file_name: name of json file to load
     :return: a dictionary representing a json-ified data window
@@ -1255,6 +1305,7 @@ def data_window_to_json(
 ) -> str:
     """
     Converts a data window to json format
+
     :param data_win: the data window object to convert
     :param base_dir: the base directory to write the data file to
     :param file_name: the data object's optional base file name.  Do not include a file extension.
@@ -1303,6 +1354,7 @@ def data_window_to_json_file(
 ) -> Path:
     """
     Converts a data window to json format.
+
     :param data_window: the data window object to convert
     :param base_dir: the base directory to write the json file to
     :param file_name: the optional base file name.  Do not include a file extension.

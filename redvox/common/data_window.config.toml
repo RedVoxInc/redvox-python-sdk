@@ -5,7 +5,7 @@
 input_directory = "."           # input directory where all the files are.  REQUIRED
 structured_layout = true        # if true, there are organized api900 and/or api1000 directories in input_directory
 station_ids = ["1234567890"]    # specific station ids to process; write ids as strings i.e. "1234567890"
-# specific file extensions to get; acceptable values: ".rdvxm", ".rdvxz"
+# specific file extensions to get; default values: ".rdvxm", ".rdvxz"; specify custom extensions as necessary.
 extensions = [".rdvxm", ".rdvxz"]
 # specific api versions to get; acceptable values: "API_900", "API_1000", "UNKNOWN"
 api_versions = ["API_900", "API_1000"]

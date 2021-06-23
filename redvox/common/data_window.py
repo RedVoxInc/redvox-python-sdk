@@ -1,6 +1,6 @@
 """
 This module creates specific time-bounded segments of data for users
-combine the data packets into a new data packet based on the user parameters
+combines the base data files into a single composite object based on the user parameters
 """
 from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
@@ -45,13 +45,13 @@ class DataWindow:
         start_datetime: optional datetime, start datetime of the window.
                         If None, uses the first timestamp of the filtered data.  Default None
         end_datetime: optional datetime, non-inclusive end datetime of the window.
-                        If None, uses the last timestamp of the filtered data.  Default None
+                        If None, uses the last timestamp of the filtered data + 1.  Default None
         start_buffer_td: timedelta, the amount of time to include before the start_datetime when filtering data.
-                            Default DEFAULT_START_BUFFER_TD
+                            Negative values are converted to 0.  Default DEFAULT_START_BUFFER_TD (2 minutes)
         end_buffer_td: timedelta, the amount of time to include after the end_datetime when filtering data.
-                            Default DEFAULT_END_BUFFER_TD
+                            Negative values are converted to 0.  Default DEFAULT_END_BUFFER_TD (2 minutes)
         drop_time_s: float, the minimum amount of seconds between data files that would indicate a gap.
-                     Default DATA_DROP_DURATION_S
+                     Negative values are converted to default value.  Default DATA_DROP_DURATION_S (0.2 seconds)
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
         copy_edge_points: enumeration of DataPointCreationMode.  Determines how new points are created.
                             Valid values are NAN, COPY, and INTERPOLATE.  Default COPY
@@ -76,14 +76,42 @@ class DataWindow:
         copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
         debug: bool = False
     ):
+        """
+        Initialize the DataWindow
+
+        :param input_dir: directory that contains the files to read data from.  REQUIRED
+        :param structured_layout: if True, the input_directory contains specially named and organized directories of
+                                    data.  Default True
+        :param start_datetime: optional start datetime of the window.  If None, uses the first timestamp of the
+                                filtered data.  Default None
+        :param end_datetime: optional non-inclusive end datetime of the window.  If None, uses the last timestamp of
+                                the filtered data + 1.  Default None
+        :param start_buffer_td: the amount of time to include before the start_datetime when filtering data.
+                                Negative values are converted to 0.  Default 2 minutes
+        :param end_buffer_td: the amount of time to include after the end_datetime when filtering data.
+                                Negative values are converted to 0.  Default 2 minutes
+        :param station_ids: optional station ids to filter on. If empty or None, get any ids found in the input
+                            directory.  Default None
+        :param drop_time_s: the minimum amount of seconds between data files that would indicate a gap.
+                            Negative values are converted to default value.  Default 0.2 seconds
+        :param extensions: optional set of file extensions to filter on.  If None, gets as much data as it can in the
+                            input directory.  Default None
+        :param api_versions: optional set of api versions to filter on.  If None, get as much data as it can in
+                                the input directory.  Default None
+        :param apply_correction: if True, update the timestamps in the data based on best station offset.  Default True
+        :param copy_edge_points: Determines how new points are created. Valid values are DataPointCreationMode.NAN,
+                                    DataPointCreationMode.COPY, and DataPointCreationMode.INTERPOLATE.  Default COPY
+        :param debug: if True, outputs additional information during initialization. Default False
+        """
         self.errors = RedVoxExceptions("DataWindow")
         self.input_directory: str = input_dir
         self.structured_layout: bool = structured_layout
         self.start_datetime: Optional[dtu.datetime] = start_datetime
         self.end_datetime: Optional[dtu.datetime] = end_datetime
-        self.start_buffer_td: timedelta = start_buffer_td
-        self.end_buffer_td: timedelta = end_buffer_td
-        self.drop_time_s: float = drop_time_s
+        self.start_buffer_td: timedelta = start_buffer_td if start_buffer_td > timedelta(seconds=0) \
+            else timedelta(seconds=0)
+        self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td > timedelta(seconds=0) else timedelta(seconds=0)
+        self.drop_time_s: float = drop_time_s if drop_time_s > 0 else DATA_DROP_DURATION_S
         self.station_ids: Optional[Set[str]]
         if station_ids:
             self.station_ids = set(station_ids)
@@ -97,7 +125,7 @@ class DataWindow:
         self.debug: bool = debug
         self.stations: List[Station] = []
         if start_datetime and end_datetime and (end_datetime <= start_datetime):
-            self.errors.append("Data Window will not work when end datetime is before or equal to start datetime.\n"
+            self.errors.append("DataWindow will not work when end datetime is before or equal to start datetime.\n"
                                f"Your times: {end_datetime} <= {start_datetime}")
         else:
             self.create_data_window()
@@ -165,7 +193,7 @@ class DataWindow:
             end_time,
             dtu.timedelta(seconds=config.start_padding_seconds),
             dtu.timedelta(seconds=config.end_padding_seconds),
-            DATA_DROP_DURATION_S,
+            config.drop_time_seconds,
             station_ids,
             extensions,
             api_versions,
@@ -350,17 +378,13 @@ class DataWindow:
             r_f.with_api_versions(self.api_versions)
         else:
             self.api_versions = r_f.api_versions
-        if self.start_buffer_td:
-            r_f.with_start_dt_buf(self.start_buffer_td)
-        else:
-            self.start_buffer_td = r_f.start_dt_buf
-        if self.end_buffer_td:
-            r_f.with_end_dt_buf(self.end_buffer_td)
-        else:
-            self.end_buffer_td = r_f.end_dt_buf
+        r_f.with_start_dt_buf(self.start_buffer_td)
+        r_f.with_end_dt_buf(self.end_buffer_td)
 
         # get the data to convert into a window
-        a_r = ApiReader(self.input_directory, self.structured_layout, r_f, self.debug, _pool)
+        a_r = ApiReader(self.input_directory, self.structured_layout, r_f, pool=_pool)
+
+        self.errors.extend_error(a_r.errors)
 
         if not self.station_ids:
             self.station_ids = a_r.index_summary.station_ids()
@@ -376,11 +400,6 @@ class DataWindow:
         # check for stations without data
         self._check_for_audio()
         self._check_valid_ids()
-
-        if len(self.stations) < 1 and self.station_ids:
-            self.errors.append(f"No data found for selected stations: {self.station_ids}")
-            # else:
-            #     self.errors.append(f"No data found in directory {self.input_directory}")
 
         # update remaining data window values if they're still default
         if not self.start_datetime and len(self.stations) > 0:
@@ -403,19 +422,29 @@ class DataWindow:
         for s in self.stations:
             if not s.has_audio_sensor():
                 remove.append(s.id)
-        self.stations = [s for s in self.stations if s.id not in remove]
-        self.station_ids = [s for s in self.station_ids if s not in remove]
+        if len(remove) > 0:
+            self.stations = [s for s in self.stations if s.id not in remove]
+            self.station_ids = [s for s in self.station_ids if s not in remove]
 
     def _check_valid_ids(self):
         """
-        searches the data window station_ids for any ids not in the data collected
-        outputs a message for each id requested but has no data
+        if there are stations, searches the station_ids for any ids not in the data collected
+        and creates an error message for each id requested but has no data
+        if there are no stations, creates a single error message declaring no data found
         """
-        for ids in self.station_ids:
-            if ids not in [i.id for i in self.stations] and self.debug:
-                self.errors.append(
-                    f"Requested {ids} but there is no data to read for that station"
-                )
+        if len(self.stations) < 1:
+            if len(self.station_ids) > 1:
+                add_ids = f"for all stations {self.station_ids} "
+            else:
+                add_ids = ""
+            self.errors.append(f"No data matching criteria {add_ids}in {self.input_directory}"
+                               f"\nPlease adjust parameters of DataWindow")
+        elif len(self.station_ids) > 1:
+            for ids in self.station_ids:
+                if ids not in [i.id for i in self.stations] and self.debug:
+                    self.errors.append(
+                        f"Requested {ids} but there is no data to read for that station"
+                    )
 
     def create_window_in_sensors(
             self, station: Station, start_datetime: Optional[dtu.datetime] = None,
@@ -530,253 +559,3 @@ class DataWindow:
         prints errors to screen
         """
         self.errors.print()
-
-
-#     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
-#                        end_date_timestamp: float):
-#         """
-#         process a non audio sensor to fit within the data window.  Updates sensor in place, returns nothing.
-#         :param sensor: sensor to process
-#         :param station_id: station id
-#         :param start_date_timestamp: start of data window
-#         :param end_date_timestamp: end of data window
-#         """
-#         # calculate the sensor's sample interval, std sample interval and sample rate of all data
-#         sensor.organize_and_update_stats()
-#         # get only the timestamps between the start and end timestamps
-#         df_timestamps = sensor.data_timestamps()
-#         if len(df_timestamps) > 0:
-#             before_start = np.where(df_timestamps < start_date_timestamp)[0]
-#             after_end = np.where(end_date_timestamp <= df_timestamps)[0]
-#             if len(before_start) > 0:
-#                 last_before_start = before_start[-1]
-#                 start_index = last_before_start + 1
-#             else:
-#                 last_before_start = None
-#                 start_index = 0
-#             if len(after_end) > 0:
-#                 first_after_end = after_end[0]
-#                 end_index = first_after_end
-#             else:
-#                 first_after_end = None
-#                 end_index = sensor.num_samples()
-#             # check if all the samples have been cut off
-#             if end_index < start_index or start_index >= len(df_timestamps):
-#                 if last_before_start is not None and first_after_end is None:
-#                     sensor.data_df = sensor.data_df.iloc[[last_before_start]]
-#                     sensor.data_df["timestamps"] = [start_date_timestamp]
-#                 elif last_before_start is None and first_after_end is not None:
-#                     sensor.data_df = sensor.data_df.iloc[[first_after_end]]
-#                     sensor.data_df["timestamps"] = [end_date_timestamp]
-#                 elif last_before_start is not None and first_after_end is not None:
-#                     sensor.data_df = sensor.interpolate(start_date_timestamp,
-#                                                         last_before_start,
-#                                                         first_after_end - last_before_start,
-#                                                         ).to_frame().T
-#                 elif self.debug:
-#                     self.errors.append(
-#                         f"WARNING: Data window for {station_id} {sensor.type.name} "
-#                         f"sensor has truncated all data points"
-#                     )
-#             else:
-#                 # update existing points immediately beyond the edge to be at the edge using interpolation.
-#                 if last_before_start is not None:
-#                     sensor.data_df.iloc[last_before_start] = sensor.interpolate(start_date_timestamp,
-#                                                                                 last_before_start,
-#                                                                                 1)
-#                     start_index -= 1
-#                 else:
-#                     sensor.data_df = pd.concat([sensor.interpolate(start_date_timestamp, start_index).to_frame().T,
-#                                                 sensor.data_df])
-#                     end_index += 1
-#                 if first_after_end is not None:
-#                     sensor.data_df.iloc[first_after_end] = sensor.interpolate(end_date_timestamp,
-#                                                                               first_after_end,
-#                                                                               -1)
-#                 else:
-#                     sensor.data_df = pd.concat([sensor.data_df,
-#                                                 sensor.interpolate(end_date_timestamp, end_index-1).to_frame().T])
-#                 end_index += 1
-#                 sensor.data_df = sensor.data_df.iloc[start_index:end_index].reset_index(
-#                     drop=True
-#                 )
-#                 if sensor.is_sample_interval_invalid():
-#                     if self.debug:
-#                         self.errors.append(
-#                             f"WARNING: Cannot fill gaps or pad {station_id} {sensor.type.name} "
-#                             f"sensor; it has undefined sample interval and sample rate!"
-#                         )
-#                 # else:  # GAP FILL and PAD DATA
-#                 #     sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
-#                 #     sensor.data_df = gpu.fill_gaps(sensor.data_df, [],
-#                 sample_interval_micros=sample_interval_micros)
-#         elif self.debug:
-#             self.errors.append(f"WARNING: Data window for {station_id} {sensor.type.name} sensor has no data points!")
-#
-#     def process_audio_sensor(self, station: Station, start_date_timestamp: float, end_date_timestamp: float):
-#         sensor = station.audio_sensor()
-#         df_timestamps = sensor.data_timestamps()
-#         if len(df_timestamps) > 0:
-#             before_start = np.where(df_timestamps < start_date_timestamp)[0]
-#             after_end = np.where(end_date_timestamp <= df_timestamps)[0]
-#             if len(before_start) > 0:
-#                 start_index = before_start[-1] + 1
-#             else:
-#                 start_index = 0
-#             if len(after_end) > 0:
-#                 end_index = after_end[0] - 1
-#             else:
-#                 end_index = sensor.num_samples() - 1
-#             # check if all the samples have been cut off
-#             if end_index < start_index and self.debug:
-#                 self.errors.append(f"WARNING: Data window for {station.id} Audio sensor has
-#                 truncated all data points")
-#             else:
-#                 sensor.data_df = sensor.data_df.iloc[start_index:end_index+1].reset_index(
-#                     drop=True
-#                 )
-#                 if sensor.is_sample_interval_invalid():
-#                     if self.debug:
-#                         self.errors.append(
-#                             f"WARNING: Cannot fill gaps or pad {station.id} Audio "
-#                             f"sensor; it has undefined sample interval and sample rate!"
-#                         )
-#                 else:  # PAD DATA
-#                     sample_interval_micros = dtu.seconds_to_microseconds(sensor.sample_interval_s)
-#                     sensor.data_df = gpu.pad_data(
-#                         start_date_timestamp,
-#                         end_date_timestamp,
-#                         sensor.data_df,
-#                         sample_interval_micros,
-#                     )
-#         elif self.debug:
-#             self.errors.append(f"WARNING: Data window for {station.id} Audio sensor has no data points!")
-#
-#     def create_window_in_sensors(
-#             self, station: Station, start_date_timestamp: float, end_date_timestamp: float
-#     ):
-#         """
-#         truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
-#         returns nothing, updates the station in place
-#         :param station: station object to truncate sensors of
-#         :param start_date_timestamp: timestamp in microseconds since epoch UTC of start of window
-#         :param end_date_timestamp: timestamp in microseconds since epoch UTC of end of window
-#         """
-#         self.process_audio_sensor(station, start_date_timestamp, end_date_timestamp)
-#         for sensor in station.data:
-#             if sensor.type != SensorType.AUDIO:
-#                 self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
-#                                     station.audio_sensor().last_data_timestamp())
-#         # recalculate metadata
-#         new_meta = [meta for meta in station.packet_metadata
-#                     if meta.packet_start_mach_timestamp < end_date_timestamp and
-#                     meta.packet_end_mach_timestamp > start_date_timestamp]
-#         station.packet_metadata = new_meta
-#         station.first_data_timestamp = station.audio_sensor().first_data_timestamp()
-#         station.last_data_timestamp = station.audio_sensor().data_timestamps()[-1]
-#
-#     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
-#         """
-#         updates the data window to contain only the data within the window parameters
-#         stations without audio or any data outside the window are removed
-#         """
-#
-#         # Let's create and manage a single pool of workers that we can utilize throughout
-#         # the instantiation of the data window.
-#         _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
-#
-#         ids_to_pop = []
-#         r_f = io.ReadFilter()
-#         if self.start_datetime:
-#             r_f.with_start_dt(self.start_datetime)
-#         if self.end_datetime:
-#             r_f.with_end_dt(self.end_datetime)
-#         if self.station_ids:
-#             r_f.with_station_ids(self.station_ids)
-#         if self.extensions:
-#             r_f.with_extensions(self.extensions)
-#         else:
-#             self.extensions = r_f.extensions
-#         if self.api_versions:
-#             r_f.with_api_versions(self.api_versions)
-#         else:
-#             self.api_versions = r_f.api_versions
-#         if self.start_buffer_td:
-#             r_f.with_start_dt_buf(self.start_buffer_td)
-#         else:
-#             self.start_buffer_td = r_f.start_dt_buf
-#         if self.end_buffer_td:
-#             r_f.with_end_dt_buf(self.end_buffer_td)
-#         else:
-#             self.end_buffer_td = r_f.end_dt_buf
-#         # get the data to convert into a window
-#         stations = ApiReader(
-#             self.input_directory,
-#             self.structured_layout,
-#             r_f,
-#             self.debug,
-#             pool=_pool,
-#         ).get_stations()
-#
-#         # Parallel update
-#         # Apply timing correction in parallel by station
-#         if self.apply_correction:
-#             # stations = _pool.map(Station.update_timestamps, stations)
-#             stations = list(maybe_parallel_map(_pool, Station.update_timestamps, iter(stations), chunk_size=1))
-#
-#         for station in stations:
-#             if station.id:
-#                 ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
-#                 if station.id not in ids_to_pop:
-#                     # set the window start and end if they were specified, otherwise use the bounds of the data
-#                     if self.start_datetime:
-#                         start_datetime = dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
-#                     else:
-#                         start_datetime = station.first_data_timestamp
-#                     if self.end_datetime:
-#                         end_datetime = dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
-#                     else:
-#                         end_datetime = station.last_data_timestamp
-#                     # TRUNCATE!
-#                     self.create_window_in_sensors(station, start_datetime, end_datetime)
-#                     ids_to_pop = check_audio_data(station, ids_to_pop, self.debug)
-#                     if station.id not in ids_to_pop:
-#                         self.stations[station.id] = station
-#
-#         # update remaining data window values if they're still default
-#         if not self.station_ids or len(self.station_ids) == 0:
-#             self.station_ids = set(self.stations.keys())
-#         # remove station ids without audio data
-#         for ids in ids_to_pop:
-#             self.stations.pop(ids)
-#         if not self.start_datetime and len(self.stations.keys()) > 0:
-#             self.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
-#                 np.min([t.first_data_timestamp for t in self.stations.values()]))
-#         if not self.end_datetime and len(self.stations.keys()) > 0:
-#             self.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
-#                 np.max([t.last_data_timestamp for t in self.stations.values()]))
-#
-#         # check for stations without data
-#         self.check_valid_ids()
-#
-#         # If the pool was created by this function, then it needs to managed by this function.
-#         if pool is None:
-#             _pool.close()
-#
-#
-# def check_audio_data(
-#         station: Station, ids_to_remove: List[str], debug: bool = False
-# ) -> List[str]:
-#     """
-#     check if the station has audio data; if it does not, update the list of stations to remove
-#
-#     :param station: station object to check for audio data
-#     :param ids_to_remove: list of station ids to remove from the data window
-#     :param debug: if True, output warning message, default False
-#     :return: an updated list of station ids to remove from the data window
-#     """
-#     if not station.has_audio_sensor():
-#         if debug:
-#             print(f"WARNING: {station.id} doesn't have any audio data to read")
-#         ids_to_remove.append(station.id)
-#     return ids_to_remove

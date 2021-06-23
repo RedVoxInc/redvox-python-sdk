@@ -88,6 +88,7 @@ def _migrate_synch_exchanges_900_to_1000(
 def _find_mach_time_zero_raw(packet: api_900.RedvoxPacket) -> int:
     """
     find the mach time zero in api 900 packets
+
     :param packet: api 900 redvox packet to read
     :return: mach time zero fo the api 900 packet or -1 if it doesn't exist
     """
@@ -230,6 +231,7 @@ def compute_stats_raw(
 def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPacketM:
     """
     Converts a wrapped API 900 packet into a wrapped API M packet.
+
     :param packet: API 900 packet to convert.
     :return: A wrapped API M packet.
     """
@@ -791,6 +793,7 @@ def convert_api_900_to_1000(
 ) -> WrappedRedvoxPacketM:
     """
     Converts a wrapped API 900 packet into a wrapped API M packet.
+
     :param wrapped_packet_900: API 900 packet to convert.
     :return: A wrapped API M packet.
     """
@@ -1095,6 +1098,7 @@ def convert_api_1000_to_900(
 ) -> reader_900.WrappedRedvoxPacket:
     """
     Converts an API M wrapped packet into an API 900 wrapped packet.
+
     :param wrapped_packet_m: Packet to convert.
     :return: An API 900 wrapped packet.
     """

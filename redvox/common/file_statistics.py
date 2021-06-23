@@ -57,6 +57,7 @@ DURATION_SECONDS: np.ndarray = np.divide(DURATION_TOTAL_POINTS, SAMPLE_RATE_HZ)
 def get_file_stats(sample_rate: Union[float, int]) -> Tuple[int, float]:
     """
     Get the number of samples in a decoder file and its duration in seconds.
+
     :param sample_rate: int or float, sample rate
     :returns: number of samples in file as int and file time duration in seconds as float
     """
@@ -73,6 +74,7 @@ def get_file_stats(sample_rate: Union[float, int]) -> Tuple[int, float]:
 def get_num_points_from_sample_rate(sample_rate: Union[float, int]) -> int:
     """
     Returns the number of data points in a packet given a sample rate
+
     :param sample_rate: A valid sample rate from the constants above
     :return: the number of data points in the packet in seconds
     """
@@ -88,6 +90,7 @@ def get_num_points_from_sample_rate(sample_rate: Union[float, int]) -> int:
 def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -> float:
     """
     Returns the duration of a packet in seconds given a sample rate
+
     :param sample_rate: A valid sample rate from the constants above
     :return: the duration of the packet in seconds
     """
@@ -105,6 +108,7 @@ def _map_opt(
 ) -> Optional[Any]:
     """
     Maps an optional with the given function. If the optional is None, None is returned.
+
     :param opt: The optional to map.
     :param apply: The function to apply to the optional if a value is present.
     :return: The mapped value.
@@ -121,8 +125,9 @@ def _map_opt_numeric(
 ) -> Optional[Any]:
     """
     Maps an optional with the given function. If the optional is None, None is returned.
+
+    :param fn: The function to apply to the optional if a value is present.
     :param opt: The optional to map.
-    :param apply: The function to apply to the optional if a value is present.
     :return: The mapped value.
     """
     if opt is None or math.isnan(opt):
@@ -135,6 +140,7 @@ def _partition_list(lst: List[Any], chunks: int) -> List[Any]:
     """
     Partitions a list into k "chunks" of approximately equal length.
     Adapted from: Adopted from: https://stackoverflow.com/questions/2130016/splitting-a-list-into-n-parts-of-approximately-equal-length/37414115#37414115
+
     :param lst:
     :param chunks:
     :return:
@@ -200,6 +206,7 @@ class StationStat:
     def from_api_900(packet: "WrappedRedvoxPacket") -> "StationStat":
         """
         Extracts the required fields from an API 900 packet.
+
         :param packet: API 900 packet to extract fields from.
         :return: An instance of StationStat.
         """
@@ -248,6 +255,7 @@ class StationStat:
     def from_api_1000(packet: "WrappedRedvoxPacketM") -> "StationStat":
         """
         Extracts the required fields from an API 1000 packet.
+
         :param packet: API 1000 packet to extract fields from.
         :return: An instance of StationStat.
         """
@@ -308,6 +316,7 @@ class StationStat:
 def extract_stats_serial(index: io.Index) -> List[StationStat]:
     """
     Extracts StationStat information from packets stored in the provided index.
+
     :param index: Index of packets to extract information from.
     :return: A list of StationStat objects.
     """
@@ -329,7 +338,9 @@ def extract_stats_parallel(
 ) -> List[StationStat]:
     """
     Extracts StationStat information in parallel from packets stored in the provided index.
+
     :param index: Index of packets to extract information from.
+    :param pool: optional multiprocessing pool.
     :return: A list of StationStat objects.
     """
     # Partition the index entries by number of cores
@@ -380,7 +391,9 @@ def extract_stats(
 ) -> List[StationStat]:
     """
     Extracts StationStat information from packets stored in the provided index.
+
     :param index: Index of packets to extract information from.
+    :param pool: optional multiprocessing pool.
     :return: A list of StationStat objects.
     """
     return ExtractStatsFn(index, pool)

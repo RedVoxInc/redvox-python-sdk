@@ -32,6 +32,7 @@ If you wish to learn more about the low-level class used to construct DataWindow
   * [Data Window Complete](#data-window-complete)
 - [Low-Level Data Access](#low-level-data-access)
 - [DataWindow Example Code](#datawindow-example-code)
+- [Errors and Troubleshooting](#errors-and-troubleshooting)
 
 <!-- tocstop -->
 
@@ -74,9 +75,10 @@ input_dir="relative/path/to/data_dir"
 
 _Windows examples_:
 ```python
-input_dir="\absolute\path\to\data_folder"
-input_dir="C:\absolute\path\to\data_folder"
-input_dir="relative\path\to\data_folder"
+# This example assumes your Windows Python environment requires the backslash character to be escaped
+input_dir="\\absolute\\path\\to\\data_folder"
+input_dir="C:\\absolute\\path\\to\\data_folder"
+input_dir="relative\\path\\to\\data_folder"
 ```
 
 #### Strongly Recommended Data Window Parameters
@@ -122,6 +124,7 @@ First, please note that your data must be stored in one of two ways:
 1. `Unstructured`: All files exist in the `input_dir`.
 2. `Structured`: Files are organized by date and time as specified in the [API-M repo](https://github.com/RedVoxInc/redvox-api-1000/blob/master/docs/standards/filenames_and_directory_structures.md#standard-directory-structure).
 
+<a id="structured-layout"></a>
 `structured_layout`: a boolean value representing the structure of the input directory.  If `True`, the data is stored 
 in the Structured format.  The default value is `True`.
 
@@ -146,7 +149,7 @@ when an error occurs.  The default value is `False`.
 We do not recommend changing the following parameters from the defaults.
 
 `start_buffer_td`: a timedelta object representing how much additional time before the start_datetime to add when looking for data.
-If `None` or not given, 120 seconds is added.  The default value is `None`.
+Negative values are changed to 0 seconds.  If `None` or not given, 120 seconds is added.  The default value is `None`.
 
 _Examples:_
 
@@ -158,7 +161,7 @@ start_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
 
 `end_buffer_td`: a timedelta object representing how much additional time after the end_datetime to add when looking for data.
-If `None` or not given, 120 seconds is added.  The default value is `None`.
+Negative values are changed to 0 seconds.  If `None` or not given, 120 seconds is added.  The default value is `None`.
 
 _Examples:_
 
@@ -170,7 +173,7 @@ end_buffer_td=redvox.common.date_time_utils.timedelta(minutes=2)
 ```
 
 `drop_time_s`: a float value representing the minimum number of seconds between data files that indicates a gap in the data.
-The default is `0.2` seconds.
+Negative values are changed to the default.  The default is `0.2` seconds.
 
 _Example:_
 
@@ -178,8 +181,10 @@ _Example:_
 drop_time_s=0.2
 ```
 
-`extensions`: a set of strings representing the file extensions to filter on.  If `None` or not given, will return all files 
-with extensions that match the other filter criteria.  The default value is `None`.
+<a id="extensions"></a>
+`extensions`: a set of strings representing the file extensions to filter on.  You may need to include this when working
+with custom extensions.  If `None` or not given, will return all files with extensions that match the other filter criteria. 
+The default value is `None`.
 
 _Example:_
 
@@ -610,7 +615,7 @@ The data is now organized by Station.  This process will be performed on all Sta
 
 1. If apply_correction is True, update all timestamps in the Station using the offset model.  This is the final timestamp update before the user gets the data.
 
-2. Remove any Audio data points outside the request window, then add two empty data points at the request edge points, if they exist.
+2. Remove any Audio data points outside the request window.
 
 3. Remove data points from each non-audio sensor that are outside the request window.
 
@@ -641,7 +646,34 @@ Below are a few examples of how to use DataWindow.  Ensure you have installed th
 
 Update the variables to match your environment before running.
 
-Using the initializer function:
+Quick Start:
+```python
+from redvox.common.data_window import DataWindow
+
+input_dir: str = "/path/to/api_dir"
+# for Windows, delete the above line and use the line below instead:
+# input_dir: str = "C:\\path\\to\\api_dir
+
+if __name__ == "__main__":
+    datawindow = DataWindow(input_dir=input_dir)
+
+    station = datawindow.stations[0]
+    
+    print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
+          f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz}\n"
+          f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed}\n"
+          f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s}\n"
+          f"mic sample interval std dev: {station.audio_sensor().sample_interval_std_s}\n"
+          f"the data timestamps as a numpy array:\n {station.audio_sensor().data_timestamps()}\n"
+          f"the first data timestamp: {station.audio_sensor().first_data_timestamp()}\n"
+          f"the last data timestamp:  {station.audio_sensor().last_data_timestamp()}\n"
+          f"the data as an ndarray: {station.audio_sensor().samples()}\n"
+          f"the number of data samples: {station.audio_sensor().num_samples()}\n"
+          f"the names of the dataframe columns: {station.audio_sensor().data_channels()}\n")
+```
+
+
+Using the initializer function to display a specific station:
 ```python
 import matplotlib.pyplot as plt
 
@@ -651,6 +683,8 @@ import redvox.common.date_time_utils as dt
 
 # Variables
 input_dir: str = "/path/to/api_dir"
+# for Windows, delete the above line and use the line below instead:
+# input_dir: str = "C:\\path\\to\\api_dir
 station_ids = ["list", "of", "ids"]
 target_station = "id_from_list"
 start_timestamp_s: dt.datetime = dt.datetime_from(start_year,
@@ -700,8 +734,9 @@ plt.xlabel(f"microseconds from {start_timestamp_s}")
 plt.show()
 ```
 
-Using a config file:
+Using a config file to do the same as above:
 
+_[Example Config File](data_window.config.toml)_
 _Remember to update your config file to match your environment before running the example_
 ```python
 import matplotlib.pyplot as plt
@@ -711,6 +746,8 @@ from redvox.common.data_window import DataWindow
 
 # Variables
 config_dir: str = "path/to/config.file.toml"
+# for Windows, delete the above line and use the line below instead:
+# config_dir: str = "C:\\path\\to\\config.file.toml
 target_station = "id_from_config"
 # End Variables
 
@@ -739,5 +776,39 @@ plt.title(f"{station.id}")
 plt.xlabel(f"microseconds from {datawindow.start_datetime}")
 plt.show()
 ```
+
+_[Table of Contents](#table-of-contents)_
+
+## Errors and Troubleshooting
+
+Below are troubleshooting tips in the event DataWindow does not run properly
+
+If you can't access the DataWindow class, include this line to import DataWindow into your project:
+`from redvox.common.data_window import DataWindow`
+
+If your files aren't loading through DataWindow:
+
+Enable the debug parameter in DataWindow to display any errors encountered while creating DataWindow.
+```python
+datawindow = DataWindow(input_dir=input_dir,
+                        # ...
+                        debug=True)
+```
+
+Check the value of input_dir for any errors, and that the files within the directory are in one of two formats 
+(structured or unstructured) described in the [Optional Data Window Parameters](#structured-layout) section.
+Use the appropriate value for the `structured` parameter of DataWindow.
+
+When working with structured directories, ensure that all API 1000 (API M) files are in a directory called `api1000` 
+and all API 900 files are in a directory called `api900`.  API 1000 files normally end in `.rdvxm` and API 900 files
+normally end in `.rdvxz`
+
+Adjust the start and end datetime values of DataWindow, as described in the 
+[Strongly Recommended Data Window Parameters](#strongly-recommended-data-window-parameters) section.
+
+Check your files for non-typical extensions.  `.rdvxm` and `.rdxvz` are the most common file extensions.
+If you have other file extensions, include those extensions in the `extensions` parameter in DataWindow.  See the 
+[Advanced Optional Data Window Parameters](#extensions) section for details on how to set 
+the `extensions` parameter.
 
 _[Table of Contents](#table-of-contents)_

@@ -41,6 +41,7 @@ class TriMessageStats:
     ):
         """
         Calculate latency, offset, and their qualities.
+
         :param packet_id: an identifier for reporting purposes
         :param a1: array of server timestamp 1
         :param a2: array of server timestamp 2
@@ -117,7 +118,8 @@ class TriMessageStats:
         b3_coeffs: np.ndarray,
     ) -> None:
         """
-        set the latency and find the best
+        set the latency and find the best latency
+
         :param a1_coeffs: server timestamp 1
         :param a2_coeffs: server timestamp 2
         :param a3_coeffs: server timestamp 3
@@ -141,7 +143,8 @@ class TriMessageStats:
         b3_coeffs: np.ndarray,
     ) -> None:
         """
-        set the offset and find the best
+        set the offset and find the best offset
+
         :param a1_coeffs: server timestamp 1
         :param a2_coeffs: server timestamp 2
         :param a3_coeffs: server timestamp 3

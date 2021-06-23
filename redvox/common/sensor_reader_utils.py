@@ -154,6 +154,7 @@ def __has_sensor(
 ) -> bool:
     """
     Returns true if the given packet or sensors instance contains the valid sensor.
+
     :param data: Either a packet or a packet's sensors message.
     :param field_name: The name of the sensor being checked.
     :return: True if the sensor exists, False otherwise.
@@ -172,6 +173,7 @@ def __has_sensor(
 def __packet_duration_s(packet: api_m.RedvoxPacketM) -> float:
     """
     Returns the packet duration in seconds.
+
     :param packet: The packet to calculate the duration for.
     :return: The packet duration in seconds.
     """
@@ -181,6 +183,7 @@ def __packet_duration_s(packet: api_m.RedvoxPacketM) -> float:
 def __packet_duration_us(packet: api_m.RedvoxPacketM) -> float:
     """
     Returns the packet duration in microseconds.
+
     :param packet: The packet to calculate the duration for.
     :return: The packet duration in microseconds.
     """
@@ -192,6 +195,7 @@ def __stats_for_sensor_per_packet_per_second(num_packets: int,
                                              timestamps: np.array) -> Tuple[float, float, float]:
     """
     Sensor being evaluated must either have 1/packet or 1/second sample rate
+
     :param num_packets: number of packets to calculate stats for
     :param packet_dur_s: duration of packet in seconds
     :param timestamps: timestamps of the samples
@@ -215,6 +219,7 @@ def get_empty_sensor_data(
 ) -> SensorData:
     """
     create a sensor data object with no data
+
     :param name: name of the sensor
     :param sensor_type: type of the sensor to create, default SensorType.UNKNOWN_SENSOR
     :return: empty sensor
@@ -225,6 +230,7 @@ def get_empty_sensor_data(
 def get_sensor_description(sensor: Sensor) -> str:
     """
     read the sensor's description from the sensor
+
     :param sensor: the sensor to read the description from
     :return: the sensor's description
     """
@@ -236,6 +242,7 @@ def get_sensor_description_list(
 ) -> Optional[str]:
     """
     read the sensor_type sensor's description from a list of packets
+
     :param packets: the list of packets to read from
     :param sensor_type: the SensorType of the sensor to read the description of
     :return: the sensor_type sensor's description
@@ -255,6 +262,7 @@ def get_sensor_description_list(
 def get_sample_statistics(data_df: pd.DataFrame) -> Tuple[float, float, float]:
     """
     calculate the sample rate, interval and interval std dev using the timestamps in the dataframe
+
     :param data_df: the dataframe containing timestamps to calculate statistics from
     :return: a Tuple containing the sample rate, interval and interval std dev
     """
@@ -279,6 +287,7 @@ def read_apim_xyz_sensor(
     """
     read a sensor that has xyz data channels from an api M data packet
     raises Attribute Error if sensor does not contain xyz channels
+
     :param sensor: the xyz api M sensor to read
     :param column_id: string, used to name the columns
     :return: Dataframe representing the data in the sensor
@@ -318,6 +327,7 @@ def load_apim_xyz_sensor_from_list(
 ) -> Optional[SensorData]:
     """
     create a three channel sensor of sensor_type with the column name, description, and data given.
+
     :param sensor_type: the SensorType of sensor to create
     :param data: the list of data to be added; requires timestamps to be the first list
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
@@ -352,6 +362,7 @@ def read_apim_single_sensor(
     """
     read a sensor that has a single data channel from an api M data packet
     raises Attribute Error if sensor does not contain exactly one data channel
+
     :param sensor: the single channel api M sensor to read
     :param column_id: string, used to name the columns
     :return: Dataframe representing the data in the sensor
@@ -378,6 +389,7 @@ def load_apim_single_sensor_from_list(
 ) -> Optional[SensorData]:
     """
     Create a single channel sensor of sensor_type with the column name, timestamps, data, and description
+
     :param sensor_type: the SensorType of sensor to create
     :param timestamps: the timestamps of the data
     :param data: the list of data to be added
@@ -404,6 +416,7 @@ def load_apim_single_sensor_from_list(
 def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load audio data from a single redvox packet
+
     :param packet: packet with data to load
     :return: audio sensor data if it exists, None otherwise
     """
@@ -440,6 +453,7 @@ def load_apim_audio_from_list(
     """
     load audio data from a list of redvox packets
     NOTE: This only works because audio sensors in the list should all have the same number of data points.
+
     :param packets: packets with data to load
     :return: audio sensor data if it exists, None otherwise
     """
@@ -480,6 +494,7 @@ def load_apim_audio_from_list(
 def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load compressed audio data from a single redvox packet
+
     :param packet: packet with data to load
     :return: compressed audio sensor data if it exists, None otherwise
     """
@@ -515,6 +530,7 @@ def load_apim_compressed_audio_from_list(
 ) -> Optional[SensorData]:
     """
     load compressed audio data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: compressed audio sensor data if it exists, None otherwise
@@ -554,6 +570,7 @@ def load_apim_compressed_audio_from_list(
 def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load image data from a single redvox packet
+
     :param packet: packet with data to load
     :return: image sensor data if it exists, None otherwise
     """
@@ -587,6 +604,7 @@ def load_apim_image_from_list(
 ) -> Optional[SensorData]:
     """
     load image data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: image sensor data if it exists, None otherwise
@@ -647,6 +665,7 @@ def __is_only_best_values(loc: api_m.RedvoxPacketM.Sensors.Location) -> bool:
 def load_apim_best_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load best location data from a single redvox packet
+
     :param packet: packet with data to load
     :return: best location sensor data if it exists, None otherwise
     """
@@ -693,6 +712,7 @@ def load_apim_best_location_from_list(
 ) -> Optional[SensorData]:
     """
     load best location data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: best location sensor data if it exists, None otherwise
@@ -739,6 +759,7 @@ def load_apim_best_location_from_list(
 def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load location data from a single packet
+
     :param packet: packet with data to load
     :return: location sensor data if it exists, None otherwise
     """
@@ -798,6 +819,7 @@ def load_apim_location_from_list(
 ) -> Optional[SensorData]:
     """
     load location data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: location sensor data if it exists, None otherwise
@@ -944,6 +966,7 @@ def load_single_from_list(
 def load_apim_pressure(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load pressure data from a single redvox packet
+
     :param packet: packet with data to load
     :return: pressure sensor data if it exists, None otherwise
     """
@@ -955,6 +978,7 @@ def load_apim_pressure_from_list(
 ) -> Optional[SensorData]:
     """
     load pressure data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: pressure sensor data if it exists, None otherwise
@@ -969,6 +993,7 @@ def load_apim_pressure_from_list(
 def load_apim_light(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load light data from a single redvox packet
+
     :param packet: packet with data to load
     :return: light sensor data if it exists, None otherwise
     """
@@ -980,6 +1005,7 @@ def load_apim_light_from_list(
 ) -> Optional[SensorData]:
     """
     load light data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: light sensor data if it exists, None otherwise
@@ -994,6 +1020,7 @@ def load_apim_light_from_list(
 def load_apim_proximity(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load proximity data from a single redvox packet
+
     :param packet: packet with data to load
     :return: proximity sensor data if it exists, None otherwise
     """
@@ -1005,6 +1032,7 @@ def load_apim_proximity_from_list(
 ) -> Optional[SensorData]:
     """
     load proximity data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: proximity sensor data if it exists, None otherwise
@@ -1021,6 +1049,7 @@ def load_apim_ambient_temp(
 ) -> Optional[SensorData]:
     """
     load ambient temperature data from a single redvox packet
+
     :param packet: packet with data to load
     :return: ambient temperature sensor data if it exists, None otherwise
     """
@@ -1035,6 +1064,7 @@ def load_apim_ambient_temp_from_list(
 ) -> Optional[SensorData]:
     """
     load ambient temperature data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: ambient temperature sensor data if it exists, None otherwise
@@ -1051,6 +1081,7 @@ def load_apim_rel_humidity(
 ) -> Optional[SensorData]:
     """
     load relative humidity data from a single redvox packet
+
     :param packet: packet with data to load
     :return: relative humidity sensor data if it exists, None otherwise
     """
@@ -1065,6 +1096,7 @@ def load_apim_rel_humidity_from_list(
 ) -> Optional[SensorData]:
     """
     load relative humidity data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: relative humidity sensor data if it exists, None otherwise
@@ -1143,6 +1175,7 @@ def load_apim_accelerometer(
 ) -> Optional[SensorData]:
     """
     load accelerometer data from a single redvox packet
+
     :param packet: packet with data to load
     :return: accelerometer sensor data if it exists, None otherwise
     """
@@ -1157,6 +1190,7 @@ def load_apim_accelerometer_from_list(
 ) -> Optional[SensorData]:
     """
     load accelerometer data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: accelerometer sensor data if it exists, None otherwise
@@ -1173,6 +1207,7 @@ def load_apim_magnetometer(
 ) -> Optional[SensorData]:
     """
     load magnetometer data from a single redvox packet
+
     :param packet: packet with data to load
     :return: magnetometer sensor data if it exists, None otherwise
     """
@@ -1187,6 +1222,7 @@ def load_apim_magnetometer_from_list(
 ) -> Optional[SensorData]:
     """
     load magnetometer data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: magnetometer sensor data if it exists, None otherwise
@@ -1201,6 +1237,7 @@ def load_apim_magnetometer_from_list(
 def load_apim_gyroscope(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load gyroscope data from a single redvox packet
+
     :param packet: packet with data to load
     :return: gyroscope sensor data if it exists, None otherwise
     """
@@ -1212,6 +1249,7 @@ def load_apim_gyroscope_from_list(
 ) -> Optional[SensorData]:
     """
     load gyroscope data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: gyroscope sensor data if it exists, None otherwise
@@ -1226,6 +1264,7 @@ def load_apim_gyroscope_from_list(
 def load_apim_gravity(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load gravity data from a single redvox packet
+
     :param packet: packet with data to load
     :return: gravity sensor data if it exists, None otherwise
     """
@@ -1237,6 +1276,7 @@ def load_apim_gravity_from_list(
 ) -> Optional[SensorData]:
     """
     load gravity data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: gravity sensor data if it exists, None otherwise
@@ -1251,6 +1291,7 @@ def load_apim_gravity_from_list(
 def load_apim_orientation(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load orientation data from a single redvox packet
+
     :param packet: packet with data to load
     :return: orientation sensor data if it exists, None otherwise
     """
@@ -1265,6 +1306,7 @@ def load_apim_orientation_from_list(
 ) -> Optional[SensorData]:
     """
     load orientation data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: orientation sensor data if it exists, None otherwise
@@ -1281,6 +1323,7 @@ def load_apim_linear_accel(
 ) -> Optional[SensorData]:
     """
     load linear acceleration data from a single redvox packet
+
     :param packet: packet with data to load
     :return: linear acceleration sensor data if it exists, None otherwise
     """
@@ -1295,6 +1338,7 @@ def load_apim_linear_accel_from_list(
 ) -> Optional[SensorData]:
     """
     load linear acceleration data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: linear acceleration sensor data if it exists, None otherwise
@@ -1311,6 +1355,7 @@ def load_apim_rotation_vector(
 ) -> Optional[SensorData]:
     """
     load rotation vector data from a single redvox packet
+
     :param packet: packet with data to load
     :return: rotation vector sensor data if it exists, None otherwise
     """
@@ -1325,6 +1370,7 @@ def load_apim_rotation_vector_from_list(
 ) -> Optional[SensorData]:
     """
     load rotation vector data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: rotation vector sensor data if it exists, None otherwise
@@ -1339,6 +1385,7 @@ def load_apim_rotation_vector_from_list(
 def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
     """
     load station health data from a single redvox packet
+
     :param packet: packet with data to load
     :return: station health data if it exists, None otherwise
     """
@@ -1397,6 +1444,7 @@ def load_apim_health_from_list(
 ) -> Optional[SensorData]:
     """
     load station health data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: station health sensor data if it exists, None otherwise

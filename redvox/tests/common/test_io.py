@@ -628,7 +628,6 @@ class IndexTests(IoTestCase):
 
         self.assertEqual(8, len(index.entries))
 
-
     def test_read_filtered(self):
         index: io.Index = io.Index([
             io.IndexEntry.from_path(

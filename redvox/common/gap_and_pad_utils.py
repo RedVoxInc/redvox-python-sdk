@@ -396,7 +396,6 @@ def create_dataless_timestamps_df(
 ) -> pd.DataFrame:
     """
     Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
-
     the first timestamp created is 1 sample_interval_s from the start_timestamp
 
     :param start_timestamp: timestamp in microseconds since epoch UTC to start calculating other timestamps from

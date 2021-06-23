@@ -60,6 +60,7 @@ class SensorType(enum.Enum):
     def type_from_str(type_str: str) -> "SensorType":
         """
         converts a string to a sensor type
+
         :param type_str: string to convert
         :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
         """
@@ -142,6 +143,7 @@ class SensorData:
     ):
         """
         initialize the sensor data with params
+
         :param sensor_name: name of the sensor
         :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
         :param sensor_data: dataframe with the timestamps and sensor data; first column is always the timestamps,
@@ -184,6 +186,7 @@ class SensorData:
         sorts the data by timestamps, then if the sample rate is not fixed, recalculates the sample rate, interval,
             and interval std dev.  If there is only one value, sets the sample rate, interval, and interval std dev
             to np.nan.  Updates the SensorData object with the new values
+
         :return: updated version of self
         """
         self.sort_by_data_timestamps()
@@ -213,6 +216,7 @@ class SensorData:
         """
         append the new data to the dataframe, update the sensor's stats on demand if it doesn't have a fixed
             sample rate, then return the updated SensorData object
+
         :param new_data: Dataframe containing data to add to the sensor's dataframe
         :param recalculate_stats: if True and the sensor does not have a fixed sample rate, sort the timestamps,
                                     recalculate the sample rate, interval, and interval std dev, default False
@@ -226,6 +230,7 @@ class SensorData:
     def sensor_type_as_str(self) -> str:
         """
         gets the sensor type as a string
+
         :return: sensor type of the sensor as a string
         """
         return self.type.name
@@ -233,6 +238,7 @@ class SensorData:
     def samples(self) -> np.ndarray:
         """
         gets the samples of dataframe
+
         :return: the data values of the dataframe as a numpy ndarray
         """
         return self.data_df.iloc[:, 2:].T.to_numpy()
@@ -240,6 +246,7 @@ class SensorData:
     def get_data_channel(self, channel_name: str) -> Union[np.array, List[str]]:
         """
         gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
+
         :param channel_name: the name of the channel to get data for
         :return: the data values of the channel as a numpy array or list of strings for enumerated channels
         """
@@ -264,6 +271,7 @@ class SensorData:
     def get_valid_data_channel_values(self, channel_name: str) -> np.array:
         """
         gets all non-nan values from the channel specified
+
         :param channel_name: the name of the channel to get data for
         :return: non-nan values of the channel as a numpy array
         """
@@ -307,6 +315,11 @@ class SensorData:
         return self.data_df.columns.to_list()
 
     def update_data_timestamps(self, offset_model: om.OffsetModel):
+        """
+        updates the timestamps of the data points
+
+        :param offset_model: model used to update the timestamps
+        """
         if self.type == SensorType.AUDIO:
             self.data_df["timestamps"] = \
                 calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp()),
@@ -327,6 +340,7 @@ class SensorData:
     def sort_by_data_timestamps(self, ascending: bool = True):
         """
         sorts the data based on timestamps
+
         :param ascending: if True, timestamps are sorted in ascending order
         """
         self.data_df = self.data_df.sort_values("timestamps", ascending=ascending)

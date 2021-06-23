@@ -14,6 +14,7 @@ from redvox.common import io
 from redvox.common import file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
+from redvox.common.errors import RedVoxExceptions
 
 
 class ApiReader:
@@ -41,6 +42,7 @@ class ApiReader:
     ):
         """
         Initialize the ApiReader object
+
         :param base_dir: directory containing the files to read
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
@@ -60,8 +62,12 @@ class ApiReader:
         self.base_dir = base_dir
         self.structured_dir = structured_dir
         self.debug = debug
+        self.errors = RedVoxExceptions("APIReader")
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
+
+        if debug:
+            self.errors.print()
 
         if pool is None:
             _pool.close()
@@ -80,6 +86,7 @@ class ApiReader:
     ) -> List[io.Index]:
         """
         get all files in the base dir of the ApiReader
+
         :return: index with all the files that match the filter
         """
         _pool: multiprocessing.pool.Pool = (
@@ -158,7 +165,7 @@ class ApiReader:
         # try getting 1.5 times the difference of the expected start/end and the start/end of the data
         insufficient_str = ""
         if self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt:
-            insufficient_str += " start"
+            insufficient_str += f" {self.filter.start_dt} (start)"
             # diff_s = self.filter.start_dt_buf + 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
             new_end = self.filter.start_dt - self.filter.start_dt_buf
             new_start = new_end - 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
@@ -174,7 +181,7 @@ class ApiReader:
                 station_index.append(new_index.entries)
                 stats.extend(fs.extract_stats(new_index))
         if self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt:
-            insufficient_str += " end"
+            insufficient_str += f" {self.filter.end_dt} (end)"
             # diff_e = self.filter.end_dt_buf + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
             new_start = self.filter.end_dt + self.filter.end_dt_buf
             new_end = new_start + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
@@ -190,8 +197,8 @@ class ApiReader:
                 station_index.append(new_index.entries)
                 stats.extend(fs.extract_stats(new_index))
         if len(insufficient_str) > 0:
-            if self.debug:
-                print(f"Api Reader: {station_index.summarize().station_ids()} not enough data at{insufficient_str}")
+            self.errors.append(f"Data for {station_index.summarize().station_ids()} exists, "
+                               f"but not at:{insufficient_str}")
 
         results = {}
         keys = []
@@ -210,6 +217,7 @@ class ApiReader:
     def read_files_in_index(indexf: io.Index) -> List[api_m.RedvoxPacketM]:
         """
         read all the files in the index
+
         :return: list of RedvoxPacketM, converted from API 900 if necessary
         """
         result: List[api_m.RedvoxPacketM] = []

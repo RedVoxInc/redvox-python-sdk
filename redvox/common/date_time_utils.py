@@ -69,6 +69,7 @@ UTC_INSTANCE = UTC()
 def microseconds_to_milliseconds(microseconds: float) -> float:
     """
     Converts microseconds to milliseconds.
+
     :param microseconds: Number of microseconds.
     :return: Number of milliseconds.
     """
@@ -78,6 +79,7 @@ def microseconds_to_milliseconds(microseconds: float) -> float:
 def microseconds_to_seconds(microseconds: float) -> float:
     """
     Converts microseconds to seconds.
+
     :param microseconds: Number of microseconds.
     :return: Number of seconds.
     """
@@ -87,6 +89,7 @@ def microseconds_to_seconds(microseconds: float) -> float:
 def microseconds_to_minutes(microseconds: float) -> float:
     """
     Converts microseconds to minutes.
+
     :param microseconds: Number of microseconds.
     :return: Number of minutes.
     """
@@ -96,6 +99,7 @@ def microseconds_to_minutes(microseconds: float) -> float:
 def microseconds_to_hours(microseconds: float) -> float:
     """
     Converts microseconds to hours.
+
     :param microseconds: Number of microseconds.
     :return: Number of hours.
     """
@@ -105,6 +109,7 @@ def microseconds_to_hours(microseconds: float) -> float:
 def microseconds_to_days(microseconds: float) -> float:
     """
     Converts microseconds to days.
+
     :param microseconds: Number of microseconds.
     :return: Number of days.
     """
@@ -114,6 +119,7 @@ def microseconds_to_days(microseconds: float) -> float:
 def microseconds_to_weeks(microseconds: float) -> float:
     """
     Converts microseconds to weeks.
+
     :param microseconds: Number of microseconds.
     :return: Number of weeks.
     """
@@ -124,6 +130,7 @@ def microseconds_to_weeks(microseconds: float) -> float:
 def milliseconds_to_microseconds(milliseconds: float) -> float:
     """
     Converts milliseconds to microseconds.
+
     :param milliseconds: Number of milliseconds.
     :return: Number of microseconds.
     """
@@ -133,6 +140,7 @@ def milliseconds_to_microseconds(milliseconds: float) -> float:
 def milliseconds_to_seconds(milliseconds: float) -> float:
     """
     Converts milliseconds to seconds.
+
     :param milliseconds: Number of milliseconds.
     :return: Number of seconds.
     """
@@ -142,6 +150,7 @@ def milliseconds_to_seconds(milliseconds: float) -> float:
 def milliseconds_to_minutes(milliseconds: float) -> float:
     """
     Converts milliseconds to minutes.
+
     :param milliseconds: Number of milliseconds.
     :return: Number of minutes.
     """
@@ -151,6 +160,7 @@ def milliseconds_to_minutes(milliseconds: float) -> float:
 def milliseconds_to_hours(milliseconds: float) -> float:
     """
     Converts milliseconds to hours.
+
     :param milliseconds: Number of milliseconds.
     :return: Number of hours.
     """
@@ -160,6 +170,7 @@ def milliseconds_to_hours(milliseconds: float) -> float:
 def milliseconds_to_days(milliseconds: float) -> float:
     """
     Converts milliseconds to days.
+
     :param milliseconds: Number of milliseconds.
     :return: Number of days.
     """
@@ -169,6 +180,7 @@ def milliseconds_to_days(milliseconds: float) -> float:
 def milliseconds_to_weeks(milliseconds: float) -> float:
     """
     Converts milliseconds to weeks.
+
     :param milliseconds: Number of milliseconds.
     :return: Number of weeks.
     """
@@ -179,6 +191,7 @@ def milliseconds_to_weeks(milliseconds: float) -> float:
 def seconds_to_microseconds(seconds: float) -> float:
     """
     Converts seconds to microseconds.
+
     :param seconds: Number of seconds.
     :return: Number of microseconds.
     """
@@ -188,6 +201,7 @@ def seconds_to_microseconds(seconds: float) -> float:
 def seconds_to_milliseconds(seconds: float) -> float:
     """
     Converts seconds to milliseconds.
+
     :param seconds: Number of seconds.
     :return: Number of milliseconds.
     """
@@ -197,6 +211,7 @@ def seconds_to_milliseconds(seconds: float) -> float:
 def seconds_to_minutes(seconds: float) -> float:
     """
     Converts seconds to minutes.
+
     :param seconds: Number of seconds.
     :return: Number of minutes.
     """
@@ -206,6 +221,7 @@ def seconds_to_minutes(seconds: float) -> float:
 def seconds_to_hours(seconds: float) -> float:
     """
     Converts seconds to hours.
+
     :param seconds: Number of seconds.
     :return: Number of hours.
     """
@@ -215,6 +231,7 @@ def seconds_to_hours(seconds: float) -> float:
 def seconds_to_days(seconds: float) -> float:
     """
     Converts seconds to days.
+
     :param seconds: Number of seconds.
     :return: Number of days.
     """
@@ -224,6 +241,7 @@ def seconds_to_days(seconds: float) -> float:
 def seconds_to_weeks(seconds: float) -> float:
     """
     Converts seconds to weeks.
+
     :param seconds: Number of seconds.
     :return: Number of weeks.
     """
@@ -234,6 +252,7 @@ def seconds_to_weeks(seconds: float) -> float:
 def minutes_to_microseconds(minutes: float) -> float:
     """
     Converts minutes to microseconds.
+
     :param minutes: Number of minutes.
     :return: Number of microseconds.
     """
@@ -243,6 +262,7 @@ def minutes_to_microseconds(minutes: float) -> float:
 def minutes_to_milliseconds(minutes: float) -> float:
     """
     Converts minutes to milliseconds.
+
     :param minutes: Number of minutes.
     :return: Number of milliseconds.
     """
@@ -252,6 +272,7 @@ def minutes_to_milliseconds(minutes: float) -> float:
 def minutes_to_seconds(minutes: float) -> float:
     """
     Converts minutes to seconds.
+
     :param minutes: Number of minutes.
     :return: Number of seconds.
     """
@@ -261,6 +282,7 @@ def minutes_to_seconds(minutes: float) -> float:
 def minutes_to_hours(minutes: float) -> float:
     """
     Converts minutes to hours.
+
     :param minutes: Number of minutes.
     :return: Number of hours.
     """
@@ -270,6 +292,7 @@ def minutes_to_hours(minutes: float) -> float:
 def minutes_to_days(minutes: float) -> float:
     """
     Converts minutes to days.
+
     :param minutes: Number of minutes.
     :return: Number of days.
     """
@@ -279,6 +302,7 @@ def minutes_to_days(minutes: float) -> float:
 def minutes_to_weeks(minutes: float) -> float:
     """
     Converts minutes to weeks.
+
     :param minutes: Number of minutes.
     :return: Number of weeks.
     """
@@ -289,6 +313,7 @@ def minutes_to_weeks(minutes: float) -> float:
 def hours_to_microseconds(hours: float) -> float:
     """
     Converts hours to microseconds.
+
     :param hours: Number of hours.
     :return: Number of microseconds.
     """
@@ -298,6 +323,7 @@ def hours_to_microseconds(hours: float) -> float:
 def hours_to_milliseconds(hours: float) -> float:
     """
     Converts hours to milliseconds.
+
     :param hours: Number of hours.
     :return: Number of milliseconds.
     """
@@ -307,6 +333,7 @@ def hours_to_milliseconds(hours: float) -> float:
 def hours_to_seconds(hours: float) -> float:
     """
     Converts hours to seconds.
+
     :param hours: Number of hours.
     :return: Number of seconds.
     """
@@ -316,6 +343,7 @@ def hours_to_seconds(hours: float) -> float:
 def hours_to_minutes(hours: float) -> float:
     """
     Converts hours to minutes.
+
     :param hours: Number of hours.
     :return: Number of minutes.
     """
@@ -325,6 +353,7 @@ def hours_to_minutes(hours: float) -> float:
 def hours_to_days(hours: float) -> float:
     """
     Converts hours to days.
+
     :param hours: Number of hours.
     :return: Number of days.
     """
@@ -334,6 +363,7 @@ def hours_to_days(hours: float) -> float:
 def hours_to_weeks(hours: float) -> float:
     """
     Converts hours to weeks.
+
     :param hours: Number of hours.
     :return: Number of weeks.
     """
@@ -344,6 +374,7 @@ def hours_to_weeks(hours: float) -> float:
 def weeks_to_microseconds(weeks: float) -> float:
     """
     Converts weeks to microseconds.
+
     :param weeks: Number of weeks.
     :return: Number of microseconds.
     """
@@ -353,6 +384,7 @@ def weeks_to_microseconds(weeks: float) -> float:
 def weeks_to_milliseconds(weeks: float) -> float:
     """
     Converts weeks to milliseconds.
+
     :param weeks: Number of weeks.
     :return: Number of milliseconds.
     """
@@ -362,6 +394,7 @@ def weeks_to_milliseconds(weeks: float) -> float:
 def weeks_to_seconds(weeks: float) -> float:
     """
     Converts weeks to seconds.
+
     :param weeks: Number of weeks.
     :return: Number of seconds.
     """
@@ -371,6 +404,7 @@ def weeks_to_seconds(weeks: float) -> float:
 def weeks_to_minutes(weeks: float) -> float:
     """
     Converts weeks to minutes.
+
     :param weeks: Number of weeks.
     :return: Number of minutes.
     """
@@ -380,6 +414,7 @@ def weeks_to_minutes(weeks: float) -> float:
 def weeks_to_hours(weeks: float) -> float:
     """
     Converts weeks to hours.
+
     :param weeks: Number of weeks.
     :return: Number of hours.
     """
@@ -389,6 +424,7 @@ def weeks_to_hours(weeks: float) -> float:
 def weeks_to_days(weeks: float) -> float:
     """
     Converts weeks to days.
+
     :param weeks: Number of weeks.
     :return: Number of days.
     """
@@ -400,6 +436,7 @@ def datetime_from(
 ) -> datetime:
     """
     Returns a datetime object in UTC based off the given parameters.
+
     :param year: The year.
     :param month: The month.
     :param day: The day.
@@ -414,6 +451,7 @@ def datetime_from(
 def datetime_to_epoch_seconds_utc(date_time: datetime) -> float:
     """
     Given a datetime, return the number of seconds since the epoch UTC.
+
     :param date_time: An instance of a datetime.
     :return: A UTC second timestamp.
     """
@@ -423,6 +461,7 @@ def datetime_to_epoch_seconds_utc(date_time: datetime) -> float:
 def datetime_to_epoch_milliseconds_utc(date_time: datetime) -> float:
     """
     Given a datetime, return the number of milliseconds since the epoch UTC.
+
     :param date_time: An instance of a datetime.
     :return: A UTC millisecond timestamp.
     """
@@ -433,6 +472,7 @@ def datetime_to_epoch_milliseconds_utc(date_time: datetime) -> float:
 def datetime_to_epoch_microseconds_utc(date_time: datetime) -> float:
     """
     Given a datetime, return the number of microseconds since the epoch UTC.
+
     :param date_time: The datetime object to convert.
     :return: A UTC microsecond timestamp.
     """
@@ -443,6 +483,7 @@ def datetime_to_epoch_microseconds_utc(date_time: datetime) -> float:
 def datetime_from_epoch_seconds_utc(epoch_seconds_utc: float) -> datetime:
     """
     Given number of seconds since the epoch UTC, return a Python datetime object.
+
     :param epoch_seconds_utc: A UTC second timestamp.
     :return: A datetime object.
     """
@@ -452,6 +493,7 @@ def datetime_from_epoch_seconds_utc(epoch_seconds_utc: float) -> datetime:
 def datetime_from_epoch_milliseconds_utc(epoch_milliseconds_utc: float) -> datetime:
     """
     Given number of milliseconds since the epoch UTC, return a Python datetime object.
+
     :param epoch_milliseconds_utc: UTC millisecond timestamp.
     :return: Datetime object.
     """
@@ -461,6 +503,7 @@ def datetime_from_epoch_milliseconds_utc(epoch_milliseconds_utc: float) -> datet
 def datetime_from_epoch_microseconds_utc(epoch_microseconds_utc: float) -> datetime:
     """
     Given number of microseconds since the epoch UTC, return a Python datetime object.
+
     :param epoch_microseconds_utc: UTC microsecond timestamp.
     :return: A datetime object.
     """
@@ -470,6 +513,7 @@ def datetime_from_epoch_microseconds_utc(epoch_microseconds_utc: float) -> datet
 def datetimes_from_epoch_seconds_utc(epochs_seconds_utc: List[int]) -> List[datetime]:
     """
     Concerts a list of timestamps as seconds since the epoch UTC to a list of datetime objects.
+
     :param epochs_seconds_utc: List of timestamps to convert.
     :return: A list of datetimes.
     """
@@ -481,6 +525,7 @@ def generate_timestamps_s_utc(
 ) -> np.ndarray:
     """
     Given a starting timestamp, a sample rate, and a number of samples, compute timestamps for all samples.
+
     :param start_timestamp_s_utc: The start timestamp.
     :param sample_rate_hz: The sample rate.
     :param num_samples: The number of samples.
@@ -493,6 +538,7 @@ def generate_timestamps_s_utc(
 def now() -> datetime:
     """
     Returns the current datetime in UTC.
+
     :return: The current datetime in UTC.
     """
     return datetime.utcnow()
@@ -568,6 +614,7 @@ class DateIteratorAPIM:
     def __next__(self) -> Tuple[str, str, str, str]:
         """
         Returns the next date in the iterator.
+
         :return: The next date in the iterator.
         """
         if self.start_dt > self.end_dt:
@@ -586,6 +633,7 @@ class DateIteratorAPIM:
 def truncate_dt_ymd(date_time: datetime) -> datetime:
     """
     Truncates the provides datetime to only year, month, day.
+
     :param date_time: The datetime to truncate.
     :return: A truncated datetime.
     """
@@ -595,6 +643,7 @@ def truncate_dt_ymd(date_time: datetime) -> datetime:
 def truncate_dt_ymdh(date_time: datetime) -> datetime:
     """
     Truncates the provides datetime to only year, month, day, hour.
+
     :param date_time: The datetime to truncate.
     :return: A truncated datetime.
     """

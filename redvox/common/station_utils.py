@@ -324,6 +324,7 @@ class StationPacketMetadata:
     def update_timestamps(self, om: OffsetModel):
         """
         updates the timestamps in the metadata using the offset model
+
         :param om: OffsetModel to apply to data
         """
         self.packet_start_mach_timestamp = om.update_time(
