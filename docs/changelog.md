@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.4 (2021-6-24)
+
+* IDs shorter than 10 characters are zero-padded to preserve consistency between file names and internal representations
+* DataWindow docs updated
+
 ### 3.0.3 (2021-6-16)
 
 * Removed NaN padding from edges of audio sensors
