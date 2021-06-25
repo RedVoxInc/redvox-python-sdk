@@ -89,7 +89,7 @@ If these parameters are not set, your results will not be aligned.
 
 These parameters are not required to run Data Window.  Default values are given.
 
-`start_datetime`: a datetime object representing the start of the request time for the DataWindow.  
+`start_datetime`: a datetime object representing the start of the request time in UTC for the DataWindow.  
 All data timestamps in the DataWindow will be equal to or greater than this time.  If `None` or not given, uses the 
 earliest timestamp it finds that matches the other filter criteria.  The default value is `None`.
 
@@ -97,12 +97,16 @@ _Examples:_
 
 ```python
 import datetime
-import redvox.common.date_time_utils
+import redvox.common.date_time_utils as dt_utils
+
+
 start_datetime=datetime.datetime(2021, 1, 1, 0, 0, 0)
-start_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 0, 0)
+start_datetime=dt_utils.datetime_from(2021, 1, 1, 0, 0, 0)
+# using epoch seconds
+start_datetime=dt_utils.datetime_from_epoch_seconds_utc(1609459200)
 ```
 
-`end_datetime`: a datetime object representing the end of the request time for the DataWindow.  
+`end_datetime`: a datetime object representing the end of the request time in UTC for the DataWindow.  
 All data timestamps in the DataWindow will be less than this time.  If `None` or not given, uses the latest timestamp 
 it finds that matches the other filter criteria.  The default value is `None`.
 
@@ -110,10 +114,17 @@ _Examples:_
 
 ```python
 import datetime
-import redvox.common.date_time_utils
+import redvox.common.date_time_utils as dt_utils
+
+
 end_datetime=datetime.datetime(2021, 1, 1, 0, 1, 0)
-end_datetime=redvox.common.date_time_utils.datetime_from(2021, 1, 1, 0, 1, 0)
+end_datetime=dt_utils.datetime_from(2021, 1, 1, 0, 1, 0)
+# using epoch seconds
+start_datetime=dt_utils.datetime_from_epoch_seconds_utc(1609459260)
 ```
+
+### A Note on Time:
+All timestamps used in DataWindow are in [UTC](https://www.timeanddate.com/time/aboututc.html).
 
 _[Table of Contents](#table-of-contents)_
 
@@ -182,9 +193,8 @@ drop_time_s=0.2
 ```
 
 <a id="extensions"></a>
-`extensions`: a set of strings representing the file extensions to filter on.  You may need to include this when working
-with custom extensions.  If `None` or not given, will return all files with extensions that match the other filter criteria. 
-The default value is `None`.
+`extensions`: a set of strings representing the file extensions to filter on.  If `None` or not given, will return all 
+files with extensions that match the other filter criteria. The default value is `None`.
 
 _Example:_
 
@@ -293,6 +303,8 @@ print(audio_sensor.num_samples())           # the number of data samples
 print(audio_sensor.data_channels())         # the names of the dataframe columns
 ```
 
+As a reminder, all timestamps are in [UTC](https://www.timeanddate.com/time/aboututc.html).
+
 Each line outputs information about the audio sensor.  The data_channels() function tells us the dataframe column names we can use to access the audio sensor's data.
 
 Audio sensors will typically have two data channels, timestamps and microphone.  We can access data channels in the audio sensor using:
@@ -327,7 +339,8 @@ _[Table of Contents](#table-of-contents)_
 ### Data Window Properties
 
 This is a list of all properties you can access from DataWindow.  Many of these are set via the parameters above.
-Values not set by parameters will be set by the SDK.  Defaults for values will be given if applicable.
+Values not set by parameters will be set by the SDK.  Defaults for values will be given if applicable.  All timestamps 
+are in [UTC](https://www.timeanddate.com/time/aboututc.html).
 
 _It is not recommended to set or change the properties of DataWindow after the DataWindow is created._
 
@@ -569,13 +582,13 @@ We add the buffer times to the requested start and end times to get our query st
 with a timestamp within our query times.  We index the files for later analysis.
 
 ### File Indexing and Timestamp Update
+All timestamps are in [UTC](https://www.timeanddate.com/time/aboututc.html).
 
 1. Once all files are indexed, if we had a requested start or end time, we gather basic information from each file and 
    use that to update the file timestamps to match our request times.
    * If we don't have a requested start and end time, we go straight to Data Aggregation
 
-2. We use UTC as the time zone for our data request.  Each recording device will have some amount of offset, 
-   which is a difference in the device's time to "true" time.
+2. Each recording device will have some amount of offset, which is a difference in the device's time to "true" time.
    * We can account for this offset by utilizing the basic information from each file to create an offset model.  
      We _**always**_ ADD our offset values to device time to get "true" time.
 
@@ -783,32 +796,35 @@ _[Table of Contents](#table-of-contents)_
 
 Below are troubleshooting tips in the event DataWindow does not run properly
 
-If you can't access the DataWindow class, include this line to import DataWindow into your project:
+* Check if the redvox SDK is installed.
+
+* If you can't access the DataWindow class, include this line to import DataWindow into your project:
 `from redvox.common.data_window import DataWindow`
 
-If your files aren't loading through DataWindow:
+### If your files aren't loading through DataWindow:
 
-Enable the debug parameter in DataWindow to display any errors encountered while creating DataWindow.
+* Enable the debug parameter in DataWindow to display any errors encountered while creating DataWindow.
 ```python
 datawindow = DataWindow(input_dir=input_dir,
                         # ...
                         debug=True)
 ```
 
-Check the value of input_dir for any errors, and that the files within the directory are in one of two formats 
+* Check the value of `input_dir` for any errors, and that the files within the directory are in one of two formats 
 (structured or unstructured) described in the [Optional Data Window Parameters](#structured-layout) section.
 Use the appropriate value for the `structured` parameter of DataWindow.
 
-When working with structured directories, ensure that all API 1000 (API M) files are in a directory called `api1000` 
+* When working with structured directories, ensure that all API 1000 (API M) files are in a directory called `api1000` 
 and all API 900 files are in a directory called `api900`.  API 1000 files normally end in `.rdvxm` and API 900 files
 normally end in `.rdvxz`
 
-Adjust the start and end datetime values of DataWindow, as described in the 
+* Adjust the start and end datetime values of DataWindow, as described in the 
 [Strongly Recommended Data Window Parameters](#strongly-recommended-data-window-parameters) section.
+Timestamps are in [UTC](https://www.timeanddate.com/time/aboututc.html).  Use the 
+[date time utilities](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/date_time_utils.html) 
+provided in `redvox.common.date_time_utils` to convert UTC epoch times into datetimes.
 
-Check your files for non-typical extensions.  `.rdvxm` and `.rdxvz` are the most common file extensions.
-If you have other file extensions, include those extensions in the `extensions` parameter in DataWindow.  See the 
-[Advanced Optional Data Window Parameters](#extensions) section for details on how to set 
-the `extensions` parameter.
+* Check your files for non-typical extensions.  `.rdvxm` and `.rdxvz` are the two expected file extensions.
+If you have other file extensions, those files may not work with DataWindow.
 
 _[Table of Contents](#table-of-contents)_
