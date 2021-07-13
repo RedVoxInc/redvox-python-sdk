@@ -175,6 +175,12 @@ class SensorData:
         else:
             self.sort_by_data_timestamps()
 
+    def print_errors(self):
+        """
+        prints errors to screen
+        """
+        self.errors.print()
+
     def is_sample_interval_invalid(self) -> bool:
         """
         :return: True if sample interval is np.nan or equal to 0.0
@@ -314,24 +320,28 @@ class SensorData:
         """
         return self.data_df.columns.to_list()
 
-    def update_data_timestamps(self, offset_model: om.OffsetModel):
+    def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = True):
         """
         updates the timestamps of the data points
 
         :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the offset model's correction function to correct time,
+                                    otherwise use best offset (model's intercept value).  default True
         """
+        slope = dtu.seconds_to_microseconds(self.sample_interval_s) * (1 + offset_model.slope) \
+            if use_model_function else dtu.seconds_to_microseconds(self.sample_interval_s)
         if self.type == SensorType.AUDIO:
+            # use the model to update the first timestamp or add the best offset (model's intercept value)
             self.data_df["timestamps"] = \
-                calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp()),
+                calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp(),
+                                                                        use_model_function),
                                                self.num_samples(),
-                                               dtu.seconds_to_microseconds(self.sample_interval_s)
-                                               * (1 + offset_model.slope))
+                                               slope)
         else:
-            self.data_df["timestamps"] = offset_model.update_timestamps(self.data_timestamps())
+            self.data_df["timestamps"] = offset_model.update_timestamps(self.data_timestamps(), use_model_function)
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
-            self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
-                                                                 (1 + offset_model.slope))
+            self.sample_interval_s = dtu.microseconds_to_seconds(slope)
             if self.sample_interval_s > 0:
                 self.sample_rate_hz = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))

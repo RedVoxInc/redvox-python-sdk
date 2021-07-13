@@ -160,8 +160,9 @@ class TimeSyncData:
 
     def update_timestamps(self, om: Optional[OffsetModel]):
         """
-        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
-            uses negative values to go backwards in time
+        update timestamps by adding microseconds based on the OffsetModel.
+        if model not supplied, uses the best offset.
+        uses negative values to go backwards in time
 
         :param om: OffsetModel to calculate offsets, default None
         """
@@ -648,14 +649,20 @@ class TimeSyncAnalysis:
         # if here, no gaps
         return True
 
-    def update_timestamps(self):
+    def update_timestamps(self, use_model: bool = True):
         """
         update timestamps by adding microseconds based on the OffsetModel.
+
+        :param use_model: if True, use the model, otherwise use best offset
         """
-        if self.offset_model:
+        if use_model and self.offset_model:
             self.station_start_timestamp += self.offset_model.get_offset_at_new_time(self.station_start_timestamp)
-        for tsd in self.timesync_data:
-            tsd.update_timestamps(self.offset_model)
+            for tsd in self.timesync_data:
+                tsd.update_timestamps(self.offset_model)
+        else:
+            self.station_start_timestamp += self.get_best_offset()
+            for tsd in self.timesync_data:
+                tsd.update_timestamps()
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:

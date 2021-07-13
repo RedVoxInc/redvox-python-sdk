@@ -25,19 +25,35 @@ class Station:
         Have the same station uuid
         Have the same start time
         Have the same audio sample rate
+
     Properties:
         data: list sensor data associated with the station, default empty dictionary
+
         metadata: StationMetadata consistent across all packets, default empty StationMetadata
+
         packet_metadata: list of StationPacketMetadata that changes from packet to packet, default empty list
+
         id: str id of the station, default None
+
         uuid: str uuid of the station, default None
+
         start_timestamp: float of microseconds since epoch UTC when the station started recording, default np.nan
+
         first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
+
         last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
+
         audio_sample_rate_nominal_hz: float of nominal sample rate of audio component in hz, default np.nan
+
         is_audio_scrambled: bool, True if audio data is scrambled, default False
+
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
+
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
+
+        use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
+        correction is done by adding the OffsetModel's best offset (intercept value).  default True
+
         _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
     """
 
@@ -47,17 +63,24 @@ class Station:
             station_id: str = None,
             uuid: str = None,
             start_time: float = np.nan,
+            use_model_correction: bool = True,
     ):
         """
         initialize Station
 
         :param data_packets: optional list of data packets representing the station, default None
+        :param station_id: optional id if no data packets, default None
+        :param uuid: optional uuid if no data packets, default None
+        :param start_time: optional start time in microseconds since epoch UTC if no data packets, default np.nan
+        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel best offset
+                                        (intercept value) otherwise.  Default True
         """
         self.data = []
         self.packet_metadata: List[st_utils.StationPacketMetadata] = []
         self.is_timestamps_updated = False
         self._gaps: List[Tuple[float, float]] = []
         self.errors: RedVoxExceptions = RedVoxExceptions("Station")
+        self.use_model_correction = use_model_correction
         if data_packets and st_utils.validate_station_key_list(data_packets, True):
             # noinspection Mypy
             self._load_metadata_from_packet(data_packets[0])
@@ -116,6 +139,12 @@ class Station:
         """
         self.first_data_timestamp = self.audio_sensor().first_data_timestamp()
         self.last_data_timestamp = self.audio_sensor().last_data_timestamp()
+
+    def print_errors(self):
+        """
+        prints errors to screen
+        """
+        self.errors.print()
 
     def set_id(self, station_id: str) -> "Station":
         """
@@ -1065,18 +1094,18 @@ class Station:
             self.errors.append("Timestamps already corrected!")
         else:
             for sensor in self.data:
-                sensor.update_data_timestamps(self.timesync_analysis.offset_model)
+                sensor.update_data_timestamps(self.timesync_analysis.offset_model, self.use_model_correction)
             for packet in self.packet_metadata:
-                packet.update_timestamps(self.timesync_analysis.offset_model)
+                packet.update_timestamps(self.timesync_analysis.offset_model, self.use_model_correction)
             self.timesync_analysis.update_timestamps()
             self.start_timestamp = self.timesync_analysis.offset_model.update_time(
-                self.start_timestamp
+                self.start_timestamp, self.use_model_correction
             )
             self.first_data_timestamp = self.timesync_analysis.offset_model.update_time(
-                self.first_data_timestamp
+                self.first_data_timestamp, self.use_model_correction
             )
             self.last_data_timestamp = self.timesync_analysis.offset_model.update_time(
-                self.last_data_timestamp
+                self.last_data_timestamp, self.use_model_correction
             )
             self.is_timestamps_updated = True
         return self

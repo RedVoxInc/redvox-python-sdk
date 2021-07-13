@@ -51,6 +51,8 @@ class DataWindowConfig:
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
         edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.  Determines behavior when creating points on the edge
                             of the data window.  default COPY
+        use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
+                                offset.  Default True
         debug: bool, if True, output additional information when processing data window.  Default False
     """
 
@@ -76,6 +78,7 @@ class DataWindowConfig:
     drop_time_seconds: float = DEFAULT_DROP_TIME_S
     apply_correction: bool = True
     edge_points_mode: str = "COPY"
+    use_model_correction: bool = True
     debug: bool = False
 
     @staticmethod

@@ -53,6 +53,8 @@ class DataWindow:
         drop_time_s: float, the minimum amount of seconds between data files that would indicate a gap.
                      Negative values are converted to default value.  Default DATA_DROP_DURATION_S (0.2 seconds)
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
+        use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
+                                offset.  Default True
         copy_edge_points: enumeration of DataPointCreationMode.  Determines how new points are created.
                             Valid values are NAN, COPY, and INTERPOLATE.  Default COPY
         debug: bool, if True, outputs additional information during initialization. Default False
@@ -74,7 +76,8 @@ class DataWindow:
         api_versions: Optional[Set[io.ApiVersion]] = None,
         apply_correction: bool = True,
         copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
-        debug: bool = False
+        debug: bool = False,
+        use_model_correction: bool = True,
     ):
         """
         Initialize the DataWindow
@@ -101,6 +104,8 @@ class DataWindow:
         :param apply_correction: if True, update the timestamps in the data based on best station offset.  Default True
         :param copy_edge_points: Determines how new points are created. Valid values are DataPointCreationMode.NAN,
                                     DataPointCreationMode.COPY, and DataPointCreationMode.INTERPOLATE.  Default COPY
+        :param use_model_correction: if True, use the offset model's correction functions, otherwise use the best
+                                        offset.  Default True
         :param debug: if True, outputs additional information during initialization. Default False
         """
         self.errors = RedVoxExceptions("DataWindow")
@@ -121,6 +126,7 @@ class DataWindow:
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
         self.copy_edge_points = copy_edge_points
+        self.use_model_correction = use_model_correction
         self.sdk_version: str = redvox.VERSION
         self.debug: bool = debug
         self.stations: List[Station] = []
@@ -200,6 +206,7 @@ class DataWindow:
             config.apply_correction,
             gpu.DataPointCreationMode[config.edge_points_mode],
             config.debug,
+            config.use_model_correction,
         )
 
     @staticmethod
@@ -390,12 +397,16 @@ class DataWindow:
             self.station_ids = a_r.index_summary.station_ids()
         # Parallel update
         # Apply timing correction in parallel by station
+        sts = a_r.get_stations()
+        if not self.use_model_correction:
+            for tss in sts:
+                tss.use_model_correction = self.use_model_correction
         if self.apply_correction:
             for st in maybe_parallel_map(_pool, Station.update_timestamps,
-                                         iter(a_r.get_stations()), chunk_size=1):
+                                         iter(sts), chunk_size=1):
                 self._add_sensor_to_window(st)
         else:
-            [self._add_sensor_to_window(s) for s in a_r.get_stations()]
+            [self._add_sensor_to_window(s) for s in sts]
 
         # check for stations without data
         self._check_for_audio()

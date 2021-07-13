@@ -14,6 +14,7 @@ from redvox.common import io
 from redvox.common import file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
+from redvox.common.station_wpa import StationPa
 from redvox.common.errors import RedVoxExceptions
 
 
@@ -301,6 +302,35 @@ class ApiReader:
         :return: list of all stations with the requested id or None if id can't be found
         """
         result = [s for s in self.get_stations() if s.id == get_id]
+        if len(result) < 1:
+            return None
+        return result
+
+    def _stations_wpa_by_index(self, findex: io.Index) -> StationPa:
+        """
+        :param findex: index with files to build a station with
+        :return: Station built from files in findex
+        """
+        return StationPa(self.read_files_in_index(findex))
+
+    def get_stations_wpa(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationPa]:
+        """
+        :param pool: optional multiprocessing pool
+        :return: List of all stations in the ApiReader
+        """
+        return list(maybe_parallel_map(pool,
+                                       self._stations_wpa_by_index,
+                                       self.files_index,
+                                       chunk_size=1
+                                       )
+                    )
+
+    def get_station_wpa_by_id(self, get_id: str) -> Optional[List[StationPa]]:
+        """
+        :param get_id: the id to filter on
+        :return: list of all stations with the requested id or None if id can't be found
+        """
+        result = [s for s in self.get_stations_wpa() if s.id == get_id]
         if len(result) < 1:
             return None
         return result

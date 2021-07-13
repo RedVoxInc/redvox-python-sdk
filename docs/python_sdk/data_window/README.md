@@ -221,6 +221,9 @@ DataPointCreationMode.COPY          # copy the closest point inside the window
 DataPointCreationMode.INTERPOLATE   # find the interpolation between the closest inside and outside points at the edge
 ```
 
+`use_model_correction`: a boolean value which determines if the offset model's correction functions are used to correct
+the timestamps.  If False, uses the best offset for correction.  The default value is `True`
+
 _[Table of Contents](#table-of-contents)_
 
 ### Creating Data Windows
@@ -241,7 +244,8 @@ datawindow = DataWindow(input_dir=input_dir_str,
                         api_versions=set_of_api_versions,
                         apply_correction=True_or_False,
                         copy_edge_points=edge_point_creation_mode,
-                        debug=True_or_False)
+                        debug=True_or_False,
+                        use_model_correction=True_or_False)
 ```
 
 You may prefer a simpler version of the code above that uses the defaults for more complex parameters:
@@ -355,10 +359,11 @@ _It is not recommended to set or change the properties of DataWindow after the D
 * `end_buffer_td`: timedelta, the amount of time to include after the end_datetime when filtering data. Default 2 minutes
 * `drop_time_s`: float, the minimum amount of seconds between data files that would indicate a gap. Default .2 seconds
 * `apply_correction`: bool, if True, update the timestamps in the data based on best station offset.  Default True
+* `use_model_correction`: bool, if True, use the offset model's correction functions, otherwise use the best offset.  Default True
 * `copy_edge_points`: enumeration of DataPointCreationMode, determines how new values are created in the station data.
   Valid values are NAN, COPY, and INTERPOLATE.  Default COPY
 * `debug`: bool, if True, outputs additional information during initialization. Default False
-* `errors`: DataWindowExceptions, class containing a list of all errors encountered by the data window.  This is set by the SDK.
+* `errors`: RedVoxExceptions, class containing a list of all errors encountered by the data window.  This is set by the SDK.
 * `stations`: list of Stations, the results of reading the data from input_directory.  This is set by the SDK.
 * `sdk_version`: str, the version of the Redvox SDK used to create the data window.  This is set by the SDK.
 

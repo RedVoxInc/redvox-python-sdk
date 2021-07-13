@@ -321,18 +321,18 @@ class StationPacketMetadata:
             self.packet_end_os_timestamp = np.nan
             self.timing_info_score = np.nan
 
-    def update_timestamps(self, om: OffsetModel):
+    def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """
         updates the timestamps in the metadata using the offset model
 
         :param om: OffsetModel to apply to data
+        :param use_model_function: if True, use the offset model's correction function to correct time,
+                                    otherwise use best offset (model's intercept value).  default True
         """
-        self.packet_start_mach_timestamp = om.update_time(
-            self.packet_start_mach_timestamp
-        )
-        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)
+        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp, use_model_function)
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)
 
 
 class StationPacketMetadataWrapped:
@@ -375,15 +375,15 @@ class StationPacketMetadataWrapped:
             self.packet_end_os_timestamp = np.nan
             self.timing_info_score = np.nan
 
-    def update_timestamps(self, om: OffsetModel):
+    def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """
         updates the timestamps in the metadata using the offset model
 
         :param om: OffsetModel to apply to data
+        :param use_model_function: if True, use the offset model's correction function to correct time,
+                                    otherwise use best offset (model's intercept value).  default True
         """
-        self.packet_start_mach_timestamp = om.update_time(
-            self.packet_start_mach_timestamp
-        )
-        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)
+        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp, use_model_function)
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)

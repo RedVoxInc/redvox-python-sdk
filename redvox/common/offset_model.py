@@ -134,23 +134,25 @@ class OffsetModel:
             new_time, self.slope, self.intercept, self.start_time
         )
 
-    def update_time(self, new_time: float) -> float:
+    def update_time(self, new_time: float, use_model_function: bool = True) -> float:
         """
         update new_time time based on the offset model.
 
         :param new_time: The time to update
+        :param use_model_function: if True, use the slope of the model, otherwise use the intercept.  default True
         :return: updated new_time
         """
-        return new_time + self.get_offset_at_new_time(new_time)
+        return new_time + (self.get_offset_at_new_time(new_time) if use_model_function else self.intercept)
 
-    def update_timestamps(self, timestamps: np.array) -> np.array:
+    def update_timestamps(self, timestamps: np.array, use_model_function: bool = True) -> np.array:
         """
         updates a list of timestamps
 
         :param timestamps: timestamps to update
+        :param use_model_function: if True, use the slope of the model if it's not 0.  default True
         :return: updated list of timestamps
         """
-        if self.slope != 0.0:
+        if use_model_function and self.slope != 0.0:
             return [self.update_time(t) for t in timestamps]
         return [t + self.intercept for t in timestamps]
 
