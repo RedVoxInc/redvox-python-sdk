@@ -2,10 +2,13 @@
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 """
+import os.path
 from typing import List, Optional
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
+
+import pyarrow as pa
 
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import offset_model
@@ -16,6 +19,15 @@ from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.station_wpa import StationPa
 from redvox.common.errors import RedVoxExceptions
+
+
+id_py_stct = pa.struct([("id", pa.string()), ("uuid", pa.string()), ("start_time", pa.float64()),
+                        ])
+meta_py_stct = pa.struct([("api", pa.float64()), ("sub_api", pa.float64()), ("make", pa.string()),
+                          ("model", pa.string()), ("os", pa.int64()), ("os_version", pa.string()),
+                          ("app", pa.string()), ("app_version", pa.string()), ("is_private", pa.bool_()),
+                          ("packet_duration_s", pa.float64()), ("station_description", pa.string()),
+                          ])
 
 
 class ApiReader:
@@ -213,6 +225,28 @@ class ApiReader:
             results[key].append(entries=[station_index.entries[v]])
 
         return list(results.values())
+
+    def get_stations_rfiiwpa(self, pool: Optional[multiprocessing.pool.Pool] = None):
+        """
+        :param pool: optional multiprocessing pool
+        :return: List of all stations in the ApiReader
+        """
+        abv = list(maybe_parallel_map(pool,
+                                      self.read_files_in_index_wpa,
+                                      self.files_index,
+                                      chunk_size=1
+                                      )
+                   )
+
+    def read_files_in_index_wpa(self, indexf: io.Index):
+        """
+        read all files in an index using pyarrow
+        :param indexf: the index to read from
+        :return: something?
+        """
+        import redvox.common.packet_to_pyarrow as ptp
+        result = ptp.PacketToPyarrow(os.path.curdir)
+        return result.read_files(indexf)
 
     @staticmethod
     def read_files_in_index(indexf: io.Index) -> List[api_m.RedvoxPacketM]:
