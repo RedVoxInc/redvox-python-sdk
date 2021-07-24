@@ -401,10 +401,10 @@ class DataWindow:
 
         if self.apply_correction:
             for st in maybe_parallel_map(_pool, StationPa.update_timestamps,
-                                         iter(a_r.get_stations_wpa_fs()), chunk_size=1):
+                                         iter(a_r.get_stations_wpa()), chunk_size=1):
                 self._add_sensor_to_window(st)
         else:
-            [self._add_sensor_to_window(s) for s in a_r.get_stations_wpa_fs()]
+            [self._add_sensor_to_window(s) for s in a_r.get_stations_wpa()]
 
         # check for stations without data
         self._check_for_audio()
