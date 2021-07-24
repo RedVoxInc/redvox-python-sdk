@@ -408,6 +408,24 @@ def load_apim_single_sensor_from_list(
     return None
 
 
+def apim_audio_to_pyarrow(audio_sensor: api_m.RedvoxPacketM.Sensors.Audio) -> pa.Table:
+    """
+    :param audio_sensor: audio sensor to convert to pyarrow table
+    :return: pyarrow table representation of audio data
+    """
+    timestamps: np.ndarray = gpu.calc_evenly_sampled_timestamps(
+        audio_sensor.first_sample_timestamp,
+        len(audio_sensor.samples.values),
+        dtu.seconds_to_microseconds(1.0 / audio_sensor.sample_rate),
+    )
+    return pa.Table.from_pydict(
+        dict(zip(gpu.AUDIO_DF_COLUMNS,
+                 [timestamps, timestamps, np.array(audio_sensor.samples.values)]
+                 )
+             )
+    )
+
+
 def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     """
     load audio data from a single redvox packet
@@ -418,20 +436,9 @@ def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     if __has_sensor(packet, __AUDIO_FIELD_NAME):
         audio_sensor: api_m.RedvoxPacketM.Sensors.Audio = packet.sensors.audio
 
-        timestamps: np.ndarray = gpu.calc_evenly_sampled_timestamps(
-            audio_sensor.first_sample_timestamp,
-            len(audio_sensor.samples.values),
-            dtu.seconds_to_microseconds(1.0 / audio_sensor.sample_rate),
-        )
-
         return SensorDataPa(
             audio_sensor.sensor_description,
-            pa.Table.from_pydict(
-                dict(zip(gpu.AUDIO_DF_COLUMNS,
-                         [timestamps, timestamps, np.array(audio_sensor.samples.values)]
-                         )
-                     )
-            ),
+            apim_audio_to_pyarrow(audio_sensor),
             SensorType.AUDIO,
             audio_sensor.sample_rate,
             1.0 / audio_sensor.sample_rate,
@@ -486,6 +493,24 @@ def load_apim_audio_from_list(
     return None, []
 
 
+def apim_compressed_audio_to_pyarrow(comp_audio: api_m.RedvoxPacketM.Sensors.CompressedAudio) -> pa.Table:
+    """
+    :param comp_audio: compressed audio sensor to convert to pyarrow table
+    :return: pyarrow table representation of compressed audio data
+    """
+    return pa.Table.from_pydict(
+        dict(zip(COMPRESSED_AUDIO_COLUMNS,
+                 [
+                     comp_audio.first_sample_timestamp,
+                     comp_audio.first_sample_timestamp,
+                     np.array(list(comp_audio.audio_bytes)),
+                     comp_audio.audio_codec,
+                 ]
+                 )
+             )
+    )
+
+
 def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     """
     load compressed audio data from a single redvox packet
@@ -500,17 +525,7 @@ def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorDa
         sample_rate_hz = comp_audio.sample_rate
         return SensorDataPa(
             comp_audio.sensor_description,
-            pa.Table.from_pydict(
-                dict(zip(COMPRESSED_AUDIO_COLUMNS,
-                         [
-                             comp_audio.first_sample_timestamp,
-                             comp_audio.first_sample_timestamp,
-                             np.array(list(comp_audio.audio_bytes)),
-                             comp_audio.audio_codec,
-                         ]
-                         )
-                     )
-            ),
+            apim_compressed_audio_to_pyarrow(comp_audio),
             SensorType.COMPRESSED_AUDIO,
             sample_rate_hz,
             1 / sample_rate_hz,
@@ -564,6 +579,21 @@ def load_apim_compressed_audio_from_list(
     return None
 
 
+def apim_image_to_pyarrow(image_sensor: api_m.RedvoxPacketM.Sensors.Image) -> pa.Table:
+    """
+    :param image_sensor: image sensor to convert to pyarrow table
+    :return: pyarrow table representation of image data
+    """
+    timestamps = image_sensor.timestamps.timestamps
+    codecs = np.full(len(timestamps), image_sensor.image_codec)
+    return pa.Table.from_pydict(
+        dict(zip(IMAGE_COLUMNS,
+                 [timestamps, timestamps, image_sensor.samples, codecs]
+                 )
+             )
+    )
+
+
 def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     """
     load image data from a single redvox packet
@@ -573,21 +603,13 @@ def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     """
     if __has_sensor(packet, __IMAGE_FIELD_NAME):
         image_sensor: api_m.RedvoxPacketM.Sensors.Image = packet.sensors.image
-        timestamps = image_sensor.timestamps.timestamps
-        codecs = np.full(len(timestamps), image_sensor.image_codec)
-        data_df = pa.Table.from_pydict(
-            dict(zip(IMAGE_COLUMNS,
-                     [timestamps, timestamps, image_sensor.samples, codecs]
-                     )
-                 )
-        )
         # image is collected 1 per packet or 1 per second
         sample_rate, sample_interval, sample_interval_std = __stats_for_sensor_per_packet_per_second(
-            1, __packet_duration_s(packet), timestamps
+            1, __packet_duration_s(packet), image_sensor.timestamps.timestamps
         )
         return SensorDataPa(
             image_sensor.sensor_description,
-            data_df,
+            apim_image_to_pyarrow(image_sensor),
             SensorType.IMAGE,
             sample_rate,
             sample_interval,
@@ -657,6 +679,35 @@ def __is_only_best_values(loc: api_m.RedvoxPacketM.Sensors.Location) -> bool:
     )
 
 
+def apim_best_location_to_pyarrow(best_loc: api_m.RedvoxPacketM.Sensors.Location,
+                                  packet_start_timestamp: float) -> pa.Table:
+    """
+    :param best_loc: best location to convert to pyarrow table
+    :param packet_start_timestamp: timestamp of packet's first sample
+    :return: pyarrow table representation of best location data
+    """
+    return pa.Table.from_pydict(
+        dict(zip(LOCATION_COLUMNS,
+                 [
+                     [packet_start_timestamp],
+                     [best_loc.latitude_longitude_timestamp.mach],
+                     [best_loc.latitude_longitude_timestamp.gps],
+                     [best_loc.latitude],
+                     [best_loc.longitude],
+                     [best_loc.altitude],
+                     [best_loc.speed],
+                     [best_loc.bearing],
+                     [best_loc.horizontal_accuracy],
+                     [best_loc.vertical_accuracy],
+                     [best_loc.speed_accuracy],
+                     [best_loc.bearing_accuracy],
+                     [best_loc.location_provider],
+                 ]
+                 )
+             )
+    )
+
+
 def load_apim_best_location(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     """
     load best location data from a single redvox packet
@@ -672,26 +723,7 @@ def load_apim_best_location(packet: api_m.RedvoxPacketM) -> Optional[SensorDataP
                 best_loc = loc.last_best_location
             else:
                 best_loc = loc.overall_best_location
-            data_df = pa.Table.from_pydict(
-                dict(zip(LOCATION_COLUMNS,
-                         [
-                             [packet.timing_information.packet_start_mach_timestamp],
-                             [best_loc.latitude_longitude_timestamp.mach],
-                             [best_loc.latitude_longitude_timestamp.gps],
-                             [best_loc.latitude],
-                             [best_loc.longitude],
-                             [best_loc.altitude],
-                             [best_loc.speed],
-                             [best_loc.bearing],
-                             [best_loc.horizontal_accuracy],
-                             [best_loc.vertical_accuracy],
-                             [best_loc.speed_accuracy],
-                             [best_loc.bearing_accuracy],
-                             [best_loc.location_provider],
-                         ]
-                         )
-                     )
-            )
+            data_df = apim_best_location_to_pyarrow(best_loc, packet.timing_information.packet_start_mach_timestamp)
             sample_rate = 1 / __packet_duration_s(packet)
             return SensorDataPa(
                 loc.sensor_description,
@@ -754,6 +786,41 @@ def load_apim_best_location_from_list(
         )
 
 
+def apim_location_to_pyarrow(loc: api_m.RedvoxPacketM.Sensors.Location) -> pa.Table:
+    """
+    :param loc: location sensor to convert to pyarrow table
+    :return: pyarrow table representation of location data
+    """
+    timestamps = loc.timestamps.timestamps
+    gps_timestamps = loc.timestamps_gps.timestamps
+    lat_samples = loc.latitude_samples.values
+    lon_samples = loc.longitude_samples.values
+    alt_samples = loc.altitude_samples.values
+    spd_samples = loc.speed_samples.values
+    bear_samples = loc.bearing_samples.values
+    hor_acc_samples = loc.horizontal_accuracy_samples.values
+    vert_acc_samples = loc.vertical_accuracy_samples.values
+    spd_acc_samples = loc.speed_accuracy_samples.values
+    bear_acc_samples = loc.bearing_accuracy_samples.values
+    loc_prov_samples = loc.location_providers
+    data_for_df = [[], [], [], [], [], [], [], [], [], [], [], [], []]
+    for i in range(len(timestamps)):
+        data_for_df[0].append(timestamps[i])
+        data_for_df[1].append(timestamps[i])
+        data_for_df[2].append(np.nan if len(gps_timestamps) <= i else gps_timestamps[i])
+        data_for_df[3].append(lat_samples[i])
+        data_for_df[4].append(lon_samples[i])
+        data_for_df[5].append(np.nan if len(alt_samples) <= i else alt_samples[i])
+        data_for_df[6].append(np.nan if len(spd_samples) <= i else spd_samples[i])
+        data_for_df[7].append(np.nan if len(bear_samples) <= i else bear_samples[i])
+        data_for_df[8].append(np.nan if len(hor_acc_samples) <= i else hor_acc_samples[i])
+        data_for_df[9].append(np.nan if len(vert_acc_samples) <= i else vert_acc_samples[i])
+        data_for_df[10].append(np.nan if len(spd_acc_samples) <= i else spd_acc_samples[i])
+        data_for_df[11].append(np.nan if len(bear_acc_samples) <= i else bear_acc_samples[i])
+        data_for_df[12].append(np.nan if len(loc_prov_samples) <= i else loc_prov_samples[i])
+    return pa.Table.from_pydict(dict(zip(LOCATION_COLUMNS, data_for_df)))
+
+
 def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     """
     load location data from a single packet
@@ -763,37 +830,10 @@ def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     """
     if __has_sensor(packet, __LOCATION_FIELD_NAME):
         loc: api_m.RedvoxPacketM.Sensors.Location = packet.sensors.location
-        timestamps = loc.timestamps.timestamps
-        if len(timestamps) > 0:
-            gps_timestamps = loc.timestamps_gps.timestamps
-            lat_samples = loc.latitude_samples.values
-            lon_samples = loc.longitude_samples.values
-            alt_samples = loc.altitude_samples.values
-            spd_samples = loc.speed_samples.values
-            bear_samples = loc.bearing_samples.values
-            hor_acc_samples = loc.horizontal_accuracy_samples.values
-            vert_acc_samples = loc.vertical_accuracy_samples.values
-            spd_acc_samples = loc.speed_accuracy_samples.values
-            bear_acc_samples = loc.bearing_accuracy_samples.values
-            loc_prov_samples = loc.location_providers
-            data_for_df = [[], [], [], [], [], [], [], [], [], [], [], [], []]
-            for i in range(len(timestamps)):
-                data_for_df[0].append(timestamps[i])
-                data_for_df[1].append(timestamps[i])
-                data_for_df[2].append(np.nan if len(gps_timestamps) <= i else gps_timestamps[i])
-                data_for_df[3].append(lat_samples[i])
-                data_for_df[4].append(lon_samples[i])
-                data_for_df[5].append(np.nan if len(alt_samples) <= i else alt_samples[i])
-                data_for_df[6].append(np.nan if len(spd_samples) <= i else spd_samples[i])
-                data_for_df[7].append(np.nan if len(bear_samples) <= i else bear_samples[i])
-                data_for_df[8].append(np.nan if len(hor_acc_samples) <= i else hor_acc_samples[i])
-                data_for_df[9].append(np.nan if len(vert_acc_samples) <= i else vert_acc_samples[i])
-                data_for_df[10].append(np.nan if len(spd_acc_samples) <= i else spd_acc_samples[i])
-                data_for_df[11].append(np.nan if len(bear_acc_samples) <= i else bear_acc_samples[i])
-                data_for_df[12].append(np.nan if len(loc_prov_samples) <= i else loc_prov_samples[i])
+        if len(loc.timestamps.timestamps) > 0:
+            data_df = apim_location_to_pyarrow(loc)
         else:
             return None
-        data_df = pa.Table.from_pydict(dict(zip(LOCATION_COLUMNS, data_for_df)))
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
             data_df
         )
@@ -1377,6 +1417,37 @@ def load_apim_rotation_vector_from_list(
     )
 
 
+def apim_health_to_pyarrow(metrics: api_m.RedvoxPacketM.StationInformation.StationMetrics) -> pa.Table:
+    """
+    :param metrics: station metrics to convert to pyarrow table
+    :return: pyarrow table representation of station metrics data
+    """
+    timestamps = metrics.timestamps.timestamps
+    bat_samples = metrics.battery.values
+    bat_cur_samples = metrics.battery_current.values
+    temp_samples = metrics.temperature.values
+    net_samples = metrics.network_type
+    net_str_samples = metrics.network_strength.values
+    pow_samples = metrics.power_state
+    avail_ram_samples = metrics.available_ram.values
+    avail_disk_samples = metrics.available_disk.values
+    cell_samples = metrics.cell_service_state
+    data_for_df = [], [], [], [], [], [], [], [], [], [], []
+    for i in range(len(timestamps)):
+        data_for_df[0].append(timestamps[i])
+        data_for_df[1].append(timestamps[i])
+        data_for_df[2].append(np.nan if len(bat_samples) < i + 1 else bat_samples[i])
+        data_for_df[3].append(np.nan if len(bat_cur_samples) < i + 1 else bat_cur_samples[i])
+        data_for_df[4].append(np.nan if len(temp_samples) < i + 1 else temp_samples[i])
+        data_for_df[5].append(np.nan if len(net_samples) < i + 1 else net_samples[i])
+        data_for_df[6].append(np.nan if len(net_str_samples) < i + 1 else net_str_samples[i])
+        data_for_df[7].append(np.nan if len(pow_samples) < i + 1 else pow_samples[i])
+        data_for_df[8].append(np.nan if len(avail_ram_samples) < i + 1 else avail_ram_samples[i])
+        data_for_df[9].append(np.nan if len(avail_disk_samples) < i + 1 else avail_disk_samples[i])
+        data_for_df[10].append(np.nan if len(cell_samples) < i + 1 else cell_samples[i])
+    return pa.Table.from_pydict(dict(zip(STATION_HEALTH_COLUMNS, data_for_df)))
+
+
 def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     """
     load station health data from a single redvox packet
@@ -1389,32 +1460,7 @@ def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorDataPa]:
     )
     timestamps = metrics.timestamps.timestamps
     if len(timestamps) > 0:
-        bat_samples = metrics.battery.values
-        bat_cur_samples = metrics.battery_current.values
-        temp_samples = metrics.temperature.values
-        net_samples = metrics.network_type
-        net_str_samples = metrics.network_strength.values
-        pow_samples = metrics.power_state
-        avail_ram_samples = metrics.available_ram.values
-        avail_disk_samples = metrics.available_disk.values
-        cell_samples = metrics.cell_service_state
-        data_for_df = []
-        for i in range(len(timestamps)):
-            new_entry = [
-                timestamps[i],
-                timestamps[i],
-                np.nan if len(bat_samples) < i + 1 else bat_samples[i],
-                np.nan if len(bat_cur_samples) < i + 1 else bat_cur_samples[i],
-                np.nan if len(temp_samples) < i + 1 else temp_samples[i],
-                np.nan if len(net_samples) < i + 1 else net_samples[i],
-                np.nan if len(net_str_samples) < i + 1 else net_str_samples[i],
-                np.nan if len(pow_samples) < i + 1 else pow_samples[i],
-                np.nan if len(avail_ram_samples) < i + 1 else avail_ram_samples[i],
-                np.nan if len(avail_disk_samples) < i + 1 else avail_disk_samples[i],
-                np.nan if len(cell_samples) < i + 1 else cell_samples[i],
-            ]
-            data_for_df.append(new_entry)
-        data_df = pa.Table.from_pydict(dict(zip(STATION_HEALTH_COLUMNS, data_for_df)))
+        data_df = apim_health_to_pyarrow(metrics)
         # health is collected 1 per packet or 1 per second
         sample_rate, sample_interval, sample_interval_std = __stats_for_sensor_per_packet_per_second(
             1, __packet_duration_s(packet), timestamps

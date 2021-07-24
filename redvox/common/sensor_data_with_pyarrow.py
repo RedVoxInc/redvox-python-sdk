@@ -169,6 +169,7 @@ class SensorDataPa:
             self.name: str = sensor_name
             self.type: SensorType = sensor_type
             self._arrow: pa.Table = sensor_data
+            self._arrow_file: str = ""
             self.sample_rate_hz: float = sample_rate_hz
             self.sample_interval_s: float = sample_interval_s
             self.sample_interval_std_s: float = sample_interval_std_s
@@ -267,11 +268,6 @@ class SensorDataPa:
         :return: the updated SensorData object
         """
         self._arrow = pa.concat_tables([self._arrow, new_sensor.get_pyarrow_table()])
-        # d = self._arrow.to_pydict()
-        # keys = list(d.keys())
-        # for i, n in enumerate(new_data):
-        #     d[keys[i]].append(n)
-        # self._arrow = pa.Table.from_pydict(d)
         if recalculate_stats and not self.is_sample_rate_fixed:
             self.organize_and_update_stats()
         return self
@@ -290,11 +286,6 @@ class SensorDataPa:
         """
         b = pa.Table.from_arrays(arrays=[pa.array(s) for s in new_data], names=self.data_channels())
         self._arrow = pa.concat_tables([self._arrow, b])
-        # d = self._arrow.to_pydict()
-        # keys = list(d.keys())
-        # for i, n in enumerate(new_data):
-        #     d[keys[i]].append(n)
-        # self._arrow = pa.Table.from_pydict(d)
         if recalculate_stats and not self.is_sample_rate_fixed:
             self.organize_and_update_stats()
         return self
@@ -309,7 +300,7 @@ class SensorDataPa:
 
     def samples(self) -> np.ndarray:
         """
-        gets the samples of dataframe
+        gets the non-timestamp samples of dataframe
 
         :return: the data values of the dataframe as a numpy ndarray
         """

@@ -41,7 +41,7 @@ class DataWindowTest(unittest.TestCase):
                                 test_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
             self.assertIsNotNone(datawindow.get_station("1637650010")[0].audio_sensor())
             test_sensor = datawindow.get_station("1637650010")[0].accelerometer_sensor()
-            self.assertEqual(test_sensor.num_samples(), 642)
+            self.assertEqual(test_sensor.num_samples(), 643)
             self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
             test_sensor = datawindow.get_station("0000000001")[0].audio_sensor()
             self.assertIsNotNone(test_sensor)

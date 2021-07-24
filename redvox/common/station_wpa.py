@@ -3,11 +3,15 @@ Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from itertools import repeat
 from types import FunctionType
+import tempfile
+import os
 
 import numpy as np
+import pyarrow.parquet as pq
+import pyarrow.dataset as ds
 
 from redvox.common import sensor_data_with_pyarrow as sd
 from redvox.common import sensor_reader_utils_wpa as sdru
@@ -15,6 +19,9 @@ from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSyncAnalysis
 from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
+from redvox.common import packet_to_pyarrow as ptp
+from redvox.common import date_time_utils as dtu
+from redvox.common import gap_and_pad_utils_wpa as gpu
 
 
 class StationPa:
@@ -44,20 +51,30 @@ class StationPa:
     def __init__(
             self,
             data_packets: Optional[List[api_m.RedvoxPacketM]] = None,
-            station_id: str = None,
-            uuid: str = None,
-            start_time: float = np.nan,
+            base_out_dir: str = "",
+            save_output: bool = False
     ):
         """
         initialize Station
 
         :param data_packets: optional list of data packets representing the station, default None
+        :param base_out_dir: directory to save parquet files, default "" (current directory of code)
+        :param save_output: if True, save the parquet files, otherwise delete them.  default False
         """
-        self.data: List[sd.SensorDataPa] = []
+        # _sensors is type, name, rate
+        self._data: List[sd.SensorDataPa] = []
+        self._sensors: Dict[sd.SensorType, Tuple[str, float]] = {}
         self.packet_metadata: List[st_utils.StationPacketMetadata] = []
         self.is_timestamps_updated = False
         self._gaps: List[Tuple[float, float]] = []
         self.errors: RedVoxExceptions = RedVoxExceptions("Station")
+        self.save_output: bool = save_output
+        if self.save_output:
+            self.base_dir: str = base_out_dir
+        else:
+            self._temp_dir = tempfile.TemporaryDirectory()
+            out_dir = self._temp_dir.name
+            self.base_dir = out_dir
         if data_packets and st_utils.validate_station_key_list(data_packets, True):
             # noinspection Mypy
             self._load_metadata_from_packet(data_packets[0])
@@ -66,19 +83,35 @@ class StationPa:
             ).from_raw_packets(data_packets)
             if self.timesync_analysis.errors.get_num_errors() > 0:
                 self.errors.extend_error(self.timesync_analysis.errors)
-            self._set_all_sensors(data_packets)
-            self._get_start_and_end_timestamps()
+            # self._set_all_sensors(data_packets)
+            self._set_pyarrow_sensors(data_packets)
+            # self._get_start_and_end_timestamps()
         else:
-            self.id = station_id
-            self.uuid = uuid
+            self.id = ""
+            self.uuid = ""
             self.metadata = st_utils.StationMetadata("None")
-            self.start_timestamp = start_time
+            self.start_timestamp = np.nan
             self.first_data_timestamp = np.nan
             self.last_data_timestamp = np.nan
             self.audio_sample_rate_nominal_hz = np.nan
             self.is_audio_scrambled = False
             self.timesync_analysis = TimeSyncAnalysis()
-        # self.errors.print()
+
+    def __del__(self):
+        if not self.save_output:
+            self._temp_dir.cleanup()
+
+    @staticmethod
+    def create_from_metadata(packet: api_m.RedvoxPacketM) -> "StationPa":
+        """
+        create a station using metadata from a packet.  There will be no sensor or timing data added.
+
+        :param packet: API M redvox packet to load metadata from
+        :return: StationPa without any sensor or timing
+        """
+        station = StationPa()
+        station._load_metadata_from_packet(packet)
+        return station
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -112,7 +145,7 @@ class StationPa:
 
     def _get_start_and_end_timestamps(self):
         """
-        uses the sorted metadata packets to get the first and last timestamp of the station
+        uses the audio data to get the first and last timestamp of the station
         """
         self.first_data_timestamp = self.audio_sensor().first_data_timestamp()
         self.last_data_timestamp = self.audio_sensor().last_data_timestamp()
@@ -201,7 +234,7 @@ class StationPa:
                 and new_station.get_key() == self.get_key()
                 and self.metadata.validate_metadata(new_station.metadata)
         ):
-            self.append_station_data(new_station.data)
+            self.append_station_data(new_station._data)
             self.packet_metadata.extend(new_station.packet_metadata)
             self._sort_metadata_packets()
             self._get_start_and_end_timestamps()
@@ -226,14 +259,14 @@ class StationPa:
         """
         :return: a list of sensor types in the station
         """
-        return [s.type for s in self.data]
+        return [s.type for s in self._data]
 
     def get_sensor_by_type(self, sensor_type: sd.SensorType) -> Optional[sd.SensorDataPa]:
         """
         :param sensor_type: type of sensor to get
         :return: the sensor of the type or None if it doesn't exist
         """
-        for s in self.data:
+        for s in self._data:
             if s.type == sensor_type:
                 return s
         return None
@@ -257,7 +290,7 @@ class StationPa:
         :param sensor_type: the sensor to remove
         """
         if sensor_type in self.get_station_sensor_types():
-            self.data.remove(self.get_sensor_by_type(sensor_type))
+            self._data.remove(self.get_sensor_by_type(sensor_type))
 
     def _add_sensor(self, sensor_type: sd.SensorType, sensor: sd.SensorDataPa):
         """
@@ -271,7 +304,7 @@ class StationPa:
                 f"Cannot add sensor type ({sensor_type.name}) that already exists in packet!"
             )
         else:
-            self.data.append(sensor)
+            self._data.append(sensor)
 
     def get_mean_packet_duration(self) -> float:
         """
@@ -967,6 +1000,90 @@ class StationPa:
             self._add_sensor(sd.SensorType.STATION_HEALTH, health_sensor)
         return self
 
+    def set_gaps(self, gaps: List[Tuple[float, float]]):
+        """
+        set the audio gaps of the station
+        :param gaps: list pairs of timestamps of the data points on the edge of gaps
+        """
+        self._gaps = gaps
+
+    def _get_id_key(self) -> str:
+        """
+        :return: the station's id and start time as a string
+        """
+        if np.isnan(self.start_timestamp):
+            return f"{self.id}_0"
+        return f"{self.id}_{int(self.start_timestamp)}"
+
+    def load_data_from_parquet(self):
+        """
+        load all data from parquets into memory
+        """
+        s_id = self._get_id_key()
+        in_dir = os.path.join(self.base_dir, s_id)
+        dataset = ds.dataset(os.path.join(in_dir, sd.SensorType.AUDIO.name))
+        self._data.append(sd.SensorDataPa(self._audio_name, dataset.to_table(), sd.SensorType.AUDIO,
+                                          self._audio_rate, 1 / self._audio_rate, 0., True))
+        for s_type, s_data in self._sensors.items():
+            s_dir = os.path.join(in_dir, s_type.name)
+            dataset = ds.dataset(s_dir)
+            table = gpu.fill_gaps(dataset.to_table(),
+                                  self._gaps,
+                                  1/s_data[1],
+                                  True,
+                                  )
+            if s_type in [sd.SensorType.COMPRESSED_AUDIO, sd.SensorType.IMAGE,
+                          sd.SensorType.STATION_HEALTH]:
+                fixed_rate = True
+                sample_rate = s_data[1]
+                sample_interval = 1 / sample_rate
+                sample_interval_std = 0.
+            else:
+                sample_rate, sample_interval, sample_interval_std = sdru.get_sample_statistics(table)
+                fixed_rate = False
+            self._data.append(sd.SensorDataPa(s_data[0], table, s_type, sample_rate,
+                                              sample_interval, sample_interval_std, fixed_rate))
+
+    def _set_pyarrow_sensors(self, packets: List[api_m.RedvoxPacketM]):
+        """
+        set the sensors using pyarrow tables
+        :param packets: packets to load
+        """
+        audio = []
+        self._audio_rate = packets[0].sensors.audio.sample_rate
+        self._audio_name = packets[0].sensors.audio.sensor_description
+        out_dir = os.path.join(self.base_dir, self._get_id_key())
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+        for packet in packets:
+            # noinspection Mypy
+            self.packet_metadata.append(st_utils.StationPacketMetadata(packet))
+            audio_data, audio_start = ptp.load_apim_audio(packet)
+            if len(audio) < 1:
+                audio = [(audio_start, audio_data)]
+            else:
+                audio.append((audio_start, audio_data))
+            for s_type, data in ptp.packet_to_pyarrow(packet).items():
+                if s_type not in self._sensors.keys():
+                    self._sensors[s_type] = (data[0], data[3])
+                sensor_dir = os.path.join(out_dir, s_type.name)
+                if not os.path.exists(sensor_dir):
+                    os.makedirs(sensor_dir)
+                pq.write_table(data[2], os.path.join(sensor_dir, f"{int(data[1])}.parquet"))
+        sensor_dir = os.path.join(out_dir, sd.SensorType.AUDIO.name)
+        if not os.path.exists(sensor_dir):
+            os.makedirs(sensor_dir)
+        packet_info = [(p[0], p[1]) for p in audio]
+        gp_result = gpu.fill_audio_gaps(
+            packet_info, dtu.seconds_to_microseconds(1 / self._audio_rate)
+        )
+        if gp_result.errors.get_num_errors() > 0:
+            self.errors.extend_error(gp_result.errors)
+        self._gaps = gp_result.gaps
+        self.first_data_timestamp = gp_result.result["timestamps"][0].as_py()
+        self.last_data_timestamp = gp_result.result["timestamps"][-0].as_py()
+        pq.write_table(gp_result.result, os.path.join(sensor_dir, f"audio.parquet"))
+
     def _set_all_sensors(self, packets: List[api_m.RedvoxPacketM]):
         """
         set all sensors from the packets, as well as misc. metadata, and put it in the station
@@ -1003,31 +1120,31 @@ class StationPa:
             if sensor:
                 self.append_sensor(sensor)
 
-    @staticmethod
-    def from_packet(packet: api_m.RedvoxPacketM) -> "StationPa":
-        start_time = packet.timing_information.app_start_mach_timestamp
-        return StationPa(
-            station_id=packet.station_information.id,
-            uuid=packet.station_information.uuid,
-            start_time=np.nan if start_time < 0 else start_time,
-        )._load_packet(packet)
-
-    def load_packet(self, packet: api_m.RedvoxPacketM) -> "StationPa":
-        """
-        load all data from a packet
-
-        :param packet: packet to load data from
-        :return: updated station or a new station if it doesn't exist
-        """
-        start_time: float = packet.timing_information.app_start_mach_timestamp
-        o_s = StationPa(
-            station_id=packet.station_information.id,
-            uuid=packet.station_information.uuid,
-            start_time=np.nan if start_time < 0 else start_time,
-        )
-        if self.get_key() == o_s.get_key():
-            return self._load_packet(packet)
-        return o_s._load_packet(packet)
+    # @staticmethod
+    # def from_packet(packet: api_m.RedvoxPacketM) -> "StationPa":
+    #     start_time = packet.timing_information.app_start_mach_timestamp
+    #     return StationPa(
+    #         station_id=packet.station_information.id,
+    #         uuid=packet.station_information.uuid,
+    #         start_time=np.nan if start_time < 0 else start_time,
+    #     )._load_packet(packet)
+    #
+    # def load_packet(self, packet: api_m.RedvoxPacketM) -> "StationPa":
+    #     """
+    #     load all data from a packet
+    #
+    #     :param packet: packet to load data from
+    #     :return: updated station or a new station if it doesn't exist
+    #     """
+    #     start_time: float = packet.timing_information.app_start_mach_timestamp
+    #     o_s = StationPa(
+    #         station_id=packet.station_information.id,
+    #         uuid=packet.station_information.uuid,
+    #         start_time=np.nan if start_time < 0 else start_time,
+    #     )
+    #     if self.get_key() == o_s.get_key():
+    #         return self._load_packet(packet)
+    #     return o_s._load_packet(packet)
 
     def _load_packet(self, packet: api_m.RedvoxPacketM) -> "StationPa":
         self.packet_metadata.append(st_utils.StationPacketMetadata(packet))
@@ -1064,10 +1181,13 @@ class StationPa:
         if self.is_timestamps_updated:
             self.errors.append("Timestamps already corrected!")
         else:
-            for sensor in self.data:
+            for sensor in self._data:
                 sensor.update_data_timestamps(self.timesync_analysis.offset_model)
             for packet in self.packet_metadata:
                 packet.update_timestamps(self.timesync_analysis.offset_model)
+            for g in range(len(self._gaps)):
+                self._gaps[g] = (self.timesync_analysis.offset_model.update_time(self._gaps[g][0]),
+                                 self.timesync_analysis.offset_model.update_time(self._gaps[g][1]))
             self.timesync_analysis.update_timestamps()
             self.start_timestamp = self.timesync_analysis.offset_model.update_time(
                 self.start_timestamp

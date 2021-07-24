@@ -7,7 +7,9 @@ from typing import List, Optional
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
+from itertools import repeat
 
+import numpy as np
 import pyarrow as pa
 
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
@@ -15,7 +17,7 @@ from redvox.common import offset_model
 from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
-from redvox.common.parallel_utils import maybe_parallel_map
+from redvox.common.parallel_utils import maybe_parallel_map, maybe_parallel_smap
 from redvox.common.station import Station
 from redvox.common.station_wpa import StationPa
 from redvox.common.errors import RedVoxExceptions
@@ -226,28 +228,6 @@ class ApiReader:
 
         return list(results.values())
 
-    def get_stations_rfiiwpa(self, pool: Optional[multiprocessing.pool.Pool] = None):
-        """
-        :param pool: optional multiprocessing pool
-        :return: List of all stations in the ApiReader
-        """
-        abv = list(maybe_parallel_map(pool,
-                                      self.read_files_in_index_wpa,
-                                      self.files_index,
-                                      chunk_size=1
-                                      )
-                   )
-
-    def read_files_in_index_wpa(self, indexf: io.Index):
-        """
-        read all files in an index using pyarrow
-        :param indexf: the index to read from
-        :return: something?
-        """
-        import redvox.common.packet_to_pyarrow as ptp
-        result = ptp.PacketToPyarrow(os.path.curdir)
-        return result.read_files(indexf)
-
     @staticmethod
     def read_files_in_index(indexf: io.Index) -> List[api_m.RedvoxPacketM]:
         """
@@ -340,12 +320,39 @@ class ApiReader:
             return None
         return result
 
+    def _stations_wpa_by_index_fs(self, findex: io.Index, base_dir: str = "", save_files: bool = False) -> StationPa:
+        """
+        :param findex: index with files to build a station with
+        :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
+        :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
+        :return: Station built from files in findex, without building the data from parquet
+        """
+        stpa = StationPa(self.read_files_in_index(findex), base_dir, save_files)
+        return stpa
+
+    def get_stations_wpa_fs(self, pool: Optional[multiprocessing.pool.Pool] = None,
+                            base_dir: str = "", save_files: bool = False) -> List[StationPa]:
+        """
+        :param pool: optional multiprocessing pool
+        :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
+        :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
+        :return: List of all stations in the ApiReader, without building the data from parquet
+        """
+        return list(maybe_parallel_smap(pool,
+                                        self._stations_wpa_by_index_fs,
+                                        [self.files_index, repeat(base_dir), repeat(save_files)],
+                                        chunk_size=1
+                                        )
+                    )
+
     def _stations_wpa_by_index(self, findex: io.Index) -> StationPa:
         """
         :param findex: index with files to build a station with
         :return: Station built from files in findex
         """
-        return StationPa(self.read_files_in_index(findex))
+        stpa = StationPa(self.read_files_in_index(findex))
+        stpa.load_data_from_parquet()
+        return stpa
 
     def get_stations_wpa(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationPa]:
         """

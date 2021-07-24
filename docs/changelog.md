@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.4.rc (2021-7-23)
+
+* Testing pyarrow functionality for Sensors and Stations
+* Save parquets of data from Redvox files instead of loading everything at once
+
 ### 3.0.4 (2021-6-24)
 
 * IDs shorter than 10 characters are zero-padded to preserve consistency between file names and internal representations

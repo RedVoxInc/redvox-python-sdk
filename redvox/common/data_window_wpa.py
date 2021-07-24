@@ -75,7 +75,9 @@ class DataWindow:
         api_versions: Optional[Set[io.ApiVersion]] = None,
         apply_correction: bool = True,
         copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
-        debug: bool = False
+        debug: bool = False,
+        station_out_dir: str = "",
+        save_station_files: bool = False
     ):
         """
         Initialize the DataWindow
@@ -103,6 +105,9 @@ class DataWindow:
         :param copy_edge_points: Determines how new points are created. Valid values are DataPointCreationMode.NAN,
                                     DataPointCreationMode.COPY, and DataPointCreationMode.INTERPOLATE.  Default COPY
         :param debug: if True, outputs additional information during initialization. Default False
+        :param station_out_dir: output directory for station parquet files.  Default "" (current directory)
+        :param save_station_files: if True, save the station parquet files, otherwise delete them when finished.
+                                    Default False
         """
         self.errors = RedVoxExceptions("DataWindow")
         self.input_directory: str = input_dir
@@ -124,6 +129,8 @@ class DataWindow:
         self.copy_edge_points = copy_edge_points
         self.sdk_version: str = redvox.VERSION
         self.debug: bool = debug
+        self.station_out_dir: str = station_out_dir
+        self.save_station_files: bool = save_station_files
         self.stations: List[StationPa] = []
         if start_datetime and end_datetime and (end_datetime <= start_datetime):
             self.errors.append("DataWindow will not work when end datetime is before or equal to start datetime.\n"
@@ -394,10 +401,10 @@ class DataWindow:
 
         if self.apply_correction:
             for st in maybe_parallel_map(_pool, StationPa.update_timestamps,
-                                         iter(a_r.get_stations_wpa()), chunk_size=1):
+                                         iter(a_r.get_stations_wpa_fs()), chunk_size=1):
                 self._add_sensor_to_window(st)
         else:
-            [self._add_sensor_to_window(s) for s in a_r.get_stations_wpa()]
+            [self._add_sensor_to_window(s) for s in a_r.get_stations_wpa_fs()]
 
         # check for stations without data
         self._check_for_audio()
@@ -471,7 +478,7 @@ class DataWindow:
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.id, start_datetime, end_datetime)
-        for sensor in [s for s in station.data if s.type != SensorType.AUDIO]:
+        for sensor in [s for s in station._data if s.type != SensorType.AUDIO]:
             self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
                                 station.audio_sensor().last_data_timestamp())
         # recalculate metadata
