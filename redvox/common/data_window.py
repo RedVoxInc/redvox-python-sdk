@@ -560,6 +560,20 @@ class DataWindow:
                     sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, 0,
                                                                start_date_timestamp - sensor.first_data_timestamp(),
                                                                point_creation_mode=new_point_mode)
+                else:
+                    # add to end
+                    interval = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, sensor.num_samples() - 1, interval,
+                                                               int((dtu.datetime_to_epoch_microseconds_utc(
+                                                                   self.end_datetime)
+                                                                    - sensor.last_data_timestamp()) / interval),
+                                                               point_creation_mode=gpu.DataPointCreationMode["NAN"])
+                    # add to begin
+                    sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, 0, -interval,
+                                                               int((sensor.first_data_timestamp()
+                                                                   - dtu.datetime_to_epoch_microseconds_utc(
+                                                                   self.start_datetime)) / interval),
+                                                               point_creation_mode=gpu.DataPointCreationMode["NAN"])
                 sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
         else:
             self.errors.append(f"Data window for {station_id} {sensor.type.name} "

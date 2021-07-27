@@ -156,7 +156,7 @@ class TimeSyncData:
 
         :return: number of tri-message exchanges
         """
-        return np.size(self.time_sync_exchanges_list)
+        return np.size(self.time_sync_exchanges_list, 0)
 
     def update_timestamps(self, om: Optional[OffsetModel]):
         """

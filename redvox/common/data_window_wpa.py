@@ -478,7 +478,7 @@ class DataWindow:
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.id, start_datetime, end_datetime)
-        for sensor in [s for s in station._data if s.type != SensorType.AUDIO]:
+        for sensor in [s for s in station.data() if s.type != SensorType.AUDIO]:
             self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
                                 station.audio_sensor().last_data_timestamp())
         # recalculate metadata

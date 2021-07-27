@@ -4,11 +4,14 @@ all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
 from typing import List, Union, Dict
+import os
 
 import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.compute as pc
+import pyarrow.dataset as ds
+import pyarrow.parquet as pq
 
 import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
@@ -142,7 +145,9 @@ class SensorDataPa:
             is_sample_rate_fixed: bool = False,
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
-            use_offset_model_for_correction: bool = False
+            use_offset_model_for_correction: bool = False,
+            output_dir: str = "",
+            save_output: bool = False
     ):
         """
         initialize the sensor data with params
@@ -161,6 +166,8 @@ class SensorDataPa:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
+        :param output_dir: directory to save pyarrow table, default "" (current dir)
+        :param save_output: if True, save pyarrow tables, otherwise don't.  default False
         """
         self.errors: RedVoxExceptions = RedVoxExceptions("Sensor")
         if "timestamps" not in sensor_data.schema.names:
@@ -168,8 +175,14 @@ class SensorDataPa:
         else:
             self.name: str = sensor_name
             self.type: SensorType = sensor_type
-            self._arrow: pa.Table = sensor_data
+            # self._arrow: pa.Table = sensor_data
+            self.save_output: bool = save_output
+            if self.save_output:
+                self._output_dir: str = output_dir
+            else:
+                self._output_dir = ""
             self._arrow_file: str = ""
+            self.write_pyarrow_table(sensor_data)
             self.sample_rate_hz: float = sample_rate_hz
             self.sample_interval_s: float = sample_interval_s
             self.sample_interval_std_s: float = sample_interval_std_s
@@ -222,6 +235,47 @@ class SensorDataPa:
     def get_pyarrow_table(self) -> pa.Table:
         return self._arrow
 
+    def pyarrow_table(self) -> pa.Table:
+        return ds.dataset(self._arrow_file).to_table()
+
+    def write_pyarrow_table(self, table: pa.Table):
+        """
+        saves the pyarrow table to disk, using a default filename: {sensor_type}_{first_timestamp}.parquet
+        :param table: the table to write
+        """
+        # if self.save_output:
+        pq.write_table(table, os.path.join(self._output_dir,
+                                           f"{self.type.name}_{table['timestamps'][0].as_py()}.parquet"))
+
+    # def load_data_from_parquet(self):
+    #     """
+    #     load all data from parquets into memory
+    #     """
+    #     s_id = self._get_id_key()
+    #     in_dir = os.path.join(self.base_dir, s_id)
+    #     dataset = ds.dataset(os.path.join(in_dir, sd.SensorType.AUDIO.name))
+    #     self._data.append(sd.SensorDataPa(self._audio_name, dataset.to_table(), sd.SensorType.AUDIO,
+    #                                       self._audio_rate, 1 / self._audio_rate, 0., True))
+    #     for s_type, s_data in self._sensors.items():
+    #         s_dir = os.path.join(in_dir, s_type.name)
+    #         dataset = ds.dataset(s_dir)
+    #         table = gpu.fill_gaps(dataset.to_table(),
+    #                               self._gaps,
+    #                               1/s_data[1],
+    #                               True,
+    #                               )
+    #         if s_type in [sd.SensorType.COMPRESSED_AUDIO, sd.SensorType.IMAGE,
+    #                       sd.SensorType.STATION_HEALTH]:
+    #             fixed_rate = True
+    #             sample_rate = s_data[1]
+    #             sample_interval = 1 / sample_rate
+    #             sample_interval_std = 0.
+    #         else:
+    #             sample_rate, sample_interval, sample_interval_std = sdru.get_sample_statistics(table)
+    #             fixed_rate = False
+    #         self._data.append(sd.SensorDataPa(s_data[0], table, s_type, sample_rate,
+    #                                           sample_interval, sample_interval_std, fixed_rate))
+
     def is_sample_interval_invalid(self) -> bool:
         """
         :return: True if sample interval is np.nan or equal to 0.0
@@ -268,6 +322,7 @@ class SensorDataPa:
         :return: the updated SensorData object
         """
         self._arrow = pa.concat_tables([self._arrow, new_sensor.get_pyarrow_table()])
+        self.write_pyarrow_table()
         if recalculate_stats and not self.is_sample_rate_fixed:
             self.organize_and_update_stats()
         return self
@@ -286,6 +341,7 @@ class SensorDataPa:
         """
         b = pa.Table.from_arrays(arrays=[pa.array(s) for s in new_data], names=self.data_channels())
         self._arrow = pa.concat_tables([self._arrow, b])
+        self.write_pyarrow_table()
         if recalculate_stats and not self.is_sample_rate_fixed:
             self.organize_and_update_stats()
         return self

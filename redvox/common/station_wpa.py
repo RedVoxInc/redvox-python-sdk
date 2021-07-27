@@ -101,6 +101,9 @@ class StationPa:
         if not self.save_output:
             self._temp_dir.cleanup()
 
+    def data(self) -> List[sd.SensorDataPa]:
+        return self._data
+
     @staticmethod
     def create_from_metadata(packet: api_m.RedvoxPacketM) -> "StationPa":
         """
