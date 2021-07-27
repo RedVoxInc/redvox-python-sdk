@@ -38,6 +38,8 @@ class Station:
         is_audio_scrambled: bool, True if audio data is scrambled, default False
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
+        use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
+        correction is done by adding the OffsetModel's best offset (intercept value).  default True
         _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
     """
 
@@ -47,17 +49,23 @@ class Station:
             station_id: str = None,
             uuid: str = None,
             start_time: float = np.nan,
+            use_model_correction: bool = True,
     ):
         """
         initialize Station
-
         :param data_packets: optional list of data packets representing the station, default None
+        :param station_id: optional id if no data packets, default None
+        :param uuid: optional uuid if no data packets, default None
+        :param start_time: optional start time in microseconds since epoch UTC if no data packets, default np.nan
+        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel best offset
+                                        (intercept value) otherwise.  Default True
         """
         self.data = []
         self.packet_metadata: List[st_utils.StationPacketMetadata] = []
         self.is_timestamps_updated = False
         self._gaps: List[Tuple[float, float]] = []
         self.errors: RedVoxExceptions = RedVoxExceptions("Station")
+        self.use_model_correction = use_model_correction
         if data_packets and st_utils.validate_station_key_list(data_packets, True):
             # noinspection Mypy
             self._load_metadata_from_packet(data_packets[0])
@@ -83,7 +91,6 @@ class Station:
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """
         sets metadata that applies to the entire station from a single packet
-
         :param packet: API-M redvox packet to load metadata from
         """
         # self.id = packet.station_information.id
@@ -117,10 +124,15 @@ class Station:
         self.first_data_timestamp = self.audio_sensor().first_data_timestamp()
         self.last_data_timestamp = self.audio_sensor().last_data_timestamp()
 
+    def print_errors(self):
+        """
+        prints errors to screen
+        """
+        self.errors.print()
+
     def set_id(self, station_id: str) -> "Station":
         """
         set the station's id
-
         :param station_id: id of station
         :return: modified version of self
         """
@@ -136,7 +148,6 @@ class Station:
     def set_uuid(self, uuid: str) -> "Station":
         """
         set the station's uuid
-
         :param uuid: uuid of station
         :return: modified version of self
         """
@@ -152,7 +163,6 @@ class Station:
     def set_start_timestamp(self, start_timestamp: float) -> "Station":
         """
         set the station's start timestamp in microseconds since epoch utc
-
         :param start_timestamp: start_timestamp of station
         :return: modified version of self
         """
@@ -168,7 +178,6 @@ class Station:
     def check_key(self) -> bool:
         """
         check if the station has enough information to set its key.
-
         :return: True if key can be set, False if not enough information
         """
         if self.id:
@@ -193,7 +202,6 @@ class Station:
     def append_station(self, new_station: "Station"):
         """
         append a new station to the current station; does nothing if keys do not match
-
         :param new_station: Station to append to current station
         """
         if (
@@ -216,7 +224,6 @@ class Station:
     def append_station_data(self, new_station_data: List[sd.SensorData]):
         """
         append new station data to existing station data
-
         :param new_station_data: the dictionary of data to add
         """
         for sensor_data in new_station_data:
@@ -241,7 +248,6 @@ class Station:
     def append_sensor(self, sensor_data: sd.SensorData):
         """
         append sensor data to an existing sensor_type or add a new sensor to the dictionary
-
         :param sensor_data: the data to append
         """
         if sensor_data.type in self.get_station_sensor_types():
@@ -253,7 +259,6 @@ class Station:
     def _delete_sensor(self, sensor_type: sd.SensorType):
         """
         removes a sensor from the sensor data dictionary if it exists
-
         :param sensor_type: the sensor to remove
         """
         if sensor_type in self.get_station_sensor_types():
@@ -262,7 +267,6 @@ class Station:
     def _add_sensor(self, sensor_type: sd.SensorType, sensor: sd.SensorData):
         """
         adds a sensor to the sensor data dictionary
-
         :param sensor_type: the type of sensor to add
         :param sensor: the sensor data to add
         """
@@ -287,7 +291,6 @@ class Station:
         """
         calculate the mean number of audio samples per packet using the
           number of audio sensor's data points and the number of packets
-
         :return: mean number of audio samples per packet
         """
         # noinspection Mypy
@@ -323,7 +326,6 @@ class Station:
     ) -> "Station":
         """
         sets the audio sensor; can remove audio sensor by passing None
-
         :param audio_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -357,7 +359,6 @@ class Station:
     ) -> "Station":
         """
         sets the location sensor; can remove location sensor by passing None
-
         :param loc_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -391,7 +392,6 @@ class Station:
     ) -> "Station":
         """
         sets the best location sensor; can remove location sensor by passing None
-
         :param best_loc_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -425,7 +425,6 @@ class Station:
     ) -> "Station":
         """
         sets the accelerometer sensor; can remove accelerometer sensor by passing None
-
         :param acc_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -459,7 +458,6 @@ class Station:
     ) -> "Station":
         """
         sets the magnetometer sensor; can remove magnetometer sensor by passing None
-
         :param mag_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -493,7 +491,6 @@ class Station:
     ) -> "Station":
         """
         sets the gyroscope sensor; can remove gyroscope sensor by passing None
-
         :param gyro_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -527,7 +524,6 @@ class Station:
     ) -> "Station":
         """
         sets the pressure sensor; can remove pressure sensor by passing None
-
         :param pressure_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -560,7 +556,6 @@ class Station:
     ) -> "Station":
         """
         sets the barometer (pressure) sensor; can remove barometer sensor by passing None
-
         :param bar_sensor: the SensorData to set or None
         :return: the edited station
         """
@@ -590,7 +585,6 @@ class Station:
     ) -> "Station":
         """
         sets the light sensor; can remove light sensor by passing None
-
         :param light_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -623,7 +617,6 @@ class Station:
     ) -> "Station":
         """
         sets the infrared sensor; can remove infrared sensor by passing None
-
         :param infrd_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -653,7 +646,6 @@ class Station:
     ) -> "Station":
         """
         sets the proximity sensor; can remove proximity sensor by passing None
-
         :param proximity_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -685,7 +677,6 @@ class Station:
     def set_image_sensor(self, img_sensor: Optional[sd.SensorData] = None) -> "Station":
         """
         sets the image sensor; can remove image sensor by passing None
-
         :param img_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -719,7 +710,6 @@ class Station:
     ) -> "Station":
         """
         sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
-
         :param amb_temp_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -753,7 +743,6 @@ class Station:
     ) -> "Station":
         """
         sets the relative humidity sensor; can remove relative humidity sensor by passing None
-
         :param rel_hum_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -787,7 +776,6 @@ class Station:
     ) -> "Station":
         """
         sets the gravity sensor; can remove gravity sensor by passing None
-
         :param grav_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -821,7 +809,6 @@ class Station:
     ) -> "Station":
         """
         sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
-
         :param lin_acc_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -855,7 +842,6 @@ class Station:
     ) -> "Station":
         """
         sets the orientation sensor; can remove orientation sensor by passing None
-
         :param orientation_sensor: the SensorData to set or None
         :return: the edited Station
         """
@@ -889,7 +875,6 @@ class Station:
     ) -> "Station":
         """
         sets the rotation vector sensor; can remove rotation vector sensor by passing None
-
         :param rot_vec_sensor: the SensorData to set or None
         :return: the edited DataPacket
         """
@@ -923,7 +908,6 @@ class Station:
     ) -> "Station":
         """
         sets the compressed audio sensor; can remove compressed audio sensor by passing None
-
         :param comp_audio_sensor: the SensorData to set or None
         :return: the edited DataPacket
         """
@@ -957,7 +941,6 @@ class Station:
     ) -> "Station":
         """
         sets the health sensor; can remove health sensor by passing None
-
         :param health_sensor: the SensorData to set or None
         :return: the edited DataPacket
         """
@@ -970,7 +953,6 @@ class Station:
     def _set_all_sensors(self, packets: List[api_m.RedvoxPacketM]):
         """
         set all sensors from the packets, as well as misc. metadata, and put it in the station
-
         :param packets: the packets to read data from
         """
         self.packet_metadata = [
@@ -1015,7 +997,6 @@ class Station:
     def load_packet(self, packet: api_m.RedvoxPacketM) -> "Station":
         """
         load all data from a packet
-
         :param packet: packet to load data from
         :return: updated station or a new station if it doesn't exist
         """
@@ -1065,21 +1046,18 @@ class Station:
             self.errors.append("Timestamps already corrected!")
         else:
             for sensor in self.data:
-                sensor.update_data_timestamps(self.timesync_analysis.offset_model)
+                sensor.update_data_timestamps(self.timesync_analysis.offset_model, self.use_model_correction)
             for packet in self.packet_metadata:
-                packet.update_timestamps(self.timesync_analysis.offset_model)
+                packet.update_timestamps(self.timesync_analysis.offset_model, self.use_model_correction)
             self.timesync_analysis.update_timestamps()
             self.start_timestamp = self.timesync_analysis.offset_model.update_time(
-                self.start_timestamp
+                self.start_timestamp, self.use_model_correction
             )
             self.first_data_timestamp = self.timesync_analysis.offset_model.update_time(
-                self.first_data_timestamp
+                self.first_data_timestamp, self.use_model_correction
             )
             self.last_data_timestamp = self.timesync_analysis.offset_model.update_time(
-                self.last_data_timestamp
+                self.last_data_timestamp, self.use_model_correction
             )
             self.is_timestamps_updated = True
-        return self
-
-    def temp_me(self) -> "Station":
         return self

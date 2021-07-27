@@ -61,6 +61,10 @@ These are the properties of the Station class and their default values:
 11. `is_timestamps_updated`: boolean; True if timestamps have been altered from original data values, default False
 12. `timesync_analysis`: TimeSyncAnalysis object; contains information about the station's timing values.  Refer to 
     the [Timesync Documentation](#timesync-and-offset-model) for more information
+13. `use_model_correction`: boolean, if True, time correction is done using OffsetModel functions, otherwise
+    correction is done by adding the best offset from the OffsetModel (also known as the model's intercept value or
+    the best offset from TimeSyncAnalysis).  default True
+14. `errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the station.  This is set by the SDK.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -73,6 +77,7 @@ These are the functions of the Station class:
    If the keys are different or one of the keys is invalid, nothing happens.
 4. `has_timesync_data()`: Returns True if the Station has timesync data 
 5. `get_station_sensor_types()`: Returns a list of all sensor types in the Station
+6. `print_errors()`: Print the errors encountered when creating the Station
 
 _[Table of Contents](#table-of-contents)_
 
@@ -212,11 +217,24 @@ _[Table of Contents](#table-of-contents)_
 The timesync_analysis property of Station contains information about the clock synchronization.
 The information is stored as a TimeSyncAnalysis object.
 
-Within the TimeSyncAnalysis object is an OffsetModel object.  OffsetModel is the primary source for information used to 
-correct the Station's timestamps.
+The TimeSyncAnalysis class has a few properties and functions that summarize the timing information of the station.
+
+1. get_best_latency(): Returns the best (lowest) latency of the station
+2. get_latencies(): Returns a numpy.array of all latencies of the station
+3. latency_stats: StatsContainer; the statistics (mean, std deviation and variance) of the latencies
+4. get_best_offset(): Returns the best (corresponding to best latency) offset of the station
+5. get_offsets(): Returns a numpy.array of all the offsets of the station
+6. offset_stats: StatsContainer; the statistics of the offsets
+7. sample_rate_hz: float; the audio sample rate in hz of the station, default np.nan
+8. timesync_data: list of TimeSyncData; the TimeSyncData being analyzed, default empty list
+9. station_start_timestamp: float; the timestamp of when the station became active, default np.nan
+10. offset_model: OffsetModel; model used to calculate offset of the station at a given point in time, default empty model
+    See below for more information about OffsetModel
+
+OffsetModel is the primary source for information used to correct the Station's timestamps.
 
 The OffsetModel computes the slope, or change in offset, for the duration of the Station's data, as well as the 
-starting offset value, or intercept, at the first timestamp of the audio data.
+best offset value, or intercept, at the first timestamp of the audio data.
 
 These are the properties of the OffsetModel class and their default values:
 1. `start_time`: float; start timestamp of model in microseconds since epoch UTC
@@ -273,6 +291,7 @@ These are the properties of the SensorData class:
 6. `sample_interval_std_s`: float; standard deviation in seconds between samples, default np.nan
 7. `is_sample_rate_fixed`: boolean; True if sample rate is constant, default False
 8. `timestamps_altered`: boolean; True if timestamps in the sensor have been altered from their original values, default False
+9. `errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the sensor.  This is set by the SDK.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -281,15 +300,16 @@ _[Table of Contents](#table-of-contents)_
 These are the functions of the SensorData class:
 
 1. `data_channels()`: Returns a list of the valid channel names (columns of the dataframe)
-2. `get_data_channel(channel_name)`: Returns a numpy.array** of the dataframe column with the channel_name, or an error 
-   and a list of valid channel names if channel_name does not exist.
+2. `get_data_channel(channel_name)`: Returns a numpy.array or a list of strings of the dataframe column with the
+   channel_name, or an error and a list of valid channel names if channel_name does not exist.
 3. `num_samples()`: Returns the number of data points (rows in the dataframe) in the sensor
 4. `data_timestamps()`: Returns a numpy.array of the timestamps in the dataframe
 5. `first_data_timestamp()`: Returns the first timestamp in the dataframe
 6. `last_data_timestamp()`: Returns the last timestamp in the dataframe
 7. `unaltered_data_timestamps()`: Returns a numpy.array of the raw timestamps as recorded by the sensor.  These values 
    are never updated, adjusted or otherwise changed from what the sensor reported.
-8. `samples()`: Returns a numpy.ndarray of all non-timestamp values in the dataframe
+8. `samples()`: Returns a numpy.ndarray of all non-timestamp values in the dataframe**
+9. `print_errors()`: Print the errors encountered when creating the SensorData
 
 ** Reading enumerated types from this function requires additional imports.  Refer to 
 [the footnote on enumerated types](#a-note-on-enumerated-types) for more information

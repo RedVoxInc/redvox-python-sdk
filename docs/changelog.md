@@ -1,5 +1,12 @@
 ## Changelog
 
+### 3.0.5 (2021-7-27)
+
+* Fixed nan'd missing data points for audio sensors with data that doesn't reach edges of data window
+* Added option to prevent usage of offset model when calculating time corrections for data windows and stations
+* Added number of samples to api conversion function
+* Docs updated to include new functionality
+
 ### 3.0.4 (2021-6-24)
 
 * IDs shorter than 10 characters are zero-padded to preserve consistency between file names and internal representations

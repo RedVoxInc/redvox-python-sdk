@@ -15,9 +15,9 @@ from redvox.common.sensor_data import (
 
 class SensorDataTest(unittest.TestCase):
     def setUp(self):
-        timestamps = [120, 60, 80, 100, 40, 140, 20, 160, 180]
-        sensor_data = [-20, 15, 50, -5, 20, -15, 10, 74, 111]
-        test_data = [75, 12, 86, 22, 200, 52, 99, 188, 121]
+        timestamps = [120., 60., 80., 100., 40., 140., 20., 160., 180.]
+        sensor_data = [-20., 15., 50., -5., 20., -15., 10., 74., 111.]
+        test_data = [75., 12., 86., 22., 200., 52., 99., 188., 121.]
         self.even_sensor = SensorData(
             "test",
             pd.DataFrame(

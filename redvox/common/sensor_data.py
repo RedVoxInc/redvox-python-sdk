@@ -60,14 +60,13 @@ class SensorType(enum.Enum):
     def type_from_str(type_str: str) -> "SensorType":
         """
         converts a string to a sensor type
-
         :param type_str: string to convert
         :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
         """
         if (
-            type_str.lower() == "audio"
-            or type_str.lower() == "mic"
-            or type_str.lower() == "microphone"
+                type_str.lower() == "audio"
+                or type_str.lower() == "mic"
+                or type_str.lower() == "microphone"
         ):
             return SensorType.AUDIO
         elif type_str.lower() == "accelerometer" or type_str.lower() == "accel":
@@ -85,8 +84,8 @@ class SensorType(enum.Enum):
         elif type_str.lower() == "light":
             return SensorType.LIGHT
         elif (
-            type_str.lower() == "linear_acceleration"
-            or type_str.lower() == "linear_accel"
+                type_str.lower() == "linear_acceleration"
+                or type_str.lower() == "linear_accel"
         ):
             return SensorType.LINEAR_ACCELERATION
         elif type_str.lower() == "location" or type_str.lower() == "loc":
@@ -98,9 +97,9 @@ class SensorType(enum.Enum):
         elif type_str.lower() == "orientation":
             return SensorType.ORIENTATION
         elif (
-            type_str.lower() == "pressure"
-            or type_str.lower() == "bar"
-            or type_str.lower() == "barometer"
+                type_str.lower() == "pressure"
+                or type_str.lower() == "bar"
+                or type_str.lower() == "barometer"
         ):
             return SensorType.PRESSURE
         elif type_str.lower() == "proximity" or type_str.lower() == "infrared":
@@ -130,20 +129,19 @@ class SensorData:
     """
 
     def __init__(
-        self,
-        sensor_name: str,
-        sensor_data: pd.DataFrame,
-        sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
-        sample_rate_hz: float = np.nan,
-        sample_interval_s: float = np.nan,
-        sample_interval_std_s: float = np.nan,
-        is_sample_rate_fixed: bool = False,
-        are_timestamps_altered: bool = False,
-        calculate_stats: bool = False
+            self,
+            sensor_name: str,
+            sensor_data: pd.DataFrame,
+            sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
+            sample_rate_hz: float = np.nan,
+            sample_interval_s: float = np.nan,
+            sample_interval_std_s: float = np.nan,
+            is_sample_rate_fixed: bool = False,
+            are_timestamps_altered: bool = False,
+            calculate_stats: bool = False
     ):
         """
         initialize the sensor data with params
-
         :param sensor_name: name of the sensor
         :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
         :param sensor_data: dataframe with the timestamps and sensor data; first column is always the timestamps,
@@ -175,6 +173,12 @@ class SensorData:
         else:
             self.sort_by_data_timestamps()
 
+    def print_errors(self):
+        """
+        prints errors to screen
+        """
+        self.errors.print()
+
     def is_sample_interval_invalid(self) -> bool:
         """
         :return: True if sample interval is np.nan or equal to 0.0
@@ -186,7 +190,6 @@ class SensorData:
         sorts the data by timestamps, then if the sample rate is not fixed, recalculates the sample rate, interval,
             and interval std dev.  If there is only one value, sets the sample rate, interval, and interval std dev
             to np.nan.  Updates the SensorData object with the new values
-
         :return: updated version of self
         """
         self.sort_by_data_timestamps()
@@ -211,12 +214,11 @@ class SensorData:
         return self
 
     def append_data(
-        self, new_data: pd.DataFrame, recalculate_stats: bool = False
+            self, new_data: pd.DataFrame, recalculate_stats: bool = False
     ) -> "SensorData":
         """
         append the new data to the dataframe, update the sensor's stats on demand if it doesn't have a fixed
             sample rate, then return the updated SensorData object
-
         :param new_data: Dataframe containing data to add to the sensor's dataframe
         :param recalculate_stats: if True and the sensor does not have a fixed sample rate, sort the timestamps,
                                     recalculate the sample rate, interval, and interval std dev, default False
@@ -230,7 +232,6 @@ class SensorData:
     def sensor_type_as_str(self) -> str:
         """
         gets the sensor type as a string
-
         :return: sensor type of the sensor as a string
         """
         return self.type.name
@@ -238,7 +239,6 @@ class SensorData:
     def samples(self) -> np.ndarray:
         """
         gets the samples of dataframe
-
         :return: the data values of the dataframe as a numpy ndarray
         """
         return self.data_df.iloc[:, 2:].T.to_numpy()
@@ -246,7 +246,6 @@ class SensorData:
     def get_data_channel(self, channel_name: str) -> Union[np.array, List[str]]:
         """
         gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
-
         :param channel_name: the name of the channel to get data for
         :return: the data values of the channel as a numpy array or list of strings for enumerated channels
         """
@@ -271,7 +270,6 @@ class SensorData:
     def get_valid_data_channel_values(self, channel_name: str) -> np.array:
         """
         gets all non-nan values from the channel specified
-
         :param channel_name: the name of the channel to get data for
         :return: non-nan values of the channel as a numpy array
         """
@@ -314,24 +312,27 @@ class SensorData:
         """
         return self.data_df.columns.to_list()
 
-    def update_data_timestamps(self, offset_model: om.OffsetModel):
+    def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = True):
         """
         updates the timestamps of the data points
-
         :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the offset model's correction function to correct time,
+                                    otherwise use best offset (model's intercept value).  default True
         """
+        slope = dtu.seconds_to_microseconds(self.sample_interval_s) * (1 + offset_model.slope) \
+            if use_model_function else dtu.seconds_to_microseconds(self.sample_interval_s)
         if self.type == SensorType.AUDIO:
+            # use the model to update the first timestamp or add the best offset (model's intercept value)
             self.data_df["timestamps"] = \
-                calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp()),
+                calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp(),
+                                                                        use_model_function),
                                                self.num_samples(),
-                                               dtu.seconds_to_microseconds(self.sample_interval_s)
-                                               * (1 + offset_model.slope))
+                                               slope)
         else:
-            self.data_df["timestamps"] = offset_model.update_timestamps(self.data_timestamps())
+            self.data_df["timestamps"] = offset_model.update_timestamps(self.data_timestamps(), use_model_function)
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
-            self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
-                                                                 (1 + offset_model.slope))
+            self.sample_interval_s = dtu.microseconds_to_seconds(slope)
             if self.sample_interval_s > 0:
                 self.sample_rate_hz = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
@@ -340,7 +341,6 @@ class SensorData:
     def sort_by_data_timestamps(self, ascending: bool = True):
         """
         sorts the data based on timestamps
-
         :param ascending: if True, timestamps are sorted in ascending order
         """
         self.data_df = self.data_df.sort_values("timestamps", ascending=ascending)
@@ -349,7 +349,6 @@ class SensorData:
                     copy: bool = True) -> pd.Series:
         """
         interpolates two points at the intercept value.  the two points must be consecutive in the dataframe
-
         :param interpolate_timestamp: timestamp to interpolate other values
         :param first_point: index of first point
         :param second_point: delta to second point, default 0 (same as first point)

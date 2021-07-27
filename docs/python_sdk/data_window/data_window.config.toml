@@ -27,3 +27,4 @@ extensions = [".rdvxm", ".rdvxz"]   # specific file extensions to get; acceptabl
 api_versions = ["API_900", "API_1000"]
 edge_points_mode = "COPY"           # acceptable values: "NAN", "COPY", "INTERPOLATE"
 debug = true                        # if true, output extra information when processing the data window
+use_model_correction = true         # if true, timestamps will be corrected using a model instead of a single best value

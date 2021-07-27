@@ -31,7 +31,6 @@ DATA_DROP_DURATION_S: float = 0.2
 class DataWindow:
     """
     Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
-
     Properties:
         input_directory: string, directory that contains the files to read data from.  REQUIRED
         structured_layout: bool, if True, the input_directory contains specially named and organized
@@ -53,6 +52,8 @@ class DataWindow:
         drop_time_s: float, the minimum amount of seconds between data files that would indicate a gap.
                      Negative values are converted to default value.  Default DATA_DROP_DURATION_S (0.2 seconds)
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
+        use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
+                                offset.  Default True
         copy_edge_points: enumeration of DataPointCreationMode.  Determines how new points are created.
                             Valid values are NAN, COPY, and INTERPOLATE.  Default COPY
         debug: bool, if True, outputs additional information during initialization. Default False
@@ -61,24 +62,24 @@ class DataWindow:
         sdk_version: str, the version of the Redvox SDK used to create the data window
     """
     def __init__(
-        self,
-        input_dir: str,
-        structured_layout: bool = True,
-        start_datetime: Optional[dtu.datetime] = None,
-        end_datetime: Optional[dtu.datetime] = None,
-        start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
-        end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-        drop_time_s: float = DATA_DROP_DURATION_S,
-        station_ids: Optional[Iterable[str]] = None,
-        extensions: Optional[Set[str]] = None,
-        api_versions: Optional[Set[io.ApiVersion]] = None,
-        apply_correction: bool = True,
-        copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
-        debug: bool = False
+            self,
+            input_dir: str,
+            structured_layout: bool = True,
+            start_datetime: Optional[dtu.datetime] = None,
+            end_datetime: Optional[dtu.datetime] = None,
+            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
+            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+            drop_time_s: float = DATA_DROP_DURATION_S,
+            station_ids: Optional[Iterable[str]] = None,
+            extensions: Optional[Set[str]] = None,
+            api_versions: Optional[Set[io.ApiVersion]] = None,
+            apply_correction: bool = True,
+            copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
+            debug: bool = False,
+            use_model_correction: bool = True,
     ):
         """
         Initialize the DataWindow
-
         :param input_dir: directory that contains the files to read data from.  REQUIRED
         :param structured_layout: if True, the input_directory contains specially named and organized directories of
                                     data.  Default True
@@ -101,6 +102,8 @@ class DataWindow:
         :param apply_correction: if True, update the timestamps in the data based on best station offset.  Default True
         :param copy_edge_points: Determines how new points are created. Valid values are DataPointCreationMode.NAN,
                                     DataPointCreationMode.COPY, and DataPointCreationMode.INTERPOLATE.  Default COPY
+        :param use_model_correction: if True, use the offset model's correction functions, otherwise use the best
+                                        offset.  Default True
         :param debug: if True, outputs additional information during initialization. Default False
         """
         self.errors = RedVoxExceptions("DataWindow")
@@ -121,6 +124,7 @@ class DataWindow:
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
         self.copy_edge_points = copy_edge_points
+        self.use_model_correction = use_model_correction
         self.sdk_version: str = redvox.VERSION
         self.debug: bool = debug
         self.stations: List[Station] = []
@@ -136,7 +140,6 @@ class DataWindow:
     def from_config_file(file: str) -> "DataWindow":
         """
         Loads a configuration file to create the DataWindow
-
         :param file: full path to config file
         :return: a data window
         """
@@ -146,7 +149,6 @@ class DataWindow:
     def from_config(config: DataWindowConfig) -> "DataWindow":
         """
         Loads a configuration to create the DataWindow
-
         :param config: DataWindow configuration object
         :return: a data window
         """
@@ -200,13 +202,13 @@ class DataWindow:
             config.apply_correction,
             gpu.DataPointCreationMode[config.edge_points_mode],
             config.debug,
+            config.use_model_correction,
         )
 
     @staticmethod
     def deserialize(path: str) -> "DataWindow":
         """
         Decompresses and deserializes a DataWindow written to disk.
-
         :param path: Path to the serialized and compressed data window.
         :return: An instance of a DataWindowFast.
         """
@@ -215,7 +217,6 @@ class DataWindow:
     def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
         """
         Serializes and compresses this DataWindowFast to a file.
-
         :param base_dir: The base directory to write the serialized file to (default=.).
         :param file_name: The optional file name. If None, a default filename with the following format is used:
                           [start_ts]_[end_ts]_[num_stations].pkl.lz4
@@ -229,7 +230,6 @@ class DataWindow:
                      compression_format: str = "lz4") -> Path:
         """
         Converts the data window metadata into a JSON file and compresses the data window and writes it to disk.
-
         :param base_dir: base directory to write the json file to.  Default . (local directory)
         :param file_name: the optional file name.  Do not include a file extension.
                             If None, a default file name is created using this format:
@@ -243,7 +243,6 @@ class DataWindow:
                 compression_format: str = "lz4") -> str:
         """
         Converts the data window metadata into a JSON string, then compresses the data window and writes it to disk.
-
         :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
         :param compressed_file_name: the optional file name.  Do not include a file extension.
                                         If None, a default file name is created using this format:
@@ -263,7 +262,6 @@ class DataWindow:
         Reads a JSON file and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
-
         :param base_dir: the base directory containing the json file
         :param file_name: the file name of the json file.  Do not include extensions
         :param dw_base_dir: optional directory containing the compressed data window file.
@@ -288,7 +286,6 @@ class DataWindow:
         Reads a JSON string and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
-
         :param json_str: the JSON to read
         :param dw_base_dir: directory containing the compressed data window file
         :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
@@ -309,7 +306,6 @@ class DataWindow:
         Reads a JSON string and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
-
         :param json_dict: the dictionary to read
         :param dw_base_dir: base directory for the compressed data window file
         :param start_dt: optional start datetime to check against.  if not given, assumes True.  default None
@@ -335,7 +331,6 @@ class DataWindow:
         """
         Get stations from the data window.  Must give at least the station's id.  Other parameters may be None,
         which means the value will be ignored when searching.  Results will match all non-None parameters given.
-
         :param station_id: station id
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
@@ -390,12 +385,16 @@ class DataWindow:
             self.station_ids = a_r.index_summary.station_ids()
         # Parallel update
         # Apply timing correction in parallel by station
+        sts = a_r.get_stations()
+        if not self.use_model_correction:
+            for tss in sts:
+                tss.use_model_correction = self.use_model_correction
         if self.apply_correction:
             for st in maybe_parallel_map(_pool, Station.update_timestamps,
-                                         iter(a_r.get_stations()), chunk_size=1):
+                                         iter(sts), chunk_size=1):
                 self._add_sensor_to_window(st)
         else:
-            [self._add_sensor_to_window(s) for s in a_r.get_stations()]
+            [self._add_sensor_to_window(s) for s in sts]
 
         # check for stations without data
         self._check_for_audio()
@@ -455,7 +454,6 @@ class DataWindow:
         if the start and/or end are not specified, keeps all audio data that fits and uses it
         to truncate the other sensors.
         returns nothing, updates the station in place
-
         :param station: station object to truncate sensors of
         :param start_datetime: datetime of start of window, default None
         :param end_datetime: datetime of end of window, default None
@@ -484,11 +482,10 @@ class DataWindow:
                        end_date_timestamp: float):
         """
         process a non audio sensor to fit within the data window.  Updates sensor in place, returns nothing.
-
         :param sensor: sensor to process
         :param station_id: station id
-        :param start_date_timestamp: start of data window
-        :param end_date_timestamp: end of data window
+        :param start_date_timestamp: start of data window according to data
+        :param end_date_timestamp: end of data window according to data
         """
         if sensor.num_samples() > 0:
             # get only the timestamps between the start and end timestamps
@@ -534,21 +531,41 @@ class DataWindow:
                     drop=True
                 )
                 # if sensor is audio or location, we want nan'd edge points
-                if sensor.type == SensorType.LOCATION:
+                if sensor.type in [SensorType.LOCATION, SensorType.AUDIO]:
                     new_point_mode = gpu.DataPointCreationMode["NAN"]
                 else:
                     new_point_mode = self.copy_edge_points
                 # add in the data points at the edges of the window if there are defined start and/or end times
-                # or the sensor is not audio
                 if not is_audio:
-                    # add to end
-                    sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, sensor.num_samples() - 1,
-                                                               end_date_timestamp - sensor.last_data_timestamp(),
-                                                               point_creation_mode=new_point_mode)
-                    # add to begin
-                    sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, 0,
-                                                               start_date_timestamp - sensor.first_data_timestamp(),
-                                                               point_creation_mode=new_point_mode)
+                    end_sample_interval = end_date_timestamp - sensor.last_data_timestamp()
+                    end_samples_to_add = 1
+                    start_sample_interval = start_date_timestamp - sensor.first_data_timestamp()
+                    start_samples_to_add = 1
+                else:
+                    end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    start_sample_interval = -end_sample_interval
+                    if self.end_datetime:
+                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+                                                  - sensor.last_data_timestamp()) / end_sample_interval)
+                    else:
+                        end_samples_to_add = 0
+                    if self.start_datetime:
+                        start_samples_to_add = int((sensor.first_data_timestamp() -
+                                                    dtu.datetime_to_epoch_microseconds_utc(self.start_datetime))
+                                                   / end_sample_interval)
+                    else:
+                        start_samples_to_add = 0
+                # add to end
+                sensor.data_df = gpu.add_data_points_to_df(dataframe=sensor.data_df,
+                                                           start_index=sensor.num_samples() - 1,
+                                                           sample_interval_micros=end_sample_interval,
+                                                           num_samples_to_add=end_samples_to_add,
+                                                           point_creation_mode=new_point_mode)
+                # add to begin
+                sensor.data_df = gpu.add_data_points_to_df(dataframe=sensor.data_df, start_index=0,
+                                                           sample_interval_micros=start_sample_interval,
+                                                           num_samples_to_add=start_samples_to_add,
+                                                           point_creation_mode=new_point_mode)
                 sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
         else:
             self.errors.append(f"Data window for {station_id} {sensor.type.name} "

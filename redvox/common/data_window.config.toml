@@ -25,4 +25,5 @@ start_padding_seconds = 120     # padding to include before start datetime when 
 end_padding_seconds = 120       # padding to include after start datetime when searching for data
 gap_time_seconds = 0.25         # minimum number of seconds between timestamps that indicates a gap in data
 apply_correction = true         # if true, timestamps will be adjusted before processing the data window
+use_model_correction = true     # if true, timestamps will be corrected using a model instead of a single best value
 debug = false                   # if true, output extra information when processing the data window

@@ -25,6 +25,7 @@ from redvox.api1000.wrapped_redvox_packet.station_information import (
     OsType,
     StationInformation,
     StationMetrics,
+    AudioSamplingRate,
 )
 from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchange
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
@@ -251,6 +252,9 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -> api_m.RedvoxPac
     packet_m.station_information.os_version = packet.device_os_version
     packet_m.station_information.app_version = packet.app_version
     packet_m.station_information.is_private = packet.is_private
+
+    packet_m.station_information.app_settings.samples_per_window = \
+        len(packet.evenly_sampled_channels[0].int32_payload.payload)
 
     packet_m.station_information.service_urls.acquisition_server = (
         packet.acquisition_server
