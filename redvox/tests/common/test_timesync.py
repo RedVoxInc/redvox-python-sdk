@@ -47,16 +47,16 @@ class TimesyncTest(unittest.TestCase):
         self.assertEqual(self.time_sync_analysis.best_latency_index, 0)
 
     def test_get_latency_mean(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_mean_latency(), 118049.66, 2)
+        self.assertAlmostEqual(self.time_sync_analysis.get_mean_latency(), 116253.55, 2)
 
     def test_get_latency_std_dev(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_latency_stdev(), 84458.71, 2)
+        self.assertAlmostEqual(self.time_sync_analysis.get_latency_stdev(), 82599.05, 2)
 
     def test_get_offset_mean(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_mean_offset(), -22903096.02, 2)
+        self.assertAlmostEqual(self.time_sync_analysis.get_mean_offset(), -22904378.43, 2)
 
     def test_get_offset_std_dev(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_offset_stdev(), 91847.39, 2)
+        self.assertAlmostEqual(self.time_sync_analysis.get_offset_stdev(), 89482.83, 2)
 
     def test_get_best_start_time(self):
         self.assertEqual(self.time_sync_analysis.get_best_start_time(), 1532459197088257)

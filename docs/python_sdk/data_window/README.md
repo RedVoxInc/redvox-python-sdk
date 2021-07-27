@@ -635,14 +635,17 @@ The data is now organized by Station.  This process will be performed on all Sta
 
 2. Remove any Audio data points outside the request window.
 
-3. Remove data points from each non-audio sensor that are outside the request window.
+3. Create Audio data points with NaN data values and timestamps based on the Audio sample rate such that the entire Audio record fills 
+   the request window and there are no points greater than 2 sample intervals apart or data points outside the window.
 
-4. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
+4. Remove data points from each non-audio sensor that are outside the request window.
+
+5. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
    * The copy_edge_points parameter determines which data values of these fabricated points will contain.
     
-5. Update the Station metadata.
+6. Update the Station metadata.
    
-6. Update the Data Window metadata to match the data.
+7. Update the Data Window metadata to match the data.
 
 ### Data Window Complete
 

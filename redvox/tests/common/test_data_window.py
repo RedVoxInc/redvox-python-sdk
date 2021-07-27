@@ -5,6 +5,8 @@ import unittest
 import contextlib
 import tempfile
 
+import numpy as np
+
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt
 from redvox.common import data_window as dw
@@ -74,6 +76,30 @@ class DataWindowTest(unittest.TestCase):
             structured_layout=False,
         )
         self.assertIsNone(dw_invalid.get_station("does_not_exist"))
+
+    def test_dw_insert_audio_before_data(self):
+        dw_audio = dw.DataWindow(
+            input_dir=self.input_dir,
+            station_ids=["0000000001"],
+            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189452),
+            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189453),
+            structured_layout=False,
+        )
+        x = dw_audio.stations[0]
+        self.assertEqual(x.audio_sensor().num_samples(), 48000)
+        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel("microphone"))), 45572)
+
+    def test_dw_insert_audio_after_data(self):
+        dw_audio = dw.DataWindow(
+            input_dir=self.input_dir,
+            station_ids=["0000000001"],
+            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189467),
+            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189468),
+            structured_layout=False,
+        )
+        x = dw_audio.stations[0]
+        self.assertEqual(x.audio_sensor().num_samples(), 48000)
+        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel("microphone"))), 2428)
 
 
 class DataWindowJsonTest(unittest.TestCase):
