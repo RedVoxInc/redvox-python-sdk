@@ -49,3 +49,35 @@ def is_parallelism_enabled() -> bool:
     if __PARALLELISM_ENABLED is None:
         __PARALLELISM_ENABLED = is_parallelism_enabled_env()
     return False if __PARALLELISM_ENABLED is None else __PARALLELISM_ENABLED
+
+
+def is_gui_extra_enabled() -> bool:
+    """
+    :return: True if the GUI extra is enabled, False otherwise
+    """
+    try:
+        import matplotlib
+        import PySide6
+        return True
+    except ModuleNotFoundError:
+        return False
+
+
+def is_native_extra_enabled() -> bool:
+    """
+    :return: True if the native extra is enabled, False otherwise
+    """
+    try:
+        import redvox_native
+        return True
+    except ModuleNotFoundError:
+        return False
+
+
+def is_cpp_backend_enabled() -> bool:
+    """
+    :return: True if the protobuf CPP backend is enabled, False otherwise
+    """
+    # noinspection PyUnresolvedReferences
+    from google.protobuf.internal import api_implementation
+    return api_implementation.Type() == "cpp"
