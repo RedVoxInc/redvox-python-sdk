@@ -135,8 +135,8 @@ class SensorDataPa:
         errors: RedVoxExceptions, class containing a list of all errors encountered by the sensor.
     Protected:
         _arrow_file: string, file name of data file
-        _output_dir: string, directory where the data is saved to, default "" (current directory)
-        _save_data: bool, if True, save data to _output_dir, otherwise use a temp dir.  default False
+        _arrow_dir: string, directory where the data is saved to, default "" (current directory)
+        _save_data: bool, if True, save data to _arrow_dir, otherwise use a temp dir.  default False
     """
 
     def __init__(
@@ -152,7 +152,7 @@ class SensorDataPa:
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
             save_data: bool = False,
-            output_dir: str = "",
+            arrow_dir: str = "",
     ):
         """
         initialize the sensor data with params
@@ -162,7 +162,7 @@ class SensorDataPa:
         :param sensor_data: Optional pyarrow table with the timestamps and sensor data;
                             first column is always the timestamps,
                             the other columns are the data channels in the sensor
-                            if not given, will search output_dir for data
+                            if not given, will search arrow_dir for data
         :param sample_rate_hz: sample rate in hz of the data
         :param sample_interval_s: sample interval in seconds of the data
         :param sample_interval_std_s: std dev of sample interval in seconds of the data
@@ -174,7 +174,7 @@ class SensorDataPa:
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
         :param save_data: if True, save the data of the sensor to disk, default False
-        :param output_dir: directory to save pyarrow table, default "" (current dir)
+        :param arrow_dir: directory to save pyarrow table, default "" (current dir)
         """
         self.errors: RedVoxExceptions = RedVoxExceptions("Sensor")
         self.name: str = sensor_name
@@ -187,11 +187,12 @@ class SensorDataPa:
         self.use_offset_model: bool = use_offset_model_for_correction
         self._arrow_file: str = ""
         self._save_data: bool = save_data
-        if save_data:
-            self._output_dir: str = output_dir
+        if self._save_data or arrow_dir:
+            self._arrow_dir: str = arrow_dir
+            self._temp_dir = None
         else:
             self._temp_dir = tempfile.TemporaryDirectory()
-            self._output_dir = self._temp_dir.name
+            self._arrow_dir = self._temp_dir.name
         if sensor_data:
             if "timestamps" not in sensor_data.schema.names:
                 self.errors.append('must have a column titled "timestamps"')
@@ -206,7 +207,7 @@ class SensorDataPa:
                         self.write_pyarrow_table(sensor_data)
 
     def __del__(self):
-        if not self._save_data:
+        if self._temp_dir:
             self._temp_dir.cleanup()
 
     @staticmethod
@@ -222,7 +223,7 @@ class SensorDataPa:
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
             save_data: bool = False,
-            output_dir: str = "") -> "SensorDataPa":
+            arrow_dir: str = "") -> "SensorDataPa":
         """
         init but with a path to directory containing parquet file(s) instead of a table of data
 
@@ -240,12 +241,12 @@ class SensorDataPa:
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
         :param save_data: if True, save the data of the sensor to disk, default False
-        :param output_dir: directory to save pyarrow table, default "" (current dir)
+        :param arrow_dir: directory to save pyarrow table, default "" (current dir)
         :return: SensorData object
         """
         return SensorDataPa(sensor_name, ds.dataset(data_path).to_table(), sensor_type, sample_rate_hz,
                             sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
-                            calculate_stats, use_offset_model_for_correction, save_data, output_dir)
+                            calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)
 
     @staticmethod
     def from_dict(
@@ -260,7 +261,7 @@ class SensorDataPa:
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
             save_data: bool = False,
-            output_dir: str = "",
+            arrow_dir: str = "",
     ) -> "SensorDataPa":
         """
         init but with a dictionary
@@ -280,28 +281,28 @@ class SensorDataPa:
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
         :param save_data: if True, save the data of the sensor to disk, default False
-        :param output_dir: directory to save pyarrow table, default "" (current dir)
+        :param arrow_dir: directory to save pyarrow table, default "" (current dir)
         :return: SensorData object
         """
         return SensorDataPa(sensor_name, pa.Table.from_pydict(sensor_data), sensor_type, sample_rate_hz,
                             sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
-                            calculate_stats, use_offset_model_for_correction, save_data, output_dir)
+                            calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)
 
     def pyarrow_ds(self) -> ds.Dataset:
         """
-        :return: the dataset stored in self._output_dir
+        :return: the dataset stored in self._arrow_dir
         """
-        return ds.dataset(self._output_dir)
+        return ds.dataset(self._arrow_dir)
 
     def pyarrow_table(self) -> pa.Table:
         """
-        :return: the table defined by the dataset stored in self._output_dir
+        :return: the table defined by the dataset stored in self._arrow_dir
         """
         return self.pyarrow_ds().to_table()
 
     def data_df(self) -> pd.DataFrame:
         """
-        :return: the pandas dataframe defined by the dataset stored in self._output_dir
+        :return: the pandas dataframe defined by the dataset stored in self._arrow_dir
         """
         return self.pyarrow_table().to_pandas()
 
@@ -311,10 +312,10 @@ class SensorDataPa:
         :param table: the table to write
         """
         # clear the output dir where the table will be written to
-        filelist = glob(os.path.join(self._output_dir, "*"))
+        filelist = glob(os.path.join(self._arrow_dir, "*"))
         for f in filelist:
             os.remove(f)
-        pq.write_table(table, os.path.join(self._output_dir, self._arrow_file))
+        pq.write_table(table, os.path.join(self._arrow_dir, self._arrow_file))
 
     def sort_by_data_timestamps(self, ptable: pa.Table, ascending: bool = True):
         """
@@ -503,6 +504,7 @@ class SensorDataPa:
         slope = dtu.seconds_to_microseconds(self.sample_interval_s) * (1 + offset_model.slope) \
             if use_model_function else dtu.seconds_to_microseconds(self.sample_interval_s)
         if self.type == SensorType.AUDIO:
+            tempme = self.pyarrow_table()
             # use the model to update the first timestamp or add the best offset (model's intercept value)
             timestamps = pa.array(
                 calc_evenly_sampled_timestamps(

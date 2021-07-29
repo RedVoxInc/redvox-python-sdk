@@ -9,7 +9,6 @@ import multiprocessing
 import multiprocessing.pool
 from itertools import repeat
 
-import numpy as np
 import pyarrow as pa
 
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
@@ -17,7 +16,7 @@ from redvox.common import offset_model
 from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
-from redvox.common.parallel_utils import maybe_parallel_map, maybe_parallel_smap
+from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.station_wpa import StationPa
 from redvox.common.errors import RedVoxExceptions
@@ -320,21 +319,28 @@ class ApiReader:
             return None
         return result
 
-    def _stations_wpa_by_index_fs(self, findex: io.Index, base_dir: str = "", save_files: bool = False) -> StationPa:
+    def _stations_wpa_by_index_fs(self, findex: io.Index, use_model_correction: bool = True,
+                                  base_dir: str = "", save_files: bool = False) -> StationPa:
         """
         :param findex: index with files to build a station with
+        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
+                                        best offset (intercept value) otherwise.  Default True
         :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
         :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
         :return: Station built from files in findex, without building the data from parquet
         """
-        stpa = StationPa.create_from_packets(self.read_files_in_index(findex), base_dir, save_files)
+        stpa = StationPa.create_from_packets(self.read_files_in_index(findex),
+                                             use_model_correction, base_dir, save_files)
         return stpa
 
     def get_stations_wpa_fs(self,
                             # pool: Optional[multiprocessing.pool.Pool] = None,
+                            use_model_correction: bool = True,
                             base_dir: str = "", save_files: bool = False) -> List[StationPa]:
         """
         # :param pool: optional multiprocessing pool
+        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
+                                        best offset (intercept value) otherwise.  Default True
         :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
         :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
         :return: List of all stations in the ApiReader, without building the data from parquet
@@ -345,7 +351,8 @@ class ApiReader:
         #                                 chunk_size=1
         #                                 )
         #             )
-        return list(map(self._stations_wpa_by_index_fs, self.files_index, repeat(base_dir), repeat(save_files)))
+        return list(map(self._stations_wpa_by_index_fs, self.files_index,
+                        repeat(use_model_correction), repeat(base_dir), repeat(save_files)))
 
     def _stations_wpa_by_index(self, findex: io.Index) -> StationPa:
         """
@@ -353,7 +360,6 @@ class ApiReader:
         :return: Station built from files in findex
         """
         stpa = StationPa.create_from_packets(self.read_files_in_index(findex))
-        stpa.load_data_from_parquet()
         return stpa
 
     def get_stations_wpa(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationPa]:

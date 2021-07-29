@@ -5,6 +5,7 @@ combines the base data files into a single composite object based on the user pa
 from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
+import tempfile
 
 import multiprocessing
 import multiprocessing.pool
@@ -74,6 +75,7 @@ class DataWindow:
         extensions: Optional[Set[str]] = None,
         api_versions: Optional[Set[io.ApiVersion]] = None,
         apply_correction: bool = True,
+        use_model_correction: bool = True,
         copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
         debug: bool = False,
         station_out_dir: str = "",
@@ -102,6 +104,8 @@ class DataWindow:
         :param api_versions: optional set of api versions to filter on.  If None, get as much data as it can in
                                 the input directory.  Default None
         :param apply_correction: if True, update the timestamps in the data based on best station offset.  Default True
+        :param use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
+                                offset.  Default True
         :param copy_edge_points: Determines how new points are created. Valid values are DataPointCreationMode.NAN,
                                     DataPointCreationMode.COPY, and DataPointCreationMode.INTERPOLATE.  Default COPY
         :param debug: if True, outputs additional information during initialization. Default False
@@ -126,11 +130,17 @@ class DataWindow:
         self.extensions: Optional[Set[str]] = extensions
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
+        self.use_model_correction = use_model_correction
         self.copy_edge_points = copy_edge_points
         self.sdk_version: str = redvox.VERSION
         self.debug: bool = debug
-        self.station_out_dir: str = station_out_dir
         self.save_station_files: bool = save_station_files
+        if self.save_station_files:
+            self.station_out_dir: str = station_out_dir
+            self._temp_dir = None
+        else:
+            self._temp_dir = tempfile.TemporaryDirectory()
+            self.station_out_dir = self._temp_dir.name
         self.stations: List[StationPa] = []
         if start_datetime and end_datetime and (end_datetime <= start_datetime):
             self.errors.append("DataWindow will not work when end datetime is before or equal to start datetime.\n"
@@ -139,6 +149,10 @@ class DataWindow:
             self.create_data_window()
         if debug:
             self.print_errors()
+
+    def __del__(self):
+        if self._temp_dir:
+            self._temp_dir.cleanup()
 
     @staticmethod
     def from_config_file(file: str) -> "DataWindow":
@@ -158,6 +172,7 @@ class DataWindow:
         :param config: DataWindow configuration object
         :return: a data window
         """
+        raise ValueError("NOT IMPLEMENTED YET")
         if config.start_year:
             start_time = dtu.datetime(
                 year=config.start_year,
@@ -206,8 +221,11 @@ class DataWindow:
             extensions,
             api_versions,
             config.apply_correction,
+            config.use_model_correction,
             gpu.DataPointCreationMode[config.edge_points_mode],
             config.debug,
+            config.station_out_dir,
+            config.save_station_files,
         )
 
     @staticmethod
@@ -401,10 +419,16 @@ class DataWindow:
 
         if self.apply_correction:
             for st in maybe_parallel_map(_pool, StationPa.update_timestamps,
-                                         iter(a_r.get_stations_wpa()), chunk_size=1):
+                                         iter(a_r.get_stations_wpa_fs(use_model_correction=self.use_model_correction,
+                                                                      base_dir=self.station_out_dir,
+                                                                      save_files=self.save_station_files)),
+                                         chunk_size=1):
                 self._add_sensor_to_window(st)
         else:
-            [self._add_sensor_to_window(s) for s in a_r.get_stations_wpa()]
+            [self._add_sensor_to_window(s) for s in
+             a_r.get_stations_wpa_fs(use_model_correction=self.use_model_correction,
+                                     base_dir=self.station_out_dir,
+                                     save_files=self.save_station_files)]
 
         # check for stations without data
         self._check_for_audio()

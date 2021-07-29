@@ -4,18 +4,13 @@ all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
 from typing import List, Optional, Tuple, Dict
-from itertools import repeat
-from types import FunctionType
 import tempfile
 import os
-from glob import glob
 
 import numpy as np
 import pyarrow.parquet as pq
-import pyarrow.dataset as ds
 
 from redvox.common import sensor_data_with_pyarrow as sd
-from redvox.common import sensor_reader_utils_wpa as sdru
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSyncAnalysis
 from redvox.common.errors import RedVoxExceptions
@@ -99,8 +94,9 @@ class StationPa:
         self.timesync_analysis = TimeSyncAnalysis()
         self.is_timestamps_updated = False
         self.save_output: bool = save_output
-        if self.save_output:
+        if self.save_output or base_out_dir:
             self.base_dir: str = base_out_dir
+            self._temp_dir = None
         else:
             self._temp_dir = tempfile.TemporaryDirectory()
             self.base_dir = self._temp_dir.name
@@ -110,7 +106,7 @@ class StationPa:
         self._gaps: List[Tuple[float, float]] = []
 
     def __del__(self):
-        if not self.save_output:
+        if self._temp_dir:
             self._temp_dir.cleanup()
 
     def data(self) -> List[sd.SensorDataPa]:
@@ -149,6 +145,7 @@ class StationPa:
         station = StationPa(use_model_correction=use_model_correction, base_out_dir=base_out_dir,
                             save_output=save_output)
         station.load_data_from_packets(packets)
+        station.load_data_from_parquet()
         return station
 
     @staticmethod
@@ -1109,13 +1106,14 @@ class StationPa:
                                                            sample_interval_s=1 / sample_rate,
                                                            sample_interval_std_s=0.,
                                                            is_sample_rate_fixed=True, save_data=self.save_output,
-                                                           output_dir=os.path.join(self.base_dir, s_type.name)))
+                                                           arrow_dir=os.path.join(self.base_dir, s_type.name)))
             else:
                 self._data.append(sd.SensorDataPa.from_dir(sensor_name=s_data[0],
                                                            data_path=os.path.join(self.base_dir, s_type.name),
                                                            sensor_type=s_type, is_sample_rate_fixed=False,
                                                            calculate_stats=True, save_data=self.save_output,
-                                                           output_dir=os.path.join(self.base_dir, s_type.name)))
+                                                           arrow_dir=os.path.join(self.base_dir, s_type.name)))
+        del self._sensors
 
     def _set_pyarrow_sensors(self, packets: List[api_m.RedvoxPacketM]):
         """
@@ -1157,7 +1155,7 @@ class StationPa:
                                           sensor_type=sd.SensorType.AUDIO, sample_rate_hz=self._audio_rate,
                                           sample_interval_s=1/self._audio_rate, sample_interval_std_s=0.,
                                           is_sample_rate_fixed=True, save_data=self.save_output,
-                                          output_dir=sensor_dir))
+                                          arrow_dir=sensor_dir))
 
     def update_timestamps(self) -> "StationPa":
         """
