@@ -70,6 +70,17 @@ class CloudClient:
     The RedVox Cloud API client.
     """
 
+    @staticmethod
+    def from_auth_token(auth_token: str,
+                        refresh_token_interval: float = 600.0,
+                        timeout: Optional[float] = 10.0,
+                        protocol: str = "https",
+                        host: str = "redvox.io",
+                        port: int = 8080,
+                        secret_token: Optional[str] = None) -> "CloudClient":
+        config: RedVoxConfig = RedVoxConfig("auth_token", auth_token, protocol, host, port, secret_token)
+        return CloudClient(config, refresh_token_interval, timeout)
+
     def __init__(
             self,
             redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
