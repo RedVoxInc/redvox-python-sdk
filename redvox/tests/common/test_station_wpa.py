@@ -3,7 +3,6 @@ tests for station
 """
 import unittest
 import contextlib
-import os
 
 import numpy as np
 
@@ -144,54 +143,54 @@ class StationTest(unittest.TestCase):
                                 updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
 
 
-class StationSaveTest(unittest.TestCase):
-    def setUp(self):
-        reader = api_reader.ApiReader(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={".rdvxm"}, station_ids={"0000000001"}),
-        )
-        self.apim_station = \
-            StationPa.create_from_packets(reader.read_files_by_id("0000000001"),
-                                          base_out_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                                                    "pa_test"),
-                                          save_output=True)
-        self.apim_station2 = StationPa.create_from_packets(reader.read_files_by_id("0000000001"), save_output=True)
-
-    def test_me_bro(self):
-        self.apim_station.load_data_from_parquet()
-        self.assertEqual(len(self.apim_station._data), 3)
-        self.assertEqual(self.apim_station.timesync_analysis.get_best_latency(), 1296.0)
-        audio_sensor = self.apim_station.audio_sensor()
-        self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 720000)
-        self.assertEqual(audio_sensor.sample_rate_hz, 48000.0)
-        self.assertTrue(audio_sensor.is_sample_rate_fixed)
-        loc_sensor = self.apim_station.location_sensor()
-        self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.data_df().shape, (3, 13))
-        self.assertFalse(loc_sensor.is_sample_rate_fixed)
-        self.assertAlmostEqual(loc_sensor.get_data_channel("latitude")[0], 21.309, 3)
-        accel_sensor = self.apim_station.accelerometer_sensor()
-        self.assertIsNone(accel_sensor)
-        health_sensor = self.apim_station.health_sensor()
-        self.assertIsNone(health_sensor)
-
-    def test_me2_bro(self):
-        self.apim_station2.load_data_from_parquet()
-        self.assertEqual(len(self.apim_station2._data), 3)
-        self.assertEqual(self.apim_station2.timesync_analysis.get_best_latency(), 1296.0)
-        audio_sensor = self.apim_station2.audio_sensor()
-        self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 720000)
-        self.assertEqual(audio_sensor.sample_rate_hz, 48000.0)
-        self.assertTrue(audio_sensor.is_sample_rate_fixed)
-        loc_sensor = self.apim_station2.location_sensor()
-        self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.data_df().shape, (3, 13))
-        self.assertFalse(loc_sensor.is_sample_rate_fixed)
-        self.assertAlmostEqual(loc_sensor.get_data_channel("latitude")[0], 21.309, 3)
-        accel_sensor = self.apim_station2.accelerometer_sensor()
-        self.assertIsNone(accel_sensor)
-        health_sensor = self.apim_station2.health_sensor()
-        self.assertIsNone(health_sensor)
+# class StationSaveTest(unittest.TestCase):
+#     def setUp(self):
+#         reader = api_reader.ApiReader(
+#             tests.TEST_DATA_DIR,
+#             False,
+#             ReadFilter(extensions={".rdvxm"}, station_ids={"0000000001"}),
+#         )
+#         self.apim_station = \
+#             StationPa.create_from_packets(reader.read_files_by_id("0000000001"),
+#                                           base_out_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)),
+#                                                                     "pa_test"),
+#                                           save_output=True)
+#         self.apim_station2 = StationPa.create_from_packets(reader.read_files_by_id("0000000001"), save_output=True)
+#
+#     def test_me_bro(self):
+#         self.apim_station.load_data_from_parquet()
+#         self.assertEqual(len(self.apim_station._data), 3)
+#         self.assertEqual(self.apim_station.timesync_analysis.get_best_latency(), 1296.0)
+#         audio_sensor = self.apim_station.audio_sensor()
+#         self.assertIsNotNone(audio_sensor)
+#         self.assertEqual(audio_sensor.num_samples(), 720000)
+#         self.assertEqual(audio_sensor.sample_rate_hz, 48000.0)
+#         self.assertTrue(audio_sensor.is_sample_rate_fixed)
+#         loc_sensor = self.apim_station.location_sensor()
+#         self.assertIsNotNone(loc_sensor)
+#         self.assertEqual(loc_sensor.data_df().shape, (3, 13))
+#         self.assertFalse(loc_sensor.is_sample_rate_fixed)
+#         self.assertAlmostEqual(loc_sensor.get_data_channel("latitude")[0], 21.309, 3)
+#         accel_sensor = self.apim_station.accelerometer_sensor()
+#         self.assertIsNone(accel_sensor)
+#         health_sensor = self.apim_station.health_sensor()
+#         self.assertIsNone(health_sensor)
+#
+#     def test_me2_bro(self):
+#         self.apim_station2.load_data_from_parquet()
+#         self.assertEqual(len(self.apim_station2._data), 3)
+#         self.assertEqual(self.apim_station2.timesync_analysis.get_best_latency(), 1296.0)
+#         audio_sensor = self.apim_station2.audio_sensor()
+#         self.assertIsNotNone(audio_sensor)
+#         self.assertEqual(audio_sensor.num_samples(), 720000)
+#         self.assertEqual(audio_sensor.sample_rate_hz, 48000.0)
+#         self.assertTrue(audio_sensor.is_sample_rate_fixed)
+#         loc_sensor = self.apim_station2.location_sensor()
+#         self.assertIsNotNone(loc_sensor)
+#         self.assertEqual(loc_sensor.data_df().shape, (3, 13))
+#         self.assertFalse(loc_sensor.is_sample_rate_fixed)
+#         self.assertAlmostEqual(loc_sensor.get_data_channel("latitude")[0], 21.309, 3)
+#         accel_sensor = self.apim_station2.accelerometer_sensor()
+#         self.assertIsNone(accel_sensor)
+#         health_sensor = self.apim_station2.health_sensor()
+#         self.assertIsNone(health_sensor)
