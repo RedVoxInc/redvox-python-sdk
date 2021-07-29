@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.7 (2021-7-29)
+
+* Update dependencies
+* Tweak cloud client for cloud cloud environment.
+
 ### 3.0.6 (2021-7-28)
 
 * Add methods for querying status of optional dependencies
