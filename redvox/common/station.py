@@ -50,6 +50,8 @@ class Station:
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
 
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
+        use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
+        correction is done by adding the OffsetModel's best offset (intercept value).  default True
 
         use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
         correction is done by adding the OffsetModel's best offset (intercept value).  default True
@@ -1108,7 +1110,4 @@ class Station:
                 self.last_data_timestamp, self.use_model_correction
             )
             self.is_timestamps_updated = True
-        return self
-
-    def temp_me(self) -> "Station":
         return self

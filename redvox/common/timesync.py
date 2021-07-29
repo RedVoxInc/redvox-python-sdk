@@ -327,13 +327,13 @@ class TimeSyncAnalysis:
                     self.timesync_data[index].mean_latency,
                     self.timesync_data[index].latency_std,
                     self.timesync_data[index].num_tri_messages() * 2,
-                )
+                    )
                 # add the stats of the offset
                 self.offset_stats.add(
                     self.timesync_data[index].mean_offset,
                     self.timesync_data[index].offset_std,
                     self.timesync_data[index].num_tri_messages() * 2,
-                )
+                    )
             self.latency_stats.best_value = self.get_best_latency()
             self.offset_stats.best_value = self.get_best_offset()
 
@@ -711,7 +711,7 @@ def update_evenly_sampled_time_array(
             time_start_array_s = np.append(
                 time_start_array_s,
                 tsd.packet_start_timestamp / dt.MICROSECONDS_IN_SECOND,
-            )
+                )
     num_files = len(ts_analysis.timesync_data)
     # the TimeSyncData must have the same number of packets as the number of elements in time_start_array
     if num_files != len(time_start_array_s):

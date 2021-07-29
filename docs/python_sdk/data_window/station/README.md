@@ -62,9 +62,9 @@ These are the properties of the Station class and their default values:
 12. `timesync_analysis`: TimeSyncAnalysis object; contains information about the station's timing values.  Refer to 
     the [Timesync Documentation](#timesync-and-offset-model) for more information
 13. `use_model_correction`: boolean, if True, time correction is done using OffsetModel functions, otherwise
-    correction is done by adding the best offset from the OffsetModel (also known as the model's intercept value or 
+    correction is done by adding the best offset from the OffsetModel (also known as the model's intercept value or
     the best offset from TimeSyncAnalysis).  default True
-14. `errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the station.  This is set by the SDK.    
+14. `errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the station.  This is set by the SDK.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -226,10 +226,10 @@ The TimeSyncAnalysis class has a few properties and functions that summarize the
 5. get_offsets(): Returns a numpy.array of all the offsets of the station
 6. offset_stats: StatsContainer; the statistics of the offsets
 7. sample_rate_hz: float; the audio sample rate in hz of the station, default np.nan
-8. timesync_data: list of TimeSyncData; the TimeSyncData being analyzed, default empty list 
+8. timesync_data: list of TimeSyncData; the TimeSyncData being analyzed, default empty list
 9. station_start_timestamp: float; the timestamp of when the station became active, default np.nan
 10. offset_model: OffsetModel; model used to calculate offset of the station at a given point in time, default empty model
-   See below for more information about OffsetModel
+    See below for more information about OffsetModel
 
 OffsetModel is the primary source for information used to correct the Station's timestamps.
 
@@ -300,7 +300,7 @@ _[Table of Contents](#table-of-contents)_
 These are the functions of the SensorData class:
 
 1. `data_channels()`: Returns a list of the valid channel names (columns of the dataframe)
-2. `get_data_channel(channel_name)`: Returns a numpy.array or a list of strings of the dataframe column with the 
+2. `get_data_channel(channel_name)`: Returns a numpy.array or a list of strings of the dataframe column with the
    channel_name, or an error and a list of valid channel names if channel_name does not exist.
 3. `num_samples()`: Returns the number of data points (rows in the dataframe) in the sensor
 4. `data_timestamps()`: Returns a numpy.array of the timestamps in the dataframe

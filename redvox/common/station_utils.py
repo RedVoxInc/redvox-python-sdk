@@ -16,12 +16,11 @@ import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
 
 def validate_station_key_list(
-    data_packets: List[api_m.RedvoxPacketM], debug: bool = False
+        data_packets: List[api_m.RedvoxPacketM], debug: bool = False
 ) -> bool:
     """
     Checks for consistency in the data packets.  Returns False if discrepancies are found.
     If debug is True, will output the discrepancies.
-
     :param data_packets: list of WrappedRedvoxPacketM to look at
     :param debug: bool, if True, output any discrepancies found, default False
     :return: True if no discrepancies found.  False otherwise
@@ -43,7 +42,7 @@ def validate_station_key_list(
                 t.station_information.app_version,
                 t.station_information.is_private,
                 len(t.sensors.audio.samples.values) / t.sensors.audio.sample_rate,
-            ]
+                ]
             for t in data_packets
         ]
     )
@@ -106,7 +105,6 @@ class StationKey:
         check if the key has the values specified.  If the parameter is None, any value will match.
         Note that NAN is a valid value for start_timestamps, but any station with start_timestamp = NAN
         will not match any value, including another NAN.
-
         :param station_id: station id, default None
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
@@ -128,7 +126,6 @@ class StationKey:
     def compare_key(self, other_key: "StationKey") -> bool:
         """
         compare key to another station's key
-
         :param other_key: another station's key
         :return: True if the keys match
         """
@@ -157,7 +154,6 @@ class StationMetadata:
     def __init__(self, app: str, packet: Optional[api_m.RedvoxPacketM] = None):
         """
         initialize the metadata
-
         :param app: app name
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
@@ -173,8 +169,8 @@ class StationMetadata:
             self.app_version = packet.station_information.app_version
             self.is_private = packet.station_information.is_private
             self.packet_duration_s = (
-                len(packet.sensors.audio.samples.values)
-                / packet.sensors.audio.sample_rate
+                    len(packet.sensors.audio.samples.values)
+                    / packet.sensors.audio.sample_rate
             )
             self.station_description = packet.station_information.description
         else:
@@ -195,17 +191,17 @@ class StationMetadata:
         :return: True if other_metadata is equal to the calling metadata
         """
         return (
-            self.app == other_metadata.app
-            and self.api == other_metadata.api
-            and self.sub_api == other_metadata.sub_api
-            and self.make == other_metadata.make
-            and self.model == other_metadata.model
-            and self.os == other_metadata.os
-            and self.os_version == other_metadata.os_version
-            and self.app_version == other_metadata.app_version
-            and self.is_private == other_metadata.is_private
-            and self.packet_duration_s == other_metadata.packet_duration_s
-            and self.station_description == other_metadata.station_description
+                self.app == other_metadata.app
+                and self.api == other_metadata.api
+                and self.sub_api == other_metadata.sub_api
+                and self.make == other_metadata.make
+                and self.model == other_metadata.model
+                and self.os == other_metadata.os
+                and self.os_version == other_metadata.os_version
+                and self.app_version == other_metadata.app_version
+                and self.is_private == other_metadata.is_private
+                and self.packet_duration_s == other_metadata.packet_duration_s
+                and self.station_description == other_metadata.station_description
         )
 
 
@@ -230,7 +226,6 @@ class StationMetadataWrapped:
     def __init__(self, app: str, packet: Optional[WrappedRedvoxPacketM] = None):
         """
         initialize the metadata
-
         :param app: app name
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
@@ -267,17 +262,17 @@ class StationMetadataWrapped:
         :return: True if other_metadata is equal to the calling metadata
         """
         return (
-            self.app == other_metadata.app
-            and self.api == other_metadata.api
-            and self.sub_api == other_metadata.sub_api
-            and self.make == other_metadata.make
-            and self.model == other_metadata.model
-            and self.os == other_metadata.os
-            and self.os_version == other_metadata.os_version
-            and self.app_version == other_metadata.app_version
-            and self.is_private == other_metadata.is_private
-            and self.packet_duration_s == other_metadata.packet_duration_s
-            and self.station_description == other_metadata.station_description
+                self.app == other_metadata.app
+                and self.api == other_metadata.api
+                and self.sub_api == other_metadata.sub_api
+                and self.make == other_metadata.make
+                and self.model == other_metadata.model
+                and self.os == other_metadata.os
+                and self.os_version == other_metadata.os_version
+                and self.app_version == other_metadata.app_version
+                and self.is_private == other_metadata.is_private
+                and self.packet_duration_s == other_metadata.packet_duration_s
+                and self.station_description == other_metadata.station_description
         )
 
 
@@ -296,7 +291,6 @@ class StationPacketMetadata:
     def __init__(self, packet: Optional[api_m.RedvoxPacketM] = None):
         """
         initialize the metadata
-
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
         self.other_metadata = {}
@@ -324,7 +318,6 @@ class StationPacketMetadata:
     def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """
         updates the timestamps in the metadata using the offset model
-
         :param om: OffsetModel to apply to data
         :param use_model_function: if True, use the offset model's correction function to correct time,
                                     otherwise use best offset (model's intercept value).  default True
@@ -350,7 +343,6 @@ class StationPacketMetadataWrapped:
     def __init__(self, packet: Optional[WrappedRedvoxPacketM] = None):
         """
         initialize the metadata
-
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
         self.other_metadata = {}
@@ -378,7 +370,6 @@ class StationPacketMetadataWrapped:
     def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """
         updates the timestamps in the metadata using the offset model
-
         :param om: OffsetModel to apply to data
         :param use_model_function: if True, use the offset model's correction function to correct time,
                                     otherwise use best offset (model's intercept value).  default True

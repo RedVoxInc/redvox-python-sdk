@@ -63,21 +63,21 @@ class DataWindow:
         sdk_version: str, the version of the Redvox SDK used to create the data window
     """
     def __init__(
-        self,
-        input_dir: str,
-        structured_layout: bool = True,
-        start_datetime: Optional[dtu.datetime] = None,
-        end_datetime: Optional[dtu.datetime] = None,
-        start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
-        end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-        drop_time_s: float = DATA_DROP_DURATION_S,
-        station_ids: Optional[Iterable[str]] = None,
-        extensions: Optional[Set[str]] = None,
-        api_versions: Optional[Set[io.ApiVersion]] = None,
-        apply_correction: bool = True,
-        copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
-        debug: bool = False,
-        use_model_correction: bool = True,
+            self,
+            input_dir: str,
+            structured_layout: bool = True,
+            start_datetime: Optional[dtu.datetime] = None,
+            end_datetime: Optional[dtu.datetime] = None,
+            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
+            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+            drop_time_s: float = DATA_DROP_DURATION_S,
+            station_ids: Optional[Iterable[str]] = None,
+            extensions: Optional[Set[str]] = None,
+            api_versions: Optional[Set[io.ApiVersion]] = None,
+            apply_correction: bool = True,
+            copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
+            debug: bool = False,
+            use_model_correction: bool = True,
     ):
         """
         Initialize the DataWindow
@@ -498,8 +498,8 @@ class DataWindow:
 
         :param sensor: sensor to process
         :param station_id: station id
-        :param start_date_timestamp: start of data window
-        :param end_date_timestamp: end of data window
+        :param start_date_timestamp: start of data window according to data
+        :param end_date_timestamp: end of data window according to data
         """
         if sensor.num_samples() > 0:
             # get only the timestamps between the start and end timestamps
@@ -545,35 +545,41 @@ class DataWindow:
                     drop=True
                 )
                 # if sensor is audio or location, we want nan'd edge points
-                if sensor.type == SensorType.LOCATION:
+                if sensor.type in [SensorType.LOCATION, SensorType.AUDIO]:
                     new_point_mode = gpu.DataPointCreationMode["NAN"]
                 else:
                     new_point_mode = self.copy_edge_points
                 # add in the data points at the edges of the window if there are defined start and/or end times
-                # or the sensor is not audio
                 if not is_audio:
-                    # add to end
-                    sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, sensor.num_samples() - 1,
-                                                               end_date_timestamp - sensor.last_data_timestamp(),
-                                                               point_creation_mode=new_point_mode)
-                    # add to begin
-                    sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, 0,
-                                                               start_date_timestamp - sensor.first_data_timestamp(),
-                                                               point_creation_mode=new_point_mode)
+                    end_sample_interval = end_date_timestamp - sensor.last_data_timestamp()
+                    end_samples_to_add = 1
+                    start_sample_interval = start_date_timestamp - sensor.first_data_timestamp()
+                    start_samples_to_add = 1
                 else:
-                    # add to end
-                    interval = dtu.seconds_to_microseconds(sensor.sample_interval_s)
-                    sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, sensor.num_samples() - 1, interval,
-                                                               int((dtu.datetime_to_epoch_microseconds_utc(
-                                                                   self.end_datetime)
-                                                                    - sensor.last_data_timestamp()) / interval),
-                                                               point_creation_mode=gpu.DataPointCreationMode["NAN"])
-                    # add to begin
-                    sensor.data_df = gpu.add_data_points_to_df(sensor.data_df, 0, -interval,
-                                                               int((sensor.first_data_timestamp()
-                                                                   - dtu.datetime_to_epoch_microseconds_utc(
-                                                                   self.start_datetime)) / interval),
-                                                               point_creation_mode=gpu.DataPointCreationMode["NAN"])
+                    end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    start_sample_interval = -end_sample_interval
+                    if self.end_datetime:
+                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+                                                  - sensor.last_data_timestamp()) / end_sample_interval)
+                    else:
+                        end_samples_to_add = 0
+                    if self.start_datetime:
+                        start_samples_to_add = int((sensor.first_data_timestamp() -
+                                                    dtu.datetime_to_epoch_microseconds_utc(self.start_datetime))
+                                                   / end_sample_interval)
+                    else:
+                        start_samples_to_add = 0
+                # add to end
+                sensor.data_df = gpu.add_data_points_to_df(dataframe=sensor.data_df,
+                                                           start_index=sensor.num_samples() - 1,
+                                                           sample_interval_micros=end_sample_interval,
+                                                           num_samples_to_add=end_samples_to_add,
+                                                           point_creation_mode=new_point_mode)
+                # add to begin
+                sensor.data_df = gpu.add_data_points_to_df(dataframe=sensor.data_df, start_index=0,
+                                                           sample_interval_micros=start_sample_interval,
+                                                           num_samples_to_add=start_samples_to_add,
+                                                           point_creation_mode=new_point_mode)
                 sensor.data_df.sort_values("timestamps", inplace=True, ignore_index=True)
         else:
             self.errors.append(f"Data window for {station_id} {sensor.type.name} "

@@ -363,7 +363,7 @@ _It is not recommended to set or change the properties of DataWindow after the D
 * `copy_edge_points`: enumeration of DataPointCreationMode, determines how new values are created in the station data.
   Valid values are NAN, COPY, and INTERPOLATE.  Default COPY
 * `debug`: bool, if True, outputs additional information during initialization. Default False
-* `errors`: RedVoxExceptions, class containing a list of all errors encountered by the data window.  This is set by the SDK.
+* `errors`: RedvoxExceptions, class containing a list of all errors encountered by the data window.  This is set by the SDK.
 * `stations`: list of Stations, the results of reading the data from input_directory.  This is set by the SDK.
 * `sdk_version`: str, the version of the Redvox SDK used to create the data window.  This is set by the SDK.
 
@@ -635,14 +635,17 @@ The data is now organized by Station.  This process will be performed on all Sta
 
 2. Remove any Audio data points outside the request window.
 
-3. Remove data points from each non-audio sensor that are outside the request window.
+3. Create Audio data points with NaN data values and timestamps based on the Audio sample rate such that the entire Audio record fills 
+   the request window and there are no points greater than 2 sample intervals apart or data points outside the window.
 
-4. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
+4. Remove data points from each non-audio sensor that are outside the request window.
+
+5. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
    * The copy_edge_points parameter determines which data values of these fabricated points will contain.
     
-5. Update the Station metadata.
+6. Update the Station metadata.
    
-6. Update the Data Window metadata to match the data.
+7. Update the Data Window metadata to match the data.
 
 ### Data Window Complete
 
