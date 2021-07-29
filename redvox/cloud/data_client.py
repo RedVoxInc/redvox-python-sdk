@@ -21,6 +21,7 @@ class DownloadResult:
 
     data_key: str
     resp_len: int
+    skipped: bool = False
 
 
 def download_process(
@@ -45,6 +46,7 @@ def download_process(
                 result_queue.put(DownloadResult(data_key, resp_len), True, None)
             except FileExistsError:
                 print(f"File already exists, skipping...")
+                result_queue.put(DownloadResult("", 0, skipped=True), True, None)
                 continue
     # Thrown when the queue is empty
     except queue.Empty:
@@ -89,6 +91,11 @@ def download_files(
     start_time = time.monotonic_ns()
     while i < len(urls):
         res: DownloadResult = result_queue.get(True, None)
+
+        if res.skipped:
+            i += 1
+            continue
+
         timestamp = time.monotonic_ns()
         time_range = (timestamp - start_time) / 1_000_000_000.0
         percentage: float = (float(i + 1) / float(len(urls))) * 100.0
