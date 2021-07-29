@@ -44,6 +44,7 @@ def xcorr_all(
 ) -&gt; Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     &#34;&#34;&#34;
     Generalized two-sensor cross correlation, including unequal lengths.
+
     :param sig: The original signal with the same sample rate in Hz as sig_ref.
     :param sig_ref: The reference signal with the same sample rate in Hz as sig..
     :return: A 4-tuple containing xcorr_indexes, xcorr, xcorr_offset_index, and xcorr_offset_samples. xcorr_indexes
@@ -98,6 +99,7 @@ def xcorr_main(
 ) -&gt; Tuple[np.ndarray, np.ndarray, np.ndarray]:
     &#34;&#34;&#34;
     Generalized two-sensor cross correlation, including unequal lengths. Provides summarized results.
+
     :param sig: The original signal with the same sample rate in Hz as sig_ref.
     :param sig_ref: The reference signal with the same sample rate in Hz as sig.
     :param sample_rate_hz: The sample rate in Hz.
@@ -131,8 +133,8 @@ def xcorr_main(
 <span>def <span class="ident">xcorr_all</span></span>(<span>sig: numpy.ndarray, sig_ref: numpy.ndarray) ‑> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Generalized two-sensor cross correlation, including unequal lengths.
-:param sig: The original signal with the same sample rate in Hz as sig_ref.
+<div class="desc"><p>Generalized two-sensor cross correlation, including unequal lengths.</p>
+<p>:param sig: The original signal with the same sample rate in Hz as sig_ref.
 :param sig_ref: The reference signal with the same sample rate in Hz as sig..
 :return: A 4-tuple containing xcorr_indexes, xcorr, xcorr_offset_index, and xcorr_offset_samples. xcorr_indexes
 are relative to sig_ref. xcorr is the normalized cross-correlation. xcorr_offset_index contains the index
@@ -146,6 +148,7 @@ of max xcorr. xcorr_offset_samples is the number of offset samples for xcorr.</p
 ) -&gt; Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     &#34;&#34;&#34;
     Generalized two-sensor cross correlation, including unequal lengths.
+
     :param sig: The original signal with the same sample rate in Hz as sig_ref.
     :param sig_ref: The reference signal with the same sample rate in Hz as sig..
     :return: A 4-tuple containing xcorr_indexes, xcorr, xcorr_offset_index, and xcorr_offset_samples. xcorr_indexes
@@ -199,8 +202,8 @@ of max xcorr. xcorr_offset_samples is the number of offset samples for xcorr.</p
 <span>def <span class="ident">xcorr_main</span></span>(<span>sig: numpy.ndarray, sig_ref: numpy.ndarray, sample_rate_hz: float) ‑> Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Generalized two-sensor cross correlation, including unequal lengths. Provides summarized results.
-:param sig: The original signal with the same sample rate in Hz as sig_ref.
+<div class="desc"><p>Generalized two-sensor cross correlation, including unequal lengths. Provides summarized results.</p>
+<p>:param sig: The original signal with the same sample rate in Hz as sig_ref.
 :param sig_ref: The reference signal with the same sample rate in Hz as sig.
 :param sample_rate_hz: The sample rate in Hz.
 :return: A 3-tuple containing xcorr_normalized_max, xcorr_offset_samples, and xcorr_offset_seconds.
@@ -216,6 +219,7 @@ requires sample rate in Hz.</p></div>
 ) -&gt; Tuple[np.ndarray, np.ndarray, np.ndarray]:
     &#34;&#34;&#34;
     Generalized two-sensor cross correlation, including unequal lengths. Provides summarized results.
+
     :param sig: The original signal with the same sample rate in Hz as sig_ref.
     :param sig_ref: The reference signal with the same sample rate in Hz as sig.
     :param sample_rate_hz: The sample rate in Hz.

@@ -52,7 +52,7 @@ class ApiReaderTest(unittest.TestCase):
             self.input_dir,
             True,
             ReadFilter(start_dt_buf=timedelta(seconds=30),
-                       start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
+                       start_dt=dtu.datetime_from_epoch_seconds_utc(1611696200)),
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -256,7 +256,7 @@ not have a method with the specified name.</p></div>
             self.input_dir,
             True,
             ReadFilter(start_dt_buf=timedelta(seconds=30),
-                       start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
+                       start_dt=dtu.datetime_from_epoch_seconds_utc(1611696200)),
         )
         result = reader.index_summary.total_packets()
         self.assertEqual(result, 2)
@@ -626,7 +626,7 @@ def setUpClass(cls) -&gt; None:
         self.input_dir,
         True,
         ReadFilter(start_dt_buf=timedelta(seconds=30),
-                   start_dt=dtu.datetime_from_epoch_microseconds_utc(1611696200000000)),
+                   start_dt=dtu.datetime_from_epoch_seconds_utc(1611696200)),
     )
     result = reader.index_summary.total_packets()
     self.assertEqual(result, 2)

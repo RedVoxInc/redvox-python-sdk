@@ -34,6 +34,8 @@ import unittest
 import contextlib
 import tempfile
 
+import numpy as np
+
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt
 from redvox.common import data_window as dw
@@ -91,7 +93,7 @@ class DataWindowTest(unittest.TestCase):
             self.assertEqual(len(dw_with_start_end.stations), 1)
             audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].audio_sensor()
             self.assertIsNotNone(audio_sensor)
-            self.assertEqual(audio_sensor.num_samples(), 480002)
+            self.assertEqual(audio_sensor.num_samples(), 480000)
             loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
             self.assertIsNotNone(loc_sensor)
             self.assertEqual(loc_sensor.num_samples(), 4)
@@ -103,6 +105,30 @@ class DataWindowTest(unittest.TestCase):
             structured_layout=False,
         )
         self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))
+
+    def test_dw_insert_audio_before_data(self):
+        dw_audio = dw.DataWindow(
+            input_dir=self.input_dir,
+            station_ids=[&#34;0000000001&#34;],
+            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189452),
+            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189453),
+            structured_layout=False,
+        )
+        x = dw_audio.stations[0]
+        self.assertEqual(x.audio_sensor().num_samples(), 48000)
+        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 45572)
+
+    def test_dw_insert_audio_after_data(self):
+        dw_audio = dw.DataWindow(
+            input_dir=self.input_dir,
+            station_ids=[&#34;0000000001&#34;],
+            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189467),
+            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189468),
+            structured_layout=False,
+        )
+        x = dw_audio.stations[0]
+        self.assertEqual(x.audio_sensor().num_samples(), 48000)
+        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 2428)
 
 
 class DataWindowJsonTest(unittest.TestCase):
@@ -549,7 +575,7 @@ not have a method with the specified name.</p></div>
             self.assertEqual(len(dw_with_start_end.stations), 1)
             audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].audio_sensor()
             self.assertIsNotNone(audio_sensor)
-            self.assertEqual(audio_sensor.num_samples(), 480002)
+            self.assertEqual(audio_sensor.num_samples(), 480000)
             loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
             self.assertIsNotNone(loc_sensor)
             self.assertEqual(loc_sensor.num_samples(), 4)
@@ -560,7 +586,31 @@ not have a method with the specified name.</p></div>
             station_ids=[&#34;does_not_exist&#34;],
             structured_layout=False,
         )
-        self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))</code></pre>
+        self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))
+
+    def test_dw_insert_audio_before_data(self):
+        dw_audio = dw.DataWindow(
+            input_dir=self.input_dir,
+            station_ids=[&#34;0000000001&#34;],
+            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189452),
+            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189453),
+            structured_layout=False,
+        )
+        x = dw_audio.stations[0]
+        self.assertEqual(x.audio_sensor().num_samples(), 48000)
+        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 45572)
+
+    def test_dw_insert_audio_after_data(self):
+        dw_audio = dw.DataWindow(
+            input_dir=self.input_dir,
+            station_ids=[&#34;0000000001&#34;],
+            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189467),
+            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189468),
+            structured_layout=False,
+        )
+        x = dw_audio.stations[0]
+        self.assertEqual(x.audio_sensor().num_samples(), 48000)
+        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 2428)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -640,6 +690,50 @@ def setUpClass(cls) -&gt; None:
         self.assertEqual(len(datawindow.api_versions), 2)</code></pre>
 </details>
 </dd>
+<dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_after_data"><code class="name flex">
+<span>def <span class="ident">test_dw_insert_audio_after_data</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_dw_insert_audio_after_data(self):
+    dw_audio = dw.DataWindow(
+        input_dir=self.input_dir,
+        station_ids=[&#34;0000000001&#34;],
+        start_datetime=dt.datetime_from_epoch_seconds_utc(1597189467),
+        end_datetime=dt.datetime_from_epoch_seconds_utc(1597189468),
+        structured_layout=False,
+    )
+    x = dw_audio.stations[0]
+    self.assertEqual(x.audio_sensor().num_samples(), 48000)
+    self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 2428)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_before_data"><code class="name flex">
+<span>def <span class="ident">test_dw_insert_audio_before_data</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_dw_insert_audio_before_data(self):
+    dw_audio = dw.DataWindow(
+        input_dir=self.input_dir,
+        station_ids=[&#34;0000000001&#34;],
+        start_datetime=dt.datetime_from_epoch_seconds_utc(1597189452),
+        end_datetime=dt.datetime_from_epoch_seconds_utc(1597189453),
+        structured_layout=False,
+    )
+    x = dw_audio.stations[0]
+    self.assertEqual(x.audio_sensor().num_samples(), 48000)
+    self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 45572)</code></pre>
+</details>
+</dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid"><code class="name flex">
 <span>def <span class="ident">test_dw_invalid</span></span>(<span>self)</span>
 </code></dt>
@@ -679,7 +773,7 @@ def setUpClass(cls) -&gt; None:
         self.assertEqual(len(dw_with_start_end.stations), 1)
         audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].audio_sensor()
         self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 480002)
+        self.assertEqual(audio_sensor.num_samples(), 480000)
         loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
         self.assertIsNotNone(loc_sensor)
         self.assertEqual(loc_sensor.num_samples(), 4)</code></pre>
@@ -722,6 +816,8 @@ def setUpClass(cls) -&gt; None:
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.setUpClass" href="#redvox.tests.common.test_data_window.DataWindowTest.setUpClass">setUpClass</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_data_window" href="#redvox.tests.common.test_data_window.DataWindowTest.test_data_window">test_data_window</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple" href="#redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple">test_data_window_simple</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_after_data" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_after_data">test_dw_insert_audio_after_data</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_before_data" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_before_data">test_dw_insert_audio_before_data</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid">test_dw_invalid</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end">test_dw_with_start_end</a></code></li>
 </ul>

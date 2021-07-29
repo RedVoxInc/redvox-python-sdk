@@ -86,6 +86,7 @@ DURATION_SECONDS: np.ndarray = np.divide(DURATION_TOTAL_POINTS, SAMPLE_RATE_HZ)
 def get_file_stats(sample_rate: Union[float, int]) -&gt; Tuple[int, float]:
     &#34;&#34;&#34;
     Get the number of samples in a decoder file and its duration in seconds.
+
     :param sample_rate: int or float, sample rate
     :returns: number of samples in file as int and file time duration in seconds as float
     &#34;&#34;&#34;
@@ -102,6 +103,7 @@ def get_file_stats(sample_rate: Union[float, int]) -&gt; Tuple[int, float]:
 def get_num_points_from_sample_rate(sample_rate: Union[float, int]) -&gt; int:
     &#34;&#34;&#34;
     Returns the number of data points in a packet given a sample rate
+
     :param sample_rate: A valid sample rate from the constants above
     :return: the number of data points in the packet in seconds
     &#34;&#34;&#34;
@@ -117,6 +119,7 @@ def get_num_points_from_sample_rate(sample_rate: Union[float, int]) -&gt; int:
 def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -&gt; float:
     &#34;&#34;&#34;
     Returns the duration of a packet in seconds given a sample rate
+
     :param sample_rate: A valid sample rate from the constants above
     :return: the duration of the packet in seconds
     &#34;&#34;&#34;
@@ -134,6 +137,7 @@ def _map_opt(
 ) -&gt; Optional[Any]:
     &#34;&#34;&#34;
     Maps an optional with the given function. If the optional is None, None is returned.
+
     :param opt: The optional to map.
     :param apply: The function to apply to the optional if a value is present.
     :return: The mapped value.
@@ -150,8 +154,9 @@ def _map_opt_numeric(
 ) -&gt; Optional[Any]:
     &#34;&#34;&#34;
     Maps an optional with the given function. If the optional is None, None is returned.
+
+    :param fn: The function to apply to the optional if a value is present.
     :param opt: The optional to map.
-    :param apply: The function to apply to the optional if a value is present.
     :return: The mapped value.
     &#34;&#34;&#34;
     if opt is None or math.isnan(opt):
@@ -164,6 +169,7 @@ def _partition_list(lst: List[Any], chunks: int) -&gt; List[Any]:
     &#34;&#34;&#34;
     Partitions a list into k &#34;chunks&#34; of approximately equal length.
     Adapted from: Adopted from: https://stackoverflow.com/questions/2130016/splitting-a-list-into-n-parts-of-approximately-equal-length/37414115#37414115
+
     :param lst:
     :param chunks:
     :return:
@@ -229,6 +235,7 @@ class StationStat:
     def from_api_900(packet: &#34;WrappedRedvoxPacket&#34;) -&gt; &#34;StationStat&#34;:
         &#34;&#34;&#34;
         Extracts the required fields from an API 900 packet.
+
         :param packet: API 900 packet to extract fields from.
         :return: An instance of StationStat.
         &#34;&#34;&#34;
@@ -277,6 +284,7 @@ class StationStat:
     def from_api_1000(packet: &#34;WrappedRedvoxPacketM&#34;) -&gt; &#34;StationStat&#34;:
         &#34;&#34;&#34;
         Extracts the required fields from an API 1000 packet.
+
         :param packet: API 1000 packet to extract fields from.
         :return: An instance of StationStat.
         &#34;&#34;&#34;
@@ -337,6 +345,7 @@ class StationStat:
 def extract_stats_serial(index: io.Index) -&gt; List[StationStat]:
     &#34;&#34;&#34;
     Extracts StationStat information from packets stored in the provided index.
+
     :param index: Index of packets to extract information from.
     :return: A list of StationStat objects.
     &#34;&#34;&#34;
@@ -358,7 +367,9 @@ def extract_stats_parallel(
 ) -&gt; List[StationStat]:
     &#34;&#34;&#34;
     Extracts StationStat information in parallel from packets stored in the provided index.
+
     :param index: Index of packets to extract information from.
+    :param pool: optional multiprocessing pool.
     :return: A list of StationStat objects.
     &#34;&#34;&#34;
     # Partition the index entries by number of cores
@@ -409,7 +420,9 @@ def extract_stats(
 ) -&gt; List[StationStat]:
     &#34;&#34;&#34;
     Extracts StationStat information from packets stored in the provided index.
+
     :param index: Index of packets to extract information from.
+    :param pool: optional multiprocessing pool.
     :return: A list of StationStat objects.
     &#34;&#34;&#34;
     return ExtractStatsFn(index, pool)</code></pre>
@@ -460,8 +473,9 @@ def extract_stats(
 <span>def <span class="ident">extract_stats</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Union[multiprocessing.pool.Pool, NoneType] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Extracts StationStat information from packets stored in the provided index.
-:param index: Index of packets to extract information from.
+<div class="desc"><p>Extracts StationStat information from packets stored in the provided index.</p>
+<p>:param index: Index of packets to extract information from.
+:param pool: optional multiprocessing pool.
 :return: A list of StationStat objects.</p></div>
 <details class="source">
 <summary>
@@ -473,7 +487,9 @@ def extract_stats(
 ) -&gt; List[StationStat]:
     &#34;&#34;&#34;
     Extracts StationStat information from packets stored in the provided index.
+
     :param index: Index of packets to extract information from.
+    :param pool: optional multiprocessing pool.
     :return: A list of StationStat objects.
     &#34;&#34;&#34;
     return ExtractStatsFn(index, pool)</code></pre>
@@ -504,8 +520,9 @@ def extract_stats(
 <span>def <span class="ident">extract_stats_parallel</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Union[multiprocessing.pool.Pool, NoneType] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Extracts StationStat information in parallel from packets stored in the provided index.
-:param index: Index of packets to extract information from.
+<div class="desc"><p>Extracts StationStat information in parallel from packets stored in the provided index.</p>
+<p>:param index: Index of packets to extract information from.
+:param pool: optional multiprocessing pool.
 :return: A list of StationStat objects.</p></div>
 <details class="source">
 <summary>
@@ -516,7 +533,9 @@ def extract_stats(
 ) -&gt; List[StationStat]:
     &#34;&#34;&#34;
     Extracts StationStat information in parallel from packets stored in the provided index.
+
     :param index: Index of packets to extract information from.
+    :param pool: optional multiprocessing pool.
     :return: A list of StationStat objects.
     &#34;&#34;&#34;
     # Partition the index entries by number of cores
@@ -543,8 +562,8 @@ def extract_stats(
 <span>def <span class="ident">extract_stats_serial</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Extracts StationStat information from packets stored in the provided index.
-:param index: Index of packets to extract information from.
+<div class="desc"><p>Extracts StationStat information from packets stored in the provided index.</p>
+<p>:param index: Index of packets to extract information from.
 :return: A list of StationStat objects.</p></div>
 <details class="source">
 <summary>
@@ -553,6 +572,7 @@ def extract_stats(
 <pre><code class="python">def extract_stats_serial(index: io.Index) -&gt; List[StationStat]:
     &#34;&#34;&#34;
     Extracts StationStat information from packets stored in the provided index.
+
     :param index: Index of packets to extract information from.
     :return: A list of StationStat objects.
     &#34;&#34;&#34;
@@ -573,8 +593,8 @@ def extract_stats(
 <span>def <span class="ident">get_duration_seconds_from_sample_rate</span></span>(<span>sample_rate: Union[float, int]) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns the duration of a packet in seconds given a sample rate
-:param sample_rate: A valid sample rate from the constants above
+<div class="desc"><p>Returns the duration of a packet in seconds given a sample rate</p>
+<p>:param sample_rate: A valid sample rate from the constants above
 :return: the duration of the packet in seconds</p></div>
 <details class="source">
 <summary>
@@ -583,6 +603,7 @@ def extract_stats(
 <pre><code class="python">def get_duration_seconds_from_sample_rate(sample_rate: Union[float, int]) -&gt; float:
     &#34;&#34;&#34;
     Returns the duration of a packet in seconds given a sample rate
+
     :param sample_rate: A valid sample rate from the constants above
     :return: the duration of the packet in seconds
     &#34;&#34;&#34;
@@ -599,8 +620,8 @@ def extract_stats(
 <span>def <span class="ident">get_file_stats</span></span>(<span>sample_rate: Union[float, int]) ‑> Tuple[int, float]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Get the number of samples in a decoder file and its duration in seconds.
-:param sample_rate: int or float, sample rate
+<div class="desc"><p>Get the number of samples in a decoder file and its duration in seconds.</p>
+<p>:param sample_rate: int or float, sample rate
 :returns: number of samples in file as int and file time duration in seconds as float</p></div>
 <details class="source">
 <summary>
@@ -609,6 +630,7 @@ def extract_stats(
 <pre><code class="python">def get_file_stats(sample_rate: Union[float, int]) -&gt; Tuple[int, float]:
     &#34;&#34;&#34;
     Get the number of samples in a decoder file and its duration in seconds.
+
     :param sample_rate: int or float, sample rate
     :returns: number of samples in file as int and file time duration in seconds as float
     &#34;&#34;&#34;
@@ -626,8 +648,8 @@ def extract_stats(
 <span>def <span class="ident">get_num_points_from_sample_rate</span></span>(<span>sample_rate: Union[float, int]) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns the number of data points in a packet given a sample rate
-:param sample_rate: A valid sample rate from the constants above
+<div class="desc"><p>Returns the number of data points in a packet given a sample rate</p>
+<p>:param sample_rate: A valid sample rate from the constants above
 :return: the number of data points in the packet in seconds</p></div>
 <details class="source">
 <summary>
@@ -636,6 +658,7 @@ def extract_stats(
 <pre><code class="python">def get_num_points_from_sample_rate(sample_rate: Union[float, int]) -&gt; int:
     &#34;&#34;&#34;
     Returns the number of data points in a packet given a sample rate
+
     :param sample_rate: A valid sample rate from the constants above
     :return: the number of data points in the packet in seconds
     &#34;&#34;&#34;
@@ -732,6 +755,7 @@ These are used for timing correction and gap detection.</p></div>
     def from_api_900(packet: &#34;WrappedRedvoxPacket&#34;) -&gt; &#34;StationStat&#34;:
         &#34;&#34;&#34;
         Extracts the required fields from an API 900 packet.
+
         :param packet: API 900 packet to extract fields from.
         :return: An instance of StationStat.
         &#34;&#34;&#34;
@@ -780,6 +804,7 @@ These are used for timing correction and gap detection.</p></div>
     def from_api_1000(packet: &#34;WrappedRedvoxPacketM&#34;) -&gt; &#34;StationStat&#34;:
         &#34;&#34;&#34;
         Extracts the required fields from an API 1000 packet.
+
         :param packet: API 1000 packet to extract fields from.
         :return: An instance of StationStat.
         &#34;&#34;&#34;
@@ -888,8 +913,8 @@ These are used for timing correction and gap detection.</p></div>
 <span>def <span class="ident">from_api_1000</span></span>(<span>packet: WrappedRedvoxPacketM) ‑> <a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Extracts the required fields from an API 1000 packet.
-:param packet: API 1000 packet to extract fields from.
+<div class="desc"><p>Extracts the required fields from an API 1000 packet.</p>
+<p>:param packet: API 1000 packet to extract fields from.
 :return: An instance of StationStat.</p></div>
 <details class="source">
 <summary>
@@ -899,6 +924,7 @@ These are used for timing correction and gap detection.</p></div>
 def from_api_1000(packet: &#34;WrappedRedvoxPacketM&#34;) -&gt; &#34;StationStat&#34;:
     &#34;&#34;&#34;
     Extracts the required fields from an API 1000 packet.
+
     :param packet: API 1000 packet to extract fields from.
     :return: An instance of StationStat.
     &#34;&#34;&#34;
@@ -959,8 +985,8 @@ def from_api_1000(packet: &#34;WrappedRedvoxPacketM&#34;) -&gt; &#34;StationStat
 <span>def <span class="ident">from_api_900</span></span>(<span>packet: WrappedRedvoxPacket) ‑> <a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Extracts the required fields from an API 900 packet.
-:param packet: API 900 packet to extract fields from.
+<div class="desc"><p>Extracts the required fields from an API 900 packet.</p>
+<p>:param packet: API 900 packet to extract fields from.
 :return: An instance of StationStat.</p></div>
 <details class="source">
 <summary>
@@ -970,6 +996,7 @@ def from_api_1000(packet: &#34;WrappedRedvoxPacketM&#34;) -&gt; &#34;StationStat
 def from_api_900(packet: &#34;WrappedRedvoxPacket&#34;) -&gt; &#34;StationStat&#34;:
     &#34;&#34;&#34;
     Extracts the required fields from an API 900 packet.
+
     :param packet: API 900 packet to extract fields from.
     :return: An instance of StationStat.
     &#34;&#34;&#34;

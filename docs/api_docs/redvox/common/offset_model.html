@@ -70,18 +70,17 @@ class OffsetModel:
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        latencies: np.ndarray,
-        offsets: np.ndarray,
-        times: np.ndarray,
-        start_time: float,
-        end_time: float,
-        n_samples: int = DEFAULT_SAMPLES,
-        debug: bool = False,
+            self,
+            latencies: np.ndarray,
+            offsets: np.ndarray,
+            times: np.ndarray,
+            start_time: float,
+            end_time: float,
+            n_samples: int = DEFAULT_SAMPLES,
+            debug: bool = False,
     ):
         &#34;&#34;&#34;
         Create an OffsetModel
-
         :param latencies: latencies within the time specified
         :param offsets: offsets that correspond to the latencies
         :param times: timestamps that correspond to the latencies
@@ -154,7 +153,6 @@ class OffsetModel:
     def get_offset_at_new_time(self, new_time: float) -&gt; float:
         &#34;&#34;&#34;
         Gets offset at new_time time based on the offset model.
-
         :param new_time: The time of corresponding to the new offset
         :return: new offset corresponding to the new_time
         &#34;&#34;&#34;
@@ -162,23 +160,23 @@ class OffsetModel:
             new_time, self.slope, self.intercept, self.start_time
         )
 
-    def update_time(self, new_time: float) -&gt; float:
+    def update_time(self, new_time: float, use_model_function: bool = True) -&gt; float:
         &#34;&#34;&#34;
         update new_time time based on the offset model.
-
         :param new_time: The time to update
+        :param use_model_function: if True, use the slope of the model, otherwise use the intercept.  default True
         :return: updated new_time
         &#34;&#34;&#34;
-        return new_time + self.get_offset_at_new_time(new_time)
+        return new_time + (self.get_offset_at_new_time(new_time) if use_model_function else self.intercept)
 
-    def update_timestamps(self, timestamps: np.array) -&gt; np.array:
+    def update_timestamps(self, timestamps: np.array, use_model_function: bool = True) -&gt; np.array:
         &#34;&#34;&#34;
         updates a list of timestamps
-
         :param timestamps: timestamps to update
+        :param use_model_function: if True, use the slope of the model if it&#39;s not 0.  default True
         :return: updated list of timestamps
         &#34;&#34;&#34;
-        if self.slope != 0.0:
+        if use_model_function and self.slope != 0.0:
             return [self.update_time(t) for t in timestamps]
         return [t + self.intercept for t in timestamps]
 
@@ -188,7 +186,6 @@ def get_bins_per_5min(start_time: float, end_time: float) -&gt; int:
     &#34;&#34;&#34;
     Calculates number of bins needed for roughly 5 minute bins.
         k_bins = int((end_time - start_time) / (300 * 1e6) + 1)
-
     :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
     :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
     :return: number of bins to use for offset model
@@ -202,7 +199,6 @@ def get_bins_per_5min(start_time: float, end_time: float) -&gt; int:
 def minmax_scale(data: np.ndarray) -&gt; np.ndarray:
     &#34;&#34;&#34;
     Returns scaled data by subtracting the min value and dividing by (max - min) value.
-
     :param data: the data to be scaled
     :return: scaled data
     &#34;&#34;&#34;
@@ -212,13 +208,12 @@ def minmax_scale(data: np.ndarray) -&gt; np.ndarray:
 
 # The score for Weighted Linear Regression Function
 def get_wlr_score(
-    model: LinearRegression, offsets: np.ndarray, times: np.ndarray, weights: np.ndarray
+        model: LinearRegression, offsets: np.ndarray, times: np.ndarray, weights: np.ndarray
 ) -&gt; float:
     &#34;&#34;&#34;
     Computes and returns a R2 score for the weighted linear regression using sklearn&#39;s score method.
     The best value is 1.0, and 0.0 corresponds to a function with no slope.
     Negative values are also adjusted to be 0.0.
-
     :param model: The linear regression model
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
@@ -237,13 +232,12 @@ def get_wlr_score(
 
 # The Weighted Linear Regression Function for offsets
 def offset_weighted_linear_regression(
-    latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray
+        latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray
 ) -&gt; Tuple[float, float, float]:
     &#34;&#34;&#34;
     Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
     The intercept is based on first UTC time 0, all units are in microseconds
     The function uses sklearn&#39;s LinearRegression with sample weights, and also returns the R2 score.
-
     :param latencies: array of the best latencies per packet
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
@@ -273,11 +267,10 @@ def offset_weighted_linear_regression(
 
 # Function to correct the intercept value
 def get_offset_at_new_time(
-    new_time: float, slope: float, intercept: float, model_time: float
+        new_time: float, slope: float, intercept: float, model_time: float
 ) -&gt; float:
     &#34;&#34;&#34;
     Gets offset at new_time time based on the offset model.
-
     :param new_time: The time of corresponding to the new offset
     :param slope: slope of the offset model
     :param intercept: the intercept of the offset model relative to the model_time
@@ -295,12 +288,11 @@ def get_offset_at_new_time(
 
 # Function to get the subset data frame to do the weighted linear regression
 def get_binned_df(
-    full_df: pd.DataFrame, bin_times: np.ndarray, n_samples: float
+        full_df: pd.DataFrame, bin_times: np.ndarray, n_samples: float
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     Returns a subset of the full_df with n_samples per binned times.
     nan latencies values will be ignored.
-
     :param full_df: pandas DataFrame containing latencies, offsets, and times.
     :param bin_times: array of edge times for each bin
     :param n_samples: number of samples to take per bin
@@ -329,7 +321,7 @@ def get_binned_df(
 
 
 def timesync_quality_check(
-    latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False
+        latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False
 ) -&gt; bool:
     &#34;&#34;&#34;
     Checks quality of timesync data to determine if offset model should be used.
@@ -337,7 +329,6 @@ def timesync_quality_check(
         If timesync duration is longer than 5 min
         If there are 3 latency values (non-nan) per 5 minutes on average
     Returns False if the data quality is not up to &#34;standards&#34;.
-
     :param latencies: array of the best latencies per packet
     :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
     :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
@@ -380,7 +371,6 @@ class TimingOffsets:
 def mapf(val: Optional[float]) -&gt; float:
     &#34;&#34;&#34;
     Maps an optional float to floats by replacing Nones with NaNs.
-
     :param val: Float value to map.
     :return: The mapped float.
     &#34;&#34;&#34;
@@ -392,7 +382,6 @@ def mapf(val: Optional[float]) -&gt; float:
 def compute_offsets(station_stats: List[&#34;StationStat&#34;]) -&gt; Optional[TimingOffsets]:
     &#34;&#34;&#34;
     Computes the offsets from the provided station statistics.
-
     :param station_stats: Statistics to compute offsets from.
     :return: Timing offset information or None if there are no offsets or there is an error.
     &#34;&#34;&#34;
@@ -419,7 +408,7 @@ def compute_offsets(station_stats: List[&#34;StationStat&#34;]) -&gt; Optional[T
     # Prep clock model
     start_dt: datetime = station_stats[0].packet_start_dt
     end_dt: datetime = (
-        station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
+            station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
     )
     start_time: float = dt_utils.datetime_to_epoch_microseconds_utc(start_dt)
     end_time: float = dt_utils.datetime_to_epoch_microseconds_utc(end_dt)
@@ -450,8 +439,8 @@ def compute_offsets(station_stats: List[&#34;StationStat&#34;]) -&gt; Optional[T
 <span>def <span class="ident">compute_offsets</span></span>(<span>station_stats: List[ForwardRef('StationStat')]) ‑> Union[<a title="redvox.common.offset_model.TimingOffsets" href="#redvox.common.offset_model.TimingOffsets">TimingOffsets</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Computes the offsets from the provided station statistics.</p>
-<p>:param station_stats: Statistics to compute offsets from.
+<div class="desc"><p>Computes the offsets from the provided station statistics.
+:param station_stats: Statistics to compute offsets from.
 :return: Timing offset information or None if there are no offsets or there is an error.</p></div>
 <details class="source">
 <summary>
@@ -460,7 +449,6 @@ def compute_offsets(station_stats: List[&#34;StationStat&#34;]) -&gt; Optional[T
 <pre><code class="python">def compute_offsets(station_stats: List[&#34;StationStat&#34;]) -&gt; Optional[TimingOffsets]:
     &#34;&#34;&#34;
     Computes the offsets from the provided station statistics.
-
     :param station_stats: Statistics to compute offsets from.
     :return: Timing offset information or None if there are no offsets or there is an error.
     &#34;&#34;&#34;
@@ -487,7 +475,7 @@ def compute_offsets(station_stats: List[&#34;StationStat&#34;]) -&gt; Optional[T
     # Prep clock model
     start_dt: datetime = station_stats[0].packet_start_dt
     end_dt: datetime = (
-        station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
+            station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
     )
     start_time: float = dt_utils.datetime_to_epoch_microseconds_utc(start_dt)
     end_time: float = dt_utils.datetime_to_epoch_microseconds_utc(end_dt)
@@ -512,8 +500,8 @@ def compute_offsets(station_stats: List[&#34;StationStat&#34;]) -&gt; Optional[T
 </code></dt>
 <dd>
 <div class="desc"><p>Returns a subset of the full_df with n_samples per binned times.
-nan latencies values will be ignored.</p>
-<p>:param full_df: pandas DataFrame containing latencies, offsets, and times.
+nan latencies values will be ignored.
+:param full_df: pandas DataFrame containing latencies, offsets, and times.
 :param bin_times: array of edge times for each bin
 :param n_samples: number of samples to take per bin
 :return: binned_df</p></div>
@@ -522,12 +510,11 @@ nan latencies values will be ignored.</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_binned_df(
-    full_df: pd.DataFrame, bin_times: np.ndarray, n_samples: float
+        full_df: pd.DataFrame, bin_times: np.ndarray, n_samples: float
 ) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
     Returns a subset of the full_df with n_samples per binned times.
     nan latencies values will be ignored.
-
     :param full_df: pandas DataFrame containing latencies, offsets, and times.
     :param bin_times: array of edge times for each bin
     :param n_samples: number of samples to take per bin
@@ -560,8 +547,8 @@ nan latencies values will be ignored.</p>
 </code></dt>
 <dd>
 <div class="desc"><p>Calculates number of bins needed for roughly 5 minute bins.
-k_bins = int((end_time - start_time) / (300 * 1e6) + 1)</p>
-<p>:param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
+k_bins = int((end_time - start_time) / (300 * 1e6) + 1)
+:param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
 :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
 :return: number of bins to use for offset model</p></div>
 <details class="source">
@@ -572,7 +559,6 @@ k_bins = int((end_time - start_time) / (300 * 1e6) + 1)</p>
     &#34;&#34;&#34;
     Calculates number of bins needed for roughly 5 minute bins.
         k_bins = int((end_time - start_time) / (300 * 1e6) + 1)
-
     :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
     :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
     :return: number of bins to use for offset model
@@ -586,8 +572,8 @@ k_bins = int((end_time - start_time) / (300 * 1e6) + 1)</p>
 <span>def <span class="ident">get_offset_at_new_time</span></span>(<span>new_time: float, slope: float, intercept: float, model_time: float) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Gets offset at new_time time based on the offset model.</p>
-<p>:param new_time: The time of corresponding to the new offset
+<div class="desc"><p>Gets offset at new_time time based on the offset model.
+:param new_time: The time of corresponding to the new offset
 :param slope: slope of the offset model
 :param intercept: the intercept of the offset model relative to the model_time
 :param model_time: the time corresponding to the intercept of the offset model
@@ -597,11 +583,10 @@ k_bins = int((end_time - start_time) / (300 * 1e6) + 1)</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_offset_at_new_time(
-    new_time: float, slope: float, intercept: float, model_time: float
+        new_time: float, slope: float, intercept: float, model_time: float
 ) -&gt; float:
     &#34;&#34;&#34;
     Gets offset at new_time time based on the offset model.
-
     :param new_time: The time of corresponding to the new offset
     :param slope: slope of the offset model
     :param intercept: the intercept of the offset model relative to the model_time
@@ -623,8 +608,8 @@ k_bins = int((end_time - start_time) / (300 * 1e6) + 1)</p>
 <dd>
 <div class="desc"><p>Computes and returns a R2 score for the weighted linear regression using sklearn's score method.
 The best value is 1.0, and 0.0 corresponds to a function with no slope.
-Negative values are also adjusted to be 0.0.</p>
-<p>:param model: The linear regression model
+Negative values are also adjusted to be 0.0.
+:param model: The linear regression model
 :param offsets: array of offsets corresponding to the best latencies per packet
 :param times: array of device times corresponding to the best latencies per packet
 :param weights: weights used to compute the weighted linear regression
@@ -634,13 +619,12 @@ Negative values are also adjusted to be 0.0.</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_wlr_score(
-    model: LinearRegression, offsets: np.ndarray, times: np.ndarray, weights: np.ndarray
+        model: LinearRegression, offsets: np.ndarray, times: np.ndarray, weights: np.ndarray
 ) -&gt; float:
     &#34;&#34;&#34;
     Computes and returns a R2 score for the weighted linear regression using sklearn&#39;s score method.
     The best value is 1.0, and 0.0 corresponds to a function with no slope.
     Negative values are also adjusted to be 0.0.
-
     :param model: The linear regression model
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
@@ -661,8 +645,8 @@ Negative values are also adjusted to be 0.0.</p>
 <span>def <span class="ident">mapf</span></span>(<span>val: Union[float, NoneType]) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Maps an optional float to floats by replacing Nones with NaNs.</p>
-<p>:param val: Float value to map.
+<div class="desc"><p>Maps an optional float to floats by replacing Nones with NaNs.
+:param val: Float value to map.
 :return: The mapped float.</p></div>
 <details class="source">
 <summary>
@@ -671,7 +655,6 @@ Negative values are also adjusted to be 0.0.</p>
 <pre><code class="python">def mapf(val: Optional[float]) -&gt; float:
     &#34;&#34;&#34;
     Maps an optional float to floats by replacing Nones with NaNs.
-
     :param val: Float value to map.
     :return: The mapped float.
     &#34;&#34;&#34;
@@ -684,8 +667,8 @@ Negative values are also adjusted to be 0.0.</p>
 <span>def <span class="ident">minmax_scale</span></span>(<span>data: numpy.ndarray) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns scaled data by subtracting the min value and dividing by (max - min) value.</p>
-<p>:param data: the data to be scaled
+<div class="desc"><p>Returns scaled data by subtracting the min value and dividing by (max - min) value.
+:param data: the data to be scaled
 :return: scaled data</p></div>
 <details class="source">
 <summary>
@@ -694,7 +677,6 @@ Negative values are also adjusted to be 0.0.</p>
 <pre><code class="python">def minmax_scale(data: np.ndarray) -&gt; np.ndarray:
     &#34;&#34;&#34;
     Returns scaled data by subtracting the min value and dividing by (max - min) value.
-
     :param data: the data to be scaled
     :return: scaled data
     &#34;&#34;&#34;
@@ -708,8 +690,8 @@ Negative values are also adjusted to be 0.0.</p>
 <dd>
 <div class="desc"><p>Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
 The intercept is based on first UTC time 0, all units are in microseconds
-The function uses sklearn's LinearRegression with sample weights, and also returns the R2 score.</p>
-<p>:param latencies: array of the best latencies per packet
+The function uses sklearn's LinearRegression with sample weights, and also returns the R2 score.
+:param latencies: array of the best latencies per packet
 :param offsets: array of offsets corresponding to the best latencies per packet
 :param times: array of device times corresponding to the best latencies per packet
 :return:
@@ -719,13 +701,12 @@ slope, intercept, score</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def offset_weighted_linear_regression(
-    latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray
+        latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray
 ) -&gt; Tuple[float, float, float]:
     &#34;&#34;&#34;
     Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
     The intercept is based on first UTC time 0, all units are in microseconds
     The function uses sklearn&#39;s LinearRegression with sample weights, and also returns the R2 score.
-
     :param latencies: array of the best latencies per packet
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
@@ -761,8 +742,8 @@ slope, intercept, score</p></div>
 The following list is the quality check:
 If timesync duration is longer than 5 min
 If there are 3 latency values (non-nan) per 5 minutes on average
-Returns False if the data quality is not up to "standards".</p>
-<p>:param latencies: array of the best latencies per packet
+Returns False if the data quality is not up to "standards".
+:param latencies: array of the best latencies per packet
 :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
 :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
 :param debug: if True, reason for failing quality check is printed, default False
@@ -772,7 +753,7 @@ Returns False if the data quality is not up to "standards".</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def timesync_quality_check(
-    latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False
+        latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False
 ) -&gt; bool:
     &#34;&#34;&#34;
     Checks quality of timesync data to determine if offset model should be used.
@@ -780,7 +761,6 @@ Returns False if the data quality is not up to "standards".</p>
         If timesync duration is longer than 5 min
         If there are 3 latency values (non-nan) per 5 minutes on average
     Returns False if the data quality is not up to &#34;standards&#34;.
-
     :param latencies: array of the best latencies per packet
     :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
     :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
@@ -834,8 +814,8 @@ score: float, R2 value of the model; 1.0 is best, 0.0 is worst
 mean_latency: float, mean latency
 std_dev_latency: float, latency standard deviation
 debug: boolean, if True, output additional information when running the OffsetModel, default False</p>
-<p>Create an OffsetModel</p>
-<p>:param latencies: latencies within the time specified
+<p>Create an OffsetModel
+:param latencies: latencies within the time specified
 :param offsets: offsets that correspond to the latencies
 :param times: timestamps that correspond to the latencies
 :param start_time: model's start timestamp in microseconds since epoch utc
@@ -867,18 +847,17 @@ debug: boolean, if True, output additional information when running the OffsetMo
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        latencies: np.ndarray,
-        offsets: np.ndarray,
-        times: np.ndarray,
-        start_time: float,
-        end_time: float,
-        n_samples: int = DEFAULT_SAMPLES,
-        debug: bool = False,
+            self,
+            latencies: np.ndarray,
+            offsets: np.ndarray,
+            times: np.ndarray,
+            start_time: float,
+            end_time: float,
+            n_samples: int = DEFAULT_SAMPLES,
+            debug: bool = False,
     ):
         &#34;&#34;&#34;
         Create an OffsetModel
-
         :param latencies: latencies within the time specified
         :param offsets: offsets that correspond to the latencies
         :param times: timestamps that correspond to the latencies
@@ -951,7 +930,6 @@ debug: boolean, if True, output additional information when running the OffsetMo
     def get_offset_at_new_time(self, new_time: float) -&gt; float:
         &#34;&#34;&#34;
         Gets offset at new_time time based on the offset model.
-
         :param new_time: The time of corresponding to the new offset
         :return: new offset corresponding to the new_time
         &#34;&#34;&#34;
@@ -959,23 +937,23 @@ debug: boolean, if True, output additional information when running the OffsetMo
             new_time, self.slope, self.intercept, self.start_time
         )
 
-    def update_time(self, new_time: float) -&gt; float:
+    def update_time(self, new_time: float, use_model_function: bool = True) -&gt; float:
         &#34;&#34;&#34;
         update new_time time based on the offset model.
-
         :param new_time: The time to update
+        :param use_model_function: if True, use the slope of the model, otherwise use the intercept.  default True
         :return: updated new_time
         &#34;&#34;&#34;
-        return new_time + self.get_offset_at_new_time(new_time)
+        return new_time + (self.get_offset_at_new_time(new_time) if use_model_function else self.intercept)
 
-    def update_timestamps(self, timestamps: np.array) -&gt; np.array:
+    def update_timestamps(self, timestamps: np.array, use_model_function: bool = True) -&gt; np.array:
         &#34;&#34;&#34;
         updates a list of timestamps
-
         :param timestamps: timestamps to update
+        :param use_model_function: if True, use the slope of the model if it&#39;s not 0.  default True
         :return: updated list of timestamps
         &#34;&#34;&#34;
-        if self.slope != 0.0:
+        if use_model_function and self.slope != 0.0:
             return [self.update_time(t) for t in timestamps]
         return [t + self.intercept for t in timestamps]</code></pre>
 </details>
@@ -1005,8 +983,8 @@ def empty_model() -&gt; &#34;OffsetModel&#34;:
 <span>def <span class="ident">get_offset_at_new_time</span></span>(<span>self, new_time: float) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Gets offset at new_time time based on the offset model.</p>
-<p>:param new_time: The time of corresponding to the new offset
+<div class="desc"><p>Gets offset at new_time time based on the offset model.
+:param new_time: The time of corresponding to the new offset
 :return: new offset corresponding to the new_time</p></div>
 <details class="source">
 <summary>
@@ -1015,7 +993,6 @@ def empty_model() -&gt; &#34;OffsetModel&#34;:
 <pre><code class="python">def get_offset_at_new_time(self, new_time: float) -&gt; float:
     &#34;&#34;&#34;
     Gets offset at new_time time based on the offset model.
-
     :param new_time: The time of corresponding to the new offset
     :return: new offset corresponding to the new_time
     &#34;&#34;&#34;
@@ -1025,45 +1002,49 @@ def empty_model() -&gt; &#34;OffsetModel&#34;:
 </details>
 </dd>
 <dt id="redvox.common.offset_model.OffsetModel.update_time"><code class="name flex">
-<span>def <span class="ident">update_time</span></span>(<span>self, new_time: float) ‑> float</span>
+<span>def <span class="ident">update_time</span></span>(<span>self, new_time: float, use_model_function: bool = True) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>update new_time time based on the offset model.</p>
-<p>:param new_time: The time to update
+<div class="desc"><p>update new_time time based on the offset model.
+:param new_time: The time to update
+:param use_model_function: if True, use the slope of the model, otherwise use the intercept.
+default True
 :return: updated new_time</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_time(self, new_time: float) -&gt; float:
+<pre><code class="python">def update_time(self, new_time: float, use_model_function: bool = True) -&gt; float:
     &#34;&#34;&#34;
     update new_time time based on the offset model.
-
     :param new_time: The time to update
+    :param use_model_function: if True, use the slope of the model, otherwise use the intercept.  default True
     :return: updated new_time
     &#34;&#34;&#34;
-    return new_time + self.get_offset_at_new_time(new_time)</code></pre>
+    return new_time + (self.get_offset_at_new_time(new_time) if use_model_function else self.intercept)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.offset_model.OffsetModel.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, timestamps: <built-in function array>) ‑> <built-in function array></span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, timestamps: <built-in function array>, use_model_function: bool = True) ‑> <built-in function array></span>
 </code></dt>
 <dd>
-<div class="desc"><p>updates a list of timestamps</p>
-<p>:param timestamps: timestamps to update
+<div class="desc"><p>updates a list of timestamps
+:param timestamps: timestamps to update
+:param use_model_function: if True, use the slope of the model if it's not 0.
+default True
 :return: updated list of timestamps</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_timestamps(self, timestamps: np.array) -&gt; np.array:
+<pre><code class="python">def update_timestamps(self, timestamps: np.array, use_model_function: bool = True) -&gt; np.array:
     &#34;&#34;&#34;
     updates a list of timestamps
-
     :param timestamps: timestamps to update
+    :param use_model_function: if True, use the slope of the model if it&#39;s not 0.  default True
     :return: updated list of timestamps
     &#34;&#34;&#34;
-    if self.slope != 0.0:
+    if use_model_function and self.slope != 0.0:
         return [self.update_time(t) for t in timestamps]
     return [t + self.intercept for t in timestamps]</code></pre>
 </details>

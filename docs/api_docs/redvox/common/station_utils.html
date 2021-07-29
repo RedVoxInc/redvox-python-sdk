@@ -47,7 +47,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
 
 def validate_station_key_list(
-    data_packets: List[api_m.RedvoxPacketM], debug: bool = False
+        data_packets: List[api_m.RedvoxPacketM], debug: bool = False
 ) -&gt; bool:
     &#34;&#34;&#34;
     Checks for consistency in the data packets.  Returns False if discrepancies are found.
@@ -73,7 +73,7 @@ def validate_station_key_list(
                 t.station_information.app_version,
                 t.station_information.is_private,
                 len(t.sensors.audio.samples.values) / t.sensors.audio.sample_rate,
-            ]
+                ]
             for t in data_packets
         ]
     )
@@ -134,6 +134,8 @@ class StationKey:
                   start_timestamp: Optional[float] = None) -&gt; bool:
         &#34;&#34;&#34;
         check if the key has the values specified.  If the parameter is None, any value will match.
+        Note that NAN is a valid value for start_timestamps, but any station with start_timestamp = NAN
+        will not match any value, including another NAN.
         :param station_id: station id, default None
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
@@ -145,7 +147,8 @@ class StationKey:
         if station_uuid is not None and station_uuid != self.uuid:
             # print(f&#34;Uuid {station_uuid} does not equal station&#39;s uuid: {self.uuid}&#34;)
             return False
-        if start_timestamp is not None and start_timestamp != self.start_timestamp_micros:
+        if start_timestamp is not None and (start_timestamp != self.start_timestamp_micros
+                                            or np.isnan(start_timestamp) or np.isnan(self.start_timestamp_micros)):
             # print(f&#34;Start timestamp {start_timestamp} does not equal station&#39;s &#34;
             #       f&#34;start timestamp: {self.start_timestamp_micros}&#34;)
             return False
@@ -197,8 +200,8 @@ class StationMetadata:
             self.app_version = packet.station_information.app_version
             self.is_private = packet.station_information.is_private
             self.packet_duration_s = (
-                len(packet.sensors.audio.samples.values)
-                / packet.sensors.audio.sample_rate
+                    len(packet.sensors.audio.samples.values)
+                    / packet.sensors.audio.sample_rate
             )
             self.station_description = packet.station_information.description
         else:
@@ -219,17 +222,17 @@ class StationMetadata:
         :return: True if other_metadata is equal to the calling metadata
         &#34;&#34;&#34;
         return (
-            self.app == other_metadata.app
-            and self.api == other_metadata.api
-            and self.sub_api == other_metadata.sub_api
-            and self.make == other_metadata.make
-            and self.model == other_metadata.model
-            and self.os == other_metadata.os
-            and self.os_version == other_metadata.os_version
-            and self.app_version == other_metadata.app_version
-            and self.is_private == other_metadata.is_private
-            and self.packet_duration_s == other_metadata.packet_duration_s
-            and self.station_description == other_metadata.station_description
+                self.app == other_metadata.app
+                and self.api == other_metadata.api
+                and self.sub_api == other_metadata.sub_api
+                and self.make == other_metadata.make
+                and self.model == other_metadata.model
+                and self.os == other_metadata.os
+                and self.os_version == other_metadata.os_version
+                and self.app_version == other_metadata.app_version
+                and self.is_private == other_metadata.is_private
+                and self.packet_duration_s == other_metadata.packet_duration_s
+                and self.station_description == other_metadata.station_description
         )
 
 
@@ -290,17 +293,17 @@ class StationMetadataWrapped:
         :return: True if other_metadata is equal to the calling metadata
         &#34;&#34;&#34;
         return (
-            self.app == other_metadata.app
-            and self.api == other_metadata.api
-            and self.sub_api == other_metadata.sub_api
-            and self.make == other_metadata.make
-            and self.model == other_metadata.model
-            and self.os == other_metadata.os
-            and self.os_version == other_metadata.os_version
-            and self.app_version == other_metadata.app_version
-            and self.is_private == other_metadata.is_private
-            and self.packet_duration_s == other_metadata.packet_duration_s
-            and self.station_description == other_metadata.station_description
+                self.app == other_metadata.app
+                and self.api == other_metadata.api
+                and self.sub_api == other_metadata.sub_api
+                and self.make == other_metadata.make
+                and self.model == other_metadata.model
+                and self.os == other_metadata.os
+                and self.os_version == other_metadata.os_version
+                and self.app_version == other_metadata.app_version
+                and self.is_private == other_metadata.is_private
+                and self.packet_duration_s == other_metadata.packet_duration_s
+                and self.station_description == other_metadata.station_description
         )
 
 
@@ -343,17 +346,17 @@ class StationPacketMetadata:
             self.packet_end_os_timestamp = np.nan
             self.timing_info_score = np.nan
 
-    def update_timestamps(self, om: OffsetModel):
+    def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         &#34;&#34;&#34;
         updates the timestamps in the metadata using the offset model
         :param om: OffsetModel to apply to data
+        :param use_model_function: if True, use the offset model&#39;s correction function to correct time,
+                                    otherwise use best offset (model&#39;s intercept value).  default True
         &#34;&#34;&#34;
-        self.packet_start_mach_timestamp = om.update_time(
-            self.packet_start_mach_timestamp
-        )
-        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)
+        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp, use_model_function)
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)
 
 
 class StationPacketMetadataWrapped:
@@ -395,17 +398,17 @@ class StationPacketMetadataWrapped:
             self.packet_end_os_timestamp = np.nan
             self.timing_info_score = np.nan
 
-    def update_timestamps(self, om: OffsetModel):
+    def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         &#34;&#34;&#34;
         updates the timestamps in the metadata using the offset model
         :param om: OffsetModel to apply to data
+        :param use_model_function: if True, use the offset model&#39;s correction function to correct time,
+                                    otherwise use best offset (model&#39;s intercept value).  default True
         &#34;&#34;&#34;
-        self.packet_start_mach_timestamp = om.update_time(
-            self.packet_start_mach_timestamp
-        )
-        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
+        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp, use_model_function)
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)</code></pre>
 </details>
 </section>
 <section>
@@ -431,7 +434,7 @@ False otherwise</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_station_key_list(
-    data_packets: List[api_m.RedvoxPacketM], debug: bool = False
+        data_packets: List[api_m.RedvoxPacketM], debug: bool = False
 ) -&gt; bool:
     &#34;&#34;&#34;
     Checks for consistency in the data packets.  Returns False if discrepancies are found.
@@ -457,7 +460,7 @@ False otherwise</p></div>
                 t.station_information.app_version,
                 t.station_information.is_private,
                 len(t.sensors.audio.samples.values) / t.sensors.audio.sample_rate,
-            ]
+                ]
             for t in data_packets
         ]
     )
@@ -536,6 +539,8 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
                   start_timestamp: Optional[float] = None) -&gt; bool:
         &#34;&#34;&#34;
         check if the key has the values specified.  If the parameter is None, any value will match.
+        Note that NAN is a valid value for start_timestamps, but any station with start_timestamp = NAN
+        will not match any value, including another NAN.
         :param station_id: station id, default None
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
@@ -547,7 +552,8 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
         if station_uuid is not None and station_uuid != self.uuid:
             # print(f&#34;Uuid {station_uuid} does not equal station&#39;s uuid: {self.uuid}&#34;)
             return False
-        if start_timestamp is not None and start_timestamp != self.start_timestamp_micros:
+        if start_timestamp is not None and (start_timestamp != self.start_timestamp_micros
+                                            or np.isnan(start_timestamp) or np.isnan(self.start_timestamp_micros)):
             # print(f&#34;Start timestamp {start_timestamp} does not equal station&#39;s &#34;
             #       f&#34;start timestamp: {self.start_timestamp_micros}&#34;)
             return False
@@ -584,6 +590,8 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
 <dd>
 <div class="desc"><p>check if the key has the values specified.
 If the parameter is None, any value will match.
+Note that NAN is a valid value for start_timestamps, but any station with start_timestamp = NAN
+will not match any value, including another NAN.
 :param station_id: station id, default None
 :param station_uuid: station uuid, default None
 :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
@@ -596,6 +604,8 @@ If the parameter is None, any value will match.
               start_timestamp: Optional[float] = None) -&gt; bool:
     &#34;&#34;&#34;
     check if the key has the values specified.  If the parameter is None, any value will match.
+    Note that NAN is a valid value for start_timestamps, but any station with start_timestamp = NAN
+    will not match any value, including another NAN.
     :param station_id: station id, default None
     :param station_uuid: station uuid, default None
     :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
@@ -607,7 +617,8 @@ If the parameter is None, any value will match.
     if station_uuid is not None and station_uuid != self.uuid:
         # print(f&#34;Uuid {station_uuid} does not equal station&#39;s uuid: {self.uuid}&#34;)
         return False
-    if start_timestamp is not None and start_timestamp != self.start_timestamp_micros:
+    if start_timestamp is not None and (start_timestamp != self.start_timestamp_micros
+                                        or np.isnan(start_timestamp) or np.isnan(self.start_timestamp_micros)):
         # print(f&#34;Start timestamp {start_timestamp} does not equal station&#39;s &#34;
         #       f&#34;start timestamp: {self.start_timestamp_micros}&#34;)
         return False
@@ -714,8 +725,8 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
             self.app_version = packet.station_information.app_version
             self.is_private = packet.station_information.is_private
             self.packet_duration_s = (
-                len(packet.sensors.audio.samples.values)
-                / packet.sensors.audio.sample_rate
+                    len(packet.sensors.audio.samples.values)
+                    / packet.sensors.audio.sample_rate
             )
             self.station_description = packet.station_information.description
         else:
@@ -736,17 +747,17 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
         :return: True if other_metadata is equal to the calling metadata
         &#34;&#34;&#34;
         return (
-            self.app == other_metadata.app
-            and self.api == other_metadata.api
-            and self.sub_api == other_metadata.sub_api
-            and self.make == other_metadata.make
-            and self.model == other_metadata.model
-            and self.os == other_metadata.os
-            and self.os_version == other_metadata.os_version
-            and self.app_version == other_metadata.app_version
-            and self.is_private == other_metadata.is_private
-            and self.packet_duration_s == other_metadata.packet_duration_s
-            and self.station_description == other_metadata.station_description
+                self.app == other_metadata.app
+                and self.api == other_metadata.api
+                and self.sub_api == other_metadata.sub_api
+                and self.make == other_metadata.make
+                and self.model == other_metadata.model
+                and self.os == other_metadata.os
+                and self.os_version == other_metadata.os_version
+                and self.app_version == other_metadata.app_version
+                and self.is_private == other_metadata.is_private
+                and self.packet_duration_s == other_metadata.packet_duration_s
+                and self.station_description == other_metadata.station_description
         )</code></pre>
 </details>
 <h3>Methods</h3>
@@ -767,17 +778,17 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
     :return: True if other_metadata is equal to the calling metadata
     &#34;&#34;&#34;
     return (
-        self.app == other_metadata.app
-        and self.api == other_metadata.api
-        and self.sub_api == other_metadata.sub_api
-        and self.make == other_metadata.make
-        and self.model == other_metadata.model
-        and self.os == other_metadata.os
-        and self.os_version == other_metadata.os_version
-        and self.app_version == other_metadata.app_version
-        and self.is_private == other_metadata.is_private
-        and self.packet_duration_s == other_metadata.packet_duration_s
-        and self.station_description == other_metadata.station_description
+            self.app == other_metadata.app
+            and self.api == other_metadata.api
+            and self.sub_api == other_metadata.sub_api
+            and self.make == other_metadata.make
+            and self.model == other_metadata.model
+            and self.os == other_metadata.os
+            and self.os_version == other_metadata.os_version
+            and self.app_version == other_metadata.app_version
+            and self.is_private == other_metadata.is_private
+            and self.packet_duration_s == other_metadata.packet_duration_s
+            and self.station_description == other_metadata.station_description
     )</code></pre>
 </details>
 </dd>
@@ -866,17 +877,17 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
         :return: True if other_metadata is equal to the calling metadata
         &#34;&#34;&#34;
         return (
-            self.app == other_metadata.app
-            and self.api == other_metadata.api
-            and self.sub_api == other_metadata.sub_api
-            and self.make == other_metadata.make
-            and self.model == other_metadata.model
-            and self.os == other_metadata.os
-            and self.os_version == other_metadata.os_version
-            and self.app_version == other_metadata.app_version
-            and self.is_private == other_metadata.is_private
-            and self.packet_duration_s == other_metadata.packet_duration_s
-            and self.station_description == other_metadata.station_description
+                self.app == other_metadata.app
+                and self.api == other_metadata.api
+                and self.sub_api == other_metadata.sub_api
+                and self.make == other_metadata.make
+                and self.model == other_metadata.model
+                and self.os == other_metadata.os
+                and self.os_version == other_metadata.os_version
+                and self.app_version == other_metadata.app_version
+                and self.is_private == other_metadata.is_private
+                and self.packet_duration_s == other_metadata.packet_duration_s
+                and self.station_description == other_metadata.station_description
         )</code></pre>
 </details>
 <h3>Methods</h3>
@@ -897,17 +908,17 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
     :return: True if other_metadata is equal to the calling metadata
     &#34;&#34;&#34;
     return (
-        self.app == other_metadata.app
-        and self.api == other_metadata.api
-        and self.sub_api == other_metadata.sub_api
-        and self.make == other_metadata.make
-        and self.model == other_metadata.model
-        and self.os == other_metadata.os
-        and self.os_version == other_metadata.os_version
-        and self.app_version == other_metadata.app_version
-        and self.is_private == other_metadata.is_private
-        and self.packet_duration_s == other_metadata.packet_duration_s
-        and self.station_description == other_metadata.station_description
+            self.app == other_metadata.app
+            and self.api == other_metadata.api
+            and self.sub_api == other_metadata.sub_api
+            and self.make == other_metadata.make
+            and self.model == other_metadata.model
+            and self.os == other_metadata.os
+            and self.os_version == other_metadata.os_version
+            and self.app_version == other_metadata.app_version
+            and self.is_private == other_metadata.is_private
+            and self.packet_duration_s == other_metadata.packet_duration_s
+            and self.station_description == other_metadata.station_description
     )</code></pre>
 </details>
 </dd>
@@ -971,41 +982,44 @@ other_metadata: dict, str: str of other metadata from the packet</p>
             self.packet_end_os_timestamp = np.nan
             self.timing_info_score = np.nan
 
-    def update_timestamps(self, om: OffsetModel):
+    def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         &#34;&#34;&#34;
         updates the timestamps in the metadata using the offset model
         :param om: OffsetModel to apply to data
+        :param use_model_function: if True, use the offset model&#39;s correction function to correct time,
+                                    otherwise use best offset (model&#39;s intercept value).  default True
         &#34;&#34;&#34;
-        self.packet_start_mach_timestamp = om.update_time(
-            self.packet_start_mach_timestamp
-        )
-        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
+        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp, use_model_function)
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.station_utils.StationPacketMetadata.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>)</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, use_model_function: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>updates the timestamps in the metadata using the offset model
-:param om: OffsetModel to apply to data</p></div>
+:param om: OffsetModel to apply to data
+:param use_model_function: if True, use the offset model's correction function to correct time,
+otherwise use best offset (model's intercept value).
+default True</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_timestamps(self, om: OffsetModel):
+<pre><code class="python">def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
     &#34;&#34;&#34;
     updates the timestamps in the metadata using the offset model
     :param om: OffsetModel to apply to data
+    :param use_model_function: if True, use the offset model&#39;s correction function to correct time,
+                                otherwise use best offset (model&#39;s intercept value).  default True
     &#34;&#34;&#34;
-    self.packet_start_mach_timestamp = om.update_time(
-        self.packet_start_mach_timestamp
-    )
-    self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-    self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-    self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
+    self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp, use_model_function)
+    self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
+    self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
+    self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)</code></pre>
 </details>
 </dd>
 </dl>
@@ -1068,41 +1082,44 @@ other_metadata: dict, str: str of other metadata from the packet</p>
             self.packet_end_os_timestamp = np.nan
             self.timing_info_score = np.nan
 
-    def update_timestamps(self, om: OffsetModel):
+    def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         &#34;&#34;&#34;
         updates the timestamps in the metadata using the offset model
         :param om: OffsetModel to apply to data
+        :param use_model_function: if True, use the offset model&#39;s correction function to correct time,
+                                    otherwise use best offset (model&#39;s intercept value).  default True
         &#34;&#34;&#34;
-        self.packet_start_mach_timestamp = om.update_time(
-            self.packet_start_mach_timestamp
-        )
-        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
+        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp, use_model_function)
+        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
+        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
+        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.station_utils.StationPacketMetadataWrapped.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>)</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, om: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, use_model_function: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>updates the timestamps in the metadata using the offset model
-:param om: OffsetModel to apply to data</p></div>
+:param om: OffsetModel to apply to data
+:param use_model_function: if True, use the offset model's correction function to correct time,
+otherwise use best offset (model's intercept value).
+default True</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_timestamps(self, om: OffsetModel):
+<pre><code class="python">def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
     &#34;&#34;&#34;
     updates the timestamps in the metadata using the offset model
     :param om: OffsetModel to apply to data
+    :param use_model_function: if True, use the offset model&#39;s correction function to correct time,
+                                otherwise use best offset (model&#39;s intercept value).  default True
     &#34;&#34;&#34;
-    self.packet_start_mach_timestamp = om.update_time(
-        self.packet_start_mach_timestamp
-    )
-    self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp)
-    self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp)
-    self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp)</code></pre>
+    self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp, use_model_function)
+    self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
+    self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
+    self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)</code></pre>
 </details>
 </dd>
 </dl>

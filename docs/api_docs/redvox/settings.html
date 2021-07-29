@@ -77,7 +77,39 @@ def is_parallelism_enabled() -&gt; bool:
     global __PARALLELISM_ENABLED
     if __PARALLELISM_ENABLED is None:
         __PARALLELISM_ENABLED = is_parallelism_enabled_env()
-    return False if __PARALLELISM_ENABLED is None else __PARALLELISM_ENABLED</code></pre>
+    return False if __PARALLELISM_ENABLED is None else __PARALLELISM_ENABLED
+
+
+def is_gui_extra_enabled() -&gt; bool:
+    &#34;&#34;&#34;
+    :return: True if the GUI extra is enabled, False otherwise
+    &#34;&#34;&#34;
+    try:
+        import matplotlib
+        import PySide6
+        return True
+    except ModuleNotFoundError:
+        return False
+
+
+def is_native_extra_enabled() -&gt; bool:
+    &#34;&#34;&#34;
+    :return: True if the native extra is enabled, False otherwise
+    &#34;&#34;&#34;
+    try:
+        import redvox_native
+        return True
+    except ModuleNotFoundError:
+        return False
+
+
+def is_cpp_backend_enabled() -&gt; bool:
+    &#34;&#34;&#34;
+    :return: True if the protobuf CPP backend is enabled, False otherwise
+    &#34;&#34;&#34;
+    # noinspection PyUnresolvedReferences
+    from google.protobuf.internal import api_implementation
+    return api_implementation.Type() == &#34;cpp&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -87,6 +119,65 @@ def is_parallelism_enabled() -&gt; bool:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="redvox.settings.is_cpp_backend_enabled"><code class="name flex">
+<span>def <span class="ident">is_cpp_backend_enabled</span></span>(<span>) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: True if the protobuf CPP backend is enabled, False otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_cpp_backend_enabled() -&gt; bool:
+    &#34;&#34;&#34;
+    :return: True if the protobuf CPP backend is enabled, False otherwise
+    &#34;&#34;&#34;
+    # noinspection PyUnresolvedReferences
+    from google.protobuf.internal import api_implementation
+    return api_implementation.Type() == &#34;cpp&#34;</code></pre>
+</details>
+</dd>
+<dt id="redvox.settings.is_gui_extra_enabled"><code class="name flex">
+<span>def <span class="ident">is_gui_extra_enabled</span></span>(<span>) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: True if the GUI extra is enabled, False otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_gui_extra_enabled() -&gt; bool:
+    &#34;&#34;&#34;
+    :return: True if the GUI extra is enabled, False otherwise
+    &#34;&#34;&#34;
+    try:
+        import matplotlib
+        import PySide6
+        return True
+    except ModuleNotFoundError:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="redvox.settings.is_native_extra_enabled"><code class="name flex">
+<span>def <span class="ident">is_native_extra_enabled</span></span>(<span>) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: True if the native extra is enabled, False otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_native_extra_enabled() -&gt; bool:
+    &#34;&#34;&#34;
+    :return: True if the native extra is enabled, False otherwise
+    &#34;&#34;&#34;
+    try:
+        import redvox_native
+        return True
+    except ModuleNotFoundError:
+        return False</code></pre>
+</details>
+</dd>
 <dt id="redvox.settings.is_parallelism_enabled"><code class="name flex">
 <span>def <span class="ident">is_parallelism_enabled</span></span>(<span>) ‑> bool</span>
 </code></dt>
@@ -178,6 +269,9 @@ returned.
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="redvox.settings.is_cpp_backend_enabled" href="#redvox.settings.is_cpp_backend_enabled">is_cpp_backend_enabled</a></code></li>
+<li><code><a title="redvox.settings.is_gui_extra_enabled" href="#redvox.settings.is_gui_extra_enabled">is_gui_extra_enabled</a></code></li>
+<li><code><a title="redvox.settings.is_native_extra_enabled" href="#redvox.settings.is_native_extra_enabled">is_native_extra_enabled</a></code></li>
 <li><code><a title="redvox.settings.is_parallelism_enabled" href="#redvox.settings.is_parallelism_enabled">is_parallelism_enabled</a></code></li>
 <li><code><a title="redvox.settings.is_parallelism_enabled_env" href="#redvox.settings.is_parallelism_enabled_env">is_parallelism_enabled_env</a></code></li>
 <li><code><a title="redvox.settings.set_parallelism_enabled" href="#redvox.settings.set_parallelism_enabled">set_parallelism_enabled</a></code></li>

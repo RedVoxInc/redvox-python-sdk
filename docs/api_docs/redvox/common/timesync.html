@@ -52,6 +52,7 @@ from redvox.common.offset_model import OffsetModel
 import redvox.api900.reader_utils as util_900
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
+from redvox.common.errors import RedVoxExceptions
 from redvox.common import (
     stats_helper as sh,
     tri_message_stats as tms,
@@ -188,14 +189,14 @@ class TimeSyncData:
         return the number of tri-message exchanges
         :return: number of tri-message exchanges
         &#34;&#34;&#34;
-        return np.size(self.time_sync_exchanges_list)
+        return np.size(self.time_sync_exchanges_list, 0)
 
     def update_timestamps(self, om: Optional[OffsetModel]):
         &#34;&#34;&#34;
-        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
-            uses negative values to go backwards in time
+        update timestamps by adding microseconds based on the OffsetModel.
+        if model not supplied, uses the best offset.
+        uses negative values to go backwards in time
         :param om: OffsetModel to calculate offsets, default None
-        # :param delta: microseconds to add to timestamps, default None
         &#34;&#34;&#34;
         if not om:
             delta = self.best_offset
@@ -207,7 +208,10 @@ class TimeSyncData:
             self.packet_start_timestamp = om.update_time(self.packet_start_timestamp)
             self.packet_end_timestamp = om.update_time(self.packet_end_timestamp)
 
-    def get_best_latency_timestamp(self):
+    def get_best_latency_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: timestamp of best latency, or start of the packet if no best latency.
+        &#34;&#34;&#34;
         if self.best_msg_timestamp_index == 1:
             return self.time_sync_exchanges_list[3][self.best_latency_index]
         elif self.best_msg_timestamp_index == 3:
@@ -217,6 +221,10 @@ class TimeSyncData:
 
 
 def time_sync_data_from_raw_packet(packet: Union[RedvoxPacketM, RedvoxPacket]) -&gt; TimeSyncData:
+    &#34;&#34;&#34;
+    :param packet: data packet to get time sync data from
+    :return: TimeSyncData object from data packet
+    &#34;&#34;&#34;
     tsd: TimeSyncData
     if isinstance(packet, RedvoxPacketM):
         exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
@@ -308,6 +316,7 @@ class TimeSyncAnalysis:
         self.best_latency_index: int = np.nan
         self.latency_stats = sh.StatsContainer(&#34;latency&#34;)
         self.offset_stats = sh.StatsContainer(&#34;offset&#34;)
+        self.errors = RedVoxExceptions(&#34;TimeSyncAnalysis&#34;)
         if time_sync_data:
             self.timesync_data: List[TimeSyncData] = time_sync_data
             self.evaluate_and_validate_data()
@@ -339,24 +348,25 @@ class TimeSyncAnalysis:
         calculates the mean and std deviation for latencies and offsets
         &#34;&#34;&#34;
         if len(self.timesync_data) &lt; 1:
-            raise ValueError(
+            self.errors.append(
                 &#34;Nothing to calculate stats; length of timesync data is less than 1&#34;
             )
-        for index in range(len(self.timesync_data)):
-            # add the stats of the latency
-            self.latency_stats.add(
-                self.timesync_data[index].mean_latency,
-                self.timesync_data[index].latency_std,
-                self.timesync_data[index].num_tri_messages() * 2,
-            )
-            # add the stats of the offset
-            self.offset_stats.add(
-                self.timesync_data[index].mean_offset,
-                self.timesync_data[index].offset_std,
-                self.timesync_data[index].num_tri_messages() * 2,
-            )
-        self.latency_stats.best_value = self.get_best_latency()
-        self.offset_stats.best_value = self.get_best_offset()
+        else:
+            for index in range(len(self.timesync_data)):
+                # add the stats of the latency
+                self.latency_stats.add(
+                    self.timesync_data[index].mean_latency,
+                    self.timesync_data[index].latency_std,
+                    self.timesync_data[index].num_tri_messages() * 2,
+                    )
+                # add the stats of the offset
+                self.offset_stats.add(
+                    self.timesync_data[index].mean_offset,
+                    self.timesync_data[index].offset_std,
+                    self.timesync_data[index].num_tri_messages() * 2,
+                    )
+            self.latency_stats.best_value = self.get_best_latency()
+            self.offset_stats.best_value = self.get_best_offset()
 
     def from_packets(self, packets: List[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]) -&gt; &#39;TimeSyncAnalysis&#39;:
         &#34;&#34;&#34;
@@ -475,14 +485,12 @@ class TimeSyncAnalysis:
 
     def get_num_packets(self) -&gt; int:
         &#34;&#34;&#34;
-        return the number of packets in the TimeSyncAnalysis
         :return: number of packets analyzed
         &#34;&#34;&#34;
         return len(self.timesync_data)
 
     def get_best_latency(self) -&gt; float:
         &#34;&#34;&#34;
-        return the best latency
         :return: the best latency
         &#34;&#34;&#34;
         if np.isnan(self.best_latency_index):
@@ -491,28 +499,24 @@ class TimeSyncAnalysis:
 
     def get_latencies(self) -&gt; np.array:
         &#34;&#34;&#34;
-        return all the latencies
         :return: np.array containing all the latencies
         &#34;&#34;&#34;
         return np.array([ts_data.best_latency for ts_data in self.timesync_data])
 
     def get_mean_latency(self) -&gt; float:
         &#34;&#34;&#34;
-        return the mean of the latencies
         :return: the mean of the latencies, or np.nan if it doesn&#39;t exist
         &#34;&#34;&#34;
         return self.latency_stats.mean_of_means()
 
     def get_latency_stdev(self) -&gt; float:
         &#34;&#34;&#34;
-        return the standard deviation of the latencies
         :return: the standard deviation of the latencies, or np.nan if it doesn&#39;t exist
         &#34;&#34;&#34;
         return self.latency_stats.total_std_dev()
 
     def get_best_offset(self) -&gt; float:
         &#34;&#34;&#34;
-        returns the offset associated with the best latency
         :return: offset associated with the best latency
         &#34;&#34;&#34;
         if np.isnan(self.best_latency_index):
@@ -521,28 +525,24 @@ class TimeSyncAnalysis:
 
     def get_offsets(self) -&gt; np.array:
         &#34;&#34;&#34;
-        return all the offsets
         :return: np.array containing all the offsets
         &#34;&#34;&#34;
         return np.array([ts_data.best_offset for ts_data in self.timesync_data])
 
     def get_mean_offset(self) -&gt; float:
         &#34;&#34;&#34;
-        return the mean of the offsets
         :return: the mean of the offsets, or np.nan if it doesn&#39;t exist
         &#34;&#34;&#34;
         return self.offset_stats.mean_of_means()
 
     def get_offset_stdev(self) -&gt; float:
         &#34;&#34;&#34;
-        return the standard deviation of the offsets
         :return: the standard deviation of the offsets, or np.nan if it doesn&#39;t exist
         &#34;&#34;&#34;
         return self.offset_stats.total_std_dev()
 
     def get_best_packet_latency_index(self) -&gt; int:
         &#34;&#34;&#34;
-        returns the index of the best latency in the packet with the best latency
         :return: the best latency&#39;s index in the packet with the best latency
         &#34;&#34;&#34;
         if np.isnan(self.best_latency_index):
@@ -551,7 +551,6 @@ class TimeSyncAnalysis:
 
     def get_best_start_time(self) -&gt; float:
         &#34;&#34;&#34;
-        return the start timestamp associated with the best latency
         :return: start timestamp associated with the best latency
         &#34;&#34;&#34;
         if np.isnan(self.best_latency_index):
@@ -560,7 +559,6 @@ class TimeSyncAnalysis:
 
     def get_start_times(self) -&gt; np.array:
         &#34;&#34;&#34;
-        returns the start timestamps of all the packets
         :return: list of the start timestamps of each packet
         &#34;&#34;&#34;
         start_times = []
@@ -570,7 +568,6 @@ class TimeSyncAnalysis:
 
     def get_bad_packets(self) -&gt; List[int]:
         &#34;&#34;&#34;
-        returns all the packets that have invalid data
         :return: list of all packets that contains invalid data
         &#34;&#34;&#34;
         bad_packets = []
@@ -587,18 +584,19 @@ class TimeSyncAnalysis:
         outputs warnings if a change in timestamps is detected
         &#34;&#34;&#34;
         if self.get_num_packets() &lt; 1:
-            raise ValueError(
-                &#34;Nothing to evaluate; length of timesync data is less than 1&#34;
+            self.errors.append(
+                &#34;Latencies cannot be evaluated; length of timesync data is less than 1&#34;
             )
-        self.best_latency_index = 0
-        # assume the first element has the best timesync values for now, then compare with the others
-        for index in range(1, self.get_num_packets()):
-            best_latency = self.get_best_latency()
-            # find the best latency; in this case, the minimum
-            # if new value exists and if the current best does not or new value is better than current best, update
-            if (not np.isnan(self.timesync_data[index].best_latency) and (np.isnan(best_latency))
-                    or self.timesync_data[index].best_latency &lt; best_latency):
-                self.best_latency_index = index
+        else:
+            self.best_latency_index = 0
+            # assume the first element has the best timesync values for now, then compare with the others
+            for index in range(1, self.get_num_packets()):
+                best_latency = self.get_best_latency()
+                # find the best latency; in this case, the minimum
+                # if new value exists and if the current best does not or new value is better than current best, update
+                if (not np.isnan(self.timesync_data[index].best_latency) and (np.isnan(best_latency))
+                        or self.timesync_data[index].best_latency &lt; best_latency):
+                    self.best_latency_index = index
 
     def validate_start_timestamp(self, debug: bool = False) -&gt; bool:
         &#34;&#34;&#34;
@@ -613,12 +611,13 @@ class TimeSyncAnalysis:
                     self.timesync_data[index].station_start_timestamp
                     != self.station_start_timestamp
             ):
+                self.errors.append(
+                    f&#34;Change in station start timestamp detected; &#34;
+                    f&#34;expected: {self.station_start_timestamp}, read: &#34;
+                    f&#34;{self.timesync_data[index].station_start_timestamp}&#34;
+                )
                 if debug:
-                    print(
-                        f&#34;Warning!  Change in station start timestamp detected!  &#34;
-                        f&#34;Expected: {self.station_start_timestamp}, read: &#34;
-                        f&#34;{self.timesync_data[index].station_start_timestamp}&#34;
-                    )
+                    self.errors.print()
                 return False
         # if here, all the sample timestamps are the same
         return True
@@ -636,11 +635,12 @@ class TimeSyncAnalysis:
                     np.isnan(self.timesync_data[index].sample_rate_hz)
                     or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
             ):
+                self.errors.append(
+                    f&#34;Change in station sample rate detected; &#34;
+                    f&#34;expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}&#34;
+                )
                 if debug:
-                    print(
-                        f&#34;Warning!  Change in station sample rate detected!  &#34;
-                        f&#34;Expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}&#34;
-                    )
+                    self.errors.print()
                 return False
         # if here, all the sample rates are the same
         return True
@@ -654,8 +654,9 @@ class TimeSyncAnalysis:
         :return: True if no gap
         &#34;&#34;&#34;
         if self.get_num_packets() &lt; 2:
+            self.errors.append(&#34;Less than 2 timesync data objects to evaluate gaps with&#34;)
             if debug:
-                print(&#34;Less than 2 timesync data objects to evaluate gaps with&#34;)
+                self.errors.print()
         else:
             for index in range(1, self.get_num_packets()):
                 # compare last packet&#39;s end timestamp with current start timestamp
@@ -666,20 +667,26 @@ class TimeSyncAnalysis:
                         )
                         &gt; gap_duration_s
                 ):
+                    self.errors.append(f&#34;Gap detected at packet number: {index}&#34;)
                     if debug:
-                        print(f&#34;Warning!  Gap detected at packet number: {index}&#34;)
+                        self.errors.print()
                     return False
         # if here, no gaps
         return True
 
-    def update_timestamps(self):
+    def update_timestamps(self, use_model: bool = True):
         &#34;&#34;&#34;
         update timestamps by adding microseconds based on the OffsetModel.
+        :param use_model: if True, use the model, otherwise use best offset
         &#34;&#34;&#34;
-        if self.offset_model:
+        if use_model and self.offset_model:
             self.station_start_timestamp += self.offset_model.get_offset_at_new_time(self.station_start_timestamp)
-        for tsd in self.timesync_data:
-            tsd.update_timestamps(self.offset_model)
+            for tsd in self.timesync_data:
+                tsd.update_timestamps(self.offset_model)
+        else:
+            self.station_start_timestamp += self.get_best_offset()
+            for tsd in self.timesync_data:
+                tsd.update_timestamps()
 
 
 def validate_sensors(tsa_data: TimeSyncAnalysis) -&gt; bool:
@@ -726,7 +733,7 @@ def update_evenly_sampled_time_array(
             time_start_array_s = np.append(
                 time_start_array_s,
                 tsd.packet_start_timestamp / dt.MICROSECONDS_IN_SECOND,
-            )
+                )
     num_files = len(ts_analysis.timesync_data)
     # the TimeSyncData must have the same number of packets as the number of elements in time_start_array
     if num_files != len(time_start_array_s):
@@ -799,12 +806,17 @@ def update_time_array_from_analysis(
 <span>def <span class="ident">time_sync_data_from_raw_packet</span></span>(<span>packet: Union[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, api900_pb2.RedvoxPacket]) ‑> <a title="redvox.common.timesync.TimeSyncData" href="#redvox.common.timesync.TimeSyncData">TimeSyncData</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:param packet: data packet to get time sync data from
+:return: TimeSyncData object from data packet</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def time_sync_data_from_raw_packet(packet: Union[RedvoxPacketM, RedvoxPacket]) -&gt; TimeSyncData:
+    &#34;&#34;&#34;
+    :param packet: data packet to get time sync data from
+    :return: TimeSyncData object from data packet
+    &#34;&#34;&#34;
     tsd: TimeSyncData
     if isinstance(packet, RedvoxPacketM):
         exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
@@ -906,7 +918,7 @@ TimeSyncAnalysis object if not given
             time_start_array_s = np.append(
                 time_start_array_s,
                 tsd.packet_start_timestamp / dt.MICROSECONDS_IN_SECOND,
-            )
+                )
     num_files = len(ts_analysis.timesync_data)
     # the TimeSyncData must have the same number of packets as the number of elements in time_start_array
     if num_files != len(time_start_array_s):
@@ -1379,6 +1391,7 @@ station_start_timestamp: float, the timestamp of when the station became active,
         self.best_latency_index: int = np.nan
         self.latency_stats = sh.StatsContainer(&#34;latency&#34;)
         self.offset_stats = sh.StatsContainer(&#34;offset&#34;)
+        self.errors = RedVoxExceptions(&#34;TimeSyncAnalysis&#34;)
         if time_sync_data:
             self.timesync_data: List[TimeSyncData] = time_sync_data
             self.evaluate_and_validate_data()
@@ -1410,24 +1423,25 @@ station_start_timestamp: float, the timestamp of when the station became active,
         calculates the mean and std deviation for latencies and offsets
         &#34;&#34;&#34;
         if len(self.timesync_data) &lt; 1:
-            raise ValueError(
+            self.errors.append(
                 &#34;Nothing to calculate stats; length of timesync data is less than 1&#34;
             )
-        for index in range(len(self.timesync_data)):
-            # add the stats of the latency
-            self.latency_stats.add(
-                self.timesync_data[index].mean_latency,
-                self.timesync_data[index].latency_std,
-                self.timesync_data[index].num_tri_messages() * 2,
-            )
-            # add the stats of the offset
-            self.offset_stats.add(
-                self.timesync_data[index].mean_offset,
-                self.timesync_data[index].offset_std,
-                self.timesync_data[index].num_tri_messages() * 2,
-            )
-        self.latency_stats.best_value = self.get_best_latency()
-        self.offset_stats.best_value = self.get_best_offset()
+        else:
+            for index in range(len(self.timesync_data)):
+                # add the stats of the latency
+                self.latency_stats.add(
+                    self.timesync_data[index].mean_latency,
+                    self.timesync_data[index].latency_std,
+                    self.timesync_data[index].num_tri_messages() * 2,
+                    )
+                # add the stats of the offset
+                self.offset_stats.add(
+                    self.timesync_data[index].mean_offset,
+                    self.timesync_data[index].offset_std,
+                    self.timesync_data[index].num_tri_messages() * 2,
+                    )
+            self.latency_stats.best_value = self.get_best_latency()
+            self.offset_stats.best_value = self.get_best_offset()
 
     def from_packets(self, packets: List[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]) -&gt; &#39;TimeSyncAnalysis&#39;:
         &#34;&#34;&#34;
@@ -1546,14 +1560,12 @@ station_start_timestamp: float, the timestamp of when the station became active,
 
     def get_num_packets(self) -&gt; int:
         &#34;&#34;&#34;
-        return the number of packets in the TimeSyncAnalysis
         :return: number of packets analyzed
         &#34;&#34;&#34;
         return len(self.timesync_data)
 
     def get_best_latency(self) -&gt; float:
         &#34;&#34;&#34;
-        return the best latency
         :return: the best latency
         &#34;&#34;&#34;
         if np.isnan(self.best_latency_index):
@@ -1562,28 +1574,24 @@ station_start_timestamp: float, the timestamp of when the station became active,
 
     def get_latencies(self) -&gt; np.array:
         &#34;&#34;&#34;
-        return all the latencies
         :return: np.array containing all the latencies
         &#34;&#34;&#34;
         return np.array([ts_data.best_latency for ts_data in self.timesync_data])
 
     def get_mean_latency(self) -&gt; float:
         &#34;&#34;&#34;
-        return the mean of the latencies
         :return: the mean of the latencies, or np.nan if it doesn&#39;t exist
         &#34;&#34;&#34;
         return self.latency_stats.mean_of_means()
 
     def get_latency_stdev(self) -&gt; float:
         &#34;&#34;&#34;
-        return the standard deviation of the latencies
         :return: the standard deviation of the latencies, or np.nan if it doesn&#39;t exist
         &#34;&#34;&#34;
         return self.latency_stats.total_std_dev()
 
     def get_best_offset(self) -&gt; float:
         &#34;&#34;&#34;
-        returns the offset associated with the best latency
         :return: offset associated with the best latency
         &#34;&#34;&#34;
         if np.isnan(self.best_latency_index):
@@ -1592,28 +1600,24 @@ station_start_timestamp: float, the timestamp of when the station became active,
 
     def get_offsets(self) -&gt; np.array:
         &#34;&#34;&#34;
-        return all the offsets
         :return: np.array containing all the offsets
         &#34;&#34;&#34;
         return np.array([ts_data.best_offset for ts_data in self.timesync_data])
 
     def get_mean_offset(self) -&gt; float:
         &#34;&#34;&#34;
-        return the mean of the offsets
         :return: the mean of the offsets, or np.nan if it doesn&#39;t exist
         &#34;&#34;&#34;
         return self.offset_stats.mean_of_means()
 
     def get_offset_stdev(self) -&gt; float:
         &#34;&#34;&#34;
-        return the standard deviation of the offsets
         :return: the standard deviation of the offsets, or np.nan if it doesn&#39;t exist
         &#34;&#34;&#34;
         return self.offset_stats.total_std_dev()
 
     def get_best_packet_latency_index(self) -&gt; int:
         &#34;&#34;&#34;
-        returns the index of the best latency in the packet with the best latency
         :return: the best latency&#39;s index in the packet with the best latency
         &#34;&#34;&#34;
         if np.isnan(self.best_latency_index):
@@ -1622,7 +1626,6 @@ station_start_timestamp: float, the timestamp of when the station became active,
 
     def get_best_start_time(self) -&gt; float:
         &#34;&#34;&#34;
-        return the start timestamp associated with the best latency
         :return: start timestamp associated with the best latency
         &#34;&#34;&#34;
         if np.isnan(self.best_latency_index):
@@ -1631,7 +1634,6 @@ station_start_timestamp: float, the timestamp of when the station became active,
 
     def get_start_times(self) -&gt; np.array:
         &#34;&#34;&#34;
-        returns the start timestamps of all the packets
         :return: list of the start timestamps of each packet
         &#34;&#34;&#34;
         start_times = []
@@ -1641,7 +1643,6 @@ station_start_timestamp: float, the timestamp of when the station became active,
 
     def get_bad_packets(self) -&gt; List[int]:
         &#34;&#34;&#34;
-        returns all the packets that have invalid data
         :return: list of all packets that contains invalid data
         &#34;&#34;&#34;
         bad_packets = []
@@ -1658,18 +1659,19 @@ station_start_timestamp: float, the timestamp of when the station became active,
         outputs warnings if a change in timestamps is detected
         &#34;&#34;&#34;
         if self.get_num_packets() &lt; 1:
-            raise ValueError(
-                &#34;Nothing to evaluate; length of timesync data is less than 1&#34;
+            self.errors.append(
+                &#34;Latencies cannot be evaluated; length of timesync data is less than 1&#34;
             )
-        self.best_latency_index = 0
-        # assume the first element has the best timesync values for now, then compare with the others
-        for index in range(1, self.get_num_packets()):
-            best_latency = self.get_best_latency()
-            # find the best latency; in this case, the minimum
-            # if new value exists and if the current best does not or new value is better than current best, update
-            if (not np.isnan(self.timesync_data[index].best_latency) and (np.isnan(best_latency))
-                    or self.timesync_data[index].best_latency &lt; best_latency):
-                self.best_latency_index = index
+        else:
+            self.best_latency_index = 0
+            # assume the first element has the best timesync values for now, then compare with the others
+            for index in range(1, self.get_num_packets()):
+                best_latency = self.get_best_latency()
+                # find the best latency; in this case, the minimum
+                # if new value exists and if the current best does not or new value is better than current best, update
+                if (not np.isnan(self.timesync_data[index].best_latency) and (np.isnan(best_latency))
+                        or self.timesync_data[index].best_latency &lt; best_latency):
+                    self.best_latency_index = index
 
     def validate_start_timestamp(self, debug: bool = False) -&gt; bool:
         &#34;&#34;&#34;
@@ -1684,12 +1686,13 @@ station_start_timestamp: float, the timestamp of when the station became active,
                     self.timesync_data[index].station_start_timestamp
                     != self.station_start_timestamp
             ):
+                self.errors.append(
+                    f&#34;Change in station start timestamp detected; &#34;
+                    f&#34;expected: {self.station_start_timestamp}, read: &#34;
+                    f&#34;{self.timesync_data[index].station_start_timestamp}&#34;
+                )
                 if debug:
-                    print(
-                        f&#34;Warning!  Change in station start timestamp detected!  &#34;
-                        f&#34;Expected: {self.station_start_timestamp}, read: &#34;
-                        f&#34;{self.timesync_data[index].station_start_timestamp}&#34;
-                    )
+                    self.errors.print()
                 return False
         # if here, all the sample timestamps are the same
         return True
@@ -1707,11 +1710,12 @@ station_start_timestamp: float, the timestamp of when the station became active,
                     np.isnan(self.timesync_data[index].sample_rate_hz)
                     or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
             ):
+                self.errors.append(
+                    f&#34;Change in station sample rate detected; &#34;
+                    f&#34;expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}&#34;
+                )
                 if debug:
-                    print(
-                        f&#34;Warning!  Change in station sample rate detected!  &#34;
-                        f&#34;Expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}&#34;
-                    )
+                    self.errors.print()
                 return False
         # if here, all the sample rates are the same
         return True
@@ -1725,8 +1729,9 @@ station_start_timestamp: float, the timestamp of when the station became active,
         :return: True if no gap
         &#34;&#34;&#34;
         if self.get_num_packets() &lt; 2:
+            self.errors.append(&#34;Less than 2 timesync data objects to evaluate gaps with&#34;)
             if debug:
-                print(&#34;Less than 2 timesync data objects to evaluate gaps with&#34;)
+                self.errors.print()
         else:
             for index in range(1, self.get_num_packets()):
                 # compare last packet&#39;s end timestamp with current start timestamp
@@ -1737,20 +1742,26 @@ station_start_timestamp: float, the timestamp of when the station became active,
                         )
                         &gt; gap_duration_s
                 ):
+                    self.errors.append(f&#34;Gap detected at packet number: {index}&#34;)
                     if debug:
-                        print(f&#34;Warning!  Gap detected at packet number: {index}&#34;)
+                        self.errors.print()
                     return False
         # if here, no gaps
         return True
 
-    def update_timestamps(self):
+    def update_timestamps(self, use_model: bool = True):
         &#34;&#34;&#34;
         update timestamps by adding microseconds based on the OffsetModel.
+        :param use_model: if True, use the model, otherwise use best offset
         &#34;&#34;&#34;
-        if self.offset_model:
+        if use_model and self.offset_model:
             self.station_start_timestamp += self.offset_model.get_offset_at_new_time(self.station_start_timestamp)
-        for tsd in self.timesync_data:
-            tsd.update_timestamps(self.offset_model)</code></pre>
+            for tsd in self.timesync_data:
+                tsd.update_timestamps(self.offset_model)
+        else:
+            self.station_start_timestamp += self.get_best_offset()
+            for tsd in self.timesync_data:
+                tsd.update_timestamps()</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -1809,18 +1820,19 @@ outputs warnings if a change in timestamps is detected</p></div>
     outputs warnings if a change in timestamps is detected
     &#34;&#34;&#34;
     if self.get_num_packets() &lt; 1:
-        raise ValueError(
-            &#34;Nothing to evaluate; length of timesync data is less than 1&#34;
+        self.errors.append(
+            &#34;Latencies cannot be evaluated; length of timesync data is less than 1&#34;
         )
-    self.best_latency_index = 0
-    # assume the first element has the best timesync values for now, then compare with the others
-    for index in range(1, self.get_num_packets()):
-        best_latency = self.get_best_latency()
-        # find the best latency; in this case, the minimum
-        # if new value exists and if the current best does not or new value is better than current best, update
-        if (not np.isnan(self.timesync_data[index].best_latency) and (np.isnan(best_latency))
-                or self.timesync_data[index].best_latency &lt; best_latency):
-            self.best_latency_index = index</code></pre>
+    else:
+        self.best_latency_index = 0
+        # assume the first element has the best timesync values for now, then compare with the others
+        for index in range(1, self.get_num_packets()):
+            best_latency = self.get_best_latency()
+            # find the best latency; in this case, the minimum
+            # if new value exists and if the current best does not or new value is better than current best, update
+            if (not np.isnan(self.timesync_data[index].best_latency) and (np.isnan(best_latency))
+                    or self.timesync_data[index].best_latency &lt; best_latency):
+                self.best_latency_index = index</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis.from_packets"><code class="name flex">
@@ -1958,15 +1970,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_bad_packets</span></span>(<span>self) ‑> List[int]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>returns all the packets that have invalid data
-:return: list of all packets that contains invalid data</p></div>
+<div class="desc"><p>:return: list of all packets that contains invalid data</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_bad_packets(self) -&gt; List[int]:
     &#34;&#34;&#34;
-    returns all the packets that have invalid data
     :return: list of all packets that contains invalid data
     &#34;&#34;&#34;
     bad_packets = []
@@ -1982,15 +1992,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_best_latency</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the best latency
-:return: the best latency</p></div>
+<div class="desc"><p>:return: the best latency</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_best_latency(self) -&gt; float:
     &#34;&#34;&#34;
-    return the best latency
     :return: the best latency
     &#34;&#34;&#34;
     if np.isnan(self.best_latency_index):
@@ -2002,15 +2010,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_best_offset</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>returns the offset associated with the best latency
-:return: offset associated with the best latency</p></div>
+<div class="desc"><p>:return: offset associated with the best latency</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_best_offset(self) -&gt; float:
     &#34;&#34;&#34;
-    returns the offset associated with the best latency
     :return: offset associated with the best latency
     &#34;&#34;&#34;
     if np.isnan(self.best_latency_index):
@@ -2022,15 +2028,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_best_packet_latency_index</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"><p>returns the index of the best latency in the packet with the best latency
-:return: the best latency's index in the packet with the best latency</p></div>
+<div class="desc"><p>:return: the best latency's index in the packet with the best latency</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_best_packet_latency_index(self) -&gt; int:
     &#34;&#34;&#34;
-    returns the index of the best latency in the packet with the best latency
     :return: the best latency&#39;s index in the packet with the best latency
     &#34;&#34;&#34;
     if np.isnan(self.best_latency_index):
@@ -2042,15 +2046,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_best_start_time</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the start timestamp associated with the best latency
-:return: start timestamp associated with the best latency</p></div>
+<div class="desc"><p>:return: start timestamp associated with the best latency</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_best_start_time(self) -&gt; float:
     &#34;&#34;&#34;
-    return the start timestamp associated with the best latency
     :return: start timestamp associated with the best latency
     &#34;&#34;&#34;
     if np.isnan(self.best_latency_index):
@@ -2062,15 +2064,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_latencies</span></span>(<span>self) ‑> <built-in function array></span>
 </code></dt>
 <dd>
-<div class="desc"><p>return all the latencies
-:return: np.array containing all the latencies</p></div>
+<div class="desc"><p>:return: np.array containing all the latencies</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_latencies(self) -&gt; np.array:
     &#34;&#34;&#34;
-    return all the latencies
     :return: np.array containing all the latencies
     &#34;&#34;&#34;
     return np.array([ts_data.best_latency for ts_data in self.timesync_data])</code></pre>
@@ -2080,15 +2080,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_latency_stdev</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the standard deviation of the latencies
-:return: the standard deviation of the latencies, or np.nan if it doesn't exist</p></div>
+<div class="desc"><p>:return: the standard deviation of the latencies, or np.nan if it doesn't exist</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_latency_stdev(self) -&gt; float:
     &#34;&#34;&#34;
-    return the standard deviation of the latencies
     :return: the standard deviation of the latencies, or np.nan if it doesn&#39;t exist
     &#34;&#34;&#34;
     return self.latency_stats.total_std_dev()</code></pre>
@@ -2098,15 +2096,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_mean_latency</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the mean of the latencies
-:return: the mean of the latencies, or np.nan if it doesn't exist</p></div>
+<div class="desc"><p>:return: the mean of the latencies, or np.nan if it doesn't exist</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_mean_latency(self) -&gt; float:
     &#34;&#34;&#34;
-    return the mean of the latencies
     :return: the mean of the latencies, or np.nan if it doesn&#39;t exist
     &#34;&#34;&#34;
     return self.latency_stats.mean_of_means()</code></pre>
@@ -2116,15 +2112,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_mean_offset</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the mean of the offsets
-:return: the mean of the offsets, or np.nan if it doesn't exist</p></div>
+<div class="desc"><p>:return: the mean of the offsets, or np.nan if it doesn't exist</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_mean_offset(self) -&gt; float:
     &#34;&#34;&#34;
-    return the mean of the offsets
     :return: the mean of the offsets, or np.nan if it doesn&#39;t exist
     &#34;&#34;&#34;
     return self.offset_stats.mean_of_means()</code></pre>
@@ -2134,15 +2128,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_num_packets</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the number of packets in the TimeSyncAnalysis
-:return: number of packets analyzed</p></div>
+<div class="desc"><p>:return: number of packets analyzed</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_num_packets(self) -&gt; int:
     &#34;&#34;&#34;
-    return the number of packets in the TimeSyncAnalysis
     :return: number of packets analyzed
     &#34;&#34;&#34;
     return len(self.timesync_data)</code></pre>
@@ -2171,15 +2163,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_offset_stdev</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the standard deviation of the offsets
-:return: the standard deviation of the offsets, or np.nan if it doesn't exist</p></div>
+<div class="desc"><p>:return: the standard deviation of the offsets, or np.nan if it doesn't exist</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_offset_stdev(self) -&gt; float:
     &#34;&#34;&#34;
-    return the standard deviation of the offsets
     :return: the standard deviation of the offsets, or np.nan if it doesn&#39;t exist
     &#34;&#34;&#34;
     return self.offset_stats.total_std_dev()</code></pre>
@@ -2189,15 +2179,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_offsets</span></span>(<span>self) ‑> <built-in function array></span>
 </code></dt>
 <dd>
-<div class="desc"><p>return all the offsets
-:return: np.array containing all the offsets</p></div>
+<div class="desc"><p>:return: np.array containing all the offsets</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_offsets(self) -&gt; np.array:
     &#34;&#34;&#34;
-    return all the offsets
     :return: np.array containing all the offsets
     &#34;&#34;&#34;
     return np.array([ts_data.best_offset for ts_data in self.timesync_data])</code></pre>
@@ -2207,15 +2195,13 @@ outputs warnings if a change in timestamps is detected</p></div>
 <span>def <span class="ident">get_start_times</span></span>(<span>self) ‑> <built-in function array></span>
 </code></dt>
 <dd>
-<div class="desc"><p>returns the start timestamps of all the packets
-:return: list of the start timestamps of each packet</p></div>
+<div class="desc"><p>:return: list of the start timestamps of each packet</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_start_times(self) -&gt; np.array:
     &#34;&#34;&#34;
-    returns the start timestamps of all the packets
     :return: list of the start timestamps of each packet
     &#34;&#34;&#34;
     start_times = []
@@ -2225,22 +2211,28 @@ outputs warnings if a change in timestamps is detected</p></div>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis.update_timestamps"><code class="name flex">
-<span>def <span class="ident">update_timestamps</span></span>(<span>self)</span>
+<span>def <span class="ident">update_timestamps</span></span>(<span>self, use_model: bool = True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>update timestamps by adding microseconds based on the OffsetModel.</p></div>
+<div class="desc"><p>update timestamps by adding microseconds based on the OffsetModel.
+:param use_model: if True, use the model, otherwise use best offset</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_timestamps(self):
+<pre><code class="python">def update_timestamps(self, use_model: bool = True):
     &#34;&#34;&#34;
     update timestamps by adding microseconds based on the OffsetModel.
+    :param use_model: if True, use the model, otherwise use best offset
     &#34;&#34;&#34;
-    if self.offset_model:
+    if use_model and self.offset_model:
         self.station_start_timestamp += self.offset_model.get_offset_at_new_time(self.station_start_timestamp)
-    for tsd in self.timesync_data:
-        tsd.update_timestamps(self.offset_model)</code></pre>
+        for tsd in self.timesync_data:
+            tsd.update_timestamps(self.offset_model)
+    else:
+        self.station_start_timestamp += self.get_best_offset()
+        for tsd in self.timesync_data:
+            tsd.update_timestamps()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncAnalysis.validate_sample_rate"><code class="name flex">
@@ -2268,11 +2260,12 @@ outputs warning if a change in sample rate is detected
                 np.isnan(self.timesync_data[index].sample_rate_hz)
                 or self.timesync_data[index].sample_rate_hz != self.sample_rate_hz
         ):
+            self.errors.append(
+                f&#34;Change in station sample rate detected; &#34;
+                f&#34;expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}&#34;
+            )
             if debug:
-                print(
-                    f&#34;Warning!  Change in station sample rate detected!  &#34;
-                    f&#34;Expected: {self.sample_rate_hz}, read: {self.timesync_data[index].sample_rate_hz}&#34;
-                )
+                self.errors.print()
             return False
     # if here, all the sample rates are the same
     return True</code></pre>
@@ -2303,12 +2296,13 @@ outputs warnings if a change in timestamps is detected
                 self.timesync_data[index].station_start_timestamp
                 != self.station_start_timestamp
         ):
+            self.errors.append(
+                f&#34;Change in station start timestamp detected; &#34;
+                f&#34;expected: {self.station_start_timestamp}, read: &#34;
+                f&#34;{self.timesync_data[index].station_start_timestamp}&#34;
+            )
             if debug:
-                print(
-                    f&#34;Warning!  Change in station start timestamp detected!  &#34;
-                    f&#34;Expected: {self.station_start_timestamp}, read: &#34;
-                    f&#34;{self.timesync_data[index].station_start_timestamp}&#34;
-                )
+                self.errors.print()
             return False
     # if here, all the sample timestamps are the same
     return True</code></pre>
@@ -2336,8 +2330,9 @@ outputs warning if a gap is detected
     :return: True if no gap
     &#34;&#34;&#34;
     if self.get_num_packets() &lt; 2:
+        self.errors.append(&#34;Less than 2 timesync data objects to evaluate gaps with&#34;)
         if debug:
-            print(&#34;Less than 2 timesync data objects to evaluate gaps with&#34;)
+            self.errors.print()
     else:
         for index in range(1, self.get_num_packets()):
             # compare last packet&#39;s end timestamp with current start timestamp
@@ -2348,8 +2343,9 @@ outputs warning if a gap is detected
                     )
                     &gt; gap_duration_s
             ):
+                self.errors.append(f&#34;Gap detected at packet number: {index}&#34;)
                 if debug:
-                    print(f&#34;Warning!  Gap detected at packet number: {index}&#34;)
+                    self.errors.print()
                 return False
     # if here, no gaps
     return True</code></pre>
@@ -2530,14 +2526,14 @@ default np.nan
         return the number of tri-message exchanges
         :return: number of tri-message exchanges
         &#34;&#34;&#34;
-        return np.size(self.time_sync_exchanges_list)
+        return np.size(self.time_sync_exchanges_list, 0)
 
     def update_timestamps(self, om: Optional[OffsetModel]):
         &#34;&#34;&#34;
-        update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
-            uses negative values to go backwards in time
+        update timestamps by adding microseconds based on the OffsetModel.
+        if model not supplied, uses the best offset.
+        uses negative values to go backwards in time
         :param om: OffsetModel to calculate offsets, default None
-        # :param delta: microseconds to add to timestamps, default None
         &#34;&#34;&#34;
         if not om:
             delta = self.best_offset
@@ -2549,7 +2545,10 @@ default np.nan
             self.packet_start_timestamp = om.update_time(self.packet_start_timestamp)
             self.packet_end_timestamp = om.update_time(self.packet_end_timestamp)
 
-    def get_best_latency_timestamp(self):
+    def get_best_latency_timestamp(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: timestamp of best latency, or start of the packet if no best latency.
+        &#34;&#34;&#34;
         if self.best_msg_timestamp_index == 1:
             return self.time_sync_exchanges_list[3][self.best_latency_index]
         elif self.best_msg_timestamp_index == 3:
@@ -2560,15 +2559,18 @@ default np.nan
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.timesync.TimeSyncData.get_best_latency_timestamp"><code class="name flex">
-<span>def <span class="ident">get_best_latency_timestamp</span></span>(<span>self)</span>
+<span>def <span class="ident">get_best_latency_timestamp</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>:return: timestamp of best latency, or start of the packet if no best latency.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_best_latency_timestamp(self):
+<pre><code class="python">def get_best_latency_timestamp(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: timestamp of best latency, or start of the packet if no best latency.
+    &#34;&#34;&#34;
     if self.best_msg_timestamp_index == 1:
         return self.time_sync_exchanges_list[3][self.best_latency_index]
     elif self.best_msg_timestamp_index == 3:
@@ -2592,7 +2594,7 @@ default np.nan
     return the number of tri-message exchanges
     :return: number of tri-message exchanges
     &#34;&#34;&#34;
-    return np.size(self.time_sync_exchanges_list)</code></pre>
+    return np.size(self.time_sync_exchanges_list, 0)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSyncData.update_timestamps"><code class="name flex">
@@ -2600,20 +2602,19 @@ default np.nan
 </code></dt>
 <dd>
 <div class="desc"><p>update timestamps by adding microseconds based on the OffsetModel.
-if model not supplied, uses the best offset
+if model not supplied, uses the best offset.
 uses negative values to go backwards in time
-:param om: OffsetModel to calculate offsets, default None</p>
-<h1 id="param-delta-microseconds-to-add-to-timestamps-default-none">:param delta: microseconds to add to timestamps, default None</h1></div>
+:param om: OffsetModel to calculate offsets, default None</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def update_timestamps(self, om: Optional[OffsetModel]):
     &#34;&#34;&#34;
-    update timestamps by adding microseconds based on the OffsetModel.  if model not supplied, uses the best offset
-        uses negative values to go backwards in time
+    update timestamps by adding microseconds based on the OffsetModel.
+    if model not supplied, uses the best offset.
+    uses negative values to go backwards in time
     :param om: OffsetModel to calculate offsets, default None
-    # :param delta: microseconds to add to timestamps, default None
     &#34;&#34;&#34;
     if not om:
         delta = self.best_offset

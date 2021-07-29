@@ -183,6 +183,7 @@ def __has_sensor(
 ) -&gt; bool:
     &#34;&#34;&#34;
     Returns true if the given packet or sensors instance contains the valid sensor.
+
     :param data: Either a packet or a packet&#39;s sensors message.
     :param field_name: The name of the sensor being checked.
     :return: True if the sensor exists, False otherwise.
@@ -201,6 +202,7 @@ def __has_sensor(
 def __packet_duration_s(packet: api_m.RedvoxPacketM) -&gt; float:
     &#34;&#34;&#34;
     Returns the packet duration in seconds.
+
     :param packet: The packet to calculate the duration for.
     :return: The packet duration in seconds.
     &#34;&#34;&#34;
@@ -210,6 +212,7 @@ def __packet_duration_s(packet: api_m.RedvoxPacketM) -&gt; float:
 def __packet_duration_us(packet: api_m.RedvoxPacketM) -&gt; float:
     &#34;&#34;&#34;
     Returns the packet duration in microseconds.
+
     :param packet: The packet to calculate the duration for.
     :return: The packet duration in microseconds.
     &#34;&#34;&#34;
@@ -221,6 +224,7 @@ def __stats_for_sensor_per_packet_per_second(num_packets: int,
                                              timestamps: np.array) -&gt; Tuple[float, float, float]:
     &#34;&#34;&#34;
     Sensor being evaluated must either have 1/packet or 1/second sample rate
+
     :param num_packets: number of packets to calculate stats for
     :param packet_dur_s: duration of packet in seconds
     :param timestamps: timestamps of the samples
@@ -244,6 +248,7 @@ def get_empty_sensor_data(
 ) -&gt; SensorData:
     &#34;&#34;&#34;
     create a sensor data object with no data
+
     :param name: name of the sensor
     :param sensor_type: type of the sensor to create, default SensorType.UNKNOWN_SENSOR
     :return: empty sensor
@@ -254,6 +259,7 @@ def get_empty_sensor_data(
 def get_sensor_description(sensor: Sensor) -&gt; str:
     &#34;&#34;&#34;
     read the sensor&#39;s description from the sensor
+
     :param sensor: the sensor to read the description from
     :return: the sensor&#39;s description
     &#34;&#34;&#34;
@@ -265,6 +271,7 @@ def get_sensor_description_list(
 ) -&gt; Optional[str]:
     &#34;&#34;&#34;
     read the sensor_type sensor&#39;s description from a list of packets
+
     :param packets: the list of packets to read from
     :param sensor_type: the SensorType of the sensor to read the description of
     :return: the sensor_type sensor&#39;s description
@@ -284,6 +291,7 @@ def get_sensor_description_list(
 def get_sample_statistics(data_df: pd.DataFrame) -&gt; Tuple[float, float, float]:
     &#34;&#34;&#34;
     calculate the sample rate, interval and interval std dev using the timestamps in the dataframe
+
     :param data_df: the dataframe containing timestamps to calculate statistics from
     :return: a Tuple containing the sample rate, interval and interval std dev
     &#34;&#34;&#34;
@@ -308,6 +316,7 @@ def read_apim_xyz_sensor(
     &#34;&#34;&#34;
     read a sensor that has xyz data channels from an api M data packet
     raises Attribute Error if sensor does not contain xyz channels
+
     :param sensor: the xyz api M sensor to read
     :param column_id: string, used to name the columns
     :return: Dataframe representing the data in the sensor
@@ -347,6 +356,7 @@ def load_apim_xyz_sensor_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     create a three channel sensor of sensor_type with the column name, description, and data given.
+
     :param sensor_type: the SensorType of sensor to create
     :param data: the list of data to be added; requires timestamps to be the first list
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
@@ -381,6 +391,7 @@ def read_apim_single_sensor(
     &#34;&#34;&#34;
     read a sensor that has a single data channel from an api M data packet
     raises Attribute Error if sensor does not contain exactly one data channel
+
     :param sensor: the single channel api M sensor to read
     :param column_id: string, used to name the columns
     :return: Dataframe representing the data in the sensor
@@ -407,6 +418,7 @@ def load_apim_single_sensor_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     Create a single channel sensor of sensor_type with the column name, timestamps, data, and description
+
     :param sensor_type: the SensorType of sensor to create
     :param timestamps: the timestamps of the data
     :param data: the list of data to be added
@@ -433,6 +445,7 @@ def load_apim_single_sensor_from_list(
 def load_apim_audio(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load audio data from a single redvox packet
+
     :param packet: packet with data to load
     :return: audio sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -469,50 +482,48 @@ def load_apim_audio_from_list(
     &#34;&#34;&#34;
     load audio data from a list of redvox packets
     NOTE: This only works because audio sensors in the list should all have the same number of data points.
+
     :param packets: packets with data to load
     :return: audio sensor data if it exists, None otherwise
     &#34;&#34;&#34;
     if len(packets) &gt; 0:
         if __has_sensor(
                 packets[0], __AUDIO_FIELD_NAME
-        ):  # and packets[0].get_sensors().validate_audio():
-            try:
-                sample_rate_hz: float = packets[0].sensors.audio.sample_rate
-                packet_info = [
-                    (
-                        p.sensors.audio.first_sample_timestamp,
-                        np.array(p.sensors.audio.samples.values),
-                    )
-                    for p in packets
-                ]
-                df, gaps = gpu.fill_audio_gaps(
-                    packet_info, dtu.seconds_to_microseconds(1 / sample_rate_hz)
+        ):
+            sample_rate_hz: float = packets[0].sensors.audio.sample_rate
+            packet_info = [
+                (
+                    p.sensors.audio.first_sample_timestamp,
+                    np.array(p.sensors.audio.samples.values),
                 )
+                for p in packets
+            ]
+            gp_result = gpu.fill_audio_gaps(
+                packet_info, dtu.seconds_to_microseconds(1 / sample_rate_hz)
+            )
+            sensor_data = SensorData(
+                get_sensor_description_list(packets, SensorType.AUDIO),
+                gp_result.result_df,
+                SensorType.AUDIO,
+                sample_rate_hz,
+                1 / sample_rate_hz,
+                0.0,
+                True,
+                )
+            if len(gp_result.errors.get()) &gt; 0:
+                sensor_data.errors.extend_error(gp_result.errors)
 
-                return (
-                    SensorData(
-                        get_sensor_description_list(packets, SensorType.AUDIO),
-                        df,
-                        SensorType.AUDIO,
-                        sample_rate_hz,
-                        1 / sample_rate_hz,
-                        0.0,
-                        True,
-                        ),
-                    gaps,
-                )
-            except ValueError as error:
-                print(
-                    &#34;Error occurred while loading audio data for station &#34;
-                    f&#34;{packets[0].station_information.id}.\n&#34;
-                    f&#34;Original error message: {error}&#34;
-                )
+            return (
+                sensor_data,
+                gp_result.gaps,
+            )
     return None, []
 
 
 def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load compressed audio data from a single redvox packet
+
     :param packet: packet with data to load
     :return: compressed audio sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -548,6 +559,7 @@ def load_apim_compressed_audio_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load compressed audio data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: compressed audio sensor data if it exists, None otherwise
@@ -587,6 +599,7 @@ def load_apim_compressed_audio_from_list(
 def load_apim_image(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load image data from a single redvox packet
+
     :param packet: packet with data to load
     :return: image sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -620,6 +633,7 @@ def load_apim_image_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load image data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: image sensor data if it exists, None otherwise
@@ -680,6 +694,7 @@ def __is_only_best_values(loc: api_m.RedvoxPacketM.Sensors.Location) -&gt; bool:
 def load_apim_best_location(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load best location data from a single redvox packet
+
     :param packet: packet with data to load
     :return: best location sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -726,6 +741,7 @@ def load_apim_best_location_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load best location data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: best location sensor data if it exists, None otherwise
@@ -772,6 +788,7 @@ def load_apim_best_location_from_list(
 def load_apim_location(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load location data from a single packet
+
     :param packet: packet with data to load
     :return: location sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -831,6 +848,7 @@ def load_apim_location_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load location data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: location sensor data if it exists, None otherwise
@@ -977,6 +995,7 @@ def load_single_from_list(
 def load_apim_pressure(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load pressure data from a single redvox packet
+
     :param packet: packet with data to load
     :return: pressure sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -988,6 +1007,7 @@ def load_apim_pressure_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load pressure data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: pressure sensor data if it exists, None otherwise
@@ -1002,6 +1022,7 @@ def load_apim_pressure_from_list(
 def load_apim_light(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load light data from a single redvox packet
+
     :param packet: packet with data to load
     :return: light sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1013,6 +1034,7 @@ def load_apim_light_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load light data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: light sensor data if it exists, None otherwise
@@ -1027,6 +1049,7 @@ def load_apim_light_from_list(
 def load_apim_proximity(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load proximity data from a single redvox packet
+
     :param packet: packet with data to load
     :return: proximity sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1038,6 +1061,7 @@ def load_apim_proximity_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load proximity data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: proximity sensor data if it exists, None otherwise
@@ -1054,6 +1078,7 @@ def load_apim_ambient_temp(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load ambient temperature data from a single redvox packet
+
     :param packet: packet with data to load
     :return: ambient temperature sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1068,6 +1093,7 @@ def load_apim_ambient_temp_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load ambient temperature data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: ambient temperature sensor data if it exists, None otherwise
@@ -1084,6 +1110,7 @@ def load_apim_rel_humidity(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load relative humidity data from a single redvox packet
+
     :param packet: packet with data to load
     :return: relative humidity sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1098,6 +1125,7 @@ def load_apim_rel_humidity_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load relative humidity data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: relative humidity sensor data if it exists, None otherwise
@@ -1176,6 +1204,7 @@ def load_apim_accelerometer(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load accelerometer data from a single redvox packet
+
     :param packet: packet with data to load
     :return: accelerometer sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1190,6 +1219,7 @@ def load_apim_accelerometer_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load accelerometer data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: accelerometer sensor data if it exists, None otherwise
@@ -1206,6 +1236,7 @@ def load_apim_magnetometer(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load magnetometer data from a single redvox packet
+
     :param packet: packet with data to load
     :return: magnetometer sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1220,6 +1251,7 @@ def load_apim_magnetometer_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load magnetometer data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: magnetometer sensor data if it exists, None otherwise
@@ -1234,6 +1266,7 @@ def load_apim_magnetometer_from_list(
 def load_apim_gyroscope(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load gyroscope data from a single redvox packet
+
     :param packet: packet with data to load
     :return: gyroscope sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1245,6 +1278,7 @@ def load_apim_gyroscope_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load gyroscope data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: gyroscope sensor data if it exists, None otherwise
@@ -1259,6 +1293,7 @@ def load_apim_gyroscope_from_list(
 def load_apim_gravity(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load gravity data from a single redvox packet
+
     :param packet: packet with data to load
     :return: gravity sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1270,6 +1305,7 @@ def load_apim_gravity_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load gravity data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: gravity sensor data if it exists, None otherwise
@@ -1284,6 +1320,7 @@ def load_apim_gravity_from_list(
 def load_apim_orientation(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load orientation data from a single redvox packet
+
     :param packet: packet with data to load
     :return: orientation sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1298,6 +1335,7 @@ def load_apim_orientation_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load orientation data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: orientation sensor data if it exists, None otherwise
@@ -1314,6 +1352,7 @@ def load_apim_linear_accel(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load linear acceleration data from a single redvox packet
+
     :param packet: packet with data to load
     :return: linear acceleration sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1328,6 +1367,7 @@ def load_apim_linear_accel_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load linear acceleration data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: linear acceleration sensor data if it exists, None otherwise
@@ -1344,6 +1384,7 @@ def load_apim_rotation_vector(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load rotation vector data from a single redvox packet
+
     :param packet: packet with data to load
     :return: rotation vector sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1358,6 +1399,7 @@ def load_apim_rotation_vector_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load rotation vector data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: rotation vector sensor data if it exists, None otherwise
@@ -1372,6 +1414,7 @@ def load_apim_rotation_vector_from_list(
 def load_apim_health(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load station health data from a single redvox packet
+
     :param packet: packet with data to load
     :return: station health data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1430,6 +1473,7 @@ def load_apim_health_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load station health data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: station health sensor data if it exists, None otherwise
@@ -1528,8 +1572,8 @@ def load_apim_health_from_list(
 <span>def <span class="ident">get_empty_sensor_data</span></span>(<span>name: str, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR) ‑> <a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>create a sensor data object with no data
-:param name: name of the sensor
+<div class="desc"><p>create a sensor data object with no data</p>
+<p>:param name: name of the sensor
 :param sensor_type: type of the sensor to create, default SensorType.UNKNOWN_SENSOR
 :return: empty sensor</p></div>
 <details class="source">
@@ -1541,6 +1585,7 @@ def load_apim_health_from_list(
 ) -&gt; SensorData:
     &#34;&#34;&#34;
     create a sensor data object with no data
+
     :param name: name of the sensor
     :param sensor_type: type of the sensor to create, default SensorType.UNKNOWN_SENSOR
     :return: empty sensor
@@ -1552,8 +1597,8 @@ def load_apim_health_from_list(
 <span>def <span class="ident">get_sample_statistics</span></span>(<span>data_df: pandas.core.frame.DataFrame) ‑> Tuple[float, float, float]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>calculate the sample rate, interval and interval std dev using the timestamps in the dataframe
-:param data_df: the dataframe containing timestamps to calculate statistics from
+<div class="desc"><p>calculate the sample rate, interval and interval std dev using the timestamps in the dataframe</p>
+<p>:param data_df: the dataframe containing timestamps to calculate statistics from
 :return: a Tuple containing the sample rate, interval and interval std dev</p></div>
 <details class="source">
 <summary>
@@ -1562,6 +1607,7 @@ def load_apim_health_from_list(
 <pre><code class="python">def get_sample_statistics(data_df: pd.DataFrame) -&gt; Tuple[float, float, float]:
     &#34;&#34;&#34;
     calculate the sample rate, interval and interval std dev using the timestamps in the dataframe
+
     :param data_df: the dataframe containing timestamps to calculate statistics from
     :return: a Tuple containing the sample rate, interval and interval std dev
     &#34;&#34;&#34;
@@ -1584,8 +1630,8 @@ def load_apim_health_from_list(
 <span>def <span class="ident">get_sensor_description</span></span>(<span>sensor: Union[src.redvox_api_m.redvox_api_m_pb2.Xyz, src.redvox_api_m.redvox_api_m_pb2.Single, src.redvox_api_m.redvox_api_m_pb2.Audio, src.redvox_api_m.redvox_api_m_pb2.Image, src.redvox_api_m.redvox_api_m_pb2.Location, src.redvox_api_m.redvox_api_m_pb2.CompressedAudio]) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"><p>read the sensor's description from the sensor
-:param sensor: the sensor to read the description from
+<div class="desc"><p>read the sensor's description from the sensor</p>
+<p>:param sensor: the sensor to read the description from
 :return: the sensor's description</p></div>
 <details class="source">
 <summary>
@@ -1594,6 +1640,7 @@ def load_apim_health_from_list(
 <pre><code class="python">def get_sensor_description(sensor: Sensor) -&gt; str:
     &#34;&#34;&#34;
     read the sensor&#39;s description from the sensor
+
     :param sensor: the sensor to read the description from
     :return: the sensor&#39;s description
     &#34;&#34;&#34;
@@ -1604,8 +1651,8 @@ def load_apim_health_from_list(
 <span>def <span class="ident">get_sensor_description_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Union[str, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>read the sensor_type sensor's description from a list of packets
-:param packets: the list of packets to read from
+<div class="desc"><p>read the sensor_type sensor's description from a list of packets</p>
+<p>:param packets: the list of packets to read from
 :param sensor_type: the SensorType of the sensor to read the description of
 :return: the sensor_type sensor's description</p></div>
 <details class="source">
@@ -1617,6 +1664,7 @@ def load_apim_health_from_list(
 ) -&gt; Optional[str]:
     &#34;&#34;&#34;
     read the sensor_type sensor&#39;s description from a list of packets
+
     :param packets: the list of packets to read from
     :param sensor_type: the SensorType of the sensor to read the description of
     :return: the sensor_type sensor&#39;s description
@@ -1637,8 +1685,8 @@ def load_apim_health_from_list(
 <span>def <span class="ident">load_apim_accelerometer</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load accelerometer data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load accelerometer data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: accelerometer sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -1649,6 +1697,7 @@ def load_apim_health_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load accelerometer data from a single redvox packet
+
     :param packet: packet with data to load
     :return: accelerometer sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1662,8 +1711,8 @@ def load_apim_health_from_list(
 <span>def <span class="ident">load_apim_accelerometer_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load accelerometer data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load accelerometer data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: accelerometer sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -1675,6 +1724,7 @@ def load_apim_health_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load accelerometer data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: accelerometer sensor data if it exists, None otherwise
@@ -1690,8 +1740,8 @@ def load_apim_health_from_list(
 <span>def <span class="ident">load_apim_ambient_temp</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load ambient temperature data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load ambient temperature data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: ambient temperature sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -1702,6 +1752,7 @@ def load_apim_health_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load ambient temperature data from a single redvox packet
+
     :param packet: packet with data to load
     :return: ambient temperature sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1715,8 +1766,8 @@ def load_apim_health_from_list(
 <span>def <span class="ident">load_apim_ambient_temp_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load ambient temperature data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load ambient temperature data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: ambient temperature sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -1728,6 +1779,7 @@ def load_apim_health_from_list(
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load ambient temperature data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: ambient temperature sensor data if it exists, None otherwise
@@ -1743,8 +1795,8 @@ def load_apim_health_from_list(
 <span>def <span class="ident">load_apim_audio</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load audio data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load audio data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: audio sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -1753,6 +1805,7 @@ def load_apim_health_from_list(
 <pre><code class="python">def load_apim_audio(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load audio data from a single redvox packet
+
     :param packet: packet with data to load
     :return: audio sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1788,8 +1841,8 @@ def load_apim_health_from_list(
 </code></dt>
 <dd>
 <div class="desc"><p>load audio data from a list of redvox packets
-NOTE: This only works because audio sensors in the list should all have the same number of data points.
-:param packets: packets with data to load
+NOTE: This only works because audio sensors in the list should all have the same number of data points.</p>
+<p>:param packets: packets with data to load
 :return: audio sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -1801,44 +1854,41 @@ NOTE: This only works because audio sensors in the list should all have the same
     &#34;&#34;&#34;
     load audio data from a list of redvox packets
     NOTE: This only works because audio sensors in the list should all have the same number of data points.
+
     :param packets: packets with data to load
     :return: audio sensor data if it exists, None otherwise
     &#34;&#34;&#34;
     if len(packets) &gt; 0:
         if __has_sensor(
                 packets[0], __AUDIO_FIELD_NAME
-        ):  # and packets[0].get_sensors().validate_audio():
-            try:
-                sample_rate_hz: float = packets[0].sensors.audio.sample_rate
-                packet_info = [
-                    (
-                        p.sensors.audio.first_sample_timestamp,
-                        np.array(p.sensors.audio.samples.values),
-                    )
-                    for p in packets
-                ]
-                df, gaps = gpu.fill_audio_gaps(
-                    packet_info, dtu.seconds_to_microseconds(1 / sample_rate_hz)
+        ):
+            sample_rate_hz: float = packets[0].sensors.audio.sample_rate
+            packet_info = [
+                (
+                    p.sensors.audio.first_sample_timestamp,
+                    np.array(p.sensors.audio.samples.values),
                 )
+                for p in packets
+            ]
+            gp_result = gpu.fill_audio_gaps(
+                packet_info, dtu.seconds_to_microseconds(1 / sample_rate_hz)
+            )
+            sensor_data = SensorData(
+                get_sensor_description_list(packets, SensorType.AUDIO),
+                gp_result.result_df,
+                SensorType.AUDIO,
+                sample_rate_hz,
+                1 / sample_rate_hz,
+                0.0,
+                True,
+                )
+            if len(gp_result.errors.get()) &gt; 0:
+                sensor_data.errors.extend_error(gp_result.errors)
 
-                return (
-                    SensorData(
-                        get_sensor_description_list(packets, SensorType.AUDIO),
-                        df,
-                        SensorType.AUDIO,
-                        sample_rate_hz,
-                        1 / sample_rate_hz,
-                        0.0,
-                        True,
-                        ),
-                    gaps,
-                )
-            except ValueError as error:
-                print(
-                    &#34;Error occurred while loading audio data for station &#34;
-                    f&#34;{packets[0].station_information.id}.\n&#34;
-                    f&#34;Original error message: {error}&#34;
-                )
+            return (
+                sensor_data,
+                gp_result.gaps,
+            )
     return None, []</code></pre>
 </details>
 </dd>
@@ -1846,8 +1896,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_best_location</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load best location data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load best location data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: best location sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -1856,6 +1906,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_best_location(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load best location data from a single redvox packet
+
     :param packet: packet with data to load
     :return: best location sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -1901,8 +1952,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_best_location_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load best location data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load best location data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: best location sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -1914,6 +1965,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load best location data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: best location sensor data if it exists, None otherwise
@@ -1961,8 +2013,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_compressed_audio</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load compressed audio data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load compressed audio data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: compressed audio sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -1971,6 +2023,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load compressed audio data from a single redvox packet
+
     :param packet: packet with data to load
     :return: compressed audio sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2005,8 +2058,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_compressed_audio_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load compressed audio data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load compressed audio data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: compressed audio sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2018,6 +2071,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load compressed audio data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: compressed audio sensor data if it exists, None otherwise
@@ -2058,8 +2112,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_gravity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load gravity data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load gravity data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: gravity sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2068,6 +2122,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_gravity(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load gravity data from a single redvox packet
+
     :param packet: packet with data to load
     :return: gravity sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2078,8 +2133,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_gravity_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load gravity data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load gravity data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: gravity sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2091,6 +2146,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load gravity data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: gravity sensor data if it exists, None otherwise
@@ -2106,8 +2162,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_gyroscope</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load gyroscope data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load gyroscope data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: gyroscope sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2116,6 +2172,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_gyroscope(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load gyroscope data from a single redvox packet
+
     :param packet: packet with data to load
     :return: gyroscope sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2126,8 +2183,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_gyroscope_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load gyroscope data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load gyroscope data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: gyroscope sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2139,6 +2196,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load gyroscope data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: gyroscope sensor data if it exists, None otherwise
@@ -2154,8 +2212,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_health</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load station health data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load station health data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: station health data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2164,6 +2222,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_health(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load station health data from a single redvox packet
+
     :param packet: packet with data to load
     :return: station health data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2221,8 +2280,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_health_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load station health data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load station health data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: station health sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2234,6 +2293,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load station health data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: station health sensor data if it exists, None otherwise
@@ -2325,8 +2385,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_image</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load image data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load image data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: image sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2335,6 +2395,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_image(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load image data from a single redvox packet
+
     :param packet: packet with data to load
     :return: image sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2367,8 +2428,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_image_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load image data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load image data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: image sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2380,6 +2441,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load image data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: image sensor data if it exists, None otherwise
@@ -2432,8 +2494,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_light</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load light data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load light data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: light sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2442,6 +2504,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_light(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load light data from a single redvox packet
+
     :param packet: packet with data to load
     :return: light sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2452,8 +2515,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_light_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load light data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load light data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: light sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2465,6 +2528,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load light data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: light sensor data if it exists, None otherwise
@@ -2480,8 +2544,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_linear_accel</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load linear acceleration data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load linear acceleration data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: linear acceleration sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2492,6 +2556,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load linear acceleration data from a single redvox packet
+
     :param packet: packet with data to load
     :return: linear acceleration sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2505,8 +2570,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_linear_accel_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load linear acceleration data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load linear acceleration data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: linear acceleration sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2518,6 +2583,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load linear acceleration data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: linear acceleration sensor data if it exists, None otherwise
@@ -2533,8 +2599,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_location</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load location data from a single packet
-:param packet: packet with data to load
+<div class="desc"><p>load location data from a single packet</p>
+<p>:param packet: packet with data to load
 :return: location sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2543,6 +2609,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_location(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load location data from a single packet
+
     :param packet: packet with data to load
     :return: location sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2601,8 +2668,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_location_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load location data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load location data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: location sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2614,6 +2681,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load location data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: location sensor data if it exists, None otherwise
@@ -2701,8 +2769,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_magnetometer</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load magnetometer data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load magnetometer data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: magnetometer sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2713,6 +2781,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load magnetometer data from a single redvox packet
+
     :param packet: packet with data to load
     :return: magnetometer sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2726,8 +2795,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_magnetometer_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load magnetometer data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load magnetometer data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: magnetometer sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2739,6 +2808,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load magnetometer data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: magnetometer sensor data if it exists, None otherwise
@@ -2754,8 +2824,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_orientation</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load orientation data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load orientation data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: orientation sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2764,6 +2834,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_orientation(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load orientation data from a single redvox packet
+
     :param packet: packet with data to load
     :return: orientation sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2777,8 +2848,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_orientation_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load orientation data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load orientation data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: orientation sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2790,6 +2861,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load orientation data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: orientation sensor data if it exists, None otherwise
@@ -2805,8 +2877,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_pressure</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load pressure data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load pressure data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: pressure sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2815,6 +2887,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_pressure(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load pressure data from a single redvox packet
+
     :param packet: packet with data to load
     :return: pressure sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2825,8 +2898,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_pressure_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load pressure data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load pressure data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: pressure sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2838,6 +2911,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load pressure data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: pressure sensor data if it exists, None otherwise
@@ -2853,8 +2927,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_proximity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load proximity data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load proximity data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: proximity sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2863,6 +2937,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 <pre><code class="python">def load_apim_proximity(packet: api_m.RedvoxPacketM) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load proximity data from a single redvox packet
+
     :param packet: packet with data to load
     :return: proximity sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2873,8 +2948,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_proximity_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load proximity data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load proximity data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: proximity sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2886,6 +2961,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load proximity data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: proximity sensor data if it exists, None otherwise
@@ -2901,8 +2977,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_rel_humidity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load relative humidity data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load relative humidity data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: relative humidity sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2913,6 +2989,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load relative humidity data from a single redvox packet
+
     :param packet: packet with data to load
     :return: relative humidity sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2926,8 +3003,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_rel_humidity_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load relative humidity data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load relative humidity data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: relative humidity sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2939,6 +3016,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load relative humidity data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: relative humidity sensor data if it exists, None otherwise
@@ -2954,8 +3032,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_rotation_vector</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load rotation vector data from a single redvox packet
-:param packet: packet with data to load
+<div class="desc"><p>load rotation vector data from a single redvox packet</p>
+<p>:param packet: packet with data to load
 :return: rotation vector sensor data if it exists, None otherwise</p></div>
 <details class="source">
 <summary>
@@ -2966,6 +3044,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load rotation vector data from a single redvox packet
+
     :param packet: packet with data to load
     :return: rotation vector sensor data if it exists, None otherwise
     &#34;&#34;&#34;
@@ -2979,8 +3058,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_rotation_vector_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>load rotation vector data from a list of redvox packets
-:param packets: packets with data to load
+<div class="desc"><p>load rotation vector data from a list of redvox packets</p>
+<p>:param packets: packets with data to load
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :return: rotation vector sensor data if it exists, None otherwise</p></div>
 <details class="source">
@@ -2992,6 +3071,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     load rotation vector data from a list of redvox packets
+
     :param packets: packets with data to load
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: rotation vector sensor data if it exists, None otherwise
@@ -3007,8 +3087,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_single_sensor_from_list</span></span>(<span>sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, timestamps: List[float], data: List[float], gaps: List[Tuple[float, float]], column_name: str, description: str, sample_interval_micros: float) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Create a single channel sensor of sensor_type with the column name, timestamps, data, and description
-:param sensor_type: the SensorType of sensor to create
+<div class="desc"><p>Create a single channel sensor of sensor_type with the column name, timestamps, data, and description</p>
+<p>:param sensor_type: the SensorType of sensor to create
 :param timestamps: the timestamps of the data
 :param data: the list of data to be added
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
@@ -3031,6 +3111,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     Create a single channel sensor of sensor_type with the column name, timestamps, data, and description
+
     :param sensor_type: the SensorType of sensor to create
     :param timestamps: the timestamps of the data
     :param data: the list of data to be added
@@ -3058,8 +3139,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 <span>def <span class="ident">load_apim_xyz_sensor_from_list</span></span>(<span>sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, data: List[List[float]], gaps: List[Tuple[float, float]], column_name: str, description: str, sample_interval_micros: float) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>create a three channel sensor of sensor_type with the column name, description, and data given.
-:param sensor_type: the SensorType of sensor to create
+<div class="desc"><p>create a three channel sensor of sensor_type with the column name, description, and data given.</p>
+<p>:param sensor_type: the SensorType of sensor to create
 :param data: the list of data to be added; requires timestamps to be the first list
 :param gaps: the list of non-inclusive start and end times of the gaps in the packets
 :param column_name: the name of the columns that contain the data
@@ -3080,6 +3161,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 ) -&gt; Optional[SensorData]:
     &#34;&#34;&#34;
     create a three channel sensor of sensor_type with the column name, description, and data given.
+
     :param sensor_type: the SensorType of sensor to create
     :param data: the list of data to be added; requires timestamps to be the first list
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
@@ -3271,8 +3353,8 @@ NOTE: This only works because audio sensors in the list should all have the same
 </code></dt>
 <dd>
 <div class="desc"><p>read a sensor that has a single data channel from an api M data packet
-raises Attribute Error if sensor does not contain exactly one data channel
-:param sensor: the single channel api M sensor to read
+raises Attribute Error if sensor does not contain exactly one data channel</p>
+<p>:param sensor: the single channel api M sensor to read
 :param column_id: string, used to name the columns
 :return: Dataframe representing the data in the sensor</p></div>
 <details class="source">
@@ -3285,6 +3367,7 @@ raises Attribute Error if sensor does not contain exactly one data channel
     &#34;&#34;&#34;
     read a sensor that has a single data channel from an api M data packet
     raises Attribute Error if sensor does not contain exactly one data channel
+
     :param sensor: the single channel api M sensor to read
     :param column_id: string, used to name the columns
     :return: Dataframe representing the data in the sensor
@@ -3305,8 +3388,8 @@ raises Attribute Error if sensor does not contain exactly one data channel
 </code></dt>
 <dd>
 <div class="desc"><p>read a sensor that has xyz data channels from an api M data packet
-raises Attribute Error if sensor does not contain xyz channels
-:param sensor: the xyz api M sensor to read
+raises Attribute Error if sensor does not contain xyz channels</p>
+<p>:param sensor: the xyz api M sensor to read
 :param column_id: string, used to name the columns
 :return: Dataframe representing the data in the sensor</p></div>
 <details class="source">
@@ -3319,6 +3402,7 @@ raises Attribute Error if sensor does not contain xyz channels
     &#34;&#34;&#34;
     read a sensor that has xyz data channels from an api M data packet
     raises Attribute Error if sensor does not contain xyz channels
+
     :param sensor: the xyz api M sensor to read
     :param column_id: string, used to name the columns
     :return: Dataframe representing the data in the sensor

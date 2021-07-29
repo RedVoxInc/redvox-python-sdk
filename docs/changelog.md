@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.6 (2021-7-28)
+
+* Add methods for querying status of optional dependencies
+* Add ability to construct cloud client from previously held authentication token
+
 ### 3.0.5 (2021-7-27)
 
 * Fixed nan'd missing data points for audio sensors with data that doesn't reach edges of data window

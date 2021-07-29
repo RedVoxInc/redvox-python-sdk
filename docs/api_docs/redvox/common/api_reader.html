@@ -6,8 +6,7 @@
 <meta name="generator" content="pdoc 0.9.2" />
 <title>redvox.common.api_reader API documentation</title>
 <meta name="description" content="Read Redvox data from a single directory
-Data files can be either API 900 or API 1000 data formats
-The ReadResult object converts api900 data into api …" />
+Data files can be either API 900 or API 1000 data formats" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -25,8 +24,7 @@ The ReadResult object converts api900 data into api …" />
 </header>
 <section id="section-intro">
 <p>Read Redvox data from a single directory
-Data files can be either API 900 or API 1000 data formats
-The ReadResult object converts api900 data into api 1000 format</p>
+Data files can be either API 900 or API 1000 data formats</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -34,15 +32,11 @@ The ReadResult object converts api900 data into api 1000 format</p>
 <pre><code class="python">&#34;&#34;&#34;
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
-The ReadResult object converts api900 data into api 1000 format
 &#34;&#34;&#34;
-from collections import defaultdict
-from typing import List, Optional, Dict, Iterator
+from typing import List, Optional
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
-
-import numpy as np
 
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import offset_model
@@ -51,6 +45,7 @@ from redvox.common import io
 from redvox.common import file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
+from redvox.common.errors import RedVoxExceptions
 
 
 class ApiReader:
@@ -78,6 +73,7 @@ class ApiReader:
     ):
         &#34;&#34;&#34;
         Initialize the ApiReader object
+
         :param base_dir: directory containing the files to read
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
@@ -97,8 +93,12 @@ class ApiReader:
         self.base_dir = base_dir
         self.structured_dir = structured_dir
         self.debug = debug
+        self.errors = RedVoxExceptions(&#34;APIReader&#34;)
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
+
+        if debug:
+            self.errors.print()
 
         if pool is None:
             _pool.close()
@@ -117,6 +117,7 @@ class ApiReader:
     ) -&gt; List[io.Index]:
         &#34;&#34;&#34;
         get all files in the base dir of the ApiReader
+
         :return: index with all the files that match the filter
         &#34;&#34;&#34;
         _pool: multiprocessing.pool.Pool = (
@@ -191,28 +192,44 @@ class ApiReader:
 
         diff_s = diff_e = timedelta(seconds=0)
 
-        # if our filtered files do not encompass the request even when the packet times are updated, increase buffers
-        # by 1.5 times the difference of the expected start/end and the start/end of the data
+        # if our filtered files do not encompass the request even when the packet times are updated
+        # try getting 1.5 times the difference of the expected start/end and the start/end of the data
         insufficient_str = &#34;&#34;
         if self.filter.start_dt and timing_offsets.adjusted_start &gt; self.filter.start_dt:
-            insufficient_str += &#34; start&#34;
-            diff_s = self.filter.start_dt_buf + 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
-        if self.filter.end_dt and timing_offsets.adjusted_end &lt; self.filter.end_dt:
-            insufficient_str += &#34; end&#34;
-            diff_e = self.filter.end_dt_buf + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
-        if len(insufficient_str) &gt; 0:
-            if self.debug:
-                print(f&#34;Api Reader: {station_index.summarize().station_ids()} not enough data at{insufficient_str}&#34;)
+            insufficient_str += f&#34; {self.filter.start_dt} (start)&#34;
+            # diff_s = self.filter.start_dt_buf + 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
+            new_end = self.filter.start_dt - self.filter.start_dt_buf
+            new_start = new_end - 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
             new_index = self._apply_filter(io.ReadFilter()
-                                           .with_start_dt(self.filter.start_dt)
-                                           .with_end_dt(self.filter.end_dt)
+                                           .with_start_dt(new_start)
+                                           .with_end_dt(new_end)
                                            .with_extensions(self.filter.extensions)
                                            .with_api_versions(self.filter.api_versions)
                                            .with_station_ids(set(station_index.summarize().station_ids()))
                                            .with_start_dt_buf(diff_s)
                                            .with_end_dt_buf(diff_e))
-            station_index = new_index
-            stats = fs.extract_stats(station_index, pool=_pool)
+            if len(new_index.entries) &gt; 0:
+                station_index.append(new_index.entries)
+                stats.extend(fs.extract_stats(new_index))
+        if self.filter.end_dt and timing_offsets.adjusted_end &lt; self.filter.end_dt:
+            insufficient_str += f&#34; {self.filter.end_dt} (end)&#34;
+            # diff_e = self.filter.end_dt_buf + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
+            new_start = self.filter.end_dt + self.filter.end_dt_buf
+            new_end = new_start + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
+            new_index = self._apply_filter(io.ReadFilter()
+                                           .with_start_dt(new_start)
+                                           .with_end_dt(new_end)
+                                           .with_extensions(self.filter.extensions)
+                                           .with_api_versions(self.filter.api_versions)
+                                           .with_station_ids(set(station_index.summarize().station_ids()))
+                                           .with_start_dt_buf(diff_s)
+                                           .with_end_dt_buf(diff_e))
+            if len(new_index.entries) &gt; 0:
+                station_index.append(new_index.entries)
+                stats.extend(fs.extract_stats(new_index))
+        if len(insufficient_str) &gt; 0:
+            self.errors.append(f&#34;Data for {station_index.summarize().station_ids()} exists, &#34;
+                               f&#34;but not at:{insufficient_str}&#34;)
 
         results = {}
         keys = []
@@ -231,6 +248,7 @@ class ApiReader:
     def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
         &#34;&#34;&#34;
         read all the files in the index
+
         :return: list of RedvoxPacketM, converted from API 900 if necessary
         &#34;&#34;&#34;
         result: List[api_m.RedvoxPacketM] = []
@@ -316,38 +334,7 @@ class ApiReader:
         result = [s for s in self.get_stations() if s.id == get_id]
         if len(result) &lt; 1:
             return None
-        return result
-
-    # def _stations_by_key(self, get_id: str) -&gt; List[Station]:
-    #     &#34;&#34;&#34;
-    #     return the start datetime and the list of packets that have the start datetime for a single station id
-    #     :param get_id: the single id to get data for
-    #     :return: list of stations where each station has different start datetimes but the same station id
-    #     &#34;&#34;&#34;
-    #     packets = self.read_files_by_id(get_id)
-    #     if packets:
-    #         result = {}
-    #         if packets[0].timing_information.app_start_mach_timestamp \
-    #                 != packets[-1].timing_information.app_start_mach_timestamp:
-    #             sts = np.unique([p.timing_information.app_start_mach_timestamp for p in packets])
-    #             for st in sts:
-    #                 result[st] = [p for p in packets if p.timing_information.app_start_mach_timestamp == st]
-    #         else:
-    #             result[packets[0].timing_information.app_start_mach_timestamp] = packets
-    #         return [Station(d) for d in result.values()]
-    #     else:
-    #         return []
-
-    # def sort_files_by_station(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[Station]:
-    #     stations_opt = maybe_parallel_map(
-    #         pool,
-    #         self._stations_by_key,
-    #         iter(self.read_files().keys()),
-    #         lambda: len(self.read_files().keys()) &gt; 2,
-    #         chunk_size=1
-    #     )
-    #     # return result
-    #     return [item for sublist in stations_opt for item in sublist]</code></pre>
+        return result</code></pre>
 </details>
 </section>
 <section>
@@ -378,8 +365,8 @@ files_index: io.Index of the files that match the filter that are in base_dir
 index_summary: io.IndexSummary of the filtered data
 debug: bool, if True, output additional information during function execution.
 Default False.</p>
-<p>Initialize the ApiReader object
-:param base_dir: directory containing the files to read
+<p>Initialize the ApiReader object</p>
+<p>:param base_dir: directory containing the files to read
 :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
 api formats.
 If False, base_dir only has the data files.
@@ -417,6 +404,7 @@ Default False.</p></div>
     ):
         &#34;&#34;&#34;
         Initialize the ApiReader object
+
         :param base_dir: directory containing the files to read
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
@@ -436,8 +424,12 @@ Default False.</p></div>
         self.base_dir = base_dir
         self.structured_dir = structured_dir
         self.debug = debug
+        self.errors = RedVoxExceptions(&#34;APIReader&#34;)
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
+
+        if debug:
+            self.errors.print()
 
         if pool is None:
             _pool.close()
@@ -456,6 +448,7 @@ Default False.</p></div>
     ) -&gt; List[io.Index]:
         &#34;&#34;&#34;
         get all files in the base dir of the ApiReader
+
         :return: index with all the files that match the filter
         &#34;&#34;&#34;
         _pool: multiprocessing.pool.Pool = (
@@ -530,28 +523,44 @@ Default False.</p></div>
 
         diff_s = diff_e = timedelta(seconds=0)
 
-        # if our filtered files do not encompass the request even when the packet times are updated, increase buffers
-        # by 1.5 times the difference of the expected start/end and the start/end of the data
+        # if our filtered files do not encompass the request even when the packet times are updated
+        # try getting 1.5 times the difference of the expected start/end and the start/end of the data
         insufficient_str = &#34;&#34;
         if self.filter.start_dt and timing_offsets.adjusted_start &gt; self.filter.start_dt:
-            insufficient_str += &#34; start&#34;
-            diff_s = self.filter.start_dt_buf + 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
-        if self.filter.end_dt and timing_offsets.adjusted_end &lt; self.filter.end_dt:
-            insufficient_str += &#34; end&#34;
-            diff_e = self.filter.end_dt_buf + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
-        if len(insufficient_str) &gt; 0:
-            if self.debug:
-                print(f&#34;Api Reader: {station_index.summarize().station_ids()} not enough data at{insufficient_str}&#34;)
+            insufficient_str += f&#34; {self.filter.start_dt} (start)&#34;
+            # diff_s = self.filter.start_dt_buf + 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
+            new_end = self.filter.start_dt - self.filter.start_dt_buf
+            new_start = new_end - 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
             new_index = self._apply_filter(io.ReadFilter()
-                                           .with_start_dt(self.filter.start_dt)
-                                           .with_end_dt(self.filter.end_dt)
+                                           .with_start_dt(new_start)
+                                           .with_end_dt(new_end)
                                            .with_extensions(self.filter.extensions)
                                            .with_api_versions(self.filter.api_versions)
                                            .with_station_ids(set(station_index.summarize().station_ids()))
                                            .with_start_dt_buf(diff_s)
                                            .with_end_dt_buf(diff_e))
-            station_index = new_index
-            stats = fs.extract_stats(station_index, pool=_pool)
+            if len(new_index.entries) &gt; 0:
+                station_index.append(new_index.entries)
+                stats.extend(fs.extract_stats(new_index))
+        if self.filter.end_dt and timing_offsets.adjusted_end &lt; self.filter.end_dt:
+            insufficient_str += f&#34; {self.filter.end_dt} (end)&#34;
+            # diff_e = self.filter.end_dt_buf + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
+            new_start = self.filter.end_dt + self.filter.end_dt_buf
+            new_end = new_start + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
+            new_index = self._apply_filter(io.ReadFilter()
+                                           .with_start_dt(new_start)
+                                           .with_end_dt(new_end)
+                                           .with_extensions(self.filter.extensions)
+                                           .with_api_versions(self.filter.api_versions)
+                                           .with_station_ids(set(station_index.summarize().station_ids()))
+                                           .with_start_dt_buf(diff_s)
+                                           .with_end_dt_buf(diff_e))
+            if len(new_index.entries) &gt; 0:
+                station_index.append(new_index.entries)
+                stats.extend(fs.extract_stats(new_index))
+        if len(insufficient_str) &gt; 0:
+            self.errors.append(f&#34;Data for {station_index.summarize().station_ids()} exists, &#34;
+                               f&#34;but not at:{insufficient_str}&#34;)
 
         results = {}
         keys = []
@@ -570,6 +579,7 @@ Default False.</p></div>
     def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
         &#34;&#34;&#34;
         read all the files in the index
+
         :return: list of RedvoxPacketM, converted from API 900 if necessary
         &#34;&#34;&#34;
         result: List[api_m.RedvoxPacketM] = []
@@ -655,38 +665,7 @@ Default False.</p></div>
         result = [s for s in self.get_stations() if s.id == get_id]
         if len(result) &lt; 1:
             return None
-        return result
-
-    # def _stations_by_key(self, get_id: str) -&gt; List[Station]:
-    #     &#34;&#34;&#34;
-    #     return the start datetime and the list of packets that have the start datetime for a single station id
-    #     :param get_id: the single id to get data for
-    #     :return: list of stations where each station has different start datetimes but the same station id
-    #     &#34;&#34;&#34;
-    #     packets = self.read_files_by_id(get_id)
-    #     if packets:
-    #         result = {}
-    #         if packets[0].timing_information.app_start_mach_timestamp \
-    #                 != packets[-1].timing_information.app_start_mach_timestamp:
-    #             sts = np.unique([p.timing_information.app_start_mach_timestamp for p in packets])
-    #             for st in sts:
-    #                 result[st] = [p for p in packets if p.timing_information.app_start_mach_timestamp == st]
-    #         else:
-    #             result[packets[0].timing_information.app_start_mach_timestamp] = packets
-    #         return [Station(d) for d in result.values()]
-    #     else:
-    #         return []
-
-    # def sort_files_by_station(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[Station]:
-    #     stations_opt = maybe_parallel_map(
-    #         pool,
-    #         self._stations_by_key,
-    #         iter(self.read_files().keys()),
-    #         lambda: len(self.read_files().keys()) &gt; 2,
-    #         chunk_size=1
-    #     )
-    #     # return result
-    #     return [item for sublist in stations_opt for item in sublist]</code></pre>
+        return result</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -694,8 +673,8 @@ Default False.</p></div>
 <span>def <span class="ident">read_files_in_index</span></span>(<span>indexf: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>) ‑> List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>read all the files in the index
-:return: list of RedvoxPacketM, converted from API 900 if necessary</p></div>
+<div class="desc"><p>read all the files in the index</p>
+<p>:return: list of RedvoxPacketM, converted from API 900 if necessary</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -704,6 +683,7 @@ Default False.</p></div>
 def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
     &#34;&#34;&#34;
     read all the files in the index
+
     :return: list of RedvoxPacketM, converted from API 900 if necessary
     &#34;&#34;&#34;
     result: List[api_m.RedvoxPacketM] = []
