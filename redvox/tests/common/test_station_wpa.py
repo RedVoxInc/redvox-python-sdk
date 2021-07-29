@@ -33,15 +33,15 @@ class StationTest(unittest.TestCase):
             cls.api900_station = reader.get_station_wpa_by_id("1637650010")[0]
 
     def test_empty_station(self):
-        empty_apim_station = StationPa([])
+        empty_apim_station = StationPa()
         self.assertEqual(len(empty_apim_station._data), 0)
-        self.assertTrue(np.isnan(empty_apim_station.start_timestamp))
+        self.assertTrue(np.isnan(empty_apim_station.get_start_timestamp()))
         self.assertFalse(empty_apim_station.audio_sensor())
 
     def test_empty_station_update_timestamp(self):
-        empty_apim_station = StationPa([])
-        empty_apim_station.start_timestamp += 100
-        self.assertTrue(np.isnan(empty_apim_station.start_timestamp))
+        empty_apim_station = StationPa()
+        empty_apim_station.set_start_timestamp(empty_apim_station.get_start_timestamp() + 100)
+        self.assertTrue(np.isnan(empty_apim_station.get_start_timestamp()))
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station._data), 6)
@@ -73,7 +73,7 @@ class StationTest(unittest.TestCase):
         self.assertIsNone(health_sensor)
 
     def test_check_key(self):
-        empty_apim_station = StationPa([])
+        empty_apim_station = StationPa()
         with contextlib.redirect_stdout(None):
             self.assertFalse(empty_apim_station.check_key())
             empty_apim_station.set_id("1234567890")
@@ -84,13 +84,13 @@ class StationTest(unittest.TestCase):
             self.assertTrue(empty_apim_station.check_key())
 
     def test_append_station_mismatch(self):
-        empty_apim_station = StationPa([])
+        empty_apim_station = StationPa()
         with contextlib.redirect_stdout(None):
             empty_apim_station.append_station(self.apim_station)
         self.assertEqual(len(empty_apim_station._data), 0)
 
     def test_append_station_success(self):
-        empty_apim_station = StationPa([])
+        empty_apim_station = StationPa()
         empty_apim_station.set_id(self.apim_station.get_id()).set_uuid(
             self.apim_station.get_uuid()
         ).set_start_timestamp(self.apim_station.get_start_timestamp())
@@ -102,7 +102,7 @@ class StationTest(unittest.TestCase):
         )
 
     def test_append_sensor(self):
-        empty_apim_station = StationPa([])
+        empty_apim_station = StationPa()
         self.assertFalse(empty_apim_station.has_audio_sensor())
         empty_apim_station.append_sensor(self.apim_station.audio_sensor())
         self.assertEqual(len(empty_apim_station._data), 1)
@@ -115,7 +115,7 @@ class StationTest(unittest.TestCase):
         )
 
     def test_set_sensor(self):
-        empty_apim_station = StationPa([])
+        empty_apim_station = StationPa()
         self.assertFalse(empty_apim_station.has_audio_sensor())
         self.assertIsNone(empty_apim_station.audio_sensor())
         empty_apim_station.set_audio_sensor(
@@ -151,11 +151,12 @@ class StationSaveTest(unittest.TestCase):
             False,
             ReadFilter(extensions={".rdvxm"}, station_ids={"0000000001"}),
         )
-        self.apim_station = StationPa(reader.read_files_by_id("0000000001"),
-                                      base_out_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)), "pa_test"),
-                                      save_output=True)
-        self.apim_station2 = StationPa(reader.read_files_by_id("0000000001"),
-                                       save_output=True)
+        self.apim_station = \
+            StationPa.create_from_packets(reader.read_files_by_id("0000000001"),
+                                          base_out_dir=os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                                                    "pa_test"),
+                                          save_output=True)
+        self.apim_station2 = StationPa.create_from_packets(reader.read_files_by_id("0000000001"), save_output=True)
 
     def test_me_bro(self):
         self.apim_station.load_data_from_parquet()
@@ -177,7 +178,6 @@ class StationSaveTest(unittest.TestCase):
         self.assertIsNone(health_sensor)
 
     def test_me2_bro(self):
-        print(self.apim_station2.base_dir)
         self.apim_station2.load_data_from_parquet()
         self.assertEqual(len(self.apim_station2._data), 3)
         self.assertEqual(self.apim_station2.timesync_analysis.get_best_latency(), 1296.0)

@@ -107,7 +107,7 @@ def load_apim_audio(packet: RedvoxPacketM) -> Optional[Tuple[np.array, float]]:
     load audio data from a single redvox packet
 
     :param packet: packet with data to load
-    :return: audio sensor name, data, rate and start time if exists, None otherwise
+    :return: audio sensor data, start time if exists, None otherwise
     """
     if srupa.__has_sensor(packet, srupa.__AUDIO_FIELD_NAME):
         audio_sensor: RedvoxPacketM.Sensors.Audio = packet.sensors.audio

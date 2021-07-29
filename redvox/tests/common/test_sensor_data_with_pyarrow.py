@@ -69,19 +69,17 @@ class SensorDataTest(unittest.TestCase):
         self.assertFalse(self.uneven_sensor.is_sample_rate_fixed)
 
     def test_empty_dataframe(self):
-        failure = SensorDataPa.from_dict("", {"": []}, np.nan, np.nan, np.nan, True)
-        self.assertTrue(failure.errors.get_num_errors() > 0)
+        empty = SensorDataPa.from_dict("", {"": []}, is_sample_rate_fixed=True)
+        self.assertTrue(empty.errors.get_num_errors() == 0)
+        self.assertEqual(empty.type.value, SensorType.UNKNOWN_SENSOR.value)
 
     def test_invalid_dataframe(self):
-        failure = SensorDataPa.from_dict(
+        invalid = SensorDataPa.from_dict(
             "",
-            {"no_timestamps": []},
-            np.nan,
-            np.nan,
-            np.nan,
-            True,
+            {"not_timestamps": [1]},
+            is_sample_rate_fixed=True,
         )
-        self.assertTrue(failure.errors.get_num_errors() > 0)
+        self.assertTrue(invalid.errors.get_num_errors() > 0)
 
     def test_append_data(self):
         self.even_sensor.append_data(
@@ -128,16 +126,18 @@ class SensorDataTest(unittest.TestCase):
 
     def test_get_channel(self):
         self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 9)
-        self.assertRaises(ValueError, self.even_sensor.get_data_channel, "not_exist")
+        empty_channel = self.even_sensor.get_data_channel("not_exist")
+        self.assertEqual(len(empty_channel), 0)
+        self.assertEqual(self.even_sensor.errors.get_num_errors(), 1)
         self.even_sensor.append_data(
             [[0.], [0.], [np.nan], [np.nan]]
         )
         self.assertEqual(len(self.even_sensor.get_data_channel("test_data")), 10)
 
     def test_get_valid_channel_values(self):
-        self.assertRaises(
-            ValueError, self.even_sensor.get_valid_data_channel_values, "not_exist"
-        )
+        empty_channel = self.even_sensor.get_data_channel("not_exist")
+        self.assertEqual(len(empty_channel), 0)
+        self.assertEqual(self.even_sensor.errors.get_num_errors(), 1)
         self.assertEqual(
             len(self.even_sensor.get_valid_data_channel_values("test_data")), 9
         )
@@ -157,7 +157,7 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(self.even_sensor.data_channels()[2], "microphone")
 
     def test_organize_and_update_stats(self):
-        self.even_sensor.organize_and_update_stats()
+        self.even_sensor.organize_and_update_stats(self.even_sensor.pyarrow_table())
         self.assertEqual(self.even_sensor.data_timestamps()[1], 40)
         self.assertAlmostEqual(self.even_sensor.sample_rate_hz, 50000.0, 1)
         self.assertEqual(self.even_sensor.sample_interval_std_s, 0)
@@ -178,16 +178,16 @@ class SensorDataTest(unittest.TestCase):
             sample_interval_std,
             False,
         )
-        uneven_sensor.organize_and_update_stats()
+        uneven_sensor.organize_and_update_stats(uneven_sensor.pyarrow_table())
         self.assertAlmostEqual(uneven_sensor.sample_interval_s, 0.000013, 6)
         self.assertAlmostEqual(uneven_sensor.sample_interval_std_s, 0.000008, 6)
 
     # technically this is done any time timestamps are added during initialization or appending functions
     # so unless users are altering the dataframe directly, sort_by_data_timestamps() should always happen
     def test_sort_by_data_timestamps(self):
-        self.even_sensor.sort_by_data_timestamps()
+        self.even_sensor.sort_by_data_timestamps(self.even_sensor.pyarrow_table())
         self.assertEqual(self.even_sensor.data_timestamps()[1], 40)
-        self.even_sensor.sort_by_data_timestamps(False)
+        self.even_sensor.sort_by_data_timestamps(self.even_sensor.pyarrow_table(), ascending=False)
         self.assertEqual(self.even_sensor.data_timestamps()[1], 160)
 
     def test_create_read_update_audio_sensor(self):
@@ -201,6 +201,8 @@ class SensorDataTest(unittest.TestCase):
         self.assertEqual(audio_sensor.sample_rate_hz, 1)
         self.assertEqual(audio_sensor.num_samples(), 4)
         self.assertIsInstance(audio_sensor.get_data_channel("microphone"), np.ndarray)
-        self.assertRaises(ValueError, audio_sensor.get_data_channel, "do_not_exist")
+        empty_channel = audio_sensor.get_data_channel("do_not_exist")
+        self.assertEqual(len(empty_channel), 0)
+        self.assertEqual(audio_sensor.errors.get_num_errors(), 1)
         self.assertEqual(audio_sensor.first_data_timestamp(), 10)
         self.assertEqual(audio_sensor.last_data_timestamp(), 40)

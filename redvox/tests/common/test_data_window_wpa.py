@@ -65,7 +65,7 @@ class DataWindowTest(unittest.TestCase):
             self.assertEqual(audio_sensor.num_samples(), 480000)
             loc_sensor = dw_with_start_end.get_station("0000000001")[0].location_sensor()
             self.assertIsNotNone(loc_sensor)
-            self.assertEqual(loc_sensor.num_samples(), 4)
+            self.assertEqual(loc_sensor.num_samples(), 3)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(

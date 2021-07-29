@@ -50,8 +50,6 @@ class Station:
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
 
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
-        use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
-        correction is done by adding the OffsetModel's best offset (intercept value).  default True
 
         use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
         correction is done by adding the OffsetModel's best offset (intercept value).  default True
@@ -83,7 +81,7 @@ class Station:
         self._gaps: List[Tuple[float, float]] = []
         self.errors: RedVoxExceptions = RedVoxExceptions("Station")
         self.use_model_correction = use_model_correction
-        if data_packets and st_utils.validate_station_key_list(data_packets, True):
+        if data_packets and st_utils.validate_station_key_list(data_packets, self.errors):
             # noinspection Mypy
             self._load_metadata_from_packet(data_packets[0])
             self.timesync_analysis = TimeSyncAnalysis(

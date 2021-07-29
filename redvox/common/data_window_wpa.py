@@ -450,7 +450,7 @@ class DataWindow:
                                f"\nPlease adjust parameters of DataWindow")
         elif len(self.station_ids) > 1:
             for ids in self.station_ids:
-                if ids not in [i.id for i in self.stations] and self.debug:
+                if ids not in [i.get_id() for i in self.stations] and self.debug:
                     self.errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )
@@ -477,9 +477,9 @@ class DataWindow:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime)
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
-        self.process_sensor(station.audio_sensor(), station.id, start_datetime, end_datetime)
+        self.process_sensor(station.audio_sensor(), station.get_id(), start_datetime, end_datetime)
         for sensor in [s for s in station.data() if s.type != SensorType.AUDIO]:
-            self.process_sensor(sensor, station.id, station.audio_sensor().first_data_timestamp(),
+            self.process_sensor(sensor, station.get_id(), station.audio_sensor().first_data_timestamp(),
                                 station.audio_sensor().last_data_timestamp())
         # recalculate metadata
         station.first_data_timestamp = station.audio_sensor().first_data_timestamp()
@@ -524,41 +524,60 @@ class DataWindow:
                     self.errors.append(f"Data window for {station_id} "
                                        f"Audio sensor has truncated all data points")
                 elif last_before_start is not None and first_after_end is None:
-                    first_entry = sensor.get_pyarrow_table().slice(last_before_start, 1).to_pydict()
+                    first_entry = sensor.pyarrow_table().slice(last_before_start, 1).to_pydict()
                     first_entry["timestamps"] = [start_date_timestamp]
-                    sensor._arrow = pa.Table.from_pydict(first_entry)
+                    sensor.write_pyarrow_table(pa.Table.from_pydict(first_entry))
                 elif last_before_start is None and first_after_end is not None:
-                    last_entry = sensor.get_pyarrow_table().slice(first_after_end, 1).to_pydict()
+                    last_entry = sensor.pyarrow_table().slice(first_after_end, 1).to_pydict()
                     last_entry["timestamps"] = [start_date_timestamp]
-                    sensor._arrow = pa.Table.from_pydict(last_entry)
+                    sensor.write_pyarrow_table(pa.Table.from_pydict(last_entry))
                 elif last_before_start is not None and first_after_end is not None:
-                    x = sensor.interpolate(start_date_timestamp, last_before_start, 1,
-                                           self.copy_edge_points == gpu.DataPointCreationMode.COPY)
-                    sensor._arrow = x
+                    sensor.write_pyarrow_table(
+                        sensor.interpolate(start_date_timestamp, last_before_start, 1,
+                                           self.copy_edge_points == gpu.DataPointCreationMode.COPY))
                 else:
                     self.errors.append(
                         f"Data window for {station_id} {sensor.type.name} "
                         f"sensor has truncated all data points"
                     )
             else:
-                sensor._arrow = sensor.get_pyarrow_table().slice(start_index, end_index-start_index)
+                _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
                 # if sensor is audio or location, we want nan'd edge points
-                if sensor.type == SensorType.LOCATION:
+                if sensor.type in [SensorType.LOCATION, SensorType.AUDIO]:
                     new_point_mode = gpu.DataPointCreationMode["NAN"]
                 else:
                     new_point_mode = self.copy_edge_points
                 # add in the data points at the edges of the window if there are defined start and/or end times
-                # or the sensor is not audio
                 if not is_audio:
-                    # add to end
-                    sensor._arrow = gpu.add_data_points_to_df(sensor.get_pyarrow_table(), sensor.num_samples() - 1,
-                                                              end_date_timestamp - sensor.last_data_timestamp(),
-                                                              point_creation_mode=new_point_mode)
-                    # add to begin
-                    sensor._arrow = gpu.add_data_points_to_df(sensor.get_pyarrow_table(), 0,
-                                                              start_date_timestamp - sensor.first_data_timestamp(),
-                                                              point_creation_mode=new_point_mode)
-                sensor.sort_by_data_timestamps()
+                    end_sample_interval = end_date_timestamp - sensor.last_data_timestamp()
+                    end_samples_to_add = 1
+                    start_sample_interval = start_date_timestamp - sensor.first_data_timestamp()
+                    start_samples_to_add = 1
+                else:
+                    end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    start_sample_interval = -end_sample_interval
+                    if self.end_datetime:
+                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+                                                  - sensor.last_data_timestamp()) / end_sample_interval)
+                    else:
+                        end_samples_to_add = 0
+                    if self.start_datetime:
+                        start_samples_to_add = int((sensor.first_data_timestamp() -
+                                                    dtu.datetime_to_epoch_microseconds_utc(self.start_datetime))
+                                                   / end_sample_interval)
+                    else:
+                        start_samples_to_add = 0
+                # add to end
+                _arrow = (gpu.add_data_points_to_df(dataframe=_arrow, start_index=sensor.num_samples() - 1,
+                                                    sample_interval_micros=end_sample_interval,
+                                                    num_samples_to_add=end_samples_to_add,
+                                                    point_creation_mode=new_point_mode))
+                # add to begin
+                _arrow = (gpu.add_data_points_to_df(dataframe=_arrow, start_index=0,
+                                                    sample_interval_micros=start_sample_interval,
+                                                    num_samples_to_add=start_samples_to_add,
+                                                    point_creation_mode=new_point_mode))
+                sensor.sort_by_data_timestamps(_arrow)
         else:
             self.errors.append(f"Data window for {station_id} {sensor.type.name} "
                                f"sensor has no data points!")

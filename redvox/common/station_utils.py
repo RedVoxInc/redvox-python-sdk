@@ -10,21 +10,24 @@ import numpy as np
 from redvox.common.offset_model import OffsetModel
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.common.errors import RedVoxExceptions
 
 # from redvox.api1000.wrapped_redvox_packet import event_streams as es
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
 
 def validate_station_key_list(
-        data_packets: List[api_m.RedvoxPacketM], debug: bool = False
+    data_packets: List[api_m.RedvoxPacketM], errors: RedVoxExceptions
 ) -> bool:
     """
     Checks for consistency in the data packets.  Returns False if discrepancies are found.
     If debug is True, will output the discrepancies.
+
     :param data_packets: list of WrappedRedvoxPacketM to look at
-    :param debug: bool, if True, output any discrepancies found, default False
+    :param errors: RedVoxExceptions detailing errors found while validating
     :return: True if no discrepancies found.  False otherwise
     """
+    my_errors = RedVoxExceptions("StationKeyValidation")
     if len(data_packets) < 2:
         return True
     j: np.ndarray = np.transpose(
@@ -65,13 +68,15 @@ def validate_station_key_list(
     for key, value in k.items():
         result = np.unique(value)
         if len(result) > 1:
-            if debug:
-                print(
-                    f"WARNING from station_utils: {data_packets[0].station_information.id} "
-                    f"{key} contains multiple unique values: {result}.\n"
-                    "Please update your query to focus on one of these values."
-                )
-            return False  # stop processing, one bad key is enough
+            my_errors.append(
+                f"WARNING: {data_packets[0].station_information.id} "
+                f"{key} contains multiple unique values: {result}.\n"
+                "Please update your query to focus on one of these values."
+            )
+
+    if my_errors.get_num_errors() > 0:
+        errors.extend_error(my_errors)
+        return False
 
     return True  # if here, everything is consistent
 
@@ -105,6 +110,7 @@ class StationKey:
         check if the key has the values specified.  If the parameter is None, any value will match.
         Note that NAN is a valid value for start_timestamps, but any station with start_timestamp = NAN
         will not match any value, including another NAN.
+
         :param station_id: station id, default None
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
@@ -126,6 +132,7 @@ class StationKey:
     def compare_key(self, other_key: "StationKey") -> bool:
         """
         compare key to another station's key
+
         :param other_key: another station's key
         :return: True if the keys match
         """
@@ -154,6 +161,7 @@ class StationMetadata:
     def __init__(self, app: str, packet: Optional[api_m.RedvoxPacketM] = None):
         """
         initialize the metadata
+
         :param app: app name
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
@@ -226,6 +234,7 @@ class StationMetadataWrapped:
     def __init__(self, app: str, packet: Optional[WrappedRedvoxPacketM] = None):
         """
         initialize the metadata
+
         :param app: app name
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
@@ -291,6 +300,7 @@ class StationPacketMetadata:
     def __init__(self, packet: Optional[api_m.RedvoxPacketM] = None):
         """
         initialize the metadata
+
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
         self.other_metadata = {}
@@ -318,6 +328,7 @@ class StationPacketMetadata:
     def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """
         updates the timestamps in the metadata using the offset model
+
         :param om: OffsetModel to apply to data
         :param use_model_function: if True, use the offset model's correction function to correct time,
                                     otherwise use best offset (model's intercept value).  default True
@@ -343,6 +354,7 @@ class StationPacketMetadataWrapped:
     def __init__(self, packet: Optional[WrappedRedvoxPacketM] = None):
         """
         initialize the metadata
+
         :param packet: Optional WrappedRedvoxPacketM to read data from
         """
         self.other_metadata = {}
@@ -370,6 +382,7 @@ class StationPacketMetadataWrapped:
     def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """
         updates the timestamps in the metadata using the offset model
+
         :param om: OffsetModel to apply to data
         :param use_model_function: if True, use the offset model's correction function to correct time,
                                     otherwise use best offset (model's intercept value).  default True

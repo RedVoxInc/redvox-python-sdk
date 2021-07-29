@@ -64,7 +64,7 @@ class TriMessageStats:
 
         self.best_latency: Optional[float] = np.nan
         self.best_latency_array_index: Optional[int] = None
-        self.best_latency_index: Optional[int] = np.nan
+        self.best_latency_index: Optional[int] = None
         self.best_offset: Optional[float] = 0.0
 
         self.find_best_latency()
@@ -78,7 +78,7 @@ class TriMessageStats:
             # all latencies for one of the arrays is zero, the data is untrustworthy.  set the defaults
             self.best_latency = np.nan
             self.best_latency_array_index = None
-            self.best_latency_index = np.nan
+            self.best_latency_index = None
         else:
             # find value and index of minimum latency of nonzero, non-nan latencies
             d1_min: float = np.min(self.latency1[np.nonzero(np.nan_to_num(self.latency1))])
