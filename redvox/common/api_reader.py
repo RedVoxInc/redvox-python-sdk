@@ -2,15 +2,17 @@
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 """
-import os.path
 from typing import List, Optional
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
 from itertools import repeat
+from multiprocessing import cpu_count, Manager, Process, Queue
+import queue
 
 import pyarrow as pa
 
+import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import offset_model
 from redvox.common import api_conversions as ac
@@ -333,6 +335,73 @@ class ApiReader:
                                              use_model_correction, base_dir, save_files)
         return stpa
 
+    def download_process(self, input_queue: Queue, result_queue: Queue,
+                         use_model_correction: bool = True, base_dir: str = "", save_files: bool = False
+                         ) -> None:
+        """
+        A function that runs in a separate process for creating stations.
+        :param input_queue: A shared queue containing the list of items to be downloaded.
+        :param result_queue: A queue used to send results from the process to the caller.
+        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
+                                        best offset (intercept value) otherwise.  Default True
+        :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
+        :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
+        """
+        try:
+            # While there is still data in the queue, retrieve it.
+            while True:
+                files_index = input_queue.get_nowait()
+                try:
+                    st = StationPa.create_from_packets(self.read_files_in_index(files_index),
+                                                       use_model_correction, base_dir, save_files)
+                    result_queue.put(st, True, None)
+                except FileExistsError:
+                    print(f"File already exists, skipping...")
+                    continue
+        # Thrown when the queue is empty
+        except queue.Empty:
+            return
+
+    def download_files(self, num_processes: int = cpu_count(), use_model_correction: bool = True,
+                       base_dir: str = "", save_files: bool = False):
+        """
+        Create stations in parallel.
+        :param num_processes: Number of processes to create for downloading data.
+        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
+                                        best offset (intercept value) otherwise.  Default True
+        :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
+        :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
+        """
+        manager: Manager = Manager()
+        station_queue: Queue = manager.Queue(len(self.files_index))
+        result_queue: Queue = manager.Queue(len(self.files_index))
+        processes: List[Process] = []
+
+        # Add all URLs to shared queue
+        for findex in self.files_index:
+            station_queue.put(findex)
+
+        # Create the process pool
+        for _ in range(num_processes):
+            process: Process = Process(
+                target=self.download_process, args=(station_queue, result_queue,
+                                                    use_model_correction, base_dir, save_files)
+            )
+            processes.append(process)
+            process.start()
+
+        # Wait for all processes in pool to finish
+        for process in processes:
+            process.join()
+
+        result = []
+        try:
+            while True:
+                x = result_queue.get_nowait()
+                result.append(x)
+        except queue.Empty:
+            return result
+
     def get_stations_wpa_fs(self,
                             # pool: Optional[multiprocessing.pool.Pool] = None,
                             use_model_correction: bool = True,
@@ -351,6 +420,9 @@ class ApiReader:
         #                                 chunk_size=1
         #                                 )
         #             )
+        if settings.is_parallelism_enabled():
+            return self.download_files(use_model_correction=use_model_correction,
+                                       base_dir=base_dir, save_files=save_files)
         return list(map(self._stations_wpa_by_index_fs, self.files_index,
                         repeat(use_model_correction), repeat(base_dir), repeat(save_files)))
 

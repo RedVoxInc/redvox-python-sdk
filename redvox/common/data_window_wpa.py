@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 import tempfile
+from glob import glob
+import os
 
 import multiprocessing
 import multiprocessing.pool
@@ -79,7 +81,8 @@ class DataWindow:
         copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
         debug: bool = False,
         station_out_dir: str = "",
-        save_station_files: bool = False
+        save_station_files: bool = False,
+        load_from_files: bool = False,
     ):
         """
         Initialize the DataWindow
@@ -112,6 +115,7 @@ class DataWindow:
         :param station_out_dir: output directory for station parquet files.  Default "" (current directory)
         :param save_station_files: if True, save the station parquet files, otherwise delete them when finished.
                                     Default False
+        :param load_from_files: if True, load parquet files instead of Redvox data files, default False
         """
         self.errors = RedVoxExceptions("DataWindow")
         self.input_directory: str = input_dir
@@ -145,6 +149,8 @@ class DataWindow:
         if start_datetime and end_datetime and (end_datetime <= start_datetime):
             self.errors.append("DataWindow will not work when end datetime is before or equal to start datetime.\n"
                                f"Your times: {end_datetime} <= {start_datetime}")
+        elif load_from_files:
+            self.from_dir(self.input_directory)
         else:
             self.create_data_window()
         if debug:
@@ -153,6 +159,12 @@ class DataWindow:
     def __del__(self):
         if self._temp_dir:
             self._temp_dir.cleanup()
+
+    def from_dir(self, input_dir: str):
+        filelist = glob(os.path.join(input_dir, "*"))
+        for f in filelist:
+            self.stations = StationPa.create_from_dir(f, self.use_model_correction,
+                                                      self.station_out_dir, self.save_station_files)
 
     @staticmethod
     def from_config_file(file: str) -> "DataWindow":

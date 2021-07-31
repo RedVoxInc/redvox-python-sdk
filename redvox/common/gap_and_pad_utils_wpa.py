@@ -220,7 +220,7 @@ def fill_gaps(
 
 
 def fill_audio_gaps(
-        packet_data: List[Tuple[float, np.array]],
+        packet_data: List[Tuple[float, pa.Table]],
         sample_interval_micros: float,
         gap_upper_limit: float = DEFAULT_GAP_UPPER_LIMIT,
         gap_lower_limit: float = DEFAULT_GAP_LOWER_LIMIT
@@ -233,7 +233,7 @@ def fill_audio_gaps(
 
     :param packet_data: list of tuples, each tuple containing two pieces of packet information:
         * packet_start_timestamps: float of packet start timestamp in microseconds
-        * audio_data: array of data points
+        * audio_data: pa.Table of data points
     :param sample_interval_micros: sample interval in microseconds
     :param gap_upper_limit: percentage of packet length required to confirm gap is at least 1 packet,
                             default DEFAULT_GAP_UPPER_LIMIT
@@ -243,8 +243,9 @@ def fill_audio_gaps(
     result_array = [[], [], []]
     last_data_timestamp: Optional[float] = None
     gaps = []
+    result = GapPadResult()
     for packet in packet_data:
-        samples_in_packet = len(packet[1])
+        samples_in_packet = packet[1].num_rows
         start_ts = packet[0]
         packet_length = sample_interval_micros * samples_in_packet
         if last_data_timestamp:
@@ -266,7 +267,6 @@ def fill_audio_gaps(
                 result_array[1].extend(gap_array[0])
                 result_array[2].extend(gap_array[1])
             elif last_timestamp_diff < -gap_lower_limit * packet_length:
-                result = GapPadResult()
                 result.add_error(f"Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} "
                                  f"is before last timestamp of previous "
                                  f"packet: {dtu.microseconds_to_seconds(last_data_timestamp)}")
@@ -275,8 +275,10 @@ def fill_audio_gaps(
         last_data_timestamp = estimated_ts[-1]
         result_array[0].extend(estimated_ts)
         result_array[1].extend(estimated_ts)
-        result_array[2].extend(packet[1])
-    return GapPadResult(pa.Table.from_pydict(dict(zip(AUDIO_DF_COLUMNS, result_array))), gaps)
+        result_array[2].extend(packet[1]["microphone"].to_numpy())
+    result.result = pa.Table.from_pydict(dict(zip(AUDIO_DF_COLUMNS, result_array)))
+    result.gaps = gaps
+    return result
 
 
 def add_data_points_to_df(dataframe: pa.Table,

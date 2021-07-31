@@ -3,6 +3,7 @@ Defines generic sensor data and data for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
+import timeit
 from typing import List, Union, Dict, Optional
 import os
 import tempfile
@@ -132,6 +133,8 @@ class SensorDataPa:
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
         timestamps_altered: bool, True if timestamps in the sensor have been altered from their original values
                             default False
+        use_offset_model: bool, if True, use an offset model to correct timestamps, otherwise use the best known
+                            offset.  default False
         errors: RedVoxExceptions, class containing a list of all errors encountered by the sensor.
     Protected:
         _arrow_file: string, file name of data file
@@ -173,8 +176,9 @@ class SensorDataPa:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
-        :param save_data: if True, save the data of the sensor to disk, default False
-        :param arrow_dir: directory to save pyarrow table, default "" (current dir)
+        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param arrow_dir: directory to save pyarrow table, default "" (current dir).  default temporary dir if not
+                            saving data
         """
         self.errors: RedVoxExceptions = RedVoxExceptions("Sensor")
         self.name: str = sensor_name
@@ -230,9 +234,9 @@ class SensorDataPa:
         :param sensor_name: name of the sensor
         :param data_path: path to the directory containing the parquet files
         :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
-        :param sample_rate_hz: sample rate in hz of the data
-        :param sample_interval_s: sample interval in seconds of the data
-        :param sample_interval_std_s: std dev of sample interval in seconds of the data
+        :param sample_rate_hz: sample rate in hz of the data, default np.nan
+        :param sample_interval_s: sample interval in seconds of the data, default np.nan
+        :param sample_interval_std_s: std dev of sample interval in seconds of the data, default np.nan
         :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
         :param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
                                         original values, default False
@@ -240,8 +244,9 @@ class SensorDataPa:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
-        :param save_data: if True, save the data of the sensor to disk, default False
-        :param arrow_dir: directory to save pyarrow table, default "" (current dir)
+        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param arrow_dir: directory to save pyarrow table, default "" (current dir).  default temporary dir if not
+                            saving data
         :return: SensorData object
         """
         return SensorDataPa(sensor_name, ds.dataset(data_path).to_table(), sensor_type, sample_rate_hz,
@@ -270,9 +275,9 @@ class SensorDataPa:
         :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
         :param sensor_data: dict with the timestamps and sensor data; first column is always the timestamps,
                             the other columns are the data channels in the sensor
-        :param sample_rate_hz: sample rate in hz of the data
-        :param sample_interval_s: sample interval in seconds of the data
-        :param sample_interval_std_s: std dev of sample interval in seconds of the data
+        :param sample_rate_hz: sample rate in hz of the data, default np.nan
+        :param sample_interval_s: sample interval in seconds of the data, default np.nan
+        :param sample_interval_std_s: std dev of sample interval in seconds of the data, default np.nan
         :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
         :param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
                                         original values, default False
@@ -280,8 +285,9 @@ class SensorDataPa:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
-        :param save_data: if True, save the data of the sensor to disk, default False
-        :param arrow_dir: directory to save pyarrow table, default "" (current dir)
+        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param arrow_dir: directory to save pyarrow table, default "" (current dir).  default temporary dir if not
+                            saving data
         :return: SensorData object
         """
         return SensorDataPa(sensor_name, pa.Table.from_pydict(sensor_data), sensor_type, sample_rate_hz,

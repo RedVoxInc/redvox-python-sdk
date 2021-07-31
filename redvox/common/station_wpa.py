@@ -3,12 +3,13 @@ Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
+import timeit
 from typing import List, Optional, Tuple, Dict
 import tempfile
 import os
 
 import numpy as np
-import pyarrow.parquet as pq
+import pyarrow as pa
 
 from redvox.common import sensor_data_with_pyarrow as sd
 from redvox.common import station_utils as st_utils
@@ -115,19 +116,23 @@ class StationPa:
         """
         return self._data
 
-    # @staticmethod
-    # def create_from_dir(in_dir: str = "",
-    #                     base_out_dir: str = "",
-    #                     save_output: bool = False) -> "StationPa":
-    #     """
-    #     :param in_dir: structured directory with parquet files to load
-    #     :param base_out_dir: directory to save parquet files, default "" (current directory)
-    #     :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
-    #     :return: station using data from parquet files
-    #     """
-    #     station = StationPa(base_out_dir=base_out_dir, save_output=save_output)
-    #     station.load_data_from_parquet()
-    #     return station
+    @staticmethod
+    def create_from_dir(in_dir: str = "",
+                        use_model_correction: bool = True,
+                        base_out_dir: str = "",
+                        save_output: bool = False) -> "StationPa":
+        """
+        :param in_dir: structured directory with parquet files to load
+        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
+                                        best offset (intercept value) otherwise.  Default True
+        :param base_out_dir: directory to save parquet files, default "" (current directory)
+        :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :return: station using data from parquet files
+        """
+        station = StationPa(use_model_correction=use_model_correction,
+                            base_out_dir=base_out_dir, save_output=save_output)
+        station.load_data_from_parquet(in_dir)
+        return station
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
@@ -145,7 +150,6 @@ class StationPa:
         station = StationPa(use_model_correction=use_model_correction, base_out_dir=base_out_dir,
                             save_output=save_output)
         station.load_data_from_packets(packets)
-        station.load_data_from_parquet()
         return station
 
     @staticmethod
@@ -1086,33 +1090,37 @@ class StationPa:
             return f"{self._id}_0"
         return f"{self._id}_{int(self._start_timestamp)}"
 
-    def load_data_from_parquet(self):
+    def load_data_from_parquet(self, in_dir: Optional[str] = None):
         """
         load all data from parquets into memory
+
+        :param in_dir: optional input directory containing the files (otherwise uses self.base_dir)
         """
+        if not in_dir:
+            in_dir = self.base_dir
         if not self.has_audio_data():
             self._data.append(sd.SensorDataPa.from_dir(sensor_name=self._audio_name,
                                                        sensor_type=sd.SensorType.AUDIO, sample_rate_hz=self._audio_rate,
                                                        sample_interval_s=1 / self._audio_rate, sample_interval_std_s=0.,
                                                        is_sample_rate_fixed=True, save_data=self.save_output,
-                                                       data_path=os.path.join(self.base_dir, sd.SensorType.AUDIO.name)))
+                                                       data_path=os.path.join(in_dir, sd.SensorType.AUDIO.name)))
         for s_type, s_data in self._sensors.items():
             if s_type in [sd.SensorType.COMPRESSED_AUDIO, sd.SensorType.IMAGE,
                           sd.SensorType.STATION_HEALTH]:
                 sample_rate = s_data[1]
                 self._data.append(sd.SensorDataPa.from_dir(sensor_name=s_data[0],
-                                                           data_path=os.path.join(self.base_dir, s_type.name),
+                                                           data_path=os.path.join(in_dir, s_type.name),
                                                            sensor_type=s_type, sample_rate_hz=sample_rate,
                                                            sample_interval_s=1 / sample_rate,
                                                            sample_interval_std_s=0.,
                                                            is_sample_rate_fixed=True, save_data=self.save_output,
-                                                           arrow_dir=os.path.join(self.base_dir, s_type.name)))
+                                                           arrow_dir=os.path.join(in_dir, s_type.name)))
             else:
                 self._data.append(sd.SensorDataPa.from_dir(sensor_name=s_data[0],
-                                                           data_path=os.path.join(self.base_dir, s_type.name),
+                                                           data_path=os.path.join(in_dir, s_type.name),
                                                            sensor_type=s_type, is_sample_rate_fixed=False,
                                                            calculate_stats=True, save_data=self.save_output,
-                                                           arrow_dir=os.path.join(self.base_dir, s_type.name)))
+                                                           arrow_dir=os.path.join(in_dir, s_type.name)))
         del self._sensors
 
     def _set_pyarrow_sensors(self, packets: List[api_m.RedvoxPacketM]):
@@ -1125,6 +1133,8 @@ class StationPa:
         self._audio_name = packets[0].sensors.audio.sensor_description
         if not os.path.exists(self.base_dir):
             os.makedirs(self.base_dir)
+        sensors = {}
+        x = timeit.default_timer()
         for packet in packets:
             # noinspection Mypy
             self.packet_metadata.append(st_utils.StationPacketMetadata(packet))
@@ -1137,8 +1147,29 @@ class StationPa:
                 sensor_dir = os.path.join(self.base_dir, s_type.name)
                 if not os.path.exists(sensor_dir):
                     os.makedirs(sensor_dir)
-                self._sensors[s_type] = (data[0], data[3])
-                pq.write_table(data[2], os.path.join(sensor_dir, f"{s_type.name}_{int(data[1])}.parquet"))
+                if s_type not in sensors.keys():
+                    sensors[s_type] = (data[0], data[3], data[2])
+                else:
+                    sensors[s_type] = (data[0], data[3], pa.concat_tables([sensors[s_type][2], data[2]]))
+                # self._sensors[s_type] = (data[0], data[3])
+                # pq.write_table(data[2], os.path.join(sensor_dir, f"{s_type.name}_{int(data[1])}.parquet"))
+        y = timeit.default_timer()
+        print("station packet reader: ", y - x)
+        for s_type, s_data in self._sensors.items():
+            if s_type in [sd.SensorType.COMPRESSED_AUDIO, sd.SensorType.IMAGE,
+                          sd.SensorType.STATION_HEALTH]:
+                sample_rate = s_data[1]
+                self._data.append(sd.SensorDataPa(sensor_name=s_data[0], sensor_data=s_data[2],
+                                                  sensor_type=s_type, sample_rate_hz=sample_rate,
+                                                  sample_interval_s=1 / sample_rate,
+                                                  sample_interval_std_s=0.,
+                                                  is_sample_rate_fixed=True, save_data=self.save_output,
+                                                  arrow_dir=os.path.join(self.base_dir, s_type.name)))
+            else:
+                self._data.append(sd.SensorDataPa(sensor_name=s_data[0], sensor_data=s_data[2],
+                                                  sensor_type=s_type, is_sample_rate_fixed=False,
+                                                  calculate_stats=True, save_data=self.save_output,
+                                                  arrow_dir=os.path.join(self.base_dir, s_type.name)))
         sensor_dir = os.path.join(self.base_dir, sd.SensorType.AUDIO.name)
         if not os.path.exists(sensor_dir):
             os.makedirs(sensor_dir)
