@@ -41,6 +41,15 @@ class RedVoxConfig:
     secret_token: Optional[str] = None
 
     @staticmethod
+    def from_auth_token(
+            auth_token: str,
+            protocol: str = "https",
+            host: str = "redvox.io",
+            port: int = 8080,
+            secret_token: Optional[str] = None) -> "RedVoxConfig":
+        return RedVoxConfig("auth_token", auth_token, protocol, host, port, secret_token)
+
+    @staticmethod
     def from_env() -> "RedVoxConfig":
         """
         Attempts to load the configuration from the environment.

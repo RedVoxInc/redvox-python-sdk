@@ -71,7 +71,7 @@ class DataWindowConfig:
         end_hour: optional int representing the hour of the data window end time.  Default None
         end_minute: optional int representing the minute of the data window end time.  Default None
         end_second: optional int representing the second of the data window end time.  Default None
-        end_padding_seconds: float representing the amount of seconds to include before the start datetime
+        start_padding_seconds: float representing the amount of seconds to include before the start datetime
                                 when filtering data.  Default DEFAULT_START_PADDING_S
         end_padding_seconds: float representing the amount of seconds to include after the end datetime
                                 when filtering data.  Default DEFAULT_END_PADDING_S
@@ -80,6 +80,8 @@ class DataWindowConfig:
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
         edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.  Determines behavior when creating points on the edge
                             of the data window.  default COPY
+        use_model_correction: bool, if True, use the offset model&#39;s correction functions, otherwise use the best
+                                offset.  Default True
         debug: bool, if True, output additional information when processing data window.  Default False
     &#34;&#34;&#34;
 
@@ -105,6 +107,7 @@ class DataWindowConfig:
     drop_time_seconds: float = DEFAULT_DROP_TIME_S
     apply_correction: bool = True
     edge_points_mode: str = &#34;COPY&#34;
+    use_model_correction: bool = True
     debug: bool = False
 
     @staticmethod
@@ -134,7 +137,7 @@ class DataWindowConfig:
 <dl>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig"><code class="flex name class">
 <span>class <span class="ident">DataWindowConfig</span></span>
-<span>(</span><span>input_directory: str, structured_layout: bool = True, station_ids: Union[List[str], NoneType] = None, extensions: Union[List[str], NoneType] = None, api_versions: Union[List[str], NoneType] = None, start_year: Union[int, NoneType] = None, start_month: Union[int, NoneType] = None, start_day: Union[int, NoneType] = None, start_hour: Union[int, NoneType] = None, start_minute: Union[int, NoneType] = None, start_second: Union[int, NoneType] = None, end_year: Union[int, NoneType] = None, end_month: Union[int, NoneType] = None, end_day: Union[int, NoneType] = None, end_hour: Union[int, NoneType] = None, end_minute: Union[int, NoneType] = None, end_second: Union[int, NoneType] = None, start_padding_seconds: float = 120.0, end_padding_seconds: float = 120.0, drop_time_seconds: float = 0.2, apply_correction: bool = True, edge_points_mode: str = 'COPY', debug: bool = False)</span>
+<span>(</span><span>input_directory: str, structured_layout: bool = True, station_ids: Union[List[str], NoneType] = None, extensions: Union[List[str], NoneType] = None, api_versions: Union[List[str], NoneType] = None, start_year: Union[int, NoneType] = None, start_month: Union[int, NoneType] = None, start_day: Union[int, NoneType] = None, start_hour: Union[int, NoneType] = None, start_minute: Union[int, NoneType] = None, start_second: Union[int, NoneType] = None, end_year: Union[int, NoneType] = None, end_month: Union[int, NoneType] = None, end_day: Union[int, NoneType] = None, end_hour: Union[int, NoneType] = None, end_minute: Union[int, NoneType] = None, end_second: Union[int, NoneType] = None, start_padding_seconds: float = 120.0, end_padding_seconds: float = 120.0, drop_time_seconds: float = 0.2, apply_correction: bool = True, edge_points_mode: str = 'COPY', use_model_correction: bool = True, debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="properties">Properties</h2>
@@ -176,7 +179,7 @@ end_minute: optional int representing the minute of the data window end time.
 Default None
 end_second: optional int representing the second of the data window end time.
 Default None
-end_padding_seconds: float representing the amount of seconds to include before the start datetime
+start_padding_seconds: float representing the amount of seconds to include before the start datetime
 when filtering data.
 Default DEFAULT_START_PADDING_S
 end_padding_seconds: float representing the amount of seconds to include after the end datetime
@@ -191,6 +194,9 @@ edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.
 Determines behavior when creating points on the edge
 of the data window.
 default COPY
+use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
+offset.
+Default True
 debug: bool, if True, output additional information when processing data window.
 Default False</p></div>
 <details class="source">
@@ -221,7 +227,7 @@ Default False</p></div>
         end_hour: optional int representing the hour of the data window end time.  Default None
         end_minute: optional int representing the minute of the data window end time.  Default None
         end_second: optional int representing the second of the data window end time.  Default None
-        end_padding_seconds: float representing the amount of seconds to include before the start datetime
+        start_padding_seconds: float representing the amount of seconds to include before the start datetime
                                 when filtering data.  Default DEFAULT_START_PADDING_S
         end_padding_seconds: float representing the amount of seconds to include after the end datetime
                                 when filtering data.  Default DEFAULT_END_PADDING_S
@@ -230,6 +236,8 @@ Default False</p></div>
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
         edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.  Determines behavior when creating points on the edge
                             of the data window.  default COPY
+        use_model_correction: bool, if True, use the offset model&#39;s correction functions, otherwise use the best
+                                offset.  Default True
         debug: bool, if True, output additional information when processing data window.  Default False
     &#34;&#34;&#34;
 
@@ -255,6 +263,7 @@ Default False</p></div>
     drop_time_seconds: float = DEFAULT_DROP_TIME_S
     apply_correction: bool = True
     edge_points_mode: str = &#34;COPY&#34;
+    use_model_correction: bool = True
     debug: bool = False
 
     @staticmethod
@@ -363,6 +372,10 @@ Default False</p></div>
 <div class="desc"></div>
 </dd>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig.structured_layout"><code class="name">var <span class="ident">structured_layout</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.use_model_correction"><code class="name">var <span class="ident">use_model_correction</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -586,6 +599,7 @@ def schema(cls: Type[A],
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.structured_layout" href="#redvox.common.data_window_configuration.DataWindowConfig.structured_layout">structured_layout</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.to_dict" href="#redvox.common.data_window_configuration.DataWindowConfig.to_dict">to_dict</a></code></li>
 <li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.to_json" href="#redvox.common.data_window_configuration.DataWindowConfig.to_json">to_json</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.use_model_correction" href="#redvox.common.data_window_configuration.DataWindowConfig.use_model_correction">use_model_correction</a></code></li>
 </ul>
 </li>
 </ul>

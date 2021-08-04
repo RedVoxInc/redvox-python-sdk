@@ -41,6 +41,7 @@ import pandas as pd
 
 import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
+from redvox.common.errors import RedVoxExceptions
 from redvox.common.gap_and_pad_utils import calc_evenly_sampled_timestamps
 from redvox.api1000.wrapped_redvox_packet.station_information import (
     NetworkType,
@@ -94,9 +95,9 @@ class SensorType(enum.Enum):
         :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
         &#34;&#34;&#34;
         if (
-            type_str.lower() == &#34;audio&#34;
-            or type_str.lower() == &#34;mic&#34;
-            or type_str.lower() == &#34;microphone&#34;
+                type_str.lower() == &#34;audio&#34;
+                or type_str.lower() == &#34;mic&#34;
+                or type_str.lower() == &#34;microphone&#34;
         ):
             return SensorType.AUDIO
         elif type_str.lower() == &#34;accelerometer&#34; or type_str.lower() == &#34;accel&#34;:
@@ -114,8 +115,8 @@ class SensorType(enum.Enum):
         elif type_str.lower() == &#34;light&#34;:
             return SensorType.LIGHT
         elif (
-            type_str.lower() == &#34;linear_acceleration&#34;
-            or type_str.lower() == &#34;linear_accel&#34;
+                type_str.lower() == &#34;linear_acceleration&#34;
+                or type_str.lower() == &#34;linear_accel&#34;
         ):
             return SensorType.LINEAR_ACCELERATION
         elif type_str.lower() == &#34;location&#34; or type_str.lower() == &#34;loc&#34;:
@@ -127,9 +128,9 @@ class SensorType(enum.Enum):
         elif type_str.lower() == &#34;orientation&#34;:
             return SensorType.ORIENTATION
         elif (
-            type_str.lower() == &#34;pressure&#34;
-            or type_str.lower() == &#34;bar&#34;
-            or type_str.lower() == &#34;barometer&#34;
+                type_str.lower() == &#34;pressure&#34;
+                or type_str.lower() == &#34;bar&#34;
+                or type_str.lower() == &#34;barometer&#34;
         ):
             return SensorType.PRESSURE
         elif type_str.lower() == &#34;proximity&#34; or type_str.lower() == &#34;infrared&#34;:
@@ -159,16 +160,16 @@ class SensorData:
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        sensor_name: str,
-        sensor_data: pd.DataFrame,
-        sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
-        sample_rate_hz: float = np.nan,
-        sample_interval_s: float = np.nan,
-        sample_interval_std_s: float = np.nan,
-        is_sample_rate_fixed: bool = False,
-        are_timestamps_altered: bool = False,
-        calculate_stats: bool = False
+            self,
+            sensor_name: str,
+            sensor_data: pd.DataFrame,
+            sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
+            sample_rate_hz: float = np.nan,
+            sample_interval_s: float = np.nan,
+            sample_interval_std_s: float = np.nan,
+            is_sample_rate_fixed: bool = False,
+            are_timestamps_altered: bool = False,
+            calculate_stats: bool = False
     ):
         &#34;&#34;&#34;
         initialize the sensor data with params
@@ -197,10 +198,17 @@ class SensorData:
         self.sample_interval_std_s: float = sample_interval_std_s
         self.is_sample_rate_fixed: bool = is_sample_rate_fixed
         self.timestamps_altered: bool = are_timestamps_altered
+        self.errors: RedVoxExceptions = RedVoxExceptions(&#34;Sensor&#34;)
         if calculate_stats:
             self.organize_and_update_stats()
         else:
             self.sort_by_data_timestamps()
+
+    def print_errors(self):
+        &#34;&#34;&#34;
+        prints errors to screen
+        &#34;&#34;&#34;
+        self.errors.print()
 
     def is_sample_interval_invalid(self) -&gt; bool:
         &#34;&#34;&#34;
@@ -237,7 +245,7 @@ class SensorData:
         return self
 
     def append_data(
-        self, new_data: pd.DataFrame, recalculate_stats: bool = False
+            self, new_data: pd.DataFrame, recalculate_stats: bool = False
     ) -&gt; &#34;SensorData&#34;:
         &#34;&#34;&#34;
         append the new data to the dataframe, update the sensor&#39;s stats on demand if it doesn&#39;t have a fixed
@@ -335,19 +343,27 @@ class SensorData:
         &#34;&#34;&#34;
         return self.data_df.columns.to_list()
 
-    def update_data_timestamps(self, offset_model: om.OffsetModel):
+    def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = True):
+        &#34;&#34;&#34;
+        updates the timestamps of the data points
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the offset model&#39;s correction function to correct time,
+                                    otherwise use best offset (model&#39;s intercept value).  default True
+        &#34;&#34;&#34;
+        slope = dtu.seconds_to_microseconds(self.sample_interval_s) * (1 + offset_model.slope) \
+            if use_model_function else dtu.seconds_to_microseconds(self.sample_interval_s)
         if self.type == SensorType.AUDIO:
+            # use the model to update the first timestamp or add the best offset (model&#39;s intercept value)
             self.data_df[&#34;timestamps&#34;] = \
-                calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp()),
+                calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp(),
+                                                                        use_model_function),
                                                self.num_samples(),
-                                               dtu.seconds_to_microseconds(self.sample_interval_s)
-                                               * (1 + offset_model.slope))
+                                               slope)
         else:
-            self.data_df[&#34;timestamps&#34;] = offset_model.update_timestamps(self.data_timestamps())
+            self.data_df[&#34;timestamps&#34;] = offset_model.update_timestamps(self.data_timestamps(), use_model_function)
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) &gt; 1:
-            self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
-                                                                 (1 + offset_model.slope))
+            self.sample_interval_s = dtu.microseconds_to_seconds(slope)
             if self.sample_interval_s &gt; 0:
                 self.sample_rate_hz = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
@@ -364,7 +380,6 @@ class SensorData:
                     copy: bool = True) -&gt; pd.Series:
         &#34;&#34;&#34;
         interpolates two points at the intercept value.  the two points must be consecutive in the dataframe
-
         :param interpolate_timestamp: timestamp to interpolate other values
         :param first_point: index of first point
         :param second_point: delta to second point, default 0 (same as first point)
@@ -464,16 +479,16 @@ default False</p></div>
     &#34;&#34;&#34;
 
     def __init__(
-        self,
-        sensor_name: str,
-        sensor_data: pd.DataFrame,
-        sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
-        sample_rate_hz: float = np.nan,
-        sample_interval_s: float = np.nan,
-        sample_interval_std_s: float = np.nan,
-        is_sample_rate_fixed: bool = False,
-        are_timestamps_altered: bool = False,
-        calculate_stats: bool = False
+            self,
+            sensor_name: str,
+            sensor_data: pd.DataFrame,
+            sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
+            sample_rate_hz: float = np.nan,
+            sample_interval_s: float = np.nan,
+            sample_interval_std_s: float = np.nan,
+            is_sample_rate_fixed: bool = False,
+            are_timestamps_altered: bool = False,
+            calculate_stats: bool = False
     ):
         &#34;&#34;&#34;
         initialize the sensor data with params
@@ -502,10 +517,17 @@ default False</p></div>
         self.sample_interval_std_s: float = sample_interval_std_s
         self.is_sample_rate_fixed: bool = is_sample_rate_fixed
         self.timestamps_altered: bool = are_timestamps_altered
+        self.errors: RedVoxExceptions = RedVoxExceptions(&#34;Sensor&#34;)
         if calculate_stats:
             self.organize_and_update_stats()
         else:
             self.sort_by_data_timestamps()
+
+    def print_errors(self):
+        &#34;&#34;&#34;
+        prints errors to screen
+        &#34;&#34;&#34;
+        self.errors.print()
 
     def is_sample_interval_invalid(self) -&gt; bool:
         &#34;&#34;&#34;
@@ -542,7 +564,7 @@ default False</p></div>
         return self
 
     def append_data(
-        self, new_data: pd.DataFrame, recalculate_stats: bool = False
+            self, new_data: pd.DataFrame, recalculate_stats: bool = False
     ) -&gt; &#34;SensorData&#34;:
         &#34;&#34;&#34;
         append the new data to the dataframe, update the sensor&#39;s stats on demand if it doesn&#39;t have a fixed
@@ -640,19 +662,27 @@ default False</p></div>
         &#34;&#34;&#34;
         return self.data_df.columns.to_list()
 
-    def update_data_timestamps(self, offset_model: om.OffsetModel):
+    def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = True):
+        &#34;&#34;&#34;
+        updates the timestamps of the data points
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the offset model&#39;s correction function to correct time,
+                                    otherwise use best offset (model&#39;s intercept value).  default True
+        &#34;&#34;&#34;
+        slope = dtu.seconds_to_microseconds(self.sample_interval_s) * (1 + offset_model.slope) \
+            if use_model_function else dtu.seconds_to_microseconds(self.sample_interval_s)
         if self.type == SensorType.AUDIO:
+            # use the model to update the first timestamp or add the best offset (model&#39;s intercept value)
             self.data_df[&#34;timestamps&#34;] = \
-                calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp()),
+                calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp(),
+                                                                        use_model_function),
                                                self.num_samples(),
-                                               dtu.seconds_to_microseconds(self.sample_interval_s)
-                                               * (1 + offset_model.slope))
+                                               slope)
         else:
-            self.data_df[&#34;timestamps&#34;] = offset_model.update_timestamps(self.data_timestamps())
+            self.data_df[&#34;timestamps&#34;] = offset_model.update_timestamps(self.data_timestamps(), use_model_function)
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) &gt; 1:
-            self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
-                                                                 (1 + offset_model.slope))
+            self.sample_interval_s = dtu.microseconds_to_seconds(slope)
             if self.sample_interval_s &gt; 0:
                 self.sample_rate_hz = 1 / self.sample_interval_s
                 self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
@@ -669,7 +699,6 @@ default False</p></div>
                     copy: bool = True) -&gt; pd.Series:
         &#34;&#34;&#34;
         interpolates two points at the intercept value.  the two points must be consecutive in the dataframe
-
         :param interpolate_timestamp: timestamp to interpolate other values
         :param first_point: index of first point
         :param second_point: delta to second point, default 0 (same as first point)
@@ -725,7 +754,7 @@ recalculate the sample rate, interval, and interval std dev, default False
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def append_data(
-    self, new_data: pd.DataFrame, recalculate_stats: bool = False
+        self, new_data: pd.DataFrame, recalculate_stats: bool = False
 ) -&gt; &#34;SensorData&#34;:
     &#34;&#34;&#34;
     append the new data to the dataframe, update the sensor&#39;s stats on demand if it doesn&#39;t have a fixed
@@ -851,8 +880,8 @@ recalculate the sample rate, interval, and interval std dev, default False
 </code></dt>
 <dd>
 <div class="desc"><p>interpolates two points at the intercept value.
-the two points must be consecutive in the dataframe</p>
-<p>:param interpolate_timestamp: timestamp to interpolate other values
+the two points must be consecutive in the dataframe
+:param interpolate_timestamp: timestamp to interpolate other values
 :param first_point: index of first point
 :param second_point: delta to second point, default 0 (same as first point)
 :param copy: if True, copies the values of the first point, default True
@@ -865,7 +894,6 @@ the two points must be consecutive in the dataframe</p>
                 copy: bool = True) -&gt; pd.Series:
     &#34;&#34;&#34;
     interpolates two points at the intercept value.  the two points must be consecutive in the dataframe
-
     :param interpolate_timestamp: timestamp to interpolate other values
     :param first_point: index of first point
     :param second_point: delta to second point, default 0 (same as first point)
@@ -996,6 +1024,22 @@ Updates the SensorData object with the new values
     return self</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.sensor_data.SensorData.print_errors"><code class="name flex">
+<span>def <span class="ident">print_errors</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>prints errors to screen</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print_errors(self):
+    &#34;&#34;&#34;
+    prints errors to screen
+    &#34;&#34;&#34;
+    self.errors.print()</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.sensor_data.SensorData.samples"><code class="name flex">
 <span>def <span class="ident">samples</span></span>(<span>self) ‑> numpy.ndarray</span>
 </code></dt>
@@ -1067,27 +1111,39 @@ Updates the SensorData object with the new values
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.update_data_timestamps"><code class="name flex">
-<span>def <span class="ident">update_data_timestamps</span></span>(<span>self, offset_model: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>)</span>
+<span>def <span class="ident">update_data_timestamps</span></span>(<span>self, offset_model: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, use_model_function: bool = True)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>updates the timestamps of the data points
+:param offset_model: model used to update the timestamps
+:param use_model_function: if True, use the offset model's correction function to correct time,
+otherwise use best offset (model's intercept value).
+default True</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def update_data_timestamps(self, offset_model: om.OffsetModel):
+<pre><code class="python">def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = True):
+    &#34;&#34;&#34;
+    updates the timestamps of the data points
+    :param offset_model: model used to update the timestamps
+    :param use_model_function: if True, use the offset model&#39;s correction function to correct time,
+                                otherwise use best offset (model&#39;s intercept value).  default True
+    &#34;&#34;&#34;
+    slope = dtu.seconds_to_microseconds(self.sample_interval_s) * (1 + offset_model.slope) \
+        if use_model_function else dtu.seconds_to_microseconds(self.sample_interval_s)
     if self.type == SensorType.AUDIO:
+        # use the model to update the first timestamp or add the best offset (model&#39;s intercept value)
         self.data_df[&#34;timestamps&#34;] = \
-            calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp()),
+            calc_evenly_sampled_timestamps(offset_model.update_time(self.first_data_timestamp(),
+                                                                    use_model_function),
                                            self.num_samples(),
-                                           dtu.seconds_to_microseconds(self.sample_interval_s)
-                                           * (1 + offset_model.slope))
+                                           slope)
     else:
-        self.data_df[&#34;timestamps&#34;] = offset_model.update_timestamps(self.data_timestamps())
+        self.data_df[&#34;timestamps&#34;] = offset_model.update_timestamps(self.data_timestamps(), use_model_function)
     time_diffs = np.floor(np.diff(self.data_timestamps()))
     if len(time_diffs) &gt; 1:
-        self.sample_interval_s = dtu.microseconds_to_seconds(dtu.seconds_to_microseconds(self.sample_interval_s) *
-                                                             (1 + offset_model.slope))
+        self.sample_interval_s = dtu.microseconds_to_seconds(slope)
         if self.sample_interval_s &gt; 0:
             self.sample_rate_hz = 1 / self.sample_interval_s
             self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
@@ -1142,9 +1198,9 @@ Updates the SensorData object with the new values
         :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
         &#34;&#34;&#34;
         if (
-            type_str.lower() == &#34;audio&#34;
-            or type_str.lower() == &#34;mic&#34;
-            or type_str.lower() == &#34;microphone&#34;
+                type_str.lower() == &#34;audio&#34;
+                or type_str.lower() == &#34;mic&#34;
+                or type_str.lower() == &#34;microphone&#34;
         ):
             return SensorType.AUDIO
         elif type_str.lower() == &#34;accelerometer&#34; or type_str.lower() == &#34;accel&#34;:
@@ -1162,8 +1218,8 @@ Updates the SensorData object with the new values
         elif type_str.lower() == &#34;light&#34;:
             return SensorType.LIGHT
         elif (
-            type_str.lower() == &#34;linear_acceleration&#34;
-            or type_str.lower() == &#34;linear_accel&#34;
+                type_str.lower() == &#34;linear_acceleration&#34;
+                or type_str.lower() == &#34;linear_accel&#34;
         ):
             return SensorType.LINEAR_ACCELERATION
         elif type_str.lower() == &#34;location&#34; or type_str.lower() == &#34;loc&#34;:
@@ -1175,9 +1231,9 @@ Updates the SensorData object with the new values
         elif type_str.lower() == &#34;orientation&#34;:
             return SensorType.ORIENTATION
         elif (
-            type_str.lower() == &#34;pressure&#34;
-            or type_str.lower() == &#34;bar&#34;
-            or type_str.lower() == &#34;barometer&#34;
+                type_str.lower() == &#34;pressure&#34;
+                or type_str.lower() == &#34;bar&#34;
+                or type_str.lower() == &#34;barometer&#34;
         ):
             return SensorType.PRESSURE
         elif type_str.lower() == &#34;proximity&#34; or type_str.lower() == &#34;infrared&#34;:
@@ -1297,9 +1353,9 @@ def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
     :return: a sensor type, UNKNOWN_SENSOR is the default for invalid inputs
     &#34;&#34;&#34;
     if (
-        type_str.lower() == &#34;audio&#34;
-        or type_str.lower() == &#34;mic&#34;
-        or type_str.lower() == &#34;microphone&#34;
+            type_str.lower() == &#34;audio&#34;
+            or type_str.lower() == &#34;mic&#34;
+            or type_str.lower() == &#34;microphone&#34;
     ):
         return SensorType.AUDIO
     elif type_str.lower() == &#34;accelerometer&#34; or type_str.lower() == &#34;accel&#34;:
@@ -1317,8 +1373,8 @@ def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
     elif type_str.lower() == &#34;light&#34;:
         return SensorType.LIGHT
     elif (
-        type_str.lower() == &#34;linear_acceleration&#34;
-        or type_str.lower() == &#34;linear_accel&#34;
+            type_str.lower() == &#34;linear_acceleration&#34;
+            or type_str.lower() == &#34;linear_accel&#34;
     ):
         return SensorType.LINEAR_ACCELERATION
     elif type_str.lower() == &#34;location&#34; or type_str.lower() == &#34;loc&#34;:
@@ -1330,9 +1386,9 @@ def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
     elif type_str.lower() == &#34;orientation&#34;:
         return SensorType.ORIENTATION
     elif (
-        type_str.lower() == &#34;pressure&#34;
-        or type_str.lower() == &#34;bar&#34;
-        or type_str.lower() == &#34;barometer&#34;
+            type_str.lower() == &#34;pressure&#34;
+            or type_str.lower() == &#34;bar&#34;
+            or type_str.lower() == &#34;barometer&#34;
     ):
         return SensorType.PRESSURE
     elif type_str.lower() == &#34;proximity&#34; or type_str.lower() == &#34;infrared&#34;:
@@ -1377,6 +1433,7 @@ def type_from_str(type_str: str) -&gt; &#34;SensorType&#34;:
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.samples" href="#redvox.common.sensor_data.SensorData.samples">samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sensor_type_as_str" href="#redvox.common.sensor_data.SensorData.sensor_type_as_str">sensor_type_as_str</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>

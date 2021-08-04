@@ -31,6 +31,8 @@
 This module contains custom error definitions used within this SDK.
 &#34;&#34;&#34;
 
+from typing import List
+
 
 class RedVoxError(Exception):
     &#34;&#34;&#34;
@@ -38,7 +40,75 @@ class RedVoxError(Exception):
     &#34;&#34;&#34;
 
     def __init__(self, message: str):
-        super().__init__(f&#34;RedVoxError: {message}&#34;)</code></pre>
+        super().__init__(f&#34;RedVoxError: {message}&#34;)
+
+
+class RedVoxExceptions:
+    &#34;&#34;&#34;
+    This class represents multiple generic Redvox SDK errors for another class specified by obj_class.
+    &#34;&#34;&#34;
+
+    def __init__(self, obj_class: str):
+        self._obj_class = obj_class
+        self._errors: List[RedVoxError] = []
+        self._num_errors: int = 0
+
+    def get(self) -&gt; List[RedVoxError]:
+        &#34;&#34;&#34;
+        :return: the list of errors
+        &#34;&#34;&#34;
+        return [a for a in self._errors]
+
+    def append(self, msg: str):
+        &#34;&#34;&#34;
+        append an error message to the list of errors
+
+        :param msg: error message to add
+        &#34;&#34;&#34;
+        self._errors.append(RedVoxError(f&#34;{self._obj_class}: {msg}&#34;))
+        self._num_errors += 1
+
+    def append_error(self, error: RedVoxError):
+        &#34;&#34;&#34;
+        append an error to the list of errors
+
+        :param error: error to add
+        &#34;&#34;&#34;
+        self._errors.append(error)
+        self._num_errors += 1
+
+    def extend(self, msgs: List[str]):
+        &#34;&#34;&#34;
+        extend a list of error messages to the list of errors
+
+        :param msgs: error messages to add
+        &#34;&#34;&#34;
+        self._errors.extend([RedVoxError(msg) for msg in msgs])
+        self._num_errors += len(msgs)
+
+    def extend_error(self, errors: &#34;RedVoxExceptions&#34;):
+        &#34;&#34;&#34;
+        extend a list of error messages to the list of errors
+
+        :param errors: errors to add
+        &#34;&#34;&#34;
+        self._errors.extend(errors.get())
+        self._num_errors += errors.get_num_errors()
+
+    def get_num_errors(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: the number of errors
+        &#34;&#34;&#34;
+        return self._num_errors
+
+    def print(self):
+        &#34;&#34;&#34;
+        print all errors
+        &#34;&#34;&#34;
+        if self._num_errors &gt; 0:
+            print(f&#34;Errors encountered while creating {self._obj_class}:&#34;)
+            for error in self._errors:
+                print(error)</code></pre>
 </details>
 </section>
 <section>
@@ -74,6 +144,218 @@ class RedVoxError(Exception):
 <li>builtins.BaseException</li>
 </ul>
 </dd>
+<dt id="redvox.common.errors.RedVoxExceptions"><code class="flex name class">
+<span>class <span class="ident">RedVoxExceptions</span></span>
+<span>(</span><span>obj_class: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class represents multiple generic Redvox SDK errors for another class specified by obj_class.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RedVoxExceptions:
+    &#34;&#34;&#34;
+    This class represents multiple generic Redvox SDK errors for another class specified by obj_class.
+    &#34;&#34;&#34;
+
+    def __init__(self, obj_class: str):
+        self._obj_class = obj_class
+        self._errors: List[RedVoxError] = []
+        self._num_errors: int = 0
+
+    def get(self) -&gt; List[RedVoxError]:
+        &#34;&#34;&#34;
+        :return: the list of errors
+        &#34;&#34;&#34;
+        return [a for a in self._errors]
+
+    def append(self, msg: str):
+        &#34;&#34;&#34;
+        append an error message to the list of errors
+
+        :param msg: error message to add
+        &#34;&#34;&#34;
+        self._errors.append(RedVoxError(f&#34;{self._obj_class}: {msg}&#34;))
+        self._num_errors += 1
+
+    def append_error(self, error: RedVoxError):
+        &#34;&#34;&#34;
+        append an error to the list of errors
+
+        :param error: error to add
+        &#34;&#34;&#34;
+        self._errors.append(error)
+        self._num_errors += 1
+
+    def extend(self, msgs: List[str]):
+        &#34;&#34;&#34;
+        extend a list of error messages to the list of errors
+
+        :param msgs: error messages to add
+        &#34;&#34;&#34;
+        self._errors.extend([RedVoxError(msg) for msg in msgs])
+        self._num_errors += len(msgs)
+
+    def extend_error(self, errors: &#34;RedVoxExceptions&#34;):
+        &#34;&#34;&#34;
+        extend a list of error messages to the list of errors
+
+        :param errors: errors to add
+        &#34;&#34;&#34;
+        self._errors.extend(errors.get())
+        self._num_errors += errors.get_num_errors()
+
+    def get_num_errors(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: the number of errors
+        &#34;&#34;&#34;
+        return self._num_errors
+
+    def print(self):
+        &#34;&#34;&#34;
+        print all errors
+        &#34;&#34;&#34;
+        if self._num_errors &gt; 0:
+            print(f&#34;Errors encountered while creating {self._obj_class}:&#34;)
+            for error in self._errors:
+                print(error)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.errors.RedVoxExceptions.append"><code class="name flex">
+<span>def <span class="ident">append</span></span>(<span>self, msg: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>append an error message to the list of errors</p>
+<p>:param msg: error message to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append(self, msg: str):
+    &#34;&#34;&#34;
+    append an error message to the list of errors
+
+    :param msg: error message to add
+    &#34;&#34;&#34;
+    self._errors.append(RedVoxError(f&#34;{self._obj_class}: {msg}&#34;))
+    self._num_errors += 1</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.errors.RedVoxExceptions.append_error"><code class="name flex">
+<span>def <span class="ident">append_error</span></span>(<span>self, error: <a title="redvox.common.errors.RedVoxError" href="#redvox.common.errors.RedVoxError">RedVoxError</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>append an error to the list of errors</p>
+<p>:param error: error to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append_error(self, error: RedVoxError):
+    &#34;&#34;&#34;
+    append an error to the list of errors
+
+    :param error: error to add
+    &#34;&#34;&#34;
+    self._errors.append(error)
+    self._num_errors += 1</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.errors.RedVoxExceptions.extend"><code class="name flex">
+<span>def <span class="ident">extend</span></span>(<span>self, msgs: List[str])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>extend a list of error messages to the list of errors</p>
+<p>:param msgs: error messages to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extend(self, msgs: List[str]):
+    &#34;&#34;&#34;
+    extend a list of error messages to the list of errors
+
+    :param msgs: error messages to add
+    &#34;&#34;&#34;
+    self._errors.extend([RedVoxError(msg) for msg in msgs])
+    self._num_errors += len(msgs)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.errors.RedVoxExceptions.extend_error"><code class="name flex">
+<span>def <span class="ident">extend_error</span></span>(<span>self, errors: <a title="redvox.common.errors.RedVoxExceptions" href="#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>extend a list of error messages to the list of errors</p>
+<p>:param errors: errors to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def extend_error(self, errors: &#34;RedVoxExceptions&#34;):
+    &#34;&#34;&#34;
+    extend a list of error messages to the list of errors
+
+    :param errors: errors to add
+    &#34;&#34;&#34;
+    self._errors.extend(errors.get())
+    self._num_errors += errors.get_num_errors()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.errors.RedVoxExceptions.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>self) ‑> List[<a title="redvox.common.errors.RedVoxError" href="#redvox.common.errors.RedVoxError">RedVoxError</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the list of errors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get(self) -&gt; List[RedVoxError]:
+    &#34;&#34;&#34;
+    :return: the list of errors
+    &#34;&#34;&#34;
+    return [a for a in self._errors]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.errors.RedVoxExceptions.get_num_errors"><code class="name flex">
+<span>def <span class="ident">get_num_errors</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the number of errors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_num_errors(self) -&gt; int:
+    &#34;&#34;&#34;
+    :return: the number of errors
+    &#34;&#34;&#34;
+    return self._num_errors</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.errors.RedVoxExceptions.print"><code class="name flex">
+<span>def <span class="ident">print</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>print all errors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print(self):
+    &#34;&#34;&#34;
+    print all errors
+    &#34;&#34;&#34;
+    if self._num_errors &gt; 0:
+        print(f&#34;Errors encountered while creating {self._obj_class}:&#34;)
+        for error in self._errors:
+            print(error)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -92,6 +374,18 @@ class RedVoxError(Exception):
 <ul>
 <li>
 <h4><code><a title="redvox.common.errors.RedVoxError" href="#redvox.common.errors.RedVoxError">RedVoxError</a></code></h4>
+</li>
+<li>
+<h4><code><a title="redvox.common.errors.RedVoxExceptions" href="#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.common.errors.RedVoxExceptions.append" href="#redvox.common.errors.RedVoxExceptions.append">append</a></code></li>
+<li><code><a title="redvox.common.errors.RedVoxExceptions.append_error" href="#redvox.common.errors.RedVoxExceptions.append_error">append_error</a></code></li>
+<li><code><a title="redvox.common.errors.RedVoxExceptions.extend" href="#redvox.common.errors.RedVoxExceptions.extend">extend</a></code></li>
+<li><code><a title="redvox.common.errors.RedVoxExceptions.extend_error" href="#redvox.common.errors.RedVoxExceptions.extend_error">extend_error</a></code></li>
+<li><code><a title="redvox.common.errors.RedVoxExceptions.get" href="#redvox.common.errors.RedVoxExceptions.get">get</a></code></li>
+<li><code><a title="redvox.common.errors.RedVoxExceptions.get_num_errors" href="#redvox.common.errors.RedVoxExceptions.get_num_errors">get_num_errors</a></code></li>
+<li><code><a title="redvox.common.errors.RedVoxExceptions.print" href="#redvox.common.errors.RedVoxExceptions.print">print</a></code></li>
+</ul>
 </li>
 </ul>
 </li>

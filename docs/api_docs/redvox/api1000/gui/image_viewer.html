@@ -158,8 +158,265 @@ except ImportError:
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.api1000.gui.image_viewer.start_gui"><code class="name flex">
+<span>def <span class="ident">start_gui</span></span>(<span>image_sensor: Image)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Starts the GUI from the provided image sensor.
+:param image_sensor: Image sensor</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start_gui(image_sensor: &#39;Image&#39;) -&gt; None:
+    &#34;&#34;&#34;
+    Starts the GUI from the provided image sensor.
+    :param image_sensor: Image sensor
+    &#34;&#34;&#34;
+    app: QApplication = QApplication(sys.argv)
+    window: MainWindow = MainWindow(image_sensor)
+    window.showMaximized()
+    app.exec_()</code></pre>
+</details>
+</dd>
+</dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.api1000.gui.image_viewer.ImageSelectionWidget"><code class="flex name class">
+<span>class <span class="ident">ImageSelectionWidget</span></span>
+<span>(</span><span>image_sensor: Image, image_view_widget: <a title="redvox.api1000.gui.image_viewer.ImageViewWidget" href="#redvox.api1000.gui.image_viewer.ImageViewWidget">ImageViewWidget</a>, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This widget provides a table view of available images in the packet.</p>
+<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None) -&gt; None
+<strong>init</strong>(self, rows: int, columns: int, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None) -&gt; None</p>
+<p>Initialize self.
+See help(type(self)) for accurate signature.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ImageSelectionWidget(QTableWidget):
+    &#34;&#34;&#34;
+    This widget provides a table view of available images in the packet.
+    &#34;&#34;&#34;
+
+    def __init__(self,
+                 image_sensor: &#39;Image&#39;,
+                 image_view_widget: &#39;ImageViewWidget&#39;,
+                 parent: Optional[QWidget] = None) -&gt; None:
+        super().__init__(image_sensor.get_num_images(), 2, parent=parent)
+
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.resizeColumnsToContents()
+
+        extension: str = image_sensor.get_file_ext()
+        timestamps: np.ndarray = image_sensor.get_timestamps().get_timestamps()
+
+        self.setHorizontalHeaderLabels([&#34;File Name&#34;, &#34;Image Sampled At&#34;])
+        for (i, timestamp) in enumerate(timestamps):
+            name: str = f&#34;{round(timestamp)}.{extension}&#34;
+            date_time: datetime.datetime = datetime.datetime.utcfromtimestamp(timestamp / 1_000_000.0)
+            self.setItem(i, 0, QTableWidgetItem(name))
+            self.setItem(i, 1, QTableWidgetItem(str(date_time)))
+
+        def __update_image_at_row(row: int) -&gt; None:
+            buf: bytes = image_sensor.get_samples()[row]
+            image_view_widget.set_image(buf)
+
+        self.currentCellChanged.connect(__update_image_at_row)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>PySide6.QtWidgets.QTableWidget</li>
+<li>PySide6.QtWidgets.QTableView</li>
+<li>PySide6.QtWidgets.QAbstractItemView</li>
+<li>PySide6.QtWidgets.QAbstractScrollArea</li>
+<li>PySide6.QtWidgets.QFrame</li>
+<li>PySide6.QtWidgets.QWidget</li>
+<li>PySide6.QtCore.QObject</li>
+<li>PySide6.QtGui.QPaintDevice</li>
+<li>Shiboken.Object</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.gui.image_viewer.ImageSelectionWidget.staticMetaObject"><code class="name">var <span class="ident">staticMetaObject</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.api1000.gui.image_viewer.ImageViewWidget"><code class="flex name class">
+<span>class <span class="ident">ImageViewWidget</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This widget displays and scales the image</p>
+<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None
+<strong>init</strong>(self, text: str, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p>Initialize self.
+See help(type(self)) for accurate signature.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ImageViewWidget(QLabel):
+    &#34;&#34;&#34;
+    This widget displays and scales the image
+    &#34;&#34;&#34;
+
+    def __init__(self, _: Optional[QWidget] = None) -&gt; None:
+        super().__init__(parent=None)
+        self.setAlignment(Qt.AlignCenter)
+
+    def set_image(self, buf: bytes) -&gt; None:
+        &#34;&#34;&#34;
+        Sets the image.
+        :param buf: Image bytes to set
+        &#34;&#34;&#34;
+        pix: QPixmap = QPixmap()
+        pix.loadFromData(QByteArray(buf))
+        self.setPixmap(pix.scaled(self.width(),
+                                  self.height(),
+                                  Qt.AspectRatioMode.KeepAspectRatio,
+                                  Qt.TransformationMode.SmoothTransformation))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>PySide6.QtWidgets.QLabel</li>
+<li>PySide6.QtWidgets.QFrame</li>
+<li>PySide6.QtWidgets.QWidget</li>
+<li>PySide6.QtCore.QObject</li>
+<li>PySide6.QtGui.QPaintDevice</li>
+<li>Shiboken.Object</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.gui.image_viewer.ImageViewWidget.staticMetaObject"><code class="name">var <span class="ident">staticMetaObject</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.api1000.gui.image_viewer.ImageViewWidget.set_image"><code class="name flex">
+<span>def <span class="ident">set_image</span></span>(<span>self, buf: bytes) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets the image.
+:param buf: Image bytes to set</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_image(self, buf: bytes) -&gt; None:
+    &#34;&#34;&#34;
+    Sets the image.
+    :param buf: Image bytes to set
+    &#34;&#34;&#34;
+    pix: QPixmap = QPixmap()
+    pix.loadFromData(QByteArray(buf))
+    self.setPixmap(pix.scaled(self.width(),
+                              self.height(),
+                              Qt.AspectRatioMode.KeepAspectRatio,
+                              Qt.TransformationMode.SmoothTransformation))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.api1000.gui.image_viewer.ImageViewer"><code class="flex name class">
+<span>class <span class="ident">ImageViewer</span></span>
+<span>(</span><span>image_sensor: Image, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Widget that acts as the "main" widget into the application</p>
+<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p>Initialize self.
+See help(type(self)) for accurate signature.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ImageViewer(QWidget):
+    &#34;&#34;&#34;
+    Widget that acts as the &#34;main&#34; widget into the application
+    &#34;&#34;&#34;
+
+    def __init__(self, image_sensor: &#39;Image&#39;, parent: Optional[QWidget] = None) -&gt; None:
+        super().__init__(parent)
+        self.setLayout(QHBoxLayout(self))
+
+        image_view_widget: ImageViewWidget = ImageViewWidget()
+        image_selection_widget: ImageSelectionWidget = ImageSelectionWidget(image_sensor, image_view_widget)
+        size_policy: QSizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(1)
+        image_selection_widget.setSizePolicy(size_policy)
+        self.layout().addWidget(image_selection_widget)
+
+        size_policy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(2)
+        image_view_widget.setSizePolicy(size_policy)
+        self.layout().addWidget(image_view_widget)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>PySide6.QtWidgets.QWidget</li>
+<li>PySide6.QtCore.QObject</li>
+<li>PySide6.QtGui.QPaintDevice</li>
+<li>Shiboken.Object</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.gui.image_viewer.ImageViewer.staticMetaObject"><code class="name">var <span class="ident">staticMetaObject</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.api1000.gui.image_viewer.MainWindow"><code class="flex name class">
+<span>class <span class="ident">MainWindow</span></span>
+<span>(</span><span>image_sensor: Image, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Main window of the application</p>
+<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, flags: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p>Initialize self.
+See help(type(self)) for accurate signature.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MainWindow(QMainWindow):
+    &#34;&#34;&#34;
+    Main window of the application
+    &#34;&#34;&#34;
+
+    def __init__(self, image_sensor: &#39;Image&#39;, parent: Optional[QWidget] = None) -&gt; None:
+        super().__init__(parent)
+        self.setWindowTitle(f&#34;RedVox Image Viewer v{redvox.VERSION}&#34;)
+        self.setCentralWidget(ImageViewer(image_sensor, self))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>PySide6.QtWidgets.QMainWindow</li>
+<li>PySide6.QtWidgets.QWidget</li>
+<li>PySide6.QtCore.QObject</li>
+<li>PySide6.QtGui.QPaintDevice</li>
+<li>Shiboken.Object</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.api1000.gui.image_viewer.MainWindow.staticMetaObject"><code class="name">var <span class="ident">staticMetaObject</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -171,6 +428,40 @@ except ImportError:
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="redvox.api1000.gui" href="index.html">redvox.api1000.gui</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.api1000.gui.image_viewer.start_gui" href="#redvox.api1000.gui.image_viewer.start_gui">start_gui</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.api1000.gui.image_viewer.ImageSelectionWidget" href="#redvox.api1000.gui.image_viewer.ImageSelectionWidget">ImageSelectionWidget</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.gui.image_viewer.ImageSelectionWidget.staticMetaObject" href="#redvox.api1000.gui.image_viewer.ImageSelectionWidget.staticMetaObject">staticMetaObject</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.gui.image_viewer.ImageViewWidget" href="#redvox.api1000.gui.image_viewer.ImageViewWidget">ImageViewWidget</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.gui.image_viewer.ImageViewWidget.set_image" href="#redvox.api1000.gui.image_viewer.ImageViewWidget.set_image">set_image</a></code></li>
+<li><code><a title="redvox.api1000.gui.image_viewer.ImageViewWidget.staticMetaObject" href="#redvox.api1000.gui.image_viewer.ImageViewWidget.staticMetaObject">staticMetaObject</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.gui.image_viewer.ImageViewer" href="#redvox.api1000.gui.image_viewer.ImageViewer">ImageViewer</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.gui.image_viewer.ImageViewer.staticMetaObject" href="#redvox.api1000.gui.image_viewer.ImageViewer.staticMetaObject">staticMetaObject</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.api1000.gui.image_viewer.MainWindow" href="#redvox.api1000.gui.image_viewer.MainWindow">MainWindow</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.api1000.gui.image_viewer.MainWindow.staticMetaObject" href="#redvox.api1000.gui.image_viewer.MainWindow.staticMetaObject">staticMetaObject</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

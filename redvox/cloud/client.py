@@ -69,7 +69,6 @@ class CloudClient:
     """
     The RedVox Cloud API client.
     """
-
     def __init__(
             self,
             redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
@@ -103,29 +102,37 @@ class CloudClient:
         self.__session = (
             requests.Session()
         )  # This must be initialized before the auth req!
-        try:
-            auth_resp: auth_api.AuthResp = self.authenticate_user(
-                redvox_config.username, redvox_config.password
-            )
-        except cloud_errors.ApiConnectionError as ex:
-            self.close()
-            raise ex
 
         self.__refresh_timer = None
-        if (
-                auth_resp.status != 200
-                or auth_resp.auth_token is None
-                or len(auth_resp.auth_token) == 0
-        ):
-            self.close()
-            raise cloud_errors.AuthenticationError()
-
-        self.auth_token: str = auth_resp.auth_token
-
+        self.__authenticate()
         self.__refresh_timer = threading.Timer(
             self.refresh_token_interval, self.__refresh_token
         )
         self.__refresh_timer.start()
+
+    def __authenticate(self) -> None:
+        # Token provided
+        if self.redvox_config.username == "auth_token":
+            self.auth_token = self.redvox_config.password
+        # Username/Password provided
+        else:
+            try:
+                auth_resp: auth_api.AuthResp = self.authenticate_user(
+                    self.redvox_config.username, self.redvox_config.password
+                )
+            except cloud_errors.ApiConnectionError as ex:
+                self.close()
+                raise ex
+
+            if (
+                    auth_resp.status != 200
+                    or auth_resp.auth_token is None
+                    or len(auth_resp.auth_token) == 0
+            ):
+                self.close()
+                raise cloud_errors.AuthenticationError()
+
+            self.auth_token: str = auth_resp.auth_token
 
     def __refresh_token(self):
         """

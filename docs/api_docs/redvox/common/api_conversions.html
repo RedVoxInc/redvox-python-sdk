@@ -54,6 +54,7 @@ from redvox.api1000.wrapped_redvox_packet.station_information import (
     OsType,
     StationInformation,
     StationMetrics,
+    AudioSamplingRate,
 )
 from redvox.api1000.wrapped_redvox_packet.timing_information import SynchExchange
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
@@ -117,6 +118,7 @@ def _migrate_synch_exchanges_900_to_1000(
 def _find_mach_time_zero_raw(packet: api_900.RedvoxPacket) -&gt; int:
     &#34;&#34;&#34;
     find the mach time zero in api 900 packets
+
     :param packet: api 900 redvox packet to read
     :return: mach time zero fo the api 900 packet or -1 if it doesn&#39;t exist
     &#34;&#34;&#34;
@@ -259,6 +261,7 @@ def compute_stats_raw(
 def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -&gt; api_m.RedvoxPacketM:
     &#34;&#34;&#34;
     Converts a wrapped API 900 packet into a wrapped API M packet.
+
     :param packet: API 900 packet to convert.
     :return: A wrapped API M packet.
     &#34;&#34;&#34;
@@ -278,6 +281,9 @@ def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -&gt; api_m.Redvox
     packet_m.station_information.os_version = packet.device_os_version
     packet_m.station_information.app_version = packet.app_version
     packet_m.station_information.is_private = packet.is_private
+
+    packet_m.station_information.app_settings.samples_per_window = \
+        len(packet.evenly_sampled_channels[0].int32_payload.payload)
 
     packet_m.station_information.service_urls.acquisition_server = (
         packet.acquisition_server
@@ -820,6 +826,7 @@ def convert_api_900_to_1000(
 ) -&gt; WrappedRedvoxPacketM:
     &#34;&#34;&#34;
     Converts a wrapped API 900 packet into a wrapped API M packet.
+
     :param wrapped_packet_900: API 900 packet to convert.
     :return: A wrapped API M packet.
     &#34;&#34;&#34;
@@ -1124,6 +1131,7 @@ def convert_api_1000_to_900(
 ) -&gt; reader_900.WrappedRedvoxPacket:
     &#34;&#34;&#34;
     Converts an API M wrapped packet into an API 900 wrapped packet.
+
     :param wrapped_packet_m: Packet to convert.
     :return: An API 900 wrapped packet.
     &#34;&#34;&#34;
@@ -1401,8 +1409,8 @@ def convert_api_1000_to_900(
 <span>def <span class="ident">convert_api_1000_to_900</span></span>(<span>wrapped_packet_m: <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>) ‑> <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../api900/wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Converts an API M wrapped packet into an API 900 wrapped packet.
-:param wrapped_packet_m: Packet to convert.
+<div class="desc"><p>Converts an API M wrapped packet into an API 900 wrapped packet.</p>
+<p>:param wrapped_packet_m: Packet to convert.
 :return: An API 900 wrapped packet.</p></div>
 <details class="source">
 <summary>
@@ -1413,6 +1421,7 @@ def convert_api_1000_to_900(
 ) -&gt; reader_900.WrappedRedvoxPacket:
     &#34;&#34;&#34;
     Converts an API M wrapped packet into an API 900 wrapped packet.
+
     :param wrapped_packet_m: Packet to convert.
     :return: An API 900 wrapped packet.
     &#34;&#34;&#34;
@@ -1642,8 +1651,8 @@ def convert_api_1000_to_900(
 <span>def <span class="ident">convert_api_900_to_1000</span></span>(<span>wrapped_packet_900: <a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="../api900/wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>) ‑> <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Converts a wrapped API 900 packet into a wrapped API M packet.
-:param wrapped_packet_900: API 900 packet to convert.
+<div class="desc"><p>Converts a wrapped API 900 packet into a wrapped API M packet.</p>
+<p>:param wrapped_packet_900: API 900 packet to convert.
 :return: A wrapped API M packet.</p></div>
 <details class="source">
 <summary>
@@ -1654,6 +1663,7 @@ def convert_api_1000_to_900(
 ) -&gt; WrappedRedvoxPacketM:
     &#34;&#34;&#34;
     Converts a wrapped API 900 packet into a wrapped API M packet.
+
     :param wrapped_packet_900: API 900 packet to convert.
     :return: A wrapped API M packet.
     &#34;&#34;&#34;
@@ -1957,8 +1967,8 @@ def convert_api_1000_to_900(
 <span>def <span class="ident">convert_api_900_to_1000_raw</span></span>(<span>packet: api900_pb2.RedvoxPacket) ‑> src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Converts a wrapped API 900 packet into a wrapped API M packet.
-:param packet: API 900 packet to convert.
+<div class="desc"><p>Converts a wrapped API 900 packet into a wrapped API M packet.</p>
+<p>:param packet: API 900 packet to convert.
 :return: A wrapped API M packet.</p></div>
 <details class="source">
 <summary>
@@ -1967,6 +1977,7 @@ def convert_api_1000_to_900(
 <pre><code class="python">def convert_api_900_to_1000_raw(packet: api_900.RedvoxPacket) -&gt; api_m.RedvoxPacketM:
     &#34;&#34;&#34;
     Converts a wrapped API 900 packet into a wrapped API M packet.
+
     :param packet: API 900 packet to convert.
     :return: A wrapped API M packet.
     &#34;&#34;&#34;
@@ -1986,6 +1997,9 @@ def convert_api_1000_to_900(
     packet_m.station_information.os_version = packet.device_os_version
     packet_m.station_information.app_version = packet.app_version
     packet_m.station_information.is_private = packet.is_private
+
+    packet_m.station_information.app_settings.samples_per_window = \
+        len(packet.evenly_sampled_channels[0].int32_payload.payload)
 
     packet_m.station_information.service_urls.acquisition_server = (
         packet.acquisition_server

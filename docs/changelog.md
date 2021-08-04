@@ -1,5 +1,15 @@
 ## Changelog
 
+### 3.0.7 (2021-7-29)
+
+* Update dependencies
+* Tweak cloud client for cloud cloud environment.
+
+### 3.0.6 (2021-7-28)
+
+* Add methods for querying status of optional dependencies
+* Add ability to construct cloud client from previously held authentication token
+
 ### 3.0.5.rc (2021-7-23)
 
 * Testing pyarrow functionality for Sensors and Stations

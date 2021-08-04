@@ -598,7 +598,6 @@ class IndexTests(IoTestCase):
 
         self.assertEqual(8, len(index.entries))
 
-
     def test_read_all_raw(self):
         from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
@@ -656,7 +655,6 @@ class IndexTests(IoTestCase):
             i += 1
 
         self.assertEqual(8, len(index.entries))
-
 
     def test_read_filtered(self):
         index: io.Index = io.Index([
@@ -2393,7 +2391,6 @@ not have a method with the specified name.</p></div>
 
         self.assertEqual(8, len(index.entries))
 
-
     def test_read_all_raw(self):
         from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
 
@@ -2451,7 +2448,6 @@ not have a method with the specified name.</p></div>
             i += 1
 
         self.assertEqual(8, len(index.entries))
-
 
     def test_read_filtered(self):
         index: io.Index = io.Index([

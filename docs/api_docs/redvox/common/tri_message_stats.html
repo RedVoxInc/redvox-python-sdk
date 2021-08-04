@@ -75,6 +75,7 @@ class TriMessageStats:
     ):
         &#34;&#34;&#34;
         Calculate latency, offset, and their qualities.
+
         :param packet_id: an identifier for reporting purposes
         :param a1: array of server timestamp 1
         :param a2: array of server timestamp 2
@@ -151,7 +152,8 @@ class TriMessageStats:
         b3_coeffs: np.ndarray,
     ) -&gt; None:
         &#34;&#34;&#34;
-        set the latency and find the best
+        set the latency and find the best latency
+
         :param a1_coeffs: server timestamp 1
         :param a2_coeffs: server timestamp 2
         :param a3_coeffs: server timestamp 3
@@ -175,7 +177,8 @@ class TriMessageStats:
         b3_coeffs: np.ndarray,
     ) -&gt; None:
         &#34;&#34;&#34;
-        set the offset and find the best
+        set the offset and find the best offset
+
         :param a1_coeffs: server timestamp 1
         :param a2_coeffs: server timestamp 2
         :param a3_coeffs: server timestamp 3
@@ -674,8 +677,8 @@ best_offset: best offset that meets all criteria
 best_latency_array_index: number of latency array with best latency
 best_latency_index: index in latency array of best latency
 num_messages: number of tri-message exchanges</p>
-<p>Calculate latency, offset, and their qualities.
-:param packet_id: an identifier for reporting purposes
+<p>Calculate latency, offset, and their qualities.</p>
+<p>:param packet_id: an identifier for reporting purposes
 :param a1: array of server timestamp 1
 :param a2: array of server timestamp 2
 :param a3: array of server timestamp 3
@@ -715,6 +718,7 @@ num_messages: number of tri-message exchanges</p>
     ):
         &#34;&#34;&#34;
         Calculate latency, offset, and their qualities.
+
         :param packet_id: an identifier for reporting purposes
         :param a1: array of server timestamp 1
         :param a2: array of server timestamp 2
@@ -791,7 +795,8 @@ num_messages: number of tri-message exchanges</p>
         b3_coeffs: np.ndarray,
     ) -&gt; None:
         &#34;&#34;&#34;
-        set the latency and find the best
+        set the latency and find the best latency
+
         :param a1_coeffs: server timestamp 1
         :param a2_coeffs: server timestamp 2
         :param a3_coeffs: server timestamp 3
@@ -815,7 +820,8 @@ num_messages: number of tri-message exchanges</p>
         b3_coeffs: np.ndarray,
     ) -&gt; None:
         &#34;&#34;&#34;
-        set the offset and find the best
+        set the offset and find the best offset
+
         :param a1_coeffs: server timestamp 1
         :param a2_coeffs: server timestamp 2
         :param a3_coeffs: server timestamp 3
@@ -893,8 +899,8 @@ num_messages: number of tri-message exchanges</p>
 <span>def <span class="ident">set_latency</span></span>(<span>self, a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"><p>set the latency and find the best
-:param a1_coeffs: server timestamp 1
+<div class="desc"><p>set the latency and find the best latency</p>
+<p>:param a1_coeffs: server timestamp 1
 :param a2_coeffs: server timestamp 2
 :param a3_coeffs: server timestamp 3
 :param b1_coeffs: device timestamp 1
@@ -914,7 +920,8 @@ num_messages: number of tri-message exchanges</p>
     b3_coeffs: np.ndarray,
 ) -&gt; None:
     &#34;&#34;&#34;
-    set the latency and find the best
+    set the latency and find the best latency
+
     :param a1_coeffs: server timestamp 1
     :param a2_coeffs: server timestamp 2
     :param a3_coeffs: server timestamp 3
@@ -933,8 +940,8 @@ num_messages: number of tri-message exchanges</p>
 <span>def <span class="ident">set_offset</span></span>(<span>self, a1_coeffs: numpy.ndarray, a2_coeffs: numpy.ndarray, a3_coeffs: numpy.ndarray, b1_coeffs: numpy.ndarray, b2_coeffs: numpy.ndarray, b3_coeffs: numpy.ndarray) ‑> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"><p>set the offset and find the best
-:param a1_coeffs: server timestamp 1
+<div class="desc"><p>set the offset and find the best offset</p>
+<p>:param a1_coeffs: server timestamp 1
 :param a2_coeffs: server timestamp 2
 :param a3_coeffs: server timestamp 3
 :param b1_coeffs: device timestamp 1
@@ -954,7 +961,8 @@ num_messages: number of tri-message exchanges</p>
     b3_coeffs: np.ndarray,
 ) -&gt; None:
     &#34;&#34;&#34;
-    set the offset and find the best
+    set the offset and find the best offset
+
     :param a1_coeffs: server timestamp 1
     :param a2_coeffs: server timestamp 2
     :param a3_coeffs: server timestamp 3
