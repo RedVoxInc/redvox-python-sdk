@@ -3,13 +3,12 @@ Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
-import timeit
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple
 import tempfile
 import os
 
 import numpy as np
-import pyarrow as pa
+import pyarrow.dataset as ds
 
 from redvox.common import sensor_data_with_pyarrow as sd
 from redvox.common import station_utils as st_utils
@@ -17,8 +16,8 @@ from redvox.common.timesync import TimeSyncAnalysis
 from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import packet_to_pyarrow as ptp
-from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils_wpa as gpu
+from redvox.common.stats_helper import StatsContainer
 
 
 class StationPa:
@@ -103,7 +102,7 @@ class StationPa:
             self.base_dir = self._temp_dir.name
 
         self._data: List[sd.SensorDataPa] = []
-        self._sensors: Dict[sd.SensorType, Tuple[str, float]] = {}
+        # self._sensors: Dict[sd.SensorType, Tuple[str, float]] = {}
         self._gaps: List[Tuple[float, float]] = []
 
     def __del__(self):
@@ -129,10 +128,11 @@ class StationPa:
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
         :return: station using data from parquet files
         """
-        station = StationPa(use_model_correction=use_model_correction,
-                            base_out_dir=base_out_dir, save_output=save_output)
-        station.load_data_from_parquet(in_dir)
-        return station
+        raise AttributeError("Not enough data yet to make station.")
+        # station = StationPa(use_model_correction=use_model_correction,
+        #                     base_out_dir=base_out_dir, save_output=save_output)
+        # station.load_data_from_parquet(in_dir)
+        # return station
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
@@ -186,7 +186,11 @@ class StationPa:
             ).from_raw_packets(packets)
             if self.timesync_analysis.errors.get_num_errors() > 0:
                 self.errors.extend_error(self.timesync_analysis.errors)
-            self._set_pyarrow_sensors(packets)
+            # self._audio_rate = packets[0].sensors.audio.sample_rate
+            # self._audio_name = packets[0].sensors.audio.sensor_description
+            if not os.path.exists(self.base_dir):
+                os.makedirs(self.base_dir, exist_ok=True)
+            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -1090,103 +1094,40 @@ class StationPa:
             return f"{self._id}_0"
         return f"{self._id}_{int(self._start_timestamp)}"
 
-    def load_data_from_parquet(self, in_dir: Optional[str] = None):
-        """
-        load all data from parquets into memory
-
-        :param in_dir: optional input directory containing the files (otherwise uses self.base_dir)
-        """
-        if not in_dir:
-            in_dir = self.base_dir
-        if not self.has_audio_data():
-            self._data.append(sd.SensorDataPa.from_dir(sensor_name=self._audio_name,
-                                                       sensor_type=sd.SensorType.AUDIO, sample_rate_hz=self._audio_rate,
-                                                       sample_interval_s=1 / self._audio_rate, sample_interval_std_s=0.,
-                                                       is_sample_rate_fixed=True, save_data=self.save_output,
-                                                       data_path=os.path.join(in_dir, sd.SensorType.AUDIO.name)))
-        for s_type, s_data in self._sensors.items():
-            if s_type in [sd.SensorType.COMPRESSED_AUDIO, sd.SensorType.IMAGE,
-                          sd.SensorType.STATION_HEALTH]:
-                sample_rate = s_data[1]
-                self._data.append(sd.SensorDataPa.from_dir(sensor_name=s_data[0],
-                                                           data_path=os.path.join(in_dir, s_type.name),
-                                                           sensor_type=s_type, sample_rate_hz=sample_rate,
-                                                           sample_interval_s=1 / sample_rate,
-                                                           sample_interval_std_s=0.,
-                                                           is_sample_rate_fixed=True, save_data=self.save_output,
-                                                           arrow_dir=os.path.join(in_dir, s_type.name)))
-            else:
-                self._data.append(sd.SensorDataPa.from_dir(sensor_name=s_data[0],
-                                                           data_path=os.path.join(in_dir, s_type.name),
-                                                           sensor_type=s_type, is_sample_rate_fixed=False,
-                                                           calculate_stats=True, save_data=self.save_output,
-                                                           arrow_dir=os.path.join(in_dir, s_type.name)))
-        del self._sensors
-
-    def _set_pyarrow_sensors(self, packets: List[api_m.RedvoxPacketM]):
+    def _set_pyarrow_sensors(self, sensor_summaries: ptp.AggregateSummary):
         """
         create pyarrow tables that will become sensors (and in audio's case, just make it a sensor)
-        :param packets: packets to load
+        :param sensor_summaries: summaries of sensor data that can be used to create sensors
         """
-        audio = []
-        self._audio_rate = packets[0].sensors.audio.sample_rate
-        self._audio_name = packets[0].sensors.audio.sensor_description
-        if not os.path.exists(self.base_dir):
-            os.makedirs(self.base_dir)
-        sensors = {}
-        x = timeit.default_timer()
-        for packet in packets:
-            # noinspection Mypy
-            self.packet_metadata.append(st_utils.StationPacketMetadata(packet))
-            audio_data, audio_start = ptp.load_apim_audio(packet)
-            if len(audio) < 1:
-                audio = [(audio_start, audio_data)]
-            else:
-                audio.append((audio_start, audio_data))
-            for s_type, data in ptp.packet_to_pyarrow(packet).items():
-                sensor_dir = os.path.join(self.base_dir, s_type.name)
-                if not os.path.exists(sensor_dir):
-                    os.makedirs(sensor_dir)
-                if s_type not in sensors.keys():
-                    sensors[s_type] = (data[0], data[3], data[2])
+        audo = sensor_summaries.get_audio()[0]
+        if audo:
+            self._data.append(sd.SensorDataPa.from_dir(
+                sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
+                sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
+                sample_interval_std_s=0., is_sample_rate_fixed=True, arrow_dir=audo.fdir)
+            )
+            for snr, sdata in sensor_summaries.get_non_audio().items():
+                stats = StatsContainer(snr.name)
+                if np.isnan(sdata[0].srate_hz):
+                    for sds in sdata:
+                        stats.add(sds.smint_us, sds.sstd_us, sds.scount)
+                    self._data.append(sd.SensorDataPa(
+                        sensor_name=sdata[0].name, sensor_data=gpu.fill_gaps(ds.dataset(sdata[0].fdir).to_table(),
+                                                                             sensor_summaries.audio_gaps,
+                                                                             stats.mean_of_means(), True),
+                        sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False, arrow_dir=sdata[0].fdir)
+                    )
                 else:
-                    sensors[s_type] = (data[0], data[3], pa.concat_tables([sensors[s_type][2], data[2]]))
-                # self._sensors[s_type] = (data[0], data[3])
-                # pq.write_table(data[2], os.path.join(sensor_dir, f"{s_type.name}_{int(data[1])}.parquet"))
-        y = timeit.default_timer()
-        print("station packet reader: ", y - x)
-        for s_type, s_data in self._sensors.items():
-            if s_type in [sd.SensorType.COMPRESSED_AUDIO, sd.SensorType.IMAGE,
-                          sd.SensorType.STATION_HEALTH]:
-                sample_rate = s_data[1]
-                self._data.append(sd.SensorDataPa(sensor_name=s_data[0], sensor_data=s_data[2],
-                                                  sensor_type=s_type, sample_rate_hz=sample_rate,
-                                                  sample_interval_s=1 / sample_rate,
-                                                  sample_interval_std_s=0.,
-                                                  is_sample_rate_fixed=True, save_data=self.save_output,
-                                                  arrow_dir=os.path.join(self.base_dir, s_type.name)))
-            else:
-                self._data.append(sd.SensorDataPa(sensor_name=s_data[0], sensor_data=s_data[2],
-                                                  sensor_type=s_type, is_sample_rate_fixed=False,
-                                                  calculate_stats=True, save_data=self.save_output,
-                                                  arrow_dir=os.path.join(self.base_dir, s_type.name)))
-        sensor_dir = os.path.join(self.base_dir, sd.SensorType.AUDIO.name)
-        if not os.path.exists(sensor_dir):
-            os.makedirs(sensor_dir)
-        packet_info = [(p[0], p[1]) for p in audio]
-        gp_result = gpu.fill_audio_gaps(
-            packet_info, dtu.seconds_to_microseconds(1 / self._audio_rate)
-        )
-        if gp_result.errors.get_num_errors() > 0:
-            self.errors.extend_error(gp_result.errors)
-        self._gaps = gp_result.gaps
-        self.first_data_timestamp = gp_result.result["timestamps"][0].as_py()
-        self.last_data_timestamp = gp_result.result["timestamps"][-0].as_py()
-        self._data.append(sd.SensorDataPa(sensor_name=self._audio_name, sensor_data=gp_result.result,
-                                          sensor_type=sd.SensorType.AUDIO, sample_rate_hz=self._audio_rate,
-                                          sample_interval_s=1/self._audio_rate, sample_interval_std_s=0.,
-                                          is_sample_rate_fixed=True, save_data=self.save_output,
-                                          arrow_dir=sensor_dir))
+                    self._data.append(sd.SensorDataPa(
+                        sensor_name=sdata[0].name, sensor_data=gpu.fill_gaps(ds.dataset(sdata[0].fdir).to_table(),
+                                                                             sensor_summaries.audio_gaps,
+                                                                             sdata[0].smint_us, True),
+                        sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
+                        sample_interval_std_s=0., is_sample_rate_fixed=True, arrow_dir=sdata[0].fdir)
+                    )
+        else:
+            self.errors.append("Audio Sensor expected, but does not exist.")
+        self._get_start_and_end_timestamps()
 
     def update_timestamps(self) -> "StationPa":
         """

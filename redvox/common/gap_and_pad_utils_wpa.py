@@ -270,7 +270,7 @@ def fill_audio_gaps(
                 result.add_error(f"Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} "
                                  f"is before last timestamp of previous "
                                  f"packet: {dtu.microseconds_to_seconds(last_data_timestamp)}")
-                return result
+                # return result
         estimated_ts = calc_evenly_sampled_timestamps(start_ts, samples_in_packet, sample_interval_micros)
         last_data_timestamp = estimated_ts[-1]
         result_array[0].extend(estimated_ts)

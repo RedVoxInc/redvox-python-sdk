@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.7rc (2021-7-23)
+
+* Testing pyarrow functionality for Sensors and Stations
+* Save parquets of data from Redvox files instead of loading everything at once
+
 ### 3.0.7 (2021-7-29)
 
 * Update dependencies
@@ -9,11 +14,6 @@
 
 * Add methods for querying status of optional dependencies
 * Add ability to construct cloud client from previously held authentication token
-
-### 3.0.5.rc (2021-7-23)
-
-* Testing pyarrow functionality for Sensors and Stations
-* Save parquets of data from Redvox files instead of loading everything at once
 
 ### 3.0.5 (2021-7-27)
 
