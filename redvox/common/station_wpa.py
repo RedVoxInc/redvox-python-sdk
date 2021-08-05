@@ -1099,8 +1099,6 @@ class StationPa:
         create pyarrow tables that will become sensors (and in audio's case, just make it a sensor)
         :param sensor_summaries: summaries of sensor data that can be used to create sensors
         """
-        import timeit
-        tfhg = timeit.default_timer()
         self._gaps = sensor_summaries.audio_gaps
         self.errors.extend_error(sensor_summaries.errors)
         audo = sensor_summaries.get_audio()[0]
@@ -1132,8 +1130,6 @@ class StationPa:
                     )
         else:
             self.errors.append("Audio Sensor expected, but does not exist.")
-        tfhg2 = timeit.default_timer()
-        print(tfhg2 - tfhg)
 
     def update_timestamps(self) -> "StationPa":
         """

@@ -89,14 +89,17 @@ class PyarrowSummary:
         for f in glob(os.path.join(self.fdir, "*.parquet")):
             os.remove(f)
 
-    def write_data(self) -> str:
+    def write_data(self, clean_dir: bool = False) -> str:
         """
         write the data being summarized to disk, then remove the data from the object
+
+        :param clean_dir: if True, remove any files in the dir before writing the data, default False
         :return: the path to the file where the data exists or empty string if data wasn't written
         """
         if self.check_data():
             os.makedirs(self.fdir, exist_ok=True)
-            self.clean_fdir()
+            if clean_dir:
+                self.clean_fdir()
             pq.write_table(self._data, self.file_name())
             self._data = None
             return self.file_name()
@@ -183,7 +186,7 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: str) -> AggregateSu
     if audio:
         audio_data = PyarrowSummary(audio.name, srupa.SensorType.AUDIO, audio.start, audio.srate_hz, audio.fdir,
                                     gp_result.result.num_rows, data=gp_result.result)
-        audio_data.write_data()
+        audio_data.write_data(True)
         res_summary.add_summary(audio_data)
     if res_summary.errors.get_num_errors() > 0:
         res_summary.errors.print()
