@@ -1,6 +1,11 @@
 ## Changelog
 
-### 3.0.7rc (2021-7-23)
+### 3.0.7rc1 (2021-8-4)
+
+* Added missing/incorrect values when creating stations using parquet files.
+* Updated version number and changelog to represent correct dates and version numbers.
+
+### 3.0.7rc0 (2021-8-3)
 
 * Testing pyarrow functionality for Sensors and Stations
 * Save parquets of data from Redvox files instead of loading everything at once

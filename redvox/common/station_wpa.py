@@ -1099,6 +1099,10 @@ class StationPa:
         create pyarrow tables that will become sensors (and in audio's case, just make it a sensor)
         :param sensor_summaries: summaries of sensor data that can be used to create sensors
         """
+        import timeit
+        tfhg = timeit.default_timer()
+        self._gaps = sensor_summaries.audio_gaps
+        self.errors.extend_error(sensor_summaries.errors)
         audo = sensor_summaries.get_audio()[0]
         if audo:
             self._data.append(sd.SensorDataPa.from_dir(
@@ -1106,11 +1110,12 @@ class StationPa:
                 sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
                 sample_interval_std_s=0., is_sample_rate_fixed=True, arrow_dir=audo.fdir)
             )
+            self._get_start_and_end_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
                 if np.isnan(sdata[0].srate_hz):
                     for sds in sdata:
-                        stats.add(sds.smint_us, sds.sstd_us, sds.scount)
+                        stats.add(sds.smint_us, sds.sstd_us, sds.scount-1)
                     self._data.append(sd.SensorDataPa(
                         sensor_name=sdata[0].name, sensor_data=gpu.fill_gaps(ds.dataset(sdata[0].fdir).to_table(),
                                                                              sensor_summaries.audio_gaps,
@@ -1127,7 +1132,8 @@ class StationPa:
                     )
         else:
             self.errors.append("Audio Sensor expected, but does not exist.")
-        self._get_start_and_end_timestamps()
+        tfhg2 = timeit.default_timer()
+        print(tfhg2 - tfhg)
 
     def update_timestamps(self) -> "StationPa":
         """

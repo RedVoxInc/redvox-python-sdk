@@ -318,7 +318,7 @@ class SensorDataPa:
         :param table: the table to write
         """
         # clear the output dir where the table will be written to
-        filelist = glob(os.path.join(self._arrow_dir, "*"))
+        filelist = glob(os.path.join(self._arrow_dir, "*.parquet"))
         for f in filelist:
             os.remove(f)
         pq.write_table(table, os.path.join(self._arrow_dir, self._arrow_file))

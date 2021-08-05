@@ -96,6 +96,7 @@ class PyarrowSummary:
         """
         if self.check_data():
             os.makedirs(self.fdir, exist_ok=True)
+            self.clean_fdir()
             pq.write_table(self._data, self.file_name())
             self._data = None
             return self.file_name()
