@@ -43,6 +43,8 @@ It will provide the most complete set of data it can find to the user as efficie
 
 Depending on the request, DataWindow may take some time to complete.  
 Please have patience when requesting large or lengthy data sets.
+Data sources without audio channels or data may not load in DataWindow.  For best results, ensure the source of data
+contains at least audio data.
 
 DataWindow is accessible through the Redvox SDK. The source for the latest development version of the SDK capable of reading 
 API M data resides in the [api-m branch of the GitHub repository](https://github.com/RedVoxInc/redvox-python-sdk/tree/api-m). 
@@ -328,7 +330,7 @@ plt.show()
 
 We can even save our DataWindow as a compressed file or JSON representation for later.  Saving the DataWindow allows it to be loaded quickly, instead of going through the entire creation process.
 ```python
-from redvox.common.io import serialize_data_window, data_window_to_json_file
+from redvox.common.data_window_io import serialize_data_window, data_window_to_json_file
 serialize_data_window(data_window=datawindow,
                       base_dir=output_dir,
                       file_name=serialized_file_name)

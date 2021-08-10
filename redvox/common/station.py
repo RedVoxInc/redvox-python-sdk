@@ -1097,6 +1097,9 @@ class Station:
                 sensor.update_data_timestamps(self.timesync_analysis.offset_model, self.use_model_correction)
             for packet in self.packet_metadata:
                 packet.update_timestamps(self.timesync_analysis.offset_model, self.use_model_correction)
+            for g in range(len(self._gaps)):
+                self._gaps[g] = (self.timesync_analysis.offset_model.update_time(self._gaps[g][0]),
+                                 self.timesync_analysis.offset_model.update_time(self._gaps[g][1]))
             self.timesync_analysis.update_timestamps()
             self.start_timestamp = self.timesync_analysis.offset_model.update_time(
                 self.start_timestamp, self.use_model_correction

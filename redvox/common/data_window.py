@@ -14,6 +14,7 @@ import numpy as np
 import redvox
 from redvox.common import date_time_utils as dtu
 from redvox.common import io
+from redvox.common import data_window_io as dw_io
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, SensorData
@@ -215,13 +216,13 @@ class DataWindow:
         Decompresses and deserializes a DataWindow written to disk.
 
         :param path: Path to the serialized and compressed data window.
-        :return: An instance of a DataWindowFast.
+        :return: An instance of a DataWindow.
         """
-        return io.deserialize_data_window(path)
+        return dw_io.deserialize_data_window(path)
 
     def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
         """
-        Serializes and compresses this DataWindowFast to a file.
+        Serializes and compresses this DataWindow to a file.
 
         :param base_dir: The base directory to write the serialized file to (default=.).
         :param file_name: The optional file name. If None, a default filename with the following format is used:
@@ -230,7 +231,7 @@ class DataWindow:
         longer. (default=4).
         :return: The path to the written file.
         """
-        return io.serialize_data_window(self, base_dir, file_name, compression_factor)
+        return dw_io.serialize_data_window(self, base_dir, file_name, compression_factor)
 
     def to_json_file(self, base_dir: str = ".", file_name: Optional[str] = None,
                      compression_format: str = "lz4") -> Path:
@@ -244,7 +245,7 @@ class DataWindow:
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The path to the written file
         """
-        return io.data_window_to_json_file(self, base_dir, file_name, compression_format)
+        return dw_io.data_window_to_json_file(self, base_dir, file_name, compression_format)
 
     def to_json(self, compressed_file_base_dir: str = ".", compressed_file_name: Optional[str] = None,
                 compression_format: str = "lz4") -> str:
@@ -258,7 +259,7 @@ class DataWindow:
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The json string
         """
-        return io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
+        return dw_io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
 
     @staticmethod
     def from_json_file(base_dir: str, file_name: str,
@@ -284,7 +285,7 @@ class DataWindow:
             dw_base_dir = Path(base_dir).joinpath("dw")
         file_name += ".json"
         return DataWindow.from_json_dict(
-            io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
+            dw_io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json(json_str: str, dw_base_dir: str,
@@ -303,7 +304,7 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        return DataWindow.from_json_dict(io.json_to_data_window(json_str), dw_base_dir,
+        return DataWindow.from_json_dict(dw_io.json_to_data_window(json_str), dw_base_dir,
                                          start_dt, end_dt, station_ids)
 
     @staticmethod

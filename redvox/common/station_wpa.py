@@ -188,8 +188,7 @@ class StationPa:
                 self.errors.extend_error(self.timesync_analysis.errors)
             # self._audio_rate = packets[0].sensors.audio.sample_rate
             # self._audio_name = packets[0].sensors.audio.sensor_description
-            if not os.path.exists(self.base_dir):
-                os.makedirs(self.base_dir, exist_ok=True)
+            os.makedirs(self.base_dir, exist_ok=True)
             self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):

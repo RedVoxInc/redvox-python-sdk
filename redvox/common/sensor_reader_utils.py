@@ -1471,7 +1471,7 @@ def load_apim_health_from_list(
             samples = metrics.network_type
             data_list[4].extend(
                 [
-                    NetworkType["UNKNOWN_NETWORK"]
+                    NetworkType["UNKNOWN_NETWORK"].value
                     if len(samples) < i + 1
                     else samples[i]
                     for i in range(num_samples)
@@ -1484,7 +1484,7 @@ def load_apim_health_from_list(
             samples = metrics.power_state
             data_list[6].extend(
                 [
-                    PowerState["UNKNOWN_POWER_STATE"]
+                    PowerState["UNKNOWN_POWER_STATE"].value
                     if len(samples) < i + 1
                     else samples[i]
                     for i in range(num_samples)
@@ -1501,7 +1501,7 @@ def load_apim_health_from_list(
             samples = metrics.cell_service_state
             data_list[9].extend(
                 [
-                    CellServiceState["UNKNOWN"] if len(samples) < i + 1 else samples[i]
+                    CellServiceState["UNKNOWN"].value if len(samples) < i + 1 else samples[i]
                     for i in range(num_samples)
                 ]
             )

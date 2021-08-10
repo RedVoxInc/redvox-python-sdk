@@ -3,7 +3,7 @@ This module creates specific time-bounded segments of data for users
 combines the base data files into a single composite object based on the user parameters
 """
 from pathlib import Path
-from typing import Optional, Set, List, Dict, Iterable
+from typing import Optional, Set, List, Dict, Iterable, Tuple
 from datetime import timedelta
 import tempfile
 from glob import glob
@@ -18,6 +18,7 @@ import pyarrow as pa
 import redvox
 from redvox.common import date_time_utils as dtu
 from redvox.common import io
+from redvox.common import data_window_io as dw_io
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station_wpa import StationPa
 from redvox.common.sensor_data_with_pyarrow import SensorType, SensorDataPa
@@ -30,6 +31,85 @@ DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding t
 DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
 # minimum default length of time in seconds for data to be off by to be considered suspicious
 DATA_DROP_DURATION_S: float = 0.2
+
+
+class DataWindowResultLocation:
+    """
+    The data source, latitude, longitude, altitude and their standard deviations
+    Properties:
+        provider: string, source of the location data (i.e. GPS or NETWORK), default UNKNOWN
+        latitude: float, best estimate of latitude, default np.nan
+        latitude_std: float, standard deviation of best estimate of latitude, default np.nan
+        longitude: float, best estimate of longitude, default np.nan
+        longitude_std: float, standard deviation of best estimate of longitude, default np.nan
+        altitude: float, best estimate of altitude, default np.nan
+        altitude_std: float, standard deviation of best estimate of altitude, default np.nan
+    """
+    def __init__(self,
+                 provider: str = "UNKNOWN",
+                 lat: float = np.nan,
+                 lat_std: float = np.nan,
+                 lon: float = np.nan,
+                 lon_std: float = np.nan,
+                 alt: float = np.nan,
+                 alt_std: float = np.nan):
+        self.provider = provider
+        self.latitude = lat
+        self.longitude = lon
+        self.altitude = alt
+        self.latitude_std = lat_std
+        self.longitude_std = lon_std
+        self.altitude_std = alt_std
+
+
+class DataWindowResult:
+    """
+    Holds the data for a given data window; used to find the data and to provide
+    enough metadata to get an idea of what is contained in the window
+    Properties:
+        event_name: string, identifier for the event
+        input_dir: string, directory where all the data files are
+        start_time: datetime, start of the window
+        end_time: datetime, end of the window
+        event_origin: Tuple of floats, lat, lon, altitude of the origin
+        event_radius: float, event radius in meters
+        stations:
+            id: string, id of station
+            is_time_corrected: bool, True if station's timestamps are updated.  default False
+            best_latency: float, best latency of station in microseconds.  default np.nan
+            best_offset: float, best offset of station in microseconds.  default 0
+            location: Tuple of string, floats, location provider, lat, lon, alt and std devs for each
+            gaps: List of Tuple of floats, timestamps of data points on the edge of data gaps.
+            sensor: (values unique to a sensor are noted)
+                name: str, name of sensor
+                sample_rate (audio only): float, sample rate of sensor
+    """
+    def __init__(self,
+                 event_name: str,
+                 input_dir: str,
+                 start_time: dtu.datetime,
+                 end_time: dtu.datetime,
+                 event_origin: DataWindowResultLocation,
+                 event_radius: float,
+                 stations: List[StationPa]):
+        """
+        initialize the result of a DataWindow
+
+        :param event_name: the name of the event
+        :param input_dir: the directory where the data files exist
+        :param start_time: the start of the window in UTC
+        :param end_time: the end of the window in UTC
+        :param event_origin: the origin location of the event of interest
+        :param event_radius: the effective radius of the event
+        :param stations: the stations that recorded the event
+        """
+        self.event_name = event_name
+        self.input_dir = input_dir
+        self.start_time = start_time
+        self.end_time = end_time
+        self.event_origin = event_origin
+        self.even_radius = event_radius
+        self.stations = stations
 
 
 class DataWindow:
@@ -57,6 +137,8 @@ class DataWindow:
         drop_time_s: float, the minimum amount of seconds between data files that would indicate a gap.
                      Negative values are converted to default value.  Default DATA_DROP_DURATION_S (0.2 seconds)
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
+        use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
+                                offset.  Default True
         copy_edge_points: enumeration of DataPointCreationMode.  Determines how new points are created.
                             Valid values are NAN, COPY, and INTERPOLATE.  Default COPY
         debug: bool, if True, outputs additional information during initialization. Default False
@@ -65,24 +147,24 @@ class DataWindow:
         sdk_version: str, the version of the Redvox SDK used to create the data window
     """
     def __init__(
-        self,
-        input_dir: str,
-        structured_layout: bool = True,
-        start_datetime: Optional[dtu.datetime] = None,
-        end_datetime: Optional[dtu.datetime] = None,
-        start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
-        end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-        drop_time_s: float = DATA_DROP_DURATION_S,
-        station_ids: Optional[Iterable[str]] = None,
-        extensions: Optional[Set[str]] = None,
-        api_versions: Optional[Set[io.ApiVersion]] = None,
-        apply_correction: bool = True,
-        use_model_correction: bool = True,
-        copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
-        debug: bool = False,
-        station_out_dir: str = "",
-        save_station_files: bool = False,
-        load_from_files: bool = False,
+            self,
+            input_dir: str,
+            structured_layout: bool = True,
+            start_datetime: Optional[dtu.datetime] = None,
+            end_datetime: Optional[dtu.datetime] = None,
+            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
+            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+            drop_time_s: float = DATA_DROP_DURATION_S,
+            station_ids: Optional[Iterable[str]] = None,
+            extensions: Optional[Set[str]] = None,
+            api_versions: Optional[Set[io.ApiVersion]] = None,
+            apply_correction: bool = True,
+            use_model_correction: bool = True,
+            copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
+            debug: bool = False,
+            station_out_dir: str = "",
+            save_station_files: bool = False,
+            load_from_files: bool = False,
     ):
         """
         Initialize the DataWindow
@@ -107,7 +189,7 @@ class DataWindow:
         :param api_versions: optional set of api versions to filter on.  If None, get as much data as it can in
                                 the input directory.  Default None
         :param apply_correction: if True, update the timestamps in the data based on best station offset.  Default True
-        :param use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
+        :param use_model_correction: if True, use the offset model's correction functions, otherwise use the best
                                 offset.  Default True
         :param copy_edge_points: Determines how new points are created. Valid values are DataPointCreationMode.NAN,
                                     DataPointCreationMode.COPY, and DataPointCreationMode.INTERPOLATE.  Default COPY
@@ -240,19 +322,23 @@ class DataWindow:
             config.save_station_files,
         )
 
+    # todo: save parameters of datawindow as a dict
+    # todo: save results of datawindow as a DataWindowResult
+    # todo: create StationJSON and SensorJSON classes
+
     @staticmethod
     def deserialize(path: str) -> "DataWindow":
         """
         Decompresses and deserializes a DataWindow written to disk.
 
         :param path: Path to the serialized and compressed data window.
-        :return: An instance of a DataWindowFast.
+        :return: An instance of a DataWindow.
         """
-        return io.deserialize_data_window(path)
+        return dw_io.deserialize_data_window(path)
 
     def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
         """
-        Serializes and compresses this DataWindowFast to a file.
+        Serializes and compresses this DataWindow to a file.
 
         :param base_dir: The base directory to write the serialized file to (default=.).
         :param file_name: The optional file name. If None, a default filename with the following format is used:
@@ -261,7 +347,7 @@ class DataWindow:
         longer. (default=4).
         :return: The path to the written file.
         """
-        return io.serialize_data_window(self, base_dir, file_name, compression_factor)
+        return dw_io.serialize_data_window(self, base_dir, file_name, compression_factor)
 
     def to_json_file(self, base_dir: str = ".", file_name: Optional[str] = None,
                      compression_format: str = "lz4") -> Path:
@@ -275,7 +361,7 @@ class DataWindow:
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The path to the written file
         """
-        return io.data_window_to_json_file(self, base_dir, file_name, compression_format)
+        return dw_io.data_window_to_json_file(self, base_dir, file_name, compression_format)
 
     def to_json(self, compressed_file_base_dir: str = ".", compressed_file_name: Optional[str] = None,
                 compression_format: str = "lz4") -> str:
@@ -289,7 +375,7 @@ class DataWindow:
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The json string
         """
-        return io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
+        return dw_io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
 
     @staticmethod
     def from_json_file(base_dir: str, file_name: str,
@@ -315,7 +401,7 @@ class DataWindow:
             dw_base_dir = Path(base_dir).joinpath("dw")
         file_name += ".json"
         return DataWindow.from_json_dict(
-            io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
+            dw_io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json(json_str: str, dw_base_dir: str,
@@ -334,7 +420,7 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        return DataWindow.from_json_dict(io.json_to_data_window(json_str), dw_base_dir,
+        return DataWindow.from_json_dict(dw_io.json_to_data_window(json_str), dw_base_dir,
                                          start_dt, end_dt, station_ids)
 
     @staticmethod
