@@ -348,7 +348,7 @@ class ApiReader:
 <dl>
 <dt id="redvox.common.api_reader.ApiReader"><code class="flex name class">
 <span>class <span class="ident">ApiReader</span></span>
-<span>(</span><span>base_dir: str, structured_dir: bool = False, read_filter: <a title="redvox.common.io.ReadFilter" href="io.html#redvox.common.io.ReadFilter">ReadFilter</a> = None, debug: bool = False, pool: Union[multiprocessing.pool.Pool, NoneType] = None)</span>
+<span>(</span><span>base_dir: str, structured_dir: bool = False, read_filter: <a title="redvox.common.io.ReadFilter" href="io.html#redvox.common.io.ReadFilter">ReadFilter</a> = None, debug: bool = False, pool: Optional[multiprocessing.pool.Pool] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads data from api 900 or api 1000 format, converting all data read into RedvoxPacketM for
@@ -714,7 +714,7 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.api_reader.ApiReader.get_station_by_id"><code class="name flex">
-<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> Union[List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>], NoneType]</span>
+<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> Optional[List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param get_id: the id to filter on
@@ -735,7 +735,7 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.get_stations"><code class="name flex">
-<span>def <span class="ident">get_stations</span></span>(<span>self, pool: Union[multiprocessing.pool.Pool, NoneType] = None) ‑> List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
+<span>def <span class="ident">get_stations</span></span>(<span>self, pool: Optional[multiprocessing.pool.Pool] = None) ‑> List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param pool: optional multiprocessing pool
@@ -758,7 +758,7 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.read_files_by_id"><code class="name flex">
-<span>def <span class="ident">read_files_by_id</span></span>(<span>self, station_id: str) ‑> Union[List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], NoneType]</span>
+<span>def <span class="ident">read_files_by_id</span></span>(<span>self, station_id: str) ‑> Optional[List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param station_id: the id to filter on

@@ -104,7 +104,7 @@ def maybe_parallel_map(pool: Optional[Pool],
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.common.parallel_utils.maybe_parallel_map"><code class="name flex">
-<span>def <span class="ident">maybe_parallel_map</span></span>(<span>pool: Union[multiprocessing.pool.Pool, NoneType], map_fn: Callable[[~T], ~R], iterator: Iterator[~T], condition: Union[Callable[[], bool], NoneType] = None, chunk_size: int = 64, usage_out: Union[List[<a title="redvox.common.parallel_utils.MappingType" href="#redvox.common.parallel_utils.MappingType">MappingType</a>], NoneType] = None) ‑> Iterator[~R]</span>
+<span>def <span class="ident">maybe_parallel_map</span></span>(<span>pool: Optional[multiprocessing.pool.Pool], map_fn: Callable[[~T], ~R], iterator: Iterator[~T], condition: Optional[Callable[[], bool]] = None, chunk_size: int = 64, usage_out: Optional[List[<a title="redvox.common.parallel_utils.MappingType" href="#redvox.common.parallel_utils.MappingType">MappingType</a>]] = None) ‑> Iterator[~R]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Maps a function over a set of values. This will either be run in parallel or serially depending on the value

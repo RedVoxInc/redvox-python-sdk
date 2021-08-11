@@ -668,7 +668,7 @@ As such, a GPS channel payload would contain the following values:</p>
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.diff"><code class="name flex">
-<span>def <span class="ident">diff</span></span>(<span>val1, val2) ‑> Tuple[bool, Union[str, NoneType]]</span>
+<span>def <span class="ident">diff</span></span>(<span>val1, val2) ‑> Tuple[bool, Optional[str]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Determines if the two values are different.
@@ -811,7 +811,7 @@ As such, a GPS channel payload would contain the following values:</p>
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.extract_uneven_payload_idx_raw"><code class="name flex">
-<span>def <span class="ident">extract_uneven_payload_idx_raw</span></span>(<span>packet: api900_pb2.RedvoxPacket, channel_type) ‑> Union[int, NoneType]</span>
+<span>def <span class="ident">extract_uneven_payload_idx_raw</span></span>(<span>packet: api900_pb2.RedvoxPacket, channel_type) ‑> Optional[int]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -832,7 +832,7 @@ As such, a GPS channel payload would contain the following values:</p>
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.extract_uneven_payload_raw"><code class="name flex">
-<span>def <span class="ident">extract_uneven_payload_raw</span></span>(<span>packet: api900_pb2.RedvoxPacket, channel_type) ‑> Union[List[float], NoneType]</span>
+<span>def <span class="ident">extract_uneven_payload_raw</span></span>(<span>packet: api900_pb2.RedvoxPacket, channel_type) ‑> Optional[List[float]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -983,7 +983,7 @@ As such, a GPS channel payload would contain the following values:</p>
 </details>
 </dd>
 <dt id="redvox.api900.reader_utils.get_metadata_raw"><code class="name flex">
-<span>def <span class="ident">get_metadata_raw</span></span>(<span>metadata: List[str], k: str, and_then: Union[Callable[[str], ~T], NoneType] = None, or_default: Union[str, ~T, NoneType] = None) ‑> Union[str, ~T, NoneType]</span>
+<span>def <span class="ident">get_metadata_raw</span></span>(<span>metadata: List[str], k: str, and_then: Optional[Callable[[str], ~T]] = None, or_default: Union[str, ~T, NoneType] = None) ‑> Union[str, ~T, NoneType]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Given a meta-data key, extract the value.

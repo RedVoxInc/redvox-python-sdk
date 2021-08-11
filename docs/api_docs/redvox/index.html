@@ -32,7 +32,7 @@ Provides library level metadata and constants.
 &#34;&#34;&#34;
 
 NAME: str = &#34;redvox&#34;
-VERSION: str = &#34;3.0.6&#34;
+VERSION: str = &#34;3.0.8&#34;
 
 
 def version() -&gt; str:
@@ -42,7 +42,21 @@ def version() -&gt; str:
 
 def print_version() -&gt; None:
     &#34;&#34;&#34;Prints the version number of this library&#34;&#34;&#34;
-    print(version())</code></pre>
+    print(version())
+
+
+def print_redvox_info() -&gt; None:
+    &#34;&#34;&#34;
+    Prints information about this library to standard out.
+    &#34;&#34;&#34;
+    import redvox.settings
+    print()
+    print(f&#34;version: {VERSION}&#34;)
+    print(f&#34;parallelism enabled: {redvox.settings.is_parallelism_enabled()}&#34;)
+    print(f&#34;native extra enabled: {redvox.settings.is_native_extra_enabled()}&#34;)
+    print(f&#34;gui extra enabled: {redvox.settings.is_gui_extra_enabled()}&#34;)
+    print(f&#34;protobuf cpp backend enabled: {redvox.settings.is_cpp_backend_enabled()}&#34;)
+    print()</code></pre>
 </details>
 </section>
 <section>
@@ -83,6 +97,29 @@ def print_version() -&gt; None:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="redvox.print_redvox_info"><code class="name flex">
+<span>def <span class="ident">print_redvox_info</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Prints information about this library to standard out.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def print_redvox_info() -&gt; None:
+    &#34;&#34;&#34;
+    Prints information about this library to standard out.
+    &#34;&#34;&#34;
+    import redvox.settings
+    print()
+    print(f&#34;version: {VERSION}&#34;)
+    print(f&#34;parallelism enabled: {redvox.settings.is_parallelism_enabled()}&#34;)
+    print(f&#34;native extra enabled: {redvox.settings.is_native_extra_enabled()}&#34;)
+    print(f&#34;gui extra enabled: {redvox.settings.is_gui_extra_enabled()}&#34;)
+    print(f&#34;protobuf cpp backend enabled: {redvox.settings.is_cpp_backend_enabled()}&#34;)
+    print()</code></pre>
+</details>
+</dd>
 <dt id="redvox.print_version"><code class="name flex">
 <span>def <span class="ident">print_version</span></span>(<span>) ‑> NoneType</span>
 </code></dt>
@@ -135,6 +172,7 @@ def print_version() -&gt; None:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="redvox.print_redvox_info" href="#redvox.print_redvox_info">print_redvox_info</a></code></li>
 <li><code><a title="redvox.print_version" href="#redvox.print_version">print_version</a></code></li>
 <li><code><a title="redvox.version" href="#redvox.version">version</a></code></li>
 </ul>

@@ -137,7 +137,7 @@ class DataWindowConfig:
 <dl>
 <dt id="redvox.common.data_window_configuration.DataWindowConfig"><code class="flex name class">
 <span>class <span class="ident">DataWindowConfig</span></span>
-<span>(</span><span>input_directory: str, structured_layout: bool = True, station_ids: Union[List[str], NoneType] = None, extensions: Union[List[str], NoneType] = None, api_versions: Union[List[str], NoneType] = None, start_year: Union[int, NoneType] = None, start_month: Union[int, NoneType] = None, start_day: Union[int, NoneType] = None, start_hour: Union[int, NoneType] = None, start_minute: Union[int, NoneType] = None, start_second: Union[int, NoneType] = None, end_year: Union[int, NoneType] = None, end_month: Union[int, NoneType] = None, end_day: Union[int, NoneType] = None, end_hour: Union[int, NoneType] = None, end_minute: Union[int, NoneType] = None, end_second: Union[int, NoneType] = None, start_padding_seconds: float = 120.0, end_padding_seconds: float = 120.0, drop_time_seconds: float = 0.2, apply_correction: bool = True, edge_points_mode: str = 'COPY', use_model_correction: bool = True, debug: bool = False)</span>
+<span>(</span><span>input_directory: str, structured_layout: bool = True, station_ids: Optional[List[str]] = None, extensions: Optional[List[str]] = None, api_versions: Optional[List[str]] = None, start_year: Optional[int] = None, start_month: Optional[int] = None, start_day: Optional[int] = None, start_hour: Optional[int] = None, start_minute: Optional[int] = None, start_second: Optional[int] = None, end_year: Optional[int] = None, end_month: Optional[int] = None, end_day: Optional[int] = None, end_hour: Optional[int] = None, end_minute: Optional[int] = None, end_second: Optional[int] = None, start_padding_seconds: float = 120.0, end_padding_seconds: float = 120.0, drop_time_seconds: float = 0.2, apply_correction: bool = True, edge_points_mode: str = 'COPY', use_model_correction: bool = True, debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="properties">Properties</h2>
@@ -203,7 +203,9 @@ Default False</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DataWindowConfig:
+<pre><code class="python">@dataclass_json()
+@dataclass
+class DataWindowConfig:
     &#34;&#34;&#34;
     Properties:
         input_directory: string, directory that contains the files to read data from.  REQUIRED
@@ -283,7 +285,7 @@ Default False</p></div>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.api_versions"><code class="name">var <span class="ident">api_versions</span> : Union[List[str], NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.api_versions"><code class="name">var <span class="ident">api_versions</span> : Optional[List[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -303,19 +305,19 @@ Default False</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_day"><code class="name">var <span class="ident">end_day</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_day"><code class="name">var <span class="ident">end_day</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_hour"><code class="name">var <span class="ident">end_hour</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_hour"><code class="name">var <span class="ident">end_hour</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_minute"><code class="name">var <span class="ident">end_minute</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_minute"><code class="name">var <span class="ident">end_minute</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_month"><code class="name">var <span class="ident">end_month</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_month"><code class="name">var <span class="ident">end_month</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -323,15 +325,15 @@ Default False</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_second"><code class="name">var <span class="ident">end_second</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_second"><code class="name">var <span class="ident">end_second</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_year"><code class="name">var <span class="ident">end_year</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_year"><code class="name">var <span class="ident">end_year</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.extensions"><code class="name">var <span class="ident">extensions</span> : Union[List[str], NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.extensions"><code class="name">var <span class="ident">extensions</span> : Optional[List[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -339,19 +341,19 @@ Default False</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_day"><code class="name">var <span class="ident">start_day</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_day"><code class="name">var <span class="ident">start_day</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_hour"><code class="name">var <span class="ident">start_hour</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_hour"><code class="name">var <span class="ident">start_hour</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_minute"><code class="name">var <span class="ident">start_minute</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_minute"><code class="name">var <span class="ident">start_minute</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_month"><code class="name">var <span class="ident">start_month</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_month"><code class="name">var <span class="ident">start_month</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -359,15 +361,15 @@ Default False</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_second"><code class="name">var <span class="ident">start_second</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_second"><code class="name">var <span class="ident">start_second</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_year"><code class="name">var <span class="ident">start_year</span> : Union[int, NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_year"><code class="name">var <span class="ident">start_year</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.station_ids"><code class="name">var <span class="ident">station_ids</span> : Union[List[str], NoneType]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfig.station_ids"><code class="name">var <span class="ident">station_ids</span> : Optional[List[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

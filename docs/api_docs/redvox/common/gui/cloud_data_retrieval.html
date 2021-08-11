@@ -492,7 +492,7 @@ except ImportError:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.common.gui.cloud_data_retrieval.download_process"><code class="name flex">
-<span>def <span class="ident">download_process</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, timeout: int, req_start: int, req_end: int, station_ids: List[str], api_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="../../cloud/data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a>, correct_query_timing: bool, out_dir: str, retries: int, out_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x142913df0>>)</span>
+<span>def <span class="ident">download_process</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, timeout: int, req_start: int, req_end: int, station_ids: List[str], api_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="../../cloud/data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a>, correct_query_timing: bool, out_dir: str, retries: int, out_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x147549bb0>>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -569,8 +569,8 @@ except ImportError:
 <span>(</span><span>parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -614,11 +614,11 @@ See help(type(self)) for accurate signature.</p></div>
 </dd>
 <dt id="redvox.common.gui.cloud_data_retrieval.AuthenticationWidget"><code class="flex name class">
 <span>class <span class="ident">AuthenticationWidget</span></span>
-<span>(</span><span>redvox_config: Union[<a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, NoneType], parent=None)</span>
+<span>(</span><span>redvox_config: Optional[<a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>], parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -696,8 +696,8 @@ See help(type(self)) for accurate signature.</p></div>
 <span>(</span><span>parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QDialog(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QDialog(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -1016,8 +1016,8 @@ See help(type(self)) for accurate signature.</p></div>
 <span>(</span><span>parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -1114,11 +1114,11 @@ See help(type(self)) for accurate signature.</p></div>
 </dd>
 <dt id="redvox.common.gui.cloud_data_retrieval.ServerSelectionWidget"><code class="flex name class">
 <span>class <span class="ident">ServerSelectionWidget</span></span>
-<span>(</span><span>redvox_config: Union[<a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, NoneType], parent=None)</span>
+<span>(</span><span>redvox_config: Optional[<a title="redvox.cloud.config.RedVoxConfig" href="../../cloud/config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>], parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -1250,8 +1250,8 @@ See help(type(self)) for accurate signature.</p></div>
 <span>(</span><span>parent=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>QWidget(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<div class="desc"><p>QWidget(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">

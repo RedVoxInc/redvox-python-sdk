@@ -70,6 +70,15 @@ class RedVoxConfig:
     secret_token: Optional[str] = None
 
     @staticmethod
+    def from_auth_token(
+            auth_token: str,
+            protocol: str = &#34;https&#34;,
+            host: str = &#34;redvox.io&#34;,
+            port: int = 8080,
+            secret_token: Optional[str] = None) -&gt; &#34;RedVoxConfig&#34;:
+        return RedVoxConfig(&#34;auth_token&#34;, auth_token, protocol, host, port, secret_token)
+
+    @staticmethod
     def from_env() -&gt; &#34;RedVoxConfig&#34;:
         &#34;&#34;&#34;
         Attempts to load the configuration from the environment.
@@ -203,7 +212,7 @@ class RedVoxConfig:
 <dl>
 <dt id="redvox.cloud.config.RedVoxConfig"><code class="flex name class">
 <span>class <span class="ident">RedVoxConfig</span></span>
-<span>(</span><span>username: str, password: str, protocol: str = 'https', host: str = 'redvox.io', port: int = 8080, secret_token: Union[str, NoneType] = None)</span>
+<span>(</span><span>username: str, password: str, protocol: str = 'https', host: str = 'redvox.io', port: int = 8080, secret_token: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Configuration options specific for accessing the cloud services.</p></div>
@@ -211,7 +220,10 @@ class RedVoxConfig:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class RedVoxConfig:
+<pre><code class="python">@serialize
+@deserialize
+@dataclass
+class RedVoxConfig:
     &#34;&#34;&#34;
     Configuration options specific for accessing the cloud services.
     &#34;&#34;&#34;
@@ -222,6 +234,15 @@ class RedVoxConfig:
     host: str = &#34;redvox.io&#34;
     port: int = 8080
     secret_token: Optional[str] = None
+
+    @staticmethod
+    def from_auth_token(
+            auth_token: str,
+            protocol: str = &#34;https&#34;,
+            host: str = &#34;redvox.io&#34;,
+            port: int = 8080,
+            secret_token: Optional[str] = None) -&gt; &#34;RedVoxConfig&#34;:
+        return RedVoxConfig(&#34;auth_token&#34;, auth_token, protocol, host, port, secret_token)
 
     @staticmethod
     def from_env() -&gt; &#34;RedVoxConfig&#34;:
@@ -363,7 +384,7 @@ class RedVoxConfig:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.config.RedVoxConfig.secret_token"><code class="name">var <span class="ident">secret_token</span> : Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.config.RedVoxConfig.secret_token"><code class="name">var <span class="ident">secret_token</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -375,7 +396,7 @@ class RedVoxConfig:
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.cloud.config.RedVoxConfig.find"><code class="name flex">
-<span>def <span class="ident">find</span></span>(<span>) ‑> Union[<a title="redvox.cloud.config.RedVoxConfig" href="#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, NoneType]</span>
+<span>def <span class="ident">find</span></span>(<span>) ‑> Optional[<a title="redvox.cloud.config.RedVoxConfig" href="#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempts to load the configuration either from the user's home directory or from the environment.
@@ -402,6 +423,25 @@ def find() -&gt; Optional[&#34;RedVoxConfig&#34;]:
         return RedVoxConfig.from_env()
     except errors.RedVoxError:
         return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.config.RedVoxConfig.from_auth_token"><code class="name flex">
+<span>def <span class="ident">from_auth_token</span></span>(<span>auth_token: str, protocol: str = 'https', host: str = 'redvox.io', port: int = 8080, secret_token: Optional[str] = None) ‑> <a title="redvox.cloud.config.RedVoxConfig" href="#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_auth_token(
+        auth_token: str,
+        protocol: str = &#34;https&#34;,
+        host: str = &#34;redvox.io&#34;,
+        port: int = 8080,
+        secret_token: Optional[str] = None) -&gt; &#34;RedVoxConfig&#34;:
+    return RedVoxConfig(&#34;auth_token&#34;, auth_token, protocol, host, port, secret_token)</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.config.RedVoxConfig.from_env"><code class="name flex">
@@ -599,6 +639,7 @@ def from_home() -&gt; &#34;RedVoxConfig&#34;:
 <h4><code><a title="redvox.cloud.config.RedVoxConfig" href="#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a></code></h4>
 <ul class="two-column">
 <li><code><a title="redvox.cloud.config.RedVoxConfig.find" href="#redvox.cloud.config.RedVoxConfig.find">find</a></code></li>
+<li><code><a title="redvox.cloud.config.RedVoxConfig.from_auth_token" href="#redvox.cloud.config.RedVoxConfig.from_auth_token">from_auth_token</a></code></li>
 <li><code><a title="redvox.cloud.config.RedVoxConfig.from_env" href="#redvox.cloud.config.RedVoxConfig.from_env">from_env</a></code></li>
 <li><code><a title="redvox.cloud.config.RedVoxConfig.from_file" href="#redvox.cloud.config.RedVoxConfig.from_file">from_file</a></code></li>
 <li><code><a title="redvox.cloud.config.RedVoxConfig.from_home" href="#redvox.cloud.config.RedVoxConfig.from_home">from_home</a></code></li>

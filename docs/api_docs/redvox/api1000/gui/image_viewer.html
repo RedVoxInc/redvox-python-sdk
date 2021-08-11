@@ -188,12 +188,12 @@ except ImportError:
 <dl>
 <dt id="redvox.api1000.gui.image_viewer.ImageSelectionWidget"><code class="flex name class">
 <span>class <span class="ident">ImageSelectionWidget</span></span>
-<span>(</span><span>image_sensor: Image, image_view_widget: <a title="redvox.api1000.gui.image_viewer.ImageViewWidget" href="#redvox.api1000.gui.image_viewer.ImageViewWidget">ImageViewWidget</a>, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None)</span>
+<span>(</span><span>image_sensor: Image, image_view_widget: <a title="redvox.api1000.gui.image_viewer.ImageViewWidget" href="#redvox.api1000.gui.image_viewer.ImageViewWidget">ImageViewWidget</a>, parent: Optional[PySide6.QtWidgets.QWidget] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This widget provides a table view of available images in the packet.</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None) -&gt; None
-<strong>init</strong>(self, rows: int, columns: int, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None) -&gt; None
+<strong>init</strong>(self, rows: int, columns: int, parent: Optional[PySide6.QtWidgets.QWidget] = None) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -256,8 +256,8 @@ See help(type(self)) for accurate signature.</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>This widget displays and scales the image</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None
-<strong>init</strong>(self, text: str, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None
+<strong>init</strong>(self, text: str, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -330,11 +330,11 @@ See help(type(self)) for accurate signature.</p></div>
 </dd>
 <dt id="redvox.api1000.gui.image_viewer.ImageViewer"><code class="flex name class">
 <span>class <span class="ident">ImageViewer</span></span>
-<span>(</span><span>image_sensor: Image, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None)</span>
+<span>(</span><span>image_sensor: Image, parent: Optional[PySide6.QtWidgets.QWidget] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Widget that acts as the "main" widget into the application</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
@@ -379,11 +379,11 @@ See help(type(self)) for accurate signature.</p></div>
 </dd>
 <dt id="redvox.api1000.gui.image_viewer.MainWindow"><code class="flex name class">
 <span>class <span class="ident">MainWindow</span></span>
-<span>(</span><span>image_sensor: Image, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None)</span>
+<span>(</span><span>image_sensor: Image, parent: Optional[PySide6.QtWidgets.QWidget] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Main window of the application</p>
-<p><strong>init</strong>(self, parent: Union[PySide6.QtWidgets.QWidget, NoneType] = None, flags: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
+<p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, flags: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
 <details class="source">
