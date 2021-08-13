@@ -3,11 +3,12 @@ Defines generic sensor data and data for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
-import timeit
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict, Optional, Tuple
 import os
 import tempfile
 from glob import glob
+from pathlib import Path
+import json
 
 import numpy as np
 import pandas as pd
@@ -136,6 +137,7 @@ class SensorDataPa:
         use_offset_model: bool, if True, use an offset model to correct timestamps, otherwise use the best known
                             offset.  default False
         errors: RedVoxExceptions, class containing a list of all errors encountered by the sensor.
+        gaps: List of Tuples of floats, timestamps of data points on the edge of gaps, default empty list
     Protected:
         _arrow_file: string, file name of data file
         _arrow_dir: string, directory where the data is saved to, default "" (current directory)
@@ -156,6 +158,7 @@ class SensorDataPa:
             use_offset_model_for_correction: bool = False,
             save_data: bool = False,
             arrow_dir: str = "",
+            gaps: Optional[List[Tuple[float, float]]] = None
     ):
         """
         initialize the sensor data with params
@@ -179,6 +182,8 @@ class SensorDataPa:
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
         :param arrow_dir: directory to save pyarrow table, default "" (current dir).  default temporary dir if not
                             saving data
+        :param gaps: timestamps of data points on the edge of gaps in the data.  anything between the pairs of points
+                        exists to maintain sample rate and are not considered valid points
         """
         self.errors: RedVoxExceptions = RedVoxExceptions("Sensor")
         self.name: str = sensor_name
@@ -191,6 +196,10 @@ class SensorDataPa:
         self.use_offset_model: bool = use_offset_model_for_correction
         self._arrow_file: str = ""
         self._save_data: bool = save_data
+        if gaps:
+            self.gaps = gaps
+        else:
+            self.gaps = []
         if self._save_data or arrow_dir:
             self._arrow_dir: str = arrow_dir
             self._temp_dir = None
@@ -567,3 +576,34 @@ class SensorDataPa:
             i_p = start_point
         i_p["timestamps"] = [interpolate_timestamp]
         return pa.Table.from_pydict(i_p)
+
+    def get_file_path(self) -> str:
+        """
+        :return: the supposed file path to the data file
+        """
+        return os.path.join(self._arrow_dir, self._arrow_file)
+
+    def to_json(self) -> str:
+        """
+        :return: sensor as json string
+        """
+        return json.dumps(self.__dict__)
+
+    def to_json_file(self, file_name: Optional[str] = None) -> Path:
+        """
+        saves the sensor as json and data in the same directory.
+
+        :param file_name: the optional base file name.  Do not include a file extension.
+                            If None, a default file name is created using this format:
+                            [sensor_type]_[first_timestamp].json
+        :return: path to json file
+        """
+        _file_name: str = (
+            file_name
+            if file_name is not None
+            else self._arrow_file.split(".")[0]
+        )
+        file_path: Path = Path(self._arrow_dir).joinpath(f"{_file_name}.json")
+        with open(file_path, "w") as f_p:
+            f_p.write(self.to_json())
+            return file_path.resolve(False)

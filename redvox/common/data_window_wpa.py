@@ -68,11 +68,12 @@ class DataWindowResult:
     enough metadata to get an idea of what is contained in the window
     Properties:
         event_name: string, identifier for the event
-        input_dir: string, directory where all the data files are
+        files_dir: string, directory where all the data files are
         start_time: datetime, start of the window
         end_time: datetime, end of the window
         event_origin: Tuple of floats, lat, lon, altitude of the origin
         event_radius: float, event radius in meters
+        original_request: dict, DataWindow request params as a dictionary
         stations:
             id: string, id of station
             is_time_corrected: bool, True if station's timestamps are updated.  default False
@@ -86,30 +87,44 @@ class DataWindowResult:
     """
     def __init__(self,
                  event_name: str,
-                 input_dir: str,
+                 files_dir: str,
                  start_time: dtu.datetime,
                  end_time: dtu.datetime,
                  event_origin: DataWindowResultLocation,
                  event_radius: float,
+                 original_request: Dict,
                  stations: List[StationPa]):
         """
         initialize the result of a DataWindow
 
         :param event_name: the name of the event
-        :param input_dir: the directory where the data files exist
+        :param files_dir: the directory where the data files exist
         :param start_time: the start of the window in UTC
         :param end_time: the end of the window in UTC
         :param event_origin: the origin location of the event of interest
         :param event_radius: the effective radius of the event
+        :param original_request: original DataWindow request as a dictionary
         :param stations: the stations that recorded the event
         """
         self.event_name = event_name
-        self.input_dir = input_dir
+        self.files_dir = files_dir
         self.start_time = start_time
         self.end_time = end_time
         self.event_origin = event_origin
         self.even_radius = event_radius
+        self.original_request = original_request
         self.stations = stations
+
+    def write(self):
+        """
+        write the data to directory self.files_dir
+        """
+        os.makedirs(self.files_dir, exist_ok=True)
+        # todo: write JSON for DataWindowResult
+        for s in self.stations:
+            s.to_json_file()
+        with open(os.path.join(self.files_dir, self.event_name + "_dw.json")) as f:
+            f.write("hi")
 
 
 class DataWindow:
@@ -145,6 +160,9 @@ class DataWindow:
         errors: DataWindowExceptions, class containing a list of all errors encountered by the data window.
         stations: list of Stations, the results of reading the data from input_directory
         sdk_version: str, the version of the Redvox SDK used to create the data window
+        station_out_dir: str, output directory for station parquet files.  Default "" (current directory)
+        save_station_files: bool, if True, save the station parquet files, otherwise delete them when finished.
+                            Default False
     """
     def __init__(
             self,
@@ -164,7 +182,7 @@ class DataWindow:
             debug: bool = False,
             station_out_dir: str = "",
             save_station_files: bool = False,
-            load_from_files: bool = False,
+            load_from_files: bool = False
     ):
         """
         Initialize the DataWindow
@@ -228,6 +246,7 @@ class DataWindow:
             self._temp_dir = tempfile.TemporaryDirectory()
             self.station_out_dir = self._temp_dir.name
         self.stations: List[StationPa] = []
+        self.data_window_results = None
         if start_datetime and end_datetime and (end_datetime <= start_datetime):
             self.errors.append("DataWindow will not work when end datetime is before or equal to start datetime.\n"
                                f"Your times: {end_datetime} <= {start_datetime}")
@@ -322,8 +341,48 @@ class DataWindow:
             config.save_station_files,
         )
 
-    # todo: save parameters of datawindow as a dict
-    # todo: save results of datawindow as a DataWindowResult
+    def as_dict(self) -> Dict:
+        result = {"input_directory": self.input_directory,
+                  "structured_layout": self.structured_layout,
+                  "station_ids": self.station_ids,
+                  "extensions": self.extensions,
+                  "api_versions": self.api_versions,
+                  "start_datetime": self.start_datetime,
+                  "end_datetime": self.end_datetime,
+                  "start_buffer_td": self.start_buffer_td,
+                  "end_buffer_td": self.end_buffer_td,
+                  "drop_time_s": self.drop_time_s,
+                  "apply_correction": self.apply_correction,
+                  "use_model_correction": self.use_model_correction,
+                  "copy_edge_points": self.copy_edge_points,
+                  "debug": self.debug,
+                  "errors": self.errors,
+                  "sdk_version": self.sdk_version,
+                  "save_station_files": self.save_station_files
+                  }
+        if self._temp_dir:
+            result["station_out_dir"] = ""
+            result["stations"] = self.stations
+        else:
+            result["station_out_dir"] = self.station_out_dir
+        return result
+
+    def save_window_results(self, event_name: str, files_dir: str, event_location: DataWindowResultLocation,
+                            event_radius: float) -> DataWindowResult:
+        """
+        create a DataWindowResult from a DataWindow
+
+        :param event_name: name of the event
+        :param files_dir: path to directory where all files will be written to
+        :param event_location: coordinates of the source
+        :param event_radius: radius of the event area
+        :return: Summarized DataWindow object, with information written to files_dir
+        """
+        dwr = DataWindowResult(event_name, files_dir, self.start_datetime, self.end_datetime,
+                               event_location, event_radius, self.as_dict(), self.stations)
+        dwr.write()
+        return dwr
+
     # todo: create StationJSON and SensorJSON classes
 
     @staticmethod
@@ -540,6 +599,10 @@ class DataWindow:
         if not self.end_datetime and len(self.stations) > 0:
             self.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
                 np.max([t.last_data_timestamp for t in self.stations]) + 1)
+
+        # if self.save_station_files:
+        #     self.data_window_results = DataWindowResult(self.event_name, self.station_out_dir, self.start_datetime,
+        #                                                 self.end_datetime, self.)
 
         # If the pool was created by this function, then it needs to managed by this function.
         if pool is None:

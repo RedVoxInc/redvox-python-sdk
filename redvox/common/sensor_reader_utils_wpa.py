@@ -345,9 +345,10 @@ def load_apim_xyz_sensor_from_list(
                       [data[0], data[0], data[1], data[2], data[3]]
                       )
                   )
+        d, _ = gpu.fill_gaps(pa.Table.from_pydict(df), gaps, sample_interval_micros, True)
         return SensorDataPa(
             description,
-            gpu.fill_gaps(pa.Table.from_pydict(df), gaps, sample_interval_micros, True),
+            d,
             sensor_type,
             calculate_stats=True,
         )
@@ -399,9 +400,10 @@ def load_apim_single_sensor_from_list(
                       [timestamps, timestamps, data]
                       )
                   )
+        d, _ = gpu.fill_gaps(pa.Table.from_pydict(df), gaps, sample_interval_micros, True)
         return SensorDataPa(
             description,
-            gpu.fill_gaps(pa.Table.from_pydict(df), gaps, sample_interval_micros, True),
+            d,
             sensor_type,
             calculate_stats=True,
         )
@@ -554,7 +556,7 @@ def load_apim_compressed_audio_from_list(
             data_list[2].append(comp_audio.audio_codec)
 
     if len(data_list[0]) > 0:
-        data_df = gpu.fill_gaps(
+        data_df, _ = gpu.fill_gaps(
             pa.Table.from_pydict(
                 dict(zip(
                     COMPRESSED_AUDIO_COLUMNS,
@@ -653,14 +655,15 @@ def load_apim_image_from_list(
                      )
                  )
             )
+        d, _ = gpu.fill_gaps(
+            df,
+            gaps,
+            dtu.seconds_to_microseconds(sample_interval),
+            True,
+        )
         return SensorDataPa(
             get_sensor_description_list(packets, SensorType.IMAGE),
-            gpu.fill_gaps(
-                df,
-                gaps,
-                dtu.seconds_to_microseconds(sample_interval),
-                True,
-            ),
+            d,
             SensorType.IMAGE,
             sample_rate,
             sample_interval,
@@ -773,14 +776,15 @@ def load_apim_best_location_from_list(
                 data_list[12].append(best_loc.location_provider)
                 loc_stats.add(__packet_duration_us(packet), 0, 1)
     if len(data_list[0]) > 0:
+        j, _ = gpu.fill_gaps(
+            pa.Table.from_pydict(dict(zip(LOCATION_COLUMNS, data_list))),
+            gaps,
+            loc_stats.mean_of_means(),
+            True,
+        )
         return SensorDataPa(
             get_sensor_description_list(packets, SensorType.BEST_LOCATION),
-            gpu.fill_gaps(
-                pa.Table.from_pydict(dict(zip(LOCATION_COLUMNS, data_list))),
-                gaps,
-                loc_stats.mean_of_means(),
-                True,
-            ),
+            j,
             SensorType.BEST_LOCATION,
             calculate_stats=True,
         )
@@ -924,14 +928,15 @@ def load_apim_location_from_list(
                     )
     if len(data_list[0]) > 0:
         data_list.insert(1, data_list[0].copy())
+        d, _ = gpu.fill_gaps(
+            pa.Table.from_pydict(dict(zip(LOCATION_COLUMNS, data_list))),
+            gaps,
+            loc_stats.mean_of_means(),
+            True,
+        )
         return SensorDataPa(
             get_sensor_description_list(packets, SensorType.LOCATION),
-            gpu.fill_gaps(
-                pa.Table.from_pydict(dict(zip(LOCATION_COLUMNS, data_list))),
-                gaps,
-                loc_stats.mean_of_means(),
-                True,
-            ),
+            d,
             SensorType.LOCATION,
             calculate_stats=True,
         )
@@ -1549,7 +1554,7 @@ def load_apim_health_from_list(
         sample_rate, sample_interval, sample_interval_std = __stats_for_sensor_per_packet_per_second(
             len(packets), __packet_duration_s(packets[0]), data_list[0]
         )
-        df = gpu.fill_gaps(
+        df, _ = gpu.fill_gaps(
             pa.Table.from_pydict(dict(zip(STATION_HEALTH_COLUMNS, data_list))),
             gaps,
             dtu.seconds_to_microseconds(sample_interval),

@@ -165,7 +165,7 @@ def fill_gaps(
         gaps: List[Tuple[float, float]],
         sample_interval_micros: float,
         copy: bool = False
-) -> pa.Table:
+) -> Tuple[pa.Table, List[Tuple[float, float]]]:
     """
     fills gaps in the dataframe with np.nan or interpolated values by interpolating timestamps based on the
     calculated sample interval
@@ -211,12 +211,12 @@ def fill_gaps(
                 if before_start is not None:
                     arrow_df = add_data_points_to_df(arrow_df, before_start, sample_interval_micros,
                                                      num_new_points, pcm)
-                elif after_end is not None:
+                if after_end is not None:
                     arrow_df = add_data_points_to_df(arrow_df, after_end, -sample_interval_micros,
                                                      num_new_points, pcm)
         indic = pc.sort_indices(arrow_df, sort_keys=[("timestamps", "ascending")])
-        return arrow_df.take(indic)
-    return arrow_df
+        return arrow_df.take(indic), gaps
+    return arrow_df, gaps
 
 
 def fill_audio_gaps(

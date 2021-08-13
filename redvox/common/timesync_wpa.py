@@ -7,6 +7,7 @@ ALL timestamps in microseconds unless otherwise stated
 
 from functools import reduce
 from typing import List, Optional, Union
+import json
 
 # noinspection Mypy
 import numpy as np
@@ -39,9 +40,10 @@ class TimeSyncData:
         packet_end_timestamp: float, timestamp of when data stopped recording, default np.nan
         packet_duration: float, length of packet in microseconds, default 0.0
         server_acquisition_timestamp: float, timestamp of when packet arrived at server, default np.nan
-        time_sync_exchanges_df: dataframe, timestamps that form the time synch exchanges, default empty dataframe
+        time_sync_exchanges_list: list of lists, timestamps that form the time synch exchanges, default empty list
         latencies: np.ndarray, calculated latencies of the exchanges, default empty np.ndarray
-        best_latency_index: int, index in latencies array that contains the best latency, default np.nan
+        best_exchange_latency_index: int, index in latencies/sync exchanges array that contains the best latency,
+                                        default np.nan
         best_latency: float, best latency of the data, default np.nan
         mean_latency: float, mean latency, default np.nan
         latency_std: float, standard deviation of latencies, default np.nan
@@ -49,7 +51,6 @@ class TimeSyncData:
         best_offset: float, best offset of the data, default np.nan
         mean_offset: float, mean offset, default np.nan
         offset_std: float, standard deviation of offsets, default np.nan
-        best_tri_msg_index: int, index of the best tri-message (same as best_latency_index), default np.nan
         best_msg_timestamp_index: int = np.nan, 1 or 3, indicates which tri-message latency array has the best latency
         acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
     """
@@ -107,6 +108,41 @@ class TimeSyncData:
                 self.packet_end_timestamp + self.best_offset
         )
 
+    def to_json(self):
+        return json.dumps({
+            "station_id": self.station_id,
+            "station_start_date": self.station_start_timestamp,
+            "audio_nominal_sample_rate_hz": self.sample_rate_hz,
+            "num_samples": self.num_audio_samples,
+            "packet_start_timestamp": self.packet_start_timestamp,
+            "packet_end_timestamp": self.packet_end_timestamp,
+            "packet_duration": self.packet_duration,
+            "server_acquisition": self.server_acquisition_timestamp,
+            "acquire_travel_time": self.acquire_travel_time,
+            "best_exchange_latency_index": self.best_exchange_latency_index,
+            "best_msg_timestamp_index": self.best_msg_timestamp_index,
+            "best_latency": self.best_latency,
+            "mean_latency": self.mean_latency,
+            "latency_std": self.latency_std,
+            "best_offset": self.best_offset,
+            "mean_offset": self.mean_offset,
+            "offset_std": self.offset_std
+        })
+
+    def data_as_pyarrow(self) -> pa.Table:
+        return pa.Table.from_pydict({
+            "latencies1": self.latencies[0],
+            "latencies3": self.latencies[1],
+            "offsets1": self.offsets[0],
+            "offsets3": self.offsets[1],
+            "a1": self.time_sync_exchanges_list[0],
+            "a2": self.time_sync_exchanges_list[1],
+            "a3": self.time_sync_exchanges_list[2],
+            "b1": self.time_sync_exchanges_list[3],
+            "b2": self.time_sync_exchanges_list[4],
+            "b3": self.time_sync_exchanges_list[5]
+        })
+
     def _compute_tri_message_stats(self):
         """
         Compute the tri-message stats from the data
@@ -129,8 +165,7 @@ class TimeSyncData:
             self.offset_std = np.std([*tse.offset1, *tse.offset3])
             self.latencies = np.array((tse.latency1, tse.latency3))
             self.offsets = np.array((tse.offset1, tse.offset3))
-            self.best_latency_index = tse.best_latency_index
-            self.best_tri_msg_index = tse.best_latency_index
+            self.best_exchange_latency_index = tse.best_latency_index
             self.best_msg_timestamp_index = tse.best_latency_array_index
             # if best_latency is np.nan, set to best computed latency
             if np.isnan(self.best_latency):
@@ -141,8 +176,7 @@ class TimeSyncData:
                 self.best_offset = tse.best_offset
         else:
             # If here, there are no exchanges to read.  write default or empty values to the correct properties
-            self.best_tri_msg_index = np.nan
-            self.best_latency_index = np.nan
+            self.best_exchange_latency_index = np.nan
             self.best_latency = np.nan
             self.mean_latency = np.nan
             self.latency_std = np.nan
@@ -182,9 +216,9 @@ class TimeSyncData:
         :return: timestamp of best latency, or start of the packet if no best latency.
         """
         if self.best_msg_timestamp_index == 1:
-            return self.time_sync_exchanges_list[3][self.best_latency_index]
+            return self.time_sync_exchanges_list[3][self.best_exchange_latency_index]
         elif self.best_msg_timestamp_index == 3:
-            return self.time_sync_exchanges_list[5][self.best_latency_index]
+            return self.time_sync_exchanges_list[5][self.best_exchange_latency_index]
         else:
             return self.packet_start_timestamp
 
@@ -293,6 +327,23 @@ class TimeSyncAnalysis:
         else:
             self.timesync_data = []
             self.offset_model = OffsetModel.empty_model()
+
+    def to_json(self) -> str:
+        """
+        :return: time sync analysis as json string
+        """
+        if len(self.timesync_data) > 0:
+            data_dict = [t_d.to_json() for t_d in self.timesync_data]
+        else:
+            data_dict = []
+        return json.dumps({
+            "station_id": self.station_id,
+            "station_start_date": self.station_start_timestamp,
+            "audio_nominal_sample_rate_hz": self.sample_rate_hz,
+            "best_latency_index": self.best_latency_index,
+            "errors": self.errors.__dict__,
+            "time_sync_data": data_dict
+        })
 
     def evaluate_and_validate_data(self):
         """
@@ -520,7 +571,7 @@ class TimeSyncAnalysis:
         """
         if np.isnan(self.best_latency_index):
             return np.nan
-        return self.timesync_data[self.best_latency_index].best_latency_index
+        return self.timesync_data[self.best_latency_index].best_exchange_latency_index
 
     def get_best_start_time(self) -> float:
         """
