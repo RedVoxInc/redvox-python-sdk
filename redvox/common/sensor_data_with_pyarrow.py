@@ -258,9 +258,10 @@ class SensorDataPa:
                             saving data
         :return: SensorData object
         """
-        return SensorDataPa(sensor_name, ds.dataset(data_path).to_table(), sensor_type, sample_rate_hz,
-                            sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
-                            calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)
+        return SensorDataPa(sensor_name, ds.dataset(data_path).to_table(), sensor_type,
+                            sample_rate_hz, sample_interval_s, sample_interval_std_s, is_sample_rate_fixed,
+                            are_timestamps_altered, calculate_stats, use_offset_model_for_correction, save_data,
+                            arrow_dir)
 
     @staticmethod
     def from_dict(
@@ -583,11 +584,20 @@ class SensorDataPa:
         """
         return os.path.join(self._arrow_dir, self._arrow_file)
 
+    def as_dict(self) -> dict:
+        """
+        :return: sensor as dict
+        """
+        d = self.__dict__
+        d["errors"] = self.errors.as_dict()
+        d["type"] = self.type.value
+        return d
+
     def to_json(self) -> str:
         """
         :return: sensor as json string
         """
-        return json.dumps(self.__dict__)
+        return json.dumps(self.as_dict())
 
     def to_json_file(self, file_name: Optional[str] = None) -> Path:
         """

@@ -80,3 +80,13 @@ class RedVoxExceptions:
             print(f"Errors encountered while creating {self._obj_class}:")
             for error in self._errors:
                 print(error)
+
+    def as_dict(self) -> dict:
+        """
+        :return: self as dict
+        """
+        return {
+            "obj_class": self._obj_class,
+            "num_errors": self._num_errors,
+            "errors": [e.__dict__ for e in self._errors]
+        }

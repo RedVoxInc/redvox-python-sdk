@@ -89,14 +89,13 @@ class TimeSyncData:
         self.server_acquisition_timestamp = server_acquisition_timestamp
         self.packet_start_timestamp = packet_start_timestamp
         self.packet_end_timestamp = packet_end_timestamp
-        if time_sync_exchanges_list is None:
-            time_sync_exchanges_list = []
+        if time_sync_exchanges_list is None or len(time_sync_exchanges_list) < 1:
+            self.time_sync_exchanges_list = [[], [], [], [], [], []]
         else:
-            time_sync_exchanges_list = [
+            self.time_sync_exchanges_list = np.transpose([
                 time_sync_exchanges_list[i: i + 6]
                 for i in range(0, len(time_sync_exchanges_list), 6)
-            ]
-        self.time_sync_exchanges_list = np.transpose(time_sync_exchanges_list)
+            ])
         self.best_latency = best_latency
         self.best_offset = best_offset
 
@@ -109,7 +108,7 @@ class TimeSyncData:
         )
 
     def to_json(self):
-        return json.dumps({
+        d = {
             "station_id": self.station_id,
             "station_start_date": self.station_start_timestamp,
             "audio_nominal_sample_rate_hz": self.sample_rate_hz,
@@ -127,9 +126,12 @@ class TimeSyncData:
             "best_offset": self.best_offset,
             "mean_offset": self.mean_offset,
             "offset_std": self.offset_std
-        })
+        }
+        return json.dumps(d)
 
     def data_as_pyarrow(self) -> pa.Table:
+        if len(self.time_sync_exchanges_list) < 1:
+            print("hoi")
         return pa.Table.from_pydict({
             "latencies1": self.latencies[0],
             "latencies3": self.latencies[1],
@@ -176,6 +178,8 @@ class TimeSyncData:
                 self.best_offset = tse.best_offset
         else:
             # If here, there are no exchanges to read.  write default or empty values to the correct properties
+            self.latencies = np.array(([], []))
+            self.offsets = np.array(([], []))
             self.best_exchange_latency_index = np.nan
             self.best_latency = np.nan
             self.mean_latency = np.nan

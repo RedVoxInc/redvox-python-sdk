@@ -1174,7 +1174,7 @@ class StationPa:
         """
         :return: station as json string
         """
-        d = {
+        d: dict = {
             "id": self._id,
             "uuid": self._uuid,
             "start_date": self._start_date,
@@ -1186,7 +1186,7 @@ class StationPa:
             "first_data_timestamp": self.first_data_timestamp,
             "last_data_timestamp": self.last_data_timestamp,
             "metadata": self.metadata.__dict__,
-            "packet_metadata": self.packet_metadata.__dict__,
+            "packet_metadata": [p.__dict__ for p in self.packet_metadata],
             "gaps": self._gaps
         }
         return json.dumps(d)

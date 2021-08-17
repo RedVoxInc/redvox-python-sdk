@@ -8,6 +8,7 @@ from datetime import timedelta
 import tempfile
 from glob import glob
 import os
+import json
 
 import multiprocessing
 import multiprocessing.pool
@@ -17,6 +18,9 @@ import pyarrow as pa
 
 import redvox
 from redvox.common import date_time_utils as dtu
+from redvox.common.date_time_utils import (
+    datetime_to_epoch_microseconds_utc as us_dt,
+)
 from redvox.common import io
 from redvox.common import data_window_io as dw_io
 from redvox.common.parallel_utils import maybe_parallel_map
@@ -60,6 +64,20 @@ class DataWindowResultLocation:
         self.latitude_std = lat_std
         self.longitude_std = lon_std
         self.altitude_std = alt_std
+
+    def as_dict(self) -> Dict:
+        """
+        :return: self as dict
+        """
+        return {
+            "provider": self.provider,
+            "latitude": self.latitude,
+            "latitude_std": self.latitude_std,
+            "longitude": self.longitude,
+            "longitude_std": self.longitude_std,
+            "altitude": self.altitude,
+            "altitude_std": self.altitude_std
+        }
 
 
 class DataWindowResult:
@@ -111,9 +129,24 @@ class DataWindowResult:
         self.start_time = start_time
         self.end_time = end_time
         self.event_origin = event_origin
-        self.even_radius = event_radius
+        self.event_radius = event_radius
         self.original_request = original_request
         self.stations = stations
+
+    def to_json(self) -> json:
+        """
+        :return: DataWindow as JSON
+        """
+        d: dict = {
+            "event_name": self.event_name,
+            "files_dir": self.files_dir,
+            "start_time": us_dt(self.start_time),
+            "end_time": us_dt(self.end_time),
+            "event_origin": self.event_origin.as_dict(),
+            "event_radius": self.event_radius,
+            "original_request": self.original_request
+        }
+        return json.dumps(d)
 
     def write(self):
         """
@@ -123,8 +156,10 @@ class DataWindowResult:
         # todo: write JSON for DataWindowResult
         for s in self.stations:
             s.to_json_file()
-        with open(os.path.join(self.files_dir, self.event_name + "_dw.json")) as f:
-            f.write("hi")
+        file_path: Path = Path(self.files_dir).joinpath(self.event_name + "_dw.json")
+        with open(file_path, "w") as f:
+            f.write(self.to_json())
+            return file_path.resolve(False)
 
 
 class DataWindow:
@@ -344,31 +379,30 @@ class DataWindow:
     def as_dict(self) -> Dict:
         result = {"input_directory": self.input_directory,
                   "structured_layout": self.structured_layout,
-                  "station_ids": self.station_ids,
-                  "extensions": self.extensions,
-                  "api_versions": self.api_versions,
-                  "start_datetime": self.start_datetime,
-                  "end_datetime": self.end_datetime,
-                  "start_buffer_td": self.start_buffer_td,
-                  "end_buffer_td": self.end_buffer_td,
+                  "station_ids": list(self.station_ids),
+                  "extensions": list(self.extensions),
+                  "api_versions": [a_v.value for a_v in self.api_versions],
+                  "start_datetime": us_dt(self.start_datetime),
+                  "end_datetime": us_dt(self.end_datetime),
+                  "start_buffer_td": self.start_buffer_td.total_seconds(),
+                  "end_buffer_td": self.end_buffer_td.total_seconds(),
                   "drop_time_s": self.drop_time_s,
                   "apply_correction": self.apply_correction,
                   "use_model_correction": self.use_model_correction,
-                  "copy_edge_points": self.copy_edge_points,
+                  "copy_edge_points": self.copy_edge_points.value,
                   "debug": self.debug,
-                  "errors": self.errors,
+                  "errors": self.errors.as_dict(),
                   "sdk_version": self.sdk_version,
                   "save_station_files": self.save_station_files
                   }
         if self._temp_dir:
             result["station_out_dir"] = ""
-            result["stations"] = self.stations
         else:
             result["station_out_dir"] = self.station_out_dir
         return result
 
-    def save_window_results(self, event_name: str, files_dir: str, event_location: DataWindowResultLocation,
-                            event_radius: float) -> DataWindowResult:
+    def create_window_results(self, event_name: str, files_dir: str, event_location: DataWindowResultLocation,
+                              event_radius: float) -> DataWindowResult:
         """
         create a DataWindowResult from a DataWindow
 
@@ -378,12 +412,8 @@ class DataWindow:
         :param event_radius: radius of the event area
         :return: Summarized DataWindow object, with information written to files_dir
         """
-        dwr = DataWindowResult(event_name, files_dir, self.start_datetime, self.end_datetime,
-                               event_location, event_radius, self.as_dict(), self.stations)
-        dwr.write()
-        return dwr
-
-    # todo: create StationJSON and SensorJSON classes
+        return DataWindowResult(event_name, files_dir, self.start_datetime, self.end_datetime,
+                                event_location, event_radius, self.as_dict(), self.stations)
 
     @staticmethod
     def deserialize(path: str) -> "DataWindow":
