@@ -258,8 +258,9 @@ class SensorDataPa:
                             saving data
         :return: SensorData object
         """
-        return SensorDataPa(sensor_name, ds.dataset(data_path).to_table(), sensor_type,
-                            sample_rate_hz, sample_interval_s, sample_interval_std_s, is_sample_rate_fixed,
+        return SensorDataPa(sensor_name,
+                            ds.dataset(data_path, format="parquet", exclude_invalid_files=True).to_table(),
+                            sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s, is_sample_rate_fixed,
                             are_timestamps_altered, calculate_stats, use_offset_model_for_correction, save_data,
                             arrow_dir)
 
@@ -308,7 +309,7 @@ class SensorDataPa:
         """
         :return: the dataset stored in self._arrow_dir
         """
-        return ds.dataset(self._arrow_dir)
+        return ds.dataset(self._arrow_dir, format="parquet", exclude_invalid_files=True)
 
     def pyarrow_table(self) -> pa.Table:
         """

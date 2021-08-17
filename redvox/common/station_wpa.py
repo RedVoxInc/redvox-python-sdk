@@ -1124,7 +1124,8 @@ class StationPa:
                 if np.isnan(sdata[0].srate_hz):
                     for sds in sdata:
                         stats.add(sds.smint_us, sds.sstd_us, sds.scount-1)
-                    d, g = gpu.fill_gaps(ds.dataset(sdata[0].fdir).to_table(),
+                    d, g = gpu.fill_gaps(
+                        ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table(),
                                          sensor_summaries.audio_gaps,
                                          stats.mean_of_means(), True)
                     self._data.append(sd.SensorDataPa(
@@ -1132,7 +1133,8 @@ class StationPa:
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False, arrow_dir=sdata[0].fdir)
                     )
                 else:
-                    d, g = gpu.fill_gaps(ds.dataset(sdata[0].fdir).to_table(),
+                    d, g = gpu.fill_gaps(
+                        ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table(),
                                          sensor_summaries.audio_gaps,
                                          sdata[0].smint_us, True)
                     self._data.append(sd.SensorDataPa(
@@ -1204,7 +1206,7 @@ class StationPa:
         _file_name: str = (
             file_name
             if file_name is not None
-            else f"{self._id}_{self._start_date}"
+            else f"{self._id}_{int(self._start_date)}"
         )
 
         # write the sensor objects, using the default values
