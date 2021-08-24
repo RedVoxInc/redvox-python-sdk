@@ -125,22 +125,35 @@ class SensorType(enum.Enum):
 class SensorDataPa:
     """
     Generic SensorData class for API-independent analysis
+
     Properties:
         name: string, name of sensor.  REQUIRED
+
         type: SensorType, enumerated type of sensor, default UNKNOWN_SENSOR
+
         sample_rate_hz: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+
         sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
+
         sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
+
         is_sample_rate_fixed: bool, True if sample rate is constant, default False
+
         timestamps_altered: bool, True if timestamps in the sensor have been altered from their original values
-                            default False
+        default False
+
         use_offset_model: bool, if True, use an offset model to correct timestamps, otherwise use the best known
-                            offset.  default False
+        offset.  default False
+
         errors: RedVoxExceptions, class containing a list of all errors encountered by the sensor.
+
         gaps: List of Tuples of floats, timestamps of data points on the edge of gaps, default empty list
+
     Protected:
         _arrow_file: string, file name of data file
+
         _arrow_dir: string, directory where the data is saved to, default "" (current directory)
+
         _save_data: bool, if True, save data to _arrow_dir, otherwise use a temp dir.  default False
     """
 
@@ -589,10 +602,20 @@ class SensorDataPa:
         """
         :return: sensor as dict
         """
-        d = self.__dict__
-        d["errors"] = self.errors.as_dict()
-        d["type"] = self.type.value
-        return d
+        return {
+            "name": self.name,
+            "type": self.type.name,
+            "sample_rate_hz": self.sample_rate_hz,
+            "sample_interval_s": self.sample_interval_s,
+            "sample_interval_std_s": self.sample_interval_std_s,
+            "is_sample_rate_fixed": self.is_sample_rate_fixed,
+            "timestamps_altered": self.timestamps_altered,
+            "use_offset_model": self.use_offset_model,
+            "gaps": self.gaps,
+            "parquet_dir": self._arrow_dir,
+            "parquet_file": self._arrow_file,
+            "errors": self.errors.as_dict()
+        }
 
     def to_json(self) -> str:
         """
@@ -618,3 +641,24 @@ class SensorDataPa:
         with open(file_path, "w") as f_p:
             f_p.write(self.to_json())
             return file_path.resolve(False)
+
+    @staticmethod
+    def from_json(file_path: str) -> "SensorDataPa":
+        """
+        convert contents of json file to SensorData
+        :param file_path: full path of file to load data from.
+        :return: SensorData object
+        """
+        with open(file_path, "r") as f_p:
+            json_data = json.loads(f_p.read())
+        if "name" in json_data.keys():
+            result = SensorDataPa.from_dir(json_data["name"], json_data["parquet_dir"], SensorType.json_data["type"],
+                                           json_data["sample_rate_hz"], json_data["sample_interval_s"],
+                                           json_data["sample_interval_std_s"], json_data["is_sample_rate_fixed"],
+                                           json_data["timestamps_altered"], False, json_data["use_offset_model"])
+            result.errors = RedVoxExceptions.from_dict(json_data["errors"])
+            result.gaps = json_data["gaps"]
+        else:
+            result = SensorDataPa("Empty")
+            result.errors.append("Loading from json file failed; Sensor missing name.")
+        return result

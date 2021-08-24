@@ -172,7 +172,7 @@ class StationMetadata:
             self.sub_api = packet.sub_api
             self.make = packet.station_information.make
             self.model = packet.station_information.model
-            self.os = packet.station_information.os
+            self.os: OsType = OsType(packet.station_information.os)
             self.os_version = packet.station_information.os_version
             self.app_version = packet.station_information.app_version
             self.is_private = packet.station_information.is_private
@@ -186,7 +186,7 @@ class StationMetadata:
             self.sub_api = np.nan
             self.make = ""
             self.model = ""
-            self.os = OsType.UNKNOWN_OS
+            self.os: OsType = OsType["UNKNOWN_OS"]
             self.os_version = ""
             self.app_version = ""
             self.is_private = False
@@ -211,6 +211,45 @@ class StationMetadata:
                 and self.packet_duration_s == other_metadata.packet_duration_s
                 and self.station_description == other_metadata.station_description
         )
+
+    def as_dict(self) -> dict:
+        """
+        :return: dictionary representation of the metadata
+        """
+        return {
+            "app": self.app,
+            "api": self.api,
+            "sub_api": self.sub_api,
+            "make": self.make,
+            "model": self.model,
+            "os": self.os.name,
+            "os_version": self.os_version,
+            "app_version": self.app_version,
+            "is_private": self.is_private,
+            "packet_duration_s": self.packet_duration_s,
+            "station_description": self.station_description,
+            "other_metadata": self.other_metadata
+        }
+
+    @staticmethod
+    def from_dict(md_dict: dict) -> "StationMetadata":
+        """
+        :param md_dict: metadata dictionary
+        :return: StationMetadata from dictionary
+        """
+        result = StationMetadata(md_dict["app"])
+        result.api = md_dict["api"]
+        result.sub_api = md_dict["sub_api"]
+        result.make = md_dict["make"]
+        result.model = md_dict["model"]
+        result.os = OsType.md_dict["os"]
+        result.os_version = md_dict["os_version"]
+        result.app_version = md_dict["app_version"]
+        result.is_private = md_dict["is_private"]
+        result.packet_duration_s = md_dict["packet_duration_s"]
+        result.station_description = md_dict["station_description"]
+        result.other_metadata = md_dict["other_metadata"]
+        return result
 
 
 class StationMetadataWrapped:
@@ -337,6 +376,21 @@ class StationPacketMetadata:
         self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
         self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
         self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)
+
+    @staticmethod
+    def from_dict(pmd_dict: dict) -> "StationPacketMetadata":
+        """
+        :param pmd_dict: dictionary with StationPacketMetadata
+        :return: StationPacketMetadata from dictionary
+        """
+        result = StationPacketMetadata()
+        result.other_metadata = pmd_dict["other_metadata"]
+        result.packet_start_mach_timestamp = pmd_dict["packet_start_mach_timestamp"]
+        result.packet_end_mach_timestamp = pmd_dict["packet_end_mach_timestamp"]
+        result.packet_start_os_timestamp = pmd_dict["packet_start_os_timestamp"]
+        result.packet_end_os_timestamp = pmd_dict["packet_end_os_timestamp"]
+        result.timing_info_score = pmd_dict["timing_info_score"]
+        return result
 
 
 class StationPacketMetadataWrapped:

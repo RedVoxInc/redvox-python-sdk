@@ -148,6 +148,8 @@ class DataWindowResult:
         }
         return json.dumps(d)
 
+    # todo: load json of datawindow, meaning datawindow has to set itself up first
+
     def write(self):
         """
         write the data to directory self.files_dir

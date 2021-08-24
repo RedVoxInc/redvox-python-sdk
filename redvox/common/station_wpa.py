@@ -8,6 +8,8 @@ import tempfile
 import os
 from pathlib import Path
 import json
+import shutil
+from glob import glob
 
 import numpy as np
 import pyarrow.dataset as ds
@@ -184,6 +186,9 @@ class StationPa:
         if packets and st_utils.validate_station_key_list(packets, self.errors):
             # noinspection Mypy
             self._load_metadata_from_packet(packets[0])
+            self.packet_metadata = [
+                st_utils.StationPacketMetadata(packet) for packet in packets
+            ]
             self.base_dir = os.path.join(self.base_dir, self._get_id_key())
             self.timesync_analysis = TimeSyncAnalysis(
                 self._id, self.audio_sample_rate_nominal_hz, self._start_date
@@ -192,6 +197,8 @@ class StationPa:
                 self.errors.extend_error(self.timesync_analysis.errors)
             # self._audio_rate = packets[0].sensors.audio.sample_rate
             # self._audio_name = packets[0].sensors.audio.sensor_description
+            if os.path.exists(self.base_dir):
+                shutil.rmtree(self.base_dir)
             os.makedirs(self.base_dir, exist_ok=True)
             self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir))
 
@@ -1176,7 +1183,7 @@ class StationPa:
         """
         :return: station as json string
         """
-        d: dict = {
+        return json.dumps({
             "id": self._id,
             "uuid": self._uuid,
             "start_date": self._start_date,
@@ -1187,11 +1194,12 @@ class StationPa:
             "audio_sample_rate_nominal_hz": self.audio_sample_rate_nominal_hz,
             "first_data_timestamp": self.first_data_timestamp,
             "last_data_timestamp": self.last_data_timestamp,
-            "metadata": self.metadata.__dict__,
+            "metadata": self.metadata.as_dict(),
             "packet_metadata": [p.__dict__ for p in self.packet_metadata],
-            "gaps": self._gaps
-        }
-        return json.dumps(d)
+            "gaps": self._gaps,
+            "errors": self.errors.as_dict(),
+            "sensors": [s.type.name for s in self._data]
+        })
 
     def to_json_file(self, file_name: Optional[str] = None) -> Path:
         """
@@ -1219,13 +1227,46 @@ class StationPa:
         with open(ts_path, "w") as t_p:
             t_p.write(self.timesync_analysis.to_json())
         for t_s_d in self.timesync_analysis.timesync_data:
-            ts_path = Path(ts_dir).joinpath(f"timesync_data_{t_s_d.packet_start_timestamp}.parquet")
+            ts_path = Path(ts_dir).joinpath(f"timesync_data_{int(t_s_d.packet_start_timestamp)}.parquet")
             pq.write_table(t_s_d.data_as_pyarrow(), ts_path)
 
         file_path: Path = Path(self.base_dir).joinpath(f"{_file_name}.json")
         with open(file_path, "w") as f_p:
             f_p.write(self.to_json())
             return file_path.resolve(False)
+
+    @staticmethod
+    def from_json_file(file_path: str) -> "StationPa":
+        """
+        convert contents of json file to Station
+        :param file_path: full path of file to load data from.
+        :return: Station object
+        """
+        with open(file_path, "r") as f_p:
+            json_data = json.loads(f_p.read())
+        result = StationPa(json_data["id"], json_data["uuid"], json_data["start_date"],
+                           json_data["use_model_correction"])
+        result.is_audio_scrambled = json_data["is_audio_scrambled"]
+        result.is_timestamps_updated = json_data["is_timestamps_updated"]
+        result.audio_sample_rate_nominal_hz = json_data["audio_sample_rate_nominal_hz"]
+        result.first_data_timestamp = json_data["first_data_timestamp"]
+        result.last_data_timestamp = json_data["last_data_timestamp"]
+        result.metadata = st_utils.StationMetadata.from_dict(json_data["metadata"])
+        result.packet_metadata = [st_utils.StationPacketMetadata.from_dict(p) for p in json_data["packet_metadata"]]
+        result.gaps = json_data["gaps"]
+        result.errors = RedVoxExceptions.from_dict(json_data["errors"])
+
+        for s in json_data["sensors"]:
+            file = glob(os.path.join(json_data["base_dir"], s, "*.json"))
+            for f in file:
+                result._data.append(sd.SensorDataPa.from_json(f))
+
+        # todo timesync needs work
+        # file = glob(os.path.join(json_data["base_dir"], "timesync", "*.json"))
+        # for f in file:
+        #     result.timesync_analysis = TimeSyncAnalysis.from_json(f)
+
+        return result
 
 
 class StationPaJson:

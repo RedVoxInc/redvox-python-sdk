@@ -8,10 +8,12 @@ ALL timestamps in microseconds unless otherwise stated
 from functools import reduce
 from typing import List, Optional, Union
 import json
+import os.path
 
 # noinspection Mypy
 import numpy as np
 import pyarrow as pa
+import pyarrow.parquet as pq
 
 import redvox.api900.lib.api900_pb2 as api900_pb2
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
@@ -107,8 +109,8 @@ class TimeSyncData:
                 self.packet_end_timestamp + self.best_offset
         )
 
-    def to_json(self):
-        d = {
+    def as_dict(self):
+        return {
             "station_id": self.station_id,
             "station_start_date": self.station_start_timestamp,
             "audio_nominal_sample_rate_hz": self.sample_rate_hz,
@@ -127,11 +129,18 @@ class TimeSyncData:
             "mean_offset": self.mean_offset,
             "offset_std": self.offset_std
         }
-        return json.dumps(d)
+
+    def to_json(self):
+        return json.dumps(self.as_dict())
+
+    @staticmethod
+    def from_dict(ts_dict: dict, tse_data: List) -> "TimeSyncData":
+        return TimeSyncData(ts_dict["station_id"], ts_dict["sample_rate_hz"], ts_dict["num_samples"],
+                            ts_dict["station_start_date"], ts_dict["server_acquisition"],
+                            ts_dict["packet_start_timestamp"], ts_dict["packet_end_timestamp"],
+                            tse_data, ts_dict["best_latency"], ts_dict["best_offset"])
 
     def data_as_pyarrow(self) -> pa.Table:
-        if len(self.time_sync_exchanges_list) < 1:
-            print("hoi")
         return pa.Table.from_pydict({
             "latencies1": self.latencies[0],
             "latencies3": self.latencies[1],
@@ -332,22 +341,35 @@ class TimeSyncAnalysis:
             self.timesync_data = []
             self.offset_model = OffsetModel.empty_model()
 
-    def to_json(self) -> str:
+    def to_json(self) -> json:
         """
         :return: time sync analysis as json string
         """
-        if len(self.timesync_data) > 0:
-            data_dict = [t_d.to_json() for t_d in self.timesync_data]
-        else:
-            data_dict = []
         return json.dumps({
             "station_id": self.station_id,
             "station_start_date": self.station_start_timestamp,
             "audio_nominal_sample_rate_hz": self.sample_rate_hz,
             "best_latency_index": self.best_latency_index,
-            "errors": self.errors.__dict__,
-            "time_sync_data": data_dict
+            "errors": self.errors.as_dict(),
+            "time_sync_data": [t_d.as_dict() for t_d in self.timesync_data]
         })
+
+    @staticmethod
+    def from_json(json_file: str, tsd_base_dir: str) -> "TimeSyncAnalysis":
+        """
+        :param json_file: path to json file to read
+        :param tsd_base_dir: path to sync exchange parquet files directory
+        :return: TimeSyncAnalysis from json file
+        """
+        with open(json_file, "r") as tsf:
+            ts_analysis = json.loads(tsf.read())
+            timesync_analysis = \
+                TimeSyncAnalysis(ts_analysis["station_id"],
+                                 ts_analysis["audio_nominal_sample_rate_hz"],
+                                 ts_analysis["station_start_date"],
+                [TimeSyncData.from_dict(a, pq.read_table(os.path.join(tsd_base_dir,
+                f"timesync_data_{a['packet_start_timestamp']}.parquet")).to_pandas().to) for a in ts_analysis["time_sync_data"]])
+            timesync_analysis.errors = RedVoxExceptions.from_dict(ts_analysis["errors"])
 
     def evaluate_and_validate_data(self):
         """
