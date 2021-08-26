@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.0.9 (2021-8-26)
+
+* Fix missing latencies and offsets attribute when data is missing from files.
+
 ### 3.0.8 (2021-8-11)
 
 * Fix inconsistent storing of enum data from station metrics

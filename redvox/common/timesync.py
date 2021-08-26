@@ -140,6 +140,8 @@ class TimeSyncData:
                 self.best_offset = tse.best_offset
         else:
             # If here, there are no exchanges to read.  write default or empty values to the correct properties
+            self.latencies = np.array(([], []))
+            self.offsets = np.array(([], []))
             self.best_tri_msg_index = np.nan
             self.best_latency_index = np.nan
             self.best_latency = np.nan
