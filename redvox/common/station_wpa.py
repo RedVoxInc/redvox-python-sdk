@@ -59,6 +59,8 @@ class StationPa:
 
         timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
 
+        _correct_timestamps: bool, if True, timestamps are updated as soon as they can be, default False
+
         use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
         correction is done by adding the OffsetModel's best offset (intercept value).  default True
 
@@ -70,6 +72,7 @@ class StationPa:
             station_id: str = "",
             uuid: str = "",
             start_timestamp: float = np.nan,
+            correct_timestamps: bool = False,
             use_model_correction: bool = True,
             base_out_dir: str = "",
             save_output: bool = False
@@ -80,6 +83,7 @@ class StationPa:
         :param station_id: string id of the station; defined by users of the station, default ""
         :param uuid: string uuid of the station; automatically created by the station, default ""
         :param start_timestamp: timestamp in epoch UTC when station was started, default np.nan
+        :param correct_timestamps: if True, correct all timestamps as soon as they can be, default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
         :param base_out_dir: directory to save parquet files, default "" (current directory)
@@ -89,6 +93,7 @@ class StationPa:
         self._id = station_id
         self._uuid = uuid
         self._start_date = start_timestamp
+        self._correct_timestamps = correct_timestamps
         self.use_model_correction = use_model_correction
         self.metadata = st_utils.StationMetadata("None")
         self.packet_metadata: List[st_utils.StationPacketMetadata] = []
@@ -142,19 +147,21 @@ class StationPa:
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
+                            correct_timestamps: bool = False,
                             use_model_correction: bool = True,
                             base_out_dir: str = "",
                             save_output: bool = False) -> "StationPa":
         """
         :param packets: API M redvox packets with data to load
+        :param correct_timestamps: if True, correct timestamps as soon as possible.  Default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
         :param base_out_dir: directory to save parquet files, default "" (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
         :return: station using data from redvox packets.
         """
-        station = StationPa(use_model_correction=use_model_correction, base_out_dir=base_out_dir,
-                            save_output=save_output)
+        station = StationPa(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
+                            base_out_dir=base_out_dir, save_output=save_output)
         station.load_data_from_packets(packets)
         return station
 
@@ -189,10 +196,15 @@ class StationPa:
             self.packet_metadata = [
                 st_utils.StationPacketMetadata(packet) for packet in packets
             ]
-            self.base_dir = os.path.join(self.base_dir, self._get_id_key())
             self.timesync_analysis = TimeSyncAnalysis(
                 self._id, self.audio_sample_rate_nominal_hz, self._start_date
             ).from_raw_packets(packets)
+            if self._correct_timestamps:
+                self.timesync_analysis.update_timestamps(self.use_model_correction)
+                self._start_date = self.timesync_analysis.offset_model.update_time(
+                    self._start_date, self.use_model_correction
+                )
+            self.base_dir = os.path.join(self.base_dir, self._get_id_key())
             if self.timesync_analysis.errors.get_num_errors() > 0:
                 self.errors.extend_error(self.timesync_analysis.errors)
             # self._audio_rate = packets[0].sensors.audio.sample_rate
@@ -1159,6 +1171,13 @@ class StationPa:
         if self.is_timestamps_updated:
             self.errors.append("Timestamps already corrected!")
         else:
+            # if timestamps were not corrected on creation
+            if not self._correct_timestamps:
+                self.timesync_analysis.update_timestamps(self.use_model_correction)
+                self._start_date = self.timesync_analysis.offset_model.update_time(
+                    self._start_date, self.use_model_correction
+                )
+                self.base_dir = os.path.join(self.base_dir, self._get_id_key())
             for sensor in self._data:
                 sensor.update_data_timestamps(self.timesync_analysis.offset_model, self.use_model_correction)
             for packet in self.packet_metadata:
@@ -1166,10 +1185,6 @@ class StationPa:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self.timesync_analysis.offset_model.update_time(self._gaps[g][0]),
                                  self.timesync_analysis.offset_model.update_time(self._gaps[g][1]))
-            self.timesync_analysis.update_timestamps(self.use_model_correction)
-            self._start_date = self.timesync_analysis.offset_model.update_time(
-                self._start_date, self.use_model_correction
-            )
             self.first_data_timestamp = self.timesync_analysis.offset_model.update_time(
                 self.first_data_timestamp, self.use_model_correction
             )
@@ -1201,6 +1216,12 @@ class StationPa:
             "sensors": [s.type.name for s in self._data]
         })
 
+    def default_station_json_file_name(self) -> str:
+        """
+        :return: default station json file name (id_startdate), with startdate as integer
+        """
+        return f"{self._id}_{int(self._start_date)}"
+
     def to_json_file(self, file_name: Optional[str] = None) -> Path:
         """
         saves the station as json in station.base_dir, then creates directories and the json for the metadata
@@ -1214,7 +1235,7 @@ class StationPa:
         _file_name: str = (
             file_name
             if file_name is not None
-            else f"{self._id}_{int(self._start_date)}"
+            else self.default_station_json_file_name()
         )
 
         # write the sensor objects, using the default values

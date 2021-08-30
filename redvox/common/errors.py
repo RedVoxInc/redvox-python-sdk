@@ -88,7 +88,7 @@ class RedVoxExceptions:
         return {
             "obj_class": self._obj_class,
             "num_errors": self._num_errors,
-            "errors": [e.__dict__ for e in self._errors]
+            "errors": [str(e) for e in self._errors]
         }
 
     @staticmethod
@@ -103,5 +103,5 @@ class RedVoxExceptions:
         else:
             result = RedVoxExceptions(errors_dict["obj_class"])
             for er in errors_dict["errors"]:
-                result.append(er.message)
+                result.append(er)
         return result

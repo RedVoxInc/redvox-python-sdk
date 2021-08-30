@@ -144,7 +144,8 @@ class DataWindowResult:
             "end_time": us_dt(self.end_time),
             "event_origin": self.event_origin.as_dict(),
             "event_radius": self.event_radius,
-            "datawindow_metadata": self.datawindow_metadata
+            "datawindow_metadata": self.datawindow_metadata,
+            "stations": [s.default_station_json_file_name() for s in self.stations]
         }
         return json.dumps(d)
 
@@ -238,8 +239,8 @@ class DataWindowConfigWpa:
                 "start_buffer_td": self.start_buffer_td.total_seconds(),
                 "end_buffer_td": self.end_buffer_td.total_seconds(),
                 "drop_time_s": self.drop_time_s,
-                "station_ids": list(self.station_ids),
-                "extensions": list(self.extensions),
+                "station_ids": list(self.station_ids) if self.station_ids else [],
+                "extensions": list(self.extensions) if self.extensions else [],
                 "api_versions": [a_v.value for a_v in self.api_versions],
                 "apply_correction": self.apply_correction,
                 "use_model_correction": self.use_model_correction,
@@ -290,19 +291,20 @@ class DataWindow:
                                     Default False
         :param debug: if True, outputs additional information during initialization. Default False
         """
-        self.errors = RedVoxExceptions("DataWindow")
+        self.input_directory: str = input_dir
         self.debug: bool = debug
+        self.errors = RedVoxExceptions("DataWindow")
         self._stations: List[StationPa] = []
+        self.save_station_files: bool = save_station_files
+        if self.save_station_files:
+            self.station_out_dir: str = station_out_dir
+            self._temp_dir = None
+        else:
+            self._temp_dir = tempfile.TemporaryDirectory()
+            self.station_out_dir = self._temp_dir.name
         if config:
             self.config = config
             self.sdk_version: str = redvox.VERSION
-            self.save_station_files: bool = save_station_files
-            if self.save_station_files:
-                self.station_out_dir: str = station_out_dir
-                self._temp_dir = None
-            else:
-                self._temp_dir = tempfile.TemporaryDirectory()
-                self.station_out_dir = self._temp_dir.name
             self.data_window_results = None
             if config.start_datetime and config.end_datetime and (config.end_datetime <= config.start_datetime):
                 self.errors.append("DataWindow will not work when end datetime is before or equal to start datetime.\n"
@@ -310,7 +312,7 @@ class DataWindow:
             else:
                 self.create_data_window()
         else:
-            self.input_directory: str = input_dir
+            self.config = None
         if debug:
             self.print_errors()
 
@@ -400,7 +402,7 @@ class DataWindow:
         """
         return DataWindowResult(event_name, files_dir, dtu.datetime_from_epoch_microseconds_utc(self.get_start_date()),
                                 dtu.datetime_from_epoch_microseconds_utc(self.get_end_date()),
-                                event_location, event_radius, self.as_dict(), self.stations)
+                                event_location, event_radius, self.as_dict(), self._stations)
 
     @staticmethod
     def deserialize(path: str) -> "DataWindow":
@@ -454,16 +456,19 @@ class DataWindow:
         # return dw_io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
 
     @staticmethod
-    def from_json_file(base_dir: str, file_name: str,
-                       dw_base_dir: Optional[str] = None,
-                       start_dt: Optional[dtu.datetime] = None,
-                       end_dt: Optional[dtu.datetime] = None,
-                       station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
+    def from_json_file(file_path: str,
+                       # base_dir: str, file_name: str,
+                       # dw_base_dir: Optional[str] = None,
+                       # start_dt: Optional[dtu.datetime] = None,
+                       # end_dt: Optional[dtu.datetime] = None,
+                       # station_ids: Optional[Iterable[str]] = None
+                       ) -> Optional["DataWindow"]:
         """
         Reads a JSON file and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
 
+        :param file_path: full path of file to load data from.
         :param base_dir: the base directory containing the json file
         :param file_name: the file name of the json file.  Do not include extensions
         :param dw_base_dir: optional directory containing the compressed data window file.
@@ -473,11 +478,14 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        if not dw_base_dir:
-            dw_base_dir = Path(base_dir).joinpath("dw")
-        file_name += ".json"
-        return DataWindow.from_json_dict(
-            dw_io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
+        with open(file_path, "r") as f_p:
+            json_data = json.loads(f_p.read())
+        return DataWindow.from_json_dict(json_data)
+        # if not dw_base_dir:
+        #     dw_base_dir = Path(base_dir).joinpath("dw")
+        # file_name += ".json"
+        # return DataWindow.from_json_dict(
+        #     dw_io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json(json_str: str, dw_base_dir: str,
@@ -496,12 +504,12 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        return DataWindow.from_json_dict(dw_io.json_to_data_window(json_str), dw_base_dir,
+        return DataWindow.from_json_dict(dw_io.json_to_data_window(json_str), # dw_base_dir,
                                          start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json_dict(json_dict: Dict,
-                       dw_base_dir: str,
+                       # dw_base_dir: str,
                        start_dt: Optional[dtu.datetime] = None,
                        end_dt: Optional[dtu.datetime] = None,
                        station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
@@ -517,8 +525,17 @@ class DataWindow:
         :param station_ids: optional station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        print(json_dict)
-        return DataWindow(".")
+        dct = json_dict["datawindow_metadata"]
+        dwin = DataWindow(dct["input_directory"])
+        dwin.config = dct["config"]
+        dwin.debug = dct["debug"]
+        dwin.errors = RedVoxExceptions.from_dict(dct["errors"])
+        dwin.sdk_version = dct["sdk_version"]
+        dwin.station_out_dir = dct["station_out_dir"]
+        dwin.save_station_files = dct["save_station_files"]
+        for st in json_dict["stations"]:
+            dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["files_dir"], st, f"{st}.json")))
+        return dwin
         # if start_dt and json_dict["start_datetime"] >= dtu.datetime_to_epoch_microseconds_utc(start_dt):
         #     return None
         # if end_dt and json_dict["end_datetime"] < dtu.datetime_to_epoch_microseconds_utc(end_dt):
@@ -544,6 +561,19 @@ class DataWindow:
         """
         return np.max([s.last_data_timestamp for s in self._stations])
 
+    def stations(self) -> List[StationPa]:
+        """
+        :return: list of stations in the data window
+        """
+        return self._stations
+
+    def add_station(self, station: StationPa):
+        """
+        add a station to the data window
+        :param station: Station to add
+        """
+        self._stations.append(station)
+
     def get_station(self, station_id: str, station_uuid: Optional[str] = None,
                     start_timestamp: Optional[float] = None) -> Optional[List[StationPa]]:
         """
@@ -555,7 +585,7 @@ class DataWindow:
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
         :return: A list of valid stations or None if the station cannot be found
         """
-        result = [s for s in self.stations if s.get_key().check_key(station_id, station_uuid, start_timestamp)]
+        result = [s for s in self._stations if s.get_key().check_key(station_id, station_uuid, start_timestamp)]
         if len(result) > 0:
             return result
         if self.debug:
@@ -566,7 +596,7 @@ class DataWindow:
     def _add_sensor_to_window(self, station: StationPa):
         self.errors.extend_error(station.errors)
         # set the window start and end if they were specified, otherwise use the bounds of the data
-        self.create_window_in_sensors(station, self.start_datetime, self.end_datetime)
+        self.create_window_in_sensors(station, self.config.start_datetime, self.config.end_datetime)
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         """
@@ -578,43 +608,47 @@ class DataWindow:
         _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
         r_f = io.ReadFilter()
-        if self.start_datetime:
-            r_f.with_start_dt(self.start_datetime)
-        if self.end_datetime:
-            r_f.with_end_dt(self.end_datetime)
-        if self.station_ids:
-            r_f.with_station_ids(self.station_ids)
-        if self.extensions:
-            r_f.with_extensions(self.extensions)
+        if self.config.start_datetime:
+            r_f.with_start_dt(self.config.start_datetime)
+        if self.config.end_datetime:
+            r_f.with_end_dt(self.config.end_datetime)
+        if self.config.station_ids:
+            r_f.with_station_ids(self.config.station_ids)
+        if self.config.extensions:
+            r_f.with_extensions(self.config.extensions)
         else:
-            self.extensions = r_f.extensions
-        if self.api_versions:
-            r_f.with_api_versions(self.api_versions)
+            self.config.extensions = r_f.extensions
+        if self.config.api_versions:
+            r_f.with_api_versions(self.config.api_versions)
         else:
-            self.api_versions = r_f.api_versions
-        r_f.with_start_dt_buf(self.start_buffer_td)
-        r_f.with_end_dt_buf(self.end_buffer_td)
+            self.config.api_versions = r_f.api_versions
+        r_f.with_start_dt_buf(self.config.start_buffer_td)
+        r_f.with_end_dt_buf(self.config.end_buffer_td)
 
         # get the data to convert into a window
-        a_r = ApiReader(self.input_directory, self.structured_layout, r_f, pool=_pool)
+        a_r = ApiReader(self.input_directory, self.config.structured_layout, r_f, pool=_pool)
 
         self.errors.extend_error(a_r.errors)
 
-        if not self.station_ids:
+        if not self.config.station_ids:
             self.station_ids = a_r.index_summary.station_ids()
+        else:
+            self.station_ids = self.config.station_ids
         # Parallel update
         # Apply timing correction in parallel by station
 
-        if self.apply_correction:
+        if self.config.apply_correction:
             for st in maybe_parallel_map(_pool, StationPa.update_timestamps,
-                                         iter(a_r.get_stations_wpa_fs(use_model_correction=self.use_model_correction,
+                                         iter(a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
+                                             use_model_correction=self.config.use_model_correction,
                                                                       base_dir=self.station_out_dir,
                                                                       save_files=self.save_station_files)),
                                          chunk_size=1):
                 self._add_sensor_to_window(st)
         else:
             [self._add_sensor_to_window(s) for s in
-             a_r.get_stations_wpa_fs(use_model_correction=self.use_model_correction,
+             a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
+                                     use_model_correction=self.config.use_model_correction,
                                      base_dir=self.station_out_dir,
                                      save_files=self.save_station_files)]
 
@@ -623,13 +657,13 @@ class DataWindow:
         self._check_valid_ids()
 
         # update remaining data window values if they're still default
-        if not self.start_datetime and len(self.stations) > 0:
-            self.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.min([t.first_data_timestamp for t in self.stations]))
+        if not self.config.start_datetime and len(self._stations) > 0:
+            self.config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
+                np.min([t.first_data_timestamp for t in self._stations]))
         # end_datetime is non-inclusive, so it must be greater than our latest timestamp
-        if not self.end_datetime and len(self.stations) > 0:
-            self.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.max([t.last_data_timestamp for t in self.stations]) + 1)
+        if not self.config.end_datetime and len(self._stations) > 0:
+            self.config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
+                np.max([t.last_data_timestamp for t in self._stations]) + 1)
 
         # if self.save_station_files:
         #     self.data_window_results = DataWindowResult(self.event_name, self.station_out_dir, self.start_datetime,
@@ -644,11 +678,11 @@ class DataWindow:
         removes any station and station id without audio data from the data window
         """
         remove = []
-        for s in self.stations:
+        for s in self._stations:
             if not s.has_audio_sensor():
                 remove.append(s.id)
         if len(remove) > 0:
-            self.stations = [s for s in self.stations if s.id not in remove]
+            self._stations = [s for s in self._stations if s.id not in remove]
             self.station_ids = [s for s in self.station_ids if s not in remove]
 
     def _check_valid_ids(self):
@@ -657,7 +691,7 @@ class DataWindow:
         and creates an error message for each id requested but has no data
         if there are no stations, creates a single error message declaring no data found
         """
-        if len(self.stations) < 1:
+        if len(self._stations) < 1:
             if len(self.station_ids) > 1:
                 add_ids = f"for all stations {self.station_ids} "
             else:
@@ -666,7 +700,7 @@ class DataWindow:
                                f"\nPlease adjust parameters of DataWindow")
         elif len(self.station_ids) > 1:
             for ids in self.station_ids:
-                if ids not in [i.get_id() for i in self.stations] and self.debug:
+                if ids not in [i.get_id() for i in self._stations] and self.debug:
                     self.errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )
@@ -703,7 +737,7 @@ class DataWindow:
         station.packet_metadata = [meta for meta in station.packet_metadata
                                    if meta.packet_start_mach_timestamp < station.last_data_timestamp and
                                    meta.packet_end_mach_timestamp >= station.first_data_timestamp]
-        self.stations.append(station)
+        self._stations.append(station)
 
     def process_sensor(self, sensor: SensorDataPa, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
@@ -750,7 +784,7 @@ class DataWindow:
                 elif last_before_start is not None and first_after_end is not None:
                     sensor.write_pyarrow_table(
                         sensor.interpolate(start_date_timestamp, last_before_start, 1,
-                                           self.copy_edge_points == gpu.DataPointCreationMode.COPY))
+                                           self.config.copy_edge_points == gpu.DataPointCreationMode.COPY))
                 else:
                     self.errors.append(
                         f"Data window for {station_id} {sensor.type.name} "
@@ -762,7 +796,7 @@ class DataWindow:
                 if sensor.type in [SensorType.LOCATION, SensorType.AUDIO]:
                     new_point_mode = gpu.DataPointCreationMode["NAN"]
                 else:
-                    new_point_mode = self.copy_edge_points
+                    new_point_mode = self.config.copy_edge_points
                 # add in the data points at the edges of the window if there are defined start and/or end times
                 if not is_audio:
                     end_sample_interval = end_date_timestamp - sensor.last_data_timestamp()
@@ -772,14 +806,14 @@ class DataWindow:
                 else:
                     end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s)
                     start_sample_interval = -end_sample_interval
-                    if self.end_datetime:
-                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.end_datetime)
+                    if self.config.end_datetime:
+                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.config.end_datetime)
                                                   - sensor.last_data_timestamp()) / end_sample_interval)
                     else:
                         end_samples_to_add = 0
-                    if self.start_datetime:
+                    if self.config.start_datetime:
                         start_samples_to_add = int((sensor.first_data_timestamp() -
-                                                    dtu.datetime_to_epoch_microseconds_utc(self.start_datetime))
+                                                    dtu.datetime_to_epoch_microseconds_utc(self.config.start_datetime))
                                                    / end_sample_interval)
                     else:
                         start_samples_to_add = 0

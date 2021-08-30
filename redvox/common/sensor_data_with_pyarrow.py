@@ -213,12 +213,8 @@ class SensorDataPa:
             self.gaps = gaps
         else:
             self.gaps = []
-        if self._save_data or arrow_dir:
-            self._arrow_dir: str = arrow_dir
-            self._temp_dir = None
-        else:
-            self._temp_dir = tempfile.TemporaryDirectory()
-            self._arrow_dir = self._temp_dir.name
+        self._temp_dir = tempfile.TemporaryDirectory()
+        self._arrow_dir: str = arrow_dir if self._save_data or arrow_dir else self._temp_dir.name
         if sensor_data:
             if "timestamps" not in sensor_data.schema.names:
                 self.errors.append('must have a column titled "timestamps"')
@@ -233,8 +229,7 @@ class SensorDataPa:
                         self.write_pyarrow_table(sensor_data)
 
     def __del__(self):
-        if self._temp_dir:
-            self._temp_dir.cleanup()
+        self._temp_dir.cleanup()
 
     @staticmethod
     def from_dir(
@@ -317,6 +312,13 @@ class SensorDataPa:
         return SensorDataPa(sensor_name, pa.Table.from_pydict(sensor_data), sensor_type, sample_rate_hz,
                             sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
                             calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)
+
+    def set_arrow_dir(self, new_dir: str):
+        """
+        set the pyarrow directory
+        :param new_dir: the directory to change to
+        """
+        self._arrow_dir = new_dir
 
     def pyarrow_ds(self) -> ds.Dataset:
         """
@@ -652,7 +654,7 @@ class SensorDataPa:
         with open(file_path, "r") as f_p:
             json_data = json.loads(f_p.read())
         if "name" in json_data.keys():
-            result = SensorDataPa.from_dir(json_data["name"], json_data["parquet_dir"], SensorType.json_data["type"],
+            result = SensorDataPa.from_dir(json_data["name"], json_data["parquet_dir"], SensorType[json_data["type"]],
                                            json_data["sample_rate_hz"], json_data["sample_interval_s"],
                                            json_data["sample_interval_std_s"], json_data["is_sample_rate_fixed"],
                                            json_data["timestamps_altered"], False, json_data["use_offset_model"])

@@ -242,7 +242,7 @@ class StationMetadata:
         result.sub_api = md_dict["sub_api"]
         result.make = md_dict["make"]
         result.model = md_dict["model"]
-        result.os = OsType.md_dict["os"]
+        result.os = OsType[md_dict["os"]]
         result.os_version = md_dict["os_version"]
         result.app_version = md_dict["app_version"]
         result.is_private = md_dict["is_private"]
@@ -327,12 +327,21 @@ class StationMetadataWrapped:
 class StationPacketMetadata:
     """
     A container for all the packet metadata that isn't consistent across all packets
+
     Properties:
         packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+
         packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+
         packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+
         packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+
+        server_packet_received_timestamp: float, timestamp from server when packet was received in
+        microseconds since epoch UTC
+
         timing_info_score: float, quality of timing information
+
         other_metadata: dict, str: str of other metadata from the packet
     """
 
@@ -356,12 +365,14 @@ class StationPacketMetadata:
             self.packet_end_os_timestamp = (
                 packet.timing_information.packet_end_os_timestamp
             )
+            self.server_packet_receive_timestamp = packet.timing_information.server_acquisition_arrival_timestamp
             self.timing_info_score = packet.timing_information.score
         else:
             self.packet_start_mach_timestamp = np.nan
             self.packet_end_mach_timestamp = np.nan
             self.packet_start_os_timestamp = np.nan
             self.packet_end_os_timestamp = np.nan
+            self.server_packet_receive_timestamp = np.nan
             self.timing_info_score = np.nan
 
     def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
@@ -389,6 +400,7 @@ class StationPacketMetadata:
         result.packet_end_mach_timestamp = pmd_dict["packet_end_mach_timestamp"]
         result.packet_start_os_timestamp = pmd_dict["packet_start_os_timestamp"]
         result.packet_end_os_timestamp = pmd_dict["packet_end_os_timestamp"]
+        result.server_packet_receive_timestamp = pmd_dict["server_packet_receive_timestamp"]
         result.timing_info_score = pmd_dict["timing_info_score"]
         return result
 

@@ -30,67 +30,80 @@ from redvox.common import (
 )
 
 
-class TimeSyncData:
+class TimeSyncArrow:
     """
     Stores latencies, offsets, and other timesync related information about a single station
     ALL timestamps in microseconds unless otherwise stated
+    Timestamps are never updated from the raw values provided from the data
     properties:
-        station_id: str, id of station, default empty string
-        station_start_timestamp: float, timestamp of when the station was started, default np.nan
-        sample_rate_hz: float, sample rate of audio sensor in Hz, default np.nan
-        packet_start_timestamp: float, timestamp of when data started recording, default np.nan
-        packet_end_timestamp: float, timestamp of when data stopped recording, default np.nan
-        packet_duration: float, length of packet in microseconds, default 0.0
-        server_acquisition_timestamp: float, timestamp of when packet arrived at server, default np.nan
-        time_sync_exchanges_list: list of lists, timestamps that form the time synch exchanges, default empty list
-        latencies: np.ndarray, calculated latencies of the exchanges, default empty np.ndarray
-        best_exchange_latency_index: int, index in latencies/sync exchanges array that contains the best latency,
-                                        default np.nan
+        time_sync_exchanges_list: list of lists, timestamps that form the time sync exchanges, default empty list
+
+        latencies: np.ndarray, calculated latencies of the exchanges.  Must be two equal length arrays,
+        default empty np.ndarray
+
         best_latency: float, best latency of the data, default np.nan
+
         mean_latency: float, mean latency, default np.nan
+
         latency_std: float, standard deviation of latencies, default np.nan
-        offsets: np.ndarray, calculated offsets of the exchanges, default np.ndarray
-        best_offset: float, best offset of the data, default np.nan
+
+        offsets: np.ndarray, calculated offsets of the exchanges.  Must be two equal length arrays,
+        default empty np.ndarray
+
+        best_offset: float, best offset of the data, default 0.0
+
         mean_offset: float, mean offset, default np.nan
+
         offset_std: float, standard deviation of offsets, default np.nan
-        best_msg_timestamp_index: int = np.nan, 1 or 3, indicates which tri-message latency array has the best latency
-        acquire_travel_time: float, calculated time it took packet to reach server, default np.nan
+
+        best_exchange_latency_index: int, index in latencies/sync exchanges array that contains the best latency,
+        default np.nan
+
+        best_msg_timestamp_index: int, indicates which latency array has the best latency.
+        Must be 1 or 3, other values are invalid.  Default 0
     """
 
     def __init__(
             self,
-            station_id: str = "",
-            sample_rate_hz: float = np.nan,
-            num_audio_samples: int = np.nan,
-            station_start_timestamp: float = np.nan,
-            server_acquisition_timestamp: float = np.nan,
-            packet_start_timestamp: float = np.nan,
-            packet_end_timestamp: float = np.nan,
             time_sync_exchanges_list: Optional[List[float]] = None,
+            latencies: Optional[np.ndarray] = None,
             best_latency: float = np.nan,
+            mean_latency: float = np.nan,
+            latency_std: float = np.nan,
+            offsets: Optional[np.ndarray] = None,
             best_offset: float = 0.0,
+            mean_offset: float = np.nan,
+            offset_std: float = np.nan,
+            best_latency_index: Optional[int] = None,
+            best_array_index: int = 0
     ):
         """
         Initialize properties
-        :param station_id: id of station, default empty string
-        :param sample_rate_hz: sample rate in hz of the station's audio channel, default np.nan
-        :param num_audio_samples: number of audio samples in the data, default np.nan
-        :param station_start_timestamp: timestamp of when the station started recording, default np.nan
-        :param server_acquisition_timestamp: timestamp of when the data was received at the acquisition server,
-                                                default np.nan
-        :param packet_start_timestamp: timestamp of the start of the data packet, default np.nan
-        :param packet_end_timestamp: timestamp of the end of the data packet, default np.nan
-        :param time_sync_exchanges_list: the timesync exchanges of the packet as a flat list, default None
-        :param best_latency: the best latency of the packet, default np.nan
+
+        :param time_sync_exchanges_list: optional timesync exchanges of the packet as a flat list, default None
+        :param latencies: optional arrays of latencies from exchanges; must be two equal length arrays, default None
+        :param best_latency: the best latency of set, default np.nan
+        :param mean_latency: the mean of all latencies, default np.nan
+        :param latency_std: the standard deviation of all latencies, default np.nan
+        :param offsets: optional arrays of offsets from exchanges; must be two equal length arrays, default None
         :param best_offset: the best offset of the packet, default 0.0
+        :param mean_offset: the mean of all offsets, default np.nan
+        :param offset_std: the standard deviation of all offsets, default np.nan
+        :param best_latency_index: optional index of best latency in latencies array, default None
+        :param best_array_index: index of best latency array; must be either 1 (first array) or 3 (second array),
+                                    any other value is invalid, default 0
         """
-        self.station_id = station_id
-        self.sample_rate_hz = sample_rate_hz
-        self.num_audio_samples = num_audio_samples
-        self.station_start_timestamp = station_start_timestamp
-        self.server_acquisition_timestamp = server_acquisition_timestamp
-        self.packet_start_timestamp = packet_start_timestamp
-        self.packet_end_timestamp = packet_end_timestamp
+        self.latencies: np.ndarray = latencies
+        self.best_latency: float = best_latency
+        self.mean_latency: float = mean_latency
+        self.latency_std: float = latency_std
+        self.offsets: np.ndarray = offsets
+        self.best_offset: float = best_offset
+        self.mean_offset: float = mean_offset
+        self.offset_std: float = offset_std
+        self.best_latency_index: int = best_latency_index
+        self.best_msg_array_index: int = best_array_index
+
         if time_sync_exchanges_list is None or len(time_sync_exchanges_list) < 1:
             self.time_sync_exchanges_list = [[], [], [], [], [], []]
         else:
@@ -98,30 +111,12 @@ class TimeSyncData:
                 time_sync_exchanges_list[i: i + 6]
                 for i in range(0, len(time_sync_exchanges_list), 6)
             ])
-        self.best_latency = best_latency
-        self.best_offset = best_offset
-
-        self._compute_tri_message_stats()
-        # set the packet duration
-        self.packet_duration = self.packet_end_timestamp - self.packet_start_timestamp
-        # calculate travel time between corrected end of packet timestamp and server timestamp
-        self.acquire_travel_time = self.server_acquisition_timestamp - (
-                self.packet_end_timestamp + self.best_offset
-        )
+        self._stats_from_exchanges()
 
     def as_dict(self):
         return {
-            "station_id": self.station_id,
-            "station_start_date": self.station_start_timestamp,
-            "audio_nominal_sample_rate_hz": self.sample_rate_hz,
-            "num_samples": self.num_audio_samples,
-            "packet_start_timestamp": self.packet_start_timestamp,
-            "packet_end_timestamp": self.packet_end_timestamp,
-            "packet_duration": self.packet_duration,
-            "server_acquisition": self.server_acquisition_timestamp,
-            "acquire_travel_time": self.acquire_travel_time,
-            "best_exchange_latency_index": self.best_exchange_latency_index,
-            "best_msg_timestamp_index": self.best_msg_timestamp_index,
+            "best_latency_index": self.best_latency_index,
+            "best_msg_array_index": self.best_msg_array_index,
             "best_latency": self.best_latency,
             "mean_latency": self.mean_latency,
             "latency_std": self.latency_std,
@@ -134,34 +129,42 @@ class TimeSyncData:
         return json.dumps(self.as_dict())
 
     @staticmethod
-    def from_dict(ts_dict: dict, tse_data: List) -> "TimeSyncData":
-        return TimeSyncData(ts_dict["station_id"], ts_dict["sample_rate_hz"], ts_dict["num_samples"],
-                            ts_dict["station_start_date"], ts_dict["server_acquisition"],
-                            ts_dict["packet_start_timestamp"], ts_dict["packet_end_timestamp"],
-                            tse_data, ts_dict["best_latency"], ts_dict["best_offset"])
+    def from_dict(ts_dict: dict, tse_data: List) -> "TimeSyncArrow":
+        return TimeSyncArrow(tse_data, ts_dict["best_latency"], ts_dict["best_offset"])
 
     def data_as_pyarrow(self) -> pa.Table:
         return pa.Table.from_pydict({
-            "latencies1": self.latencies[0],
-            "latencies3": self.latencies[1],
-            "offsets1": self.offsets[0],
-            "offsets3": self.offsets[1],
             "a1": self.time_sync_exchanges_list[0],
             "a2": self.time_sync_exchanges_list[1],
             "a3": self.time_sync_exchanges_list[2],
             "b1": self.time_sync_exchanges_list[3],
             "b2": self.time_sync_exchanges_list[4],
-            "b3": self.time_sync_exchanges_list[5]
+            "b3": self.time_sync_exchanges_list[5],
+            "latencies1": self.latencies[0],
+            "latencies3": self.latencies[1],
+            "offsets1": self.offsets[0],
+            "offsets3": self.offsets[1]
         })
 
-    def _compute_tri_message_stats(self):
+    def _stats_from_exchanges(self):
         """
         Compute the tri-message stats from the data
         """
-        if self.num_tri_messages() > 0:
+        if self.num_tri_messages() < 1:
+            self.latencies = np.array(([], []))
+            self.offsets = np.array(([], []))
+            self.best_latency = np.nan
+            self.mean_latency = np.nan
+            self.latency_std = np.nan
+            self.best_offset = 0
+            self.mean_offset = np.nan
+            self.offset_std = np.nan
+            self.best_latency_index = -1
+            self.best_msg_array_index = 0
+        elif self.latencies is None:
             # compute tri message data from time sync exchanges
             tse = tms.TriMessageStats(
-                self.station_id,
+                "",
                 np.array(self.time_sync_exchanges_list[0]),
                 np.array(self.time_sync_exchanges_list[1]),
                 np.array(self.time_sync_exchanges_list[2]),
@@ -169,15 +172,20 @@ class TimeSyncData:
                 np.array(self.time_sync_exchanges_list[4]),
                 np.array(self.time_sync_exchanges_list[5]),
             )
-            # Compute the statistics for latency and offset
-            self.mean_latency = np.mean([*tse.latency1, *tse.latency3])
-            self.latency_std = np.std([*tse.latency1, *tse.latency3])
-            self.mean_offset = np.mean([*tse.offset1, *tse.offset3])
-            self.offset_std = np.std([*tse.offset1, *tse.offset3])
             self.latencies = np.array((tse.latency1, tse.latency3))
-            self.offsets = np.array((tse.offset1, tse.offset3))
-            self.best_exchange_latency_index = tse.best_latency_index
-            self.best_msg_timestamp_index = tse.best_latency_array_index
+            if self.offsets is None:
+                self.offsets = np.array((tse.offset1, tse.offset3))
+            # Compute the statistics for latency and offset
+            if np.isnan(self.mean_latency):
+                self.mean_latency = np.mean([*self.latencies[0], *self.latencies[1]])
+            if np.isnan(self.latency_std):
+                self.latency_std = np.std([*self.latencies[0], *self.latencies[1]])
+            if np.isnan(self.mean_offset):
+                self.mean_offset = np.mean([*self.offsets[0], *self.offsets[1]])
+            if np.isnan(self.offset_std):
+                self.offset_std = np.std([*self.offsets[0], *self.offsets[1]])
+            self.best_latency_index = tse.best_latency_index
+            self.best_msg_array_index = tse.best_latency_array_index
             # if best_latency is np.nan, set to best computed latency
             if np.isnan(self.best_latency):
                 self.best_latency = tse.best_latency
@@ -185,117 +193,23 @@ class TimeSyncData:
             # if best_offset is still default value, use the best computed offset
             elif self.best_offset == 0:
                 self.best_offset = tse.best_offset
-        else:
-            # If here, there are no exchanges to read.  write default or empty values to the correct properties
-            self.latencies = np.array(([], []))
-            self.offsets = np.array(([], []))
-            self.best_exchange_latency_index = np.nan
-            self.best_latency = np.nan
-            self.mean_latency = np.nan
-            self.latency_std = np.nan
-            self.best_offset = 0
-            self.mean_offset = 0
-            self.offset_std = 0
-            self.best_msg_timestamp_index = np.nan
 
     def num_tri_messages(self) -> int:
         """
-        return the number of tri-message exchanges
-
         :return: number of tri-message exchanges
         """
         return np.size(self.time_sync_exchanges_list)
-
-    def update_timestamps(self, om: Optional[OffsetModel]):
-        """
-        update timestamps by adding microseconds based on the OffsetModel.
-        if model not supplied, uses the best offset.
-        uses negative values to go backwards in time
-
-        :param om: OffsetModel to calculate offsets, default None
-        """
-        if not om:
-            delta = self.best_offset
-            self.station_start_timestamp += delta
-            self.packet_start_timestamp += delta
-            self.packet_end_timestamp += delta
-        else:
-            self.station_start_timestamp = om.update_time(self.station_start_timestamp)
-            self.packet_start_timestamp = om.update_time(self.packet_start_timestamp)
-            self.packet_end_timestamp = om.update_time(self.packet_end_timestamp)
 
     def get_best_latency_timestamp(self) -> float:
         """
         :return: timestamp of best latency, or start of the packet if no best latency.
         """
-        if self.best_msg_timestamp_index == 1:
-            return self.time_sync_exchanges_list[3][self.best_exchange_latency_index]
-        elif self.best_msg_timestamp_index == 3:
-            return self.time_sync_exchanges_list[5][self.best_exchange_latency_index]
+        if self.best_msg_array_index == 1:
+            return self.time_sync_exchanges_list[3][self.best_latency_index]
+        elif self.best_msg_array_index == 3:
+            return self.time_sync_exchanges_list[5][self.best_latency_index]
         else:
-            return self.packet_start_timestamp
-
-
-def time_sync_data_from_raw_packet(packet: Union[RedvoxPacketM, RedvoxPacket]) -> TimeSyncData:
-    """
-    :param packet: data packet to get time sync data from
-    :return: TimeSyncData object from data packet
-    """
-    tsd: TimeSyncData
-    if isinstance(packet, RedvoxPacketM):
-        exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
-                                        packet.timing_information.synch_exchanges,
-                                        [])
-        tsd = TimeSyncData(
-            packet.station_information.id,
-            packet.sensors.audio.sample_rate,
-            len(packet.sensors.audio.samples.values),
-            packet.timing_information.app_start_mach_timestamp,
-            packet.timing_information.server_acquisition_arrival_timestamp,
-            packet.timing_information.packet_start_mach_timestamp,
-            packet.timing_information.packet_end_mach_timestamp,
-            exchanges,
-            packet.timing_information.best_latency,
-            packet.timing_information.best_offset
-        )
-    else:
-        mtz: float = np.nan
-        best_latency: float = np.nan
-        best_offset: float = np.nan
-
-        for i, v in enumerate(packet.metadata):
-            plus_1: int = i + 1
-            try:
-                if v == "machTimeZero" and plus_1 < len(packet.metadata):
-                    mtz = float(packet.metadata[plus_1])
-                if v == "bestLatency" and plus_1 < len(packet.metadata):
-                    best_latency = float(packet.metadata[plus_1])
-                if v == "bestOffset" and plus_1 < len(packet.metadata):
-                    best_offset = float(packet.metadata[plus_1])
-            except (KeyError, ValueError):
-                continue
-
-        # Get synch exchanges
-        exchanges: Optional[np.ndarray] = None
-        ch: api900_pb2.UnevenlySampledChannel
-        for ch in packet.unevenly_sampled_channels:
-            if api900_pb2.TIME_SYNCHRONIZATION in ch.channel_types:
-                exchanges = util_900.extract_payload(ch)
-
-        tsd = TimeSyncData(
-            packet.redvox_id,
-            packet.evenly_sampled_channels[0].sample_rate_hz,
-            util_900.payload_len(packet.evenly_sampled_channels[0]),
-            mtz,
-            packet.evenly_sampled_channels[0].first_sample_timestamp_epoch_microseconds_utc,
-            packet.server_timestamp_epoch_microseconds_utc,
-            packet.app_file_start_timestamp_machine,
-            list(exchanges),
-            best_latency,
-            best_offset,
-        )
-
-    return tsd
+            return np.nan
 
 
 class TimeSyncAnalysis:
@@ -317,7 +231,7 @@ class TimeSyncAnalysis:
             station_id: str = "",
             audio_sample_rate_hz: float = np.nan,
             station_start_timestamp: float = np.nan,
-            time_sync_data: Optional[List[TimeSyncData]] = None,
+            time_sync_data: Optional[List[TimeSyncArrow]] = None,
     ):
         """
         Initialize the object
@@ -335,7 +249,7 @@ class TimeSyncAnalysis:
         self.offset_stats = sh.StatsContainer("offset")
         self.errors = RedVoxExceptions("TimeSyncAnalysis")
         if time_sync_data:
-            self.timesync_data: List[TimeSyncData] = time_sync_data
+            self.timesync_data: List[TimeSyncArrow] = time_sync_data
             self.evaluate_and_validate_data()
         else:
             self.timesync_data = []
@@ -367,7 +281,7 @@ class TimeSyncAnalysis:
                 TimeSyncAnalysis(ts_analysis["station_id"],
                                  ts_analysis["audio_nominal_sample_rate_hz"],
                                  ts_analysis["station_start_date"],
-                [TimeSyncData.from_dict(a, pq.read_table(os.path.join(tsd_base_dir,
+                [TimeSyncArrow.from_dict(a, pq.read_table(os.path.join(tsd_base_dir,
                 f"timesync_data_{a['packet_start_timestamp']}.parquet")).to_pandas().to) for a in ts_analysis["time_sync_data"]])
             timesync_analysis.errors = RedVoxExceptions.from_dict(ts_analysis["errors"])
 
@@ -422,29 +336,29 @@ class TimeSyncAnalysis:
         :param packets: list of WrappedRedvoxPacketM to convert
         :return: modified version of self
         """
-        self.timesync_data = [TimeSyncData(self.station_id,
-                                           self.sample_rate_hz,
-                                           packet.get_sensors().get_audio().get_num_samples(),
-                                           self.station_start_timestamp,
-                                           packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
-                                           packet.get_timing_information().get_packet_start_mach_timestamp(),
-                                           packet.get_timing_information().get_packet_end_mach_timestamp(),
-                                           packet.get_timing_information().get_synch_exchange_array(),
-                                           packet.get_timing_information().get_best_latency(),
-                                           packet.get_timing_information().get_best_offset(),
-                                           )
+        self.timesync_data = [TimeSyncArrow(self.station_id,
+                                            self.sample_rate_hz,
+                                            packet.get_sensors().get_audio().get_num_samples(),
+                                            self.station_start_timestamp,
+                                            packet.get_timing_information().get_server_acquisition_arrival_timestamp(),
+                                            packet.get_timing_information().get_packet_start_mach_timestamp(),
+                                            packet.get_timing_information().get_packet_end_mach_timestamp(),
+                                            packet.get_timing_information().get_synch_exchange_array(),
+                                            packet.get_timing_information().get_best_latency(),
+                                            packet.get_timing_information().get_best_offset(),
+                                            )
                               if isinstance(packet, WrappedRedvoxPacketM) else
-                              TimeSyncData(self.station_id,
-                                           self.sample_rate_hz,
-                                           packet.microphone_sensor().payload_values().size,
-                                           self.station_start_timestamp,
-                                           packet.server_timestamp_epoch_microseconds_utc(),
-                                           packet.start_timestamp_us_utc(),
-                                           packet.end_timestamp_us_utc(),
-                                           list(packet.time_synchronization_sensor().payload_values()),
-                                           packet.best_latency(),
-                                           packet.best_offset(),
-                                           )
+                              TimeSyncArrow(self.station_id,
+                                            self.sample_rate_hz,
+                                            packet.microphone_sensor().payload_values().size,
+                                            self.station_start_timestamp,
+                                            packet.server_timestamp_epoch_microseconds_utc(),
+                                            packet.start_timestamp_us_utc(),
+                                            packet.end_timestamp_us_utc(),
+                                            list(packet.time_synchronization_sensor().payload_values()),
+                                            packet.best_latency(),
+                                            packet.best_offset(),
+                                            )
                               for packet in packets]
         if len(self.timesync_data) > 0:
             self.evaluate_and_validate_data()
@@ -457,16 +371,16 @@ class TimeSyncAnalysis:
         :param packets: list of WrappedRedvoxPacketM to convert
         :return: modified version of self
         """
-        timesync_data: List[TimeSyncData] = []
+        timesync_data: List[TimeSyncArrow] = []
 
         packet: Union[RedvoxPacketM, RedvoxPacket]
         for packet in packets:
-            tsd: TimeSyncData
+            tsd: TimeSyncArrow
             if isinstance(packet, RedvoxPacketM):
                 exchanges: List[float] = reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
                                                 packet.timing_information.synch_exchanges,
                                                 [])
-                tsd = TimeSyncData(
+                tsd = TimeSyncArrow(
                     packet.station_information.id,
                     packet.sensors.audio.sample_rate,
                     len(packet.sensors.audio.samples.values),
@@ -502,7 +416,7 @@ class TimeSyncAnalysis:
                     if api900_pb2.TIME_SYNCHRONIZATION in ch.channel_types:
                         exchanges = util_900.extract_payload(ch)
 
-                tsd = TimeSyncData(
+                tsd = TimeSyncArrow(
                     packet.redvox_id,
                     packet.evenly_sampled_channels[0].sample_rate_hz,
                     util_900.payload_len(packet.evenly_sampled_channels[0]),
@@ -524,7 +438,7 @@ class TimeSyncAnalysis:
 
         return self
 
-    def add_timesync_data(self, timesync_data: TimeSyncData):
+    def add_timesync_data(self, timesync_data: TimeSyncArrow):
         """
         adds a TimeSyncData object to the analysis
 
@@ -597,7 +511,7 @@ class TimeSyncAnalysis:
         """
         if np.isnan(self.best_latency_index):
             return np.nan
-        return self.timesync_data[self.best_latency_index].best_exchange_latency_index
+        return self.timesync_data[self.best_latency_index].best_latency_index
 
     def get_best_start_time(self) -> float:
         """
@@ -829,7 +743,7 @@ def update_evenly_sampled_time_array(
     return update_time_array_from_analysis(ts_analysis, timesec_rev)
 
 
-def update_time_array(ts_data: TimeSyncData, time_array_s: np.array) -> np.ndarray:
+def update_time_array(ts_data: TimeSyncArrow, time_array_s: np.array) -> np.ndarray:
     """
     Correct timestamps in time_array using information from TimeSyncData
 

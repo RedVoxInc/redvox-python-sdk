@@ -321,27 +321,30 @@ class ApiReader:
             return None
         return result
 
-    def _stations_wpa_by_index_fs(self, findex: io.Index, use_model_correction: bool = True,
+    def _stations_wpa_by_index_fs(self, findex: io.Index, correct_timestamps: bool = False,
+                                  use_model_correction: bool = True,
                                   base_dir: str = "", save_files: bool = False) -> StationPa:
         """
         :param findex: index with files to build a station with
+        :param correct_timestamps: if True, correct timestamps as soon as they're available.  Default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
         :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
         :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
         :return: Station built from files in findex, without building the data from parquet
         """
-        stpa = StationPa.create_from_packets(self.read_files_in_index(findex),
+        stpa = StationPa.create_from_packets(self.read_files_in_index(findex), correct_timestamps,
                                              use_model_correction, base_dir, save_files)
         return stpa
 
-    def download_process(self, input_queue: Queue, result_queue: Queue,
+    def download_process(self, input_queue: Queue, result_queue: Queue, correct_timestamps: bool = False,
                          use_model_correction: bool = True, base_dir: str = "", save_files: bool = False
                          ) -> None:
         """
         A function that runs in a separate process for creating stations.
         :param input_queue: A shared queue containing the list of items to be downloaded.
         :param result_queue: A queue used to send results from the process to the caller.
+        :param correct_timestamps: if True, correct timestamps as soon as they're available.  Default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
         :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
@@ -352,7 +355,7 @@ class ApiReader:
             while True:
                 files_index = input_queue.get_nowait()
                 try:
-                    st = StationPa.create_from_packets(self.read_files_in_index(files_index),
+                    st = StationPa.create_from_packets(self.read_files_in_index(files_index), correct_timestamps,
                                                        use_model_correction, base_dir, save_files)
                     result_queue.put(st, True, None)
                 except FileExistsError:
@@ -362,11 +365,12 @@ class ApiReader:
         except queue.Empty:
             return
 
-    def download_files(self, num_processes: int = cpu_count(), use_model_correction: bool = True,
-                       base_dir: str = "", save_files: bool = False):
+    def download_files(self, num_processes: int = cpu_count(), correct_timestamps: bool = False,
+                       use_model_correction: bool = True, base_dir: str = "", save_files: bool = False):
         """
         Create stations in parallel.
         :param num_processes: Number of processes to create for downloading data.
+        :param correct_timestamps: if True, correct timestamps as soon as possible, default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
         :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
@@ -384,7 +388,7 @@ class ApiReader:
         # Create the process pool
         for _ in range(num_processes):
             process: Process = Process(
-                target=self.download_process, args=(station_queue, result_queue,
+                target=self.download_process, args=(station_queue, result_queue, correct_timestamps,
                                                     use_model_correction, base_dir, save_files)
             )
             processes.append(process)
@@ -404,10 +408,12 @@ class ApiReader:
 
     def get_stations_wpa_fs(self,
                             # pool: Optional[multiprocessing.pool.Pool] = None,
+                            correct_timestamps: bool = False,
                             use_model_correction: bool = True,
                             base_dir: str = "", save_files: bool = False) -> List[StationPa]:
         """
         # :param pool: optional multiprocessing pool
+        :param correct_timestamps: if True, correct timestamps as soon as possible, default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
         :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
@@ -421,9 +427,10 @@ class ApiReader:
         #                                 )
         #             )
         if settings.is_parallelism_enabled():
-            return self.download_files(use_model_correction=use_model_correction,
+            return self.download_files(correct_timestamps=correct_timestamps,
+                                       use_model_correction=use_model_correction,
                                        base_dir=base_dir, save_files=save_files)
-        return list(map(self._stations_wpa_by_index_fs, self.files_index,
+        return list(map(self._stations_wpa_by_index_fs, self.files_index, repeat(correct_timestamps),
                         repeat(use_model_correction), repeat(base_dir), repeat(save_files)))
 
     def _stations_wpa_by_index(self, findex: io.Index) -> StationPa:
