@@ -1,8 +1,9 @@
 ## Changelog
 
-### 3.0.9 (2021-8-26)
+### 3.0.9 (2021-8-30)
 
 * Fix missing latencies and offsets attribute when data is missing from files.
+* Added missing Health fields from Api 1000 data.
 
 ### 3.0.8 (2021-8-11)
 
