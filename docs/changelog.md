@@ -1,18 +1,19 @@
 ## Changelog
 
-### 3.0.7rc1 (2021-8-4)
+### 3.0.8rc1 (2021-8-30)
 
 * Added missing/incorrect values when creating stations using parquet files.
 * Updated version number and changelog to represent correct dates and version numbers.
+* Pyarrow functionality complete for data window.  Refer to *_wpa files.
+
+### 3.0.8 (2021-8-11)
+
+* Fix inconsistent storing of enum data from station metrics
 
 ### 3.0.7rc0 (2021-8-3)
 
 * Testing pyarrow functionality for Sensors and Stations
 * Save parquets of data from Redvox files instead of loading everything at once
-
-### 3.0.8 (2021-8-11)
-
-* Fix inconsistent storing of enum data from station metrics
 
 ### 3.0.7 (2021-7-29)
 
