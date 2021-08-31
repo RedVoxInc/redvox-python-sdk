@@ -100,7 +100,6 @@ class CloudClient:
     &#34;&#34;&#34;
     The RedVox Cloud API client.
     &#34;&#34;&#34;
-
     def __init__(
             self,
             redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
@@ -733,7 +732,7 @@ def cloud_client(
 </details>
 </dd>
 <dt id="redvox.cloud.client.cloud_client"><code class="name flex">
-<span>def <span class="ident">cloud_client</span></span>(<span>redvox_config: Union[<a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, NoneType] = None, refresh_token_interval: float = 600.0, timeout: float = 10.0)</span>
+<span>def <span class="ident">cloud_client</span></span>(<span>redvox_config: Optional[<a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>] = None, refresh_token_interval: float = 600.0, timeout: float = 10.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Function that can be used within a "with" block to automatically handle the closing of open resources.
@@ -786,7 +785,7 @@ def cloud_client(
 <dl>
 <dt id="redvox.cloud.client.CloudClient"><code class="flex name class">
 <span>class <span class="ident">CloudClient</span></span>
-<span>(</span><span>redvox_config: Union[<a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, NoneType] = None, refresh_token_interval: float = 600.0, timeout: Union[float, NoneType] = 10.0)</span>
+<span>(</span><span>redvox_config: Optional[<a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>] = None, refresh_token_interval: float = 600.0, timeout: Optional[float] = 10.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The RedVox Cloud API client.</p>
@@ -802,7 +801,6 @@ def cloud_client(
     &#34;&#34;&#34;
     The RedVox Cloud API client.
     &#34;&#34;&#34;
-
     def __init__(
             self,
             redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
@@ -1435,7 +1433,7 @@ def cloud_client(
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.refresh_auth_token"><code class="name flex">
-<span>def <span class="ident">refresh_auth_token</span></span>(<span>self, auth_token: str) ‑> Union[<a title="redvox.cloud.auth_api.RefreshTokenResp" href="auth_api.html#redvox.cloud.auth_api.RefreshTokenResp">RefreshTokenResp</a>, NoneType]</span>
+<span>def <span class="ident">refresh_auth_token</span></span>(<span>self, auth_token: str) ‑> Optional[<a title="redvox.cloud.auth_api.RefreshTokenResp" href="auth_api.html#redvox.cloud.auth_api.RefreshTokenResp">RefreshTokenResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Retrieves a new authentication token from a given valid authentication token.
@@ -1468,7 +1466,7 @@ def cloud_client(
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.refresh_own_auth_token"><code class="name flex">
-<span>def <span class="ident">refresh_own_auth_token</span></span>(<span>self) ‑> Union[<a title="redvox.cloud.auth_api.RefreshTokenResp" href="auth_api.html#redvox.cloud.auth_api.RefreshTokenResp">RefreshTokenResp</a>, NoneType]</span>
+<span>def <span class="ident">refresh_own_auth_token</span></span>(<span>self) ‑> Optional[<a title="redvox.cloud.auth_api.RefreshTokenResp" href="auth_api.html#redvox.cloud.auth_api.RefreshTokenResp">RefreshTokenResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Retrieves a new authentication token using the token held by this client as a reference.
@@ -1486,7 +1484,7 @@ def cloud_client(
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_data_range"><code class="name flex">
-<span>def <span class="ident">request_data_range</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900_1000, correct_query_timing: bool = True, out_queue: Union[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x142913df0>>, NoneType] = None) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="data_api.html#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
+<span>def <span class="ident">request_data_range</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900_1000, correct_query_timing: bool = True, out_queue: Optional[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x147549bb0>>] = None) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="data_api.html#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Request signed URLs for RedVox packets.
@@ -1595,7 +1593,7 @@ correct_timing queried.
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_metadata"><code class="name flex">
-<span>def <span class="ident">request_metadata</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], metadata_to_include: List[str], chunk_by_seconds: int = 86400) ‑> Union[<a title="redvox.cloud.metadata_api.MetadataResp" href="metadata_api.html#redvox.cloud.metadata_api.MetadataResp">MetadataResp</a>, NoneType]</span>
+<span>def <span class="ident">request_metadata</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], metadata_to_include: List[str], chunk_by_seconds: int = 86400) ‑> Optional[<a title="redvox.cloud.metadata_api.MetadataResp" href="metadata_api.html#redvox.cloud.metadata_api.MetadataResp">MetadataResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests RedVox packet metadata.
@@ -1671,7 +1669,7 @@ correct_timing queried.
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_metadata_m"><code class="name flex">
-<span>def <span class="ident">request_metadata_m</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], metadata_to_include: List[str], chunk_by_seconds: int = 3600) ‑> Union[<a title="redvox.cloud.metadata_api.MetadataRespM" href="metadata_api.html#redvox.cloud.metadata_api.MetadataRespM">MetadataRespM</a>, NoneType]</span>
+<span>def <span class="ident">request_metadata_m</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], metadata_to_include: List[str], chunk_by_seconds: int = 3600) ‑> Optional[<a title="redvox.cloud.metadata_api.MetadataRespM" href="metadata_api.html#redvox.cloud.metadata_api.MetadataRespM">MetadataRespM</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests RedVox packet metadata.
@@ -1712,7 +1710,7 @@ correct_timing queried.
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_metadata_m_stream"><code class="name flex">
-<span>def <span class="ident">request_metadata_m_stream</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], metadata_to_include: List[str], chunk_by_seconds: int = 3600) ‑> Iterator[Union[<a title="redvox.cloud.metadata_api.MetadataRespM" href="metadata_api.html#redvox.cloud.metadata_api.MetadataRespM">MetadataRespM</a>, NoneType]]</span>
+<span>def <span class="ident">request_metadata_m_stream</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], metadata_to_include: List[str], chunk_by_seconds: int = 3600) ‑> Iterator[Optional[<a title="redvox.cloud.metadata_api.MetadataRespM" href="metadata_api.html#redvox.cloud.metadata_api.MetadataRespM">MetadataRespM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests RedVox packet metadata.
@@ -1784,7 +1782,7 @@ correct_timing queried.
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_report_data"><code class="name flex">
-<span>def <span class="ident">request_report_data</span></span>(<span>self, report_id: str) ‑> Union[<a title="redvox.cloud.data_api.ReportDataResp" href="data_api.html#redvox.cloud.data_api.ReportDataResp">ReportDataResp</a>, NoneType]</span>
+<span>def <span class="ident">request_report_data</span></span>(<span>self, report_id: str) ‑> Optional[<a title="redvox.cloud.data_api.ReportDataResp" href="data_api.html#redvox.cloud.data_api.ReportDataResp">ReportDataResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests a signed URL for a given report ID.
@@ -1815,7 +1813,7 @@ correct_timing queried.
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_station_stats"><code class="name flex">
-<span>def <span class="ident">request_station_stats</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str]) ‑> Union[<a title="redvox.cloud.station_stats.StationStatsResp" href="station_stats.html#redvox.cloud.station_stats.StationStatsResp">StationStatsResp</a>, NoneType]</span>
+<span>def <span class="ident">request_station_stats</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str]) ‑> Optional[<a title="redvox.cloud.station_stats.StationStatsResp" href="station_stats.html#redvox.cloud.station_stats.StationStatsResp">StationStatsResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Request signed URLs for RedVox packets.
@@ -1863,7 +1861,7 @@ The end epoch of the window.
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_station_statuses"><code class="name flex">
-<span>def <span class="ident">request_station_statuses</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str]) ‑> Union[<a title="redvox.cloud.metadata_api.StationStatusResp" href="metadata_api.html#redvox.cloud.metadata_api.StationStatusResp">StationStatusResp</a>, NoneType]</span>
+<span>def <span class="ident">request_station_statuses</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str]) ‑> Optional[<a title="redvox.cloud.metadata_api.StationStatusResp" href="metadata_api.html#redvox.cloud.metadata_api.StationStatusResp">StationStatusResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests station timing information from the cloud services.
@@ -1978,7 +1976,7 @@ The end epoch of the window.
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.validate_auth_token"><code class="name flex">
-<span>def <span class="ident">validate_auth_token</span></span>(<span>self, auth_token: str) ‑> Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="auth_api.html#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</span>
+<span>def <span class="ident">validate_auth_token</span></span>(<span>self, auth_token: str) ‑> Optional[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="auth_api.html#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates the provided authentication token with the cloud API.
@@ -2006,7 +2004,7 @@ The end epoch of the window.
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.validate_own_auth_token"><code class="name flex">
-<span>def <span class="ident">validate_own_auth_token</span></span>(<span>self) ‑> Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="auth_api.html#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</span>
+<span>def <span class="ident">validate_own_auth_token</span></span>(<span>self) ‑> Optional[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="auth_api.html#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Validates the current token held by this client.

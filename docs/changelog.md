@@ -10,6 +10,10 @@
 * Testing pyarrow functionality for Sensors and Stations
 * Save parquets of data from Redvox files instead of loading everything at once
 
+### 3.0.8 (2021-8-11)
+
+* Fix inconsistent storing of enum data from station metrics
+
 ### 3.0.7 (2021-7-29)
 
 * Update dependencies

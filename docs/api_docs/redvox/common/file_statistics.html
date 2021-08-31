@@ -436,7 +436,7 @@ def extract_stats(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.common.file_statistics.ExtractStatsFn"><code class="name flex">
-<span>def <span class="ident">ExtractStatsFn</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Union[multiprocessing.pool.Pool, NoneType] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
+<span>def <span class="ident">ExtractStatsFn</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Optional[multiprocessing.pool.Pool] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -470,7 +470,7 @@ def extract_stats(
 </details>
 </dd>
 <dt id="redvox.common.file_statistics.extract_stats"><code class="name flex">
-<span>def <span class="ident">extract_stats</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Union[multiprocessing.pool.Pool, NoneType] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
+<span>def <span class="ident">extract_stats</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Optional[multiprocessing.pool.Pool] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Extracts StationStat information from packets stored in the provided index.</p>
@@ -496,7 +496,7 @@ def extract_stats(
 </details>
 </dd>
 <dt id="redvox.common.file_statistics.extract_stats_native"><code class="name flex">
-<span>def <span class="ident">extract_stats_native</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Union[multiprocessing.pool.Pool, NoneType] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
+<span>def <span class="ident">extract_stats_native</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Optional[multiprocessing.pool.Pool] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -517,7 +517,7 @@ def extract_stats(
 </details>
 </dd>
 <dt id="redvox.common.file_statistics.extract_stats_parallel"><code class="name flex">
-<span>def <span class="ident">extract_stats_parallel</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Union[multiprocessing.pool.Pool, NoneType] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
+<span>def <span class="ident">extract_stats_parallel</span></span>(<span>index: <a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>, pool: Optional[multiprocessing.pool.Pool] = None) ‑> List[<a title="redvox.common.file_statistics.StationStat" href="#redvox.common.file_statistics.StationStat">StationStat</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Extracts StationStat information in parallel from packets stored in the provided index.</p>
@@ -678,7 +678,7 @@ def extract_stats(
 <dl>
 <dt id="redvox.common.file_statistics.GpsDateTime"><code class="flex name class">
 <span>class <span class="ident">GpsDateTime</span></span>
-<span>(</span><span>mach_dt: datetime.datetime, gps_dt: Union[datetime.datetime, NoneType])</span>
+<span>(</span><span>mach_dt: datetime.datetime, gps_dt: Optional[datetime.datetime])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Represents timestamp pairings in API 1000 data.</p></div>
@@ -686,7 +686,8 @@ def extract_stats(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class GpsDateTime:
+<pre><code class="python">@dataclass
+class GpsDateTime:
     &#34;&#34;&#34;
     Represents timestamp pairings in API 1000 data.
     &#34;&#34;&#34;
@@ -696,7 +697,7 @@ def extract_stats(
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.file_statistics.GpsDateTime.gps_dt"><code class="name">var <span class="ident">gps_dt</span> : Union[datetime.datetime, NoneType]</code></dt>
+<dt id="redvox.common.file_statistics.GpsDateTime.gps_dt"><code class="name">var <span class="ident">gps_dt</span> : Optional[datetime.datetime]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -708,7 +709,7 @@ def extract_stats(
 </dd>
 <dt id="redvox.common.file_statistics.StationStat"><code class="flex name class">
 <span>class <span class="ident">StationStat</span></span>
-<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: Union[datetime.datetime, NoneType], packet_start_dt: datetime.datetime, server_recv_dt: Union[datetime.datetime, NoneType], gps_dts: Union[List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>], NoneType], latency: Union[float, NoneType], best_latency_timestamp: Union[float, NoneType], offset: Union[float, NoneType], sample_rate_hz: Union[float, NoneType], packet_duration: Union[datetime.timedelta, NoneType])</span>
+<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: Optional[datetime.datetime], packet_start_dt: datetime.datetime, server_recv_dt: Optional[datetime.datetime], gps_dts: Optional[List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>]], latency: Optional[float], best_latency_timestamp: Optional[float], offset: Optional[float], sample_rate_hz: Optional[float], packet_duration: Optional[datetime.timedelta])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A collection of station fields for a given API 900 or API 1000 packet.
@@ -717,7 +718,8 @@ These are used for timing correction and gap detection.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StationStat:
+<pre><code class="python">@dataclass
+class StationStat:
     &#34;&#34;&#34;
     A collection of station fields for a given API 900 or API 1000 packet.
     These are used for timing correction and gap detection.
@@ -862,27 +864,27 @@ These are used for timing correction and gap detection.</p></div>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.file_statistics.StationStat.app_start_dt"><code class="name">var <span class="ident">app_start_dt</span> : Union[datetime.datetime, NoneType]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.app_start_dt"><code class="name">var <span class="ident">app_start_dt</span> : Optional[datetime.datetime]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.best_latency_timestamp"><code class="name">var <span class="ident">best_latency_timestamp</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.best_latency_timestamp"><code class="name">var <span class="ident">best_latency_timestamp</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.gps_dts"><code class="name">var <span class="ident">gps_dts</span> : Union[List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>], NoneType]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.gps_dts"><code class="name">var <span class="ident">gps_dts</span> : Optional[List[<a title="redvox.common.file_statistics.GpsDateTime" href="#redvox.common.file_statistics.GpsDateTime">GpsDateTime</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.latency"><code class="name">var <span class="ident">latency</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.latency"><code class="name">var <span class="ident">latency</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.offset"><code class="name">var <span class="ident">offset</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.offset"><code class="name">var <span class="ident">offset</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.packet_duration"><code class="name">var <span class="ident">packet_duration</span> : Union[datetime.timedelta, NoneType]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.packet_duration"><code class="name">var <span class="ident">packet_duration</span> : Optional[datetime.timedelta]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -890,11 +892,11 @@ These are used for timing correction and gap detection.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.sample_rate_hz"><code class="name">var <span class="ident">sample_rate_hz</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.sample_rate_hz"><code class="name">var <span class="ident">sample_rate_hz</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.file_statistics.StationStat.server_recv_dt"><code class="name">var <span class="ident">server_recv_dt</span> : Union[datetime.datetime, NoneType]</code></dt>
+<dt id="redvox.common.file_statistics.StationStat.server_recv_dt"><code class="name">var <span class="ident">server_recv_dt</span> : Optional[datetime.datetime]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

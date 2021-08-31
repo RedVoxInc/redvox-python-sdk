@@ -513,7 +513,8 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StationKey:
+<pre><code class="python">@dataclass
+class StationKey:
     &#34;&#34;&#34;
     A set of values that uniquely define a station
     Properties:
@@ -585,7 +586,7 @@ start_timestamp_micros: float, starting time of the station in microseconds sinc
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.station_utils.StationKey.check_key"><code class="name flex">
-<span>def <span class="ident">check_key</span></span>(<span>self, station_id: Union[str, NoneType] = None, station_uuid: Union[str, NoneType] = None, start_timestamp: Union[float, NoneType] = None) ‑> bool</span>
+<span>def <span class="ident">check_key</span></span>(<span>self, station_id: Optional[str] = None, station_uuid: Optional[str] = None, start_timestamp: Optional[float] = None) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>check if the key has the values specified.
@@ -665,7 +666,7 @@ will not match any value, including another NAN.
 </dd>
 <dt id="redvox.common.station_utils.StationMetadata"><code class="flex name class">
 <span>class <span class="ident">StationMetadata</span></span>
-<span>(</span><span>app: str, packet: Union[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, NoneType] = None)</span>
+<span>(</span><span>app: str, packet: Optional[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A container for all the packet metadata consistent across all packets</p>
@@ -796,7 +797,7 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
 </dd>
 <dt id="redvox.common.station_utils.StationMetadataWrapped"><code class="flex name class">
 <span>class <span class="ident">StationMetadataWrapped</span></span>
-<span>(</span><span>app: str, packet: Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType] = None)</span>
+<span>(</span><span>app: str, packet: Optional[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A container for all the packet metadata consistent across all packets</p>
@@ -926,7 +927,7 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
 </dd>
 <dt id="redvox.common.station_utils.StationPacketMetadata"><code class="flex name class">
 <span>class <span class="ident">StationPacketMetadata</span></span>
-<span>(</span><span>packet: Union[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, NoneType] = None)</span>
+<span>(</span><span>packet: Optional[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A container for all the packet metadata that isn't consistent across all packets</p>
@@ -1026,7 +1027,7 @@ default True</p></div>
 </dd>
 <dt id="redvox.common.station_utils.StationPacketMetadataWrapped"><code class="flex name class">
 <span>class <span class="ident">StationPacketMetadataWrapped</span></span>
-<span>(</span><span>packet: Union[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>, NoneType] = None)</span>
+<span>(</span><span>packet: Optional[<a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A container for all the packet metadata that isn't consistent across all packets</p>

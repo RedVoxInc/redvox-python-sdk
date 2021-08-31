@@ -195,7 +195,7 @@ def request_station_stats(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.station_stats.request_station_stats"><code class="name flex">
-<span>def <span class="ident">request_station_stats</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, station_stat_req: <a title="redvox.cloud.station_stats.StationStatReq" href="#redvox.cloud.station_stats.StationStatReq">StationStatReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None) ‑> Union[<a title="redvox.cloud.station_stats.StationStatsResp" href="#redvox.cloud.station_stats.StationStatsResp">StationStatsResp</a>, NoneType]</span>
+<span>def <span class="ident">request_station_stats</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, station_stat_req: <a title="redvox.cloud.station_stats.StationStatReq" href="#redvox.cloud.station_stats.StationStatReq">StationStatReq</a>, session: Optional[requests.sessions.Session] = None, timeout: Optional[float] = None) ‑> Optional[<a title="redvox.cloud.station_stats.StationStatsResp" href="#redvox.cloud.station_stats.StationStatsResp">StationStatsResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Requests timing statistics with the given parameters.
@@ -243,7 +243,7 @@ def request_station_stats(
 <dl>
 <dt id="redvox.cloud.station_stats.GpsDateTime"><code class="flex name class">
 <span>class <span class="ident">GpsDateTime</span></span>
-<span>(</span><span>mach_dt: float, gps_dt: Union[float, NoneType])</span>
+<span>(</span><span>mach_dt: float, gps_dt: Optional[float])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Represents timestamp pairings in API 1000 data.</p></div>
@@ -251,7 +251,9 @@ def request_station_stats(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class GpsDateTime:
+<pre><code class="python">@dataclass_json
+@dataclass
+class GpsDateTime:
     &#34;&#34;&#34;
     Represents timestamp pairings in API 1000 data.
     &#34;&#34;&#34;
@@ -268,7 +270,7 @@ def request_station_stats(
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.station_stats.GpsDateTime.gps_dt"><code class="name">var <span class="ident">gps_dt</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.GpsDateTime.gps_dt"><code class="name">var <span class="ident">gps_dt</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -431,7 +433,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.station_stats.StationStat"><code class="flex name class">
 <span>class <span class="ident">StationStat</span></span>
-<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: Union[float, NoneType], packet_start_dt: float, server_recv_dt: Union[float, NoneType], gps_dts: Union[List[<a title="redvox.cloud.station_stats.GpsDateTime" href="#redvox.cloud.station_stats.GpsDateTime">GpsDateTime</a>], NoneType], latency: Union[float, NoneType], offset: Union[float, NoneType], sample_rate_hz: Union[float, NoneType], packet_duration: Union[float, NoneType])</span>
+<span>(</span><span>station_id: str, station_uuid: str, app_start_dt: Optional[float], packet_start_dt: float, server_recv_dt: Optional[float], gps_dts: Optional[List[<a title="redvox.cloud.station_stats.GpsDateTime" href="#redvox.cloud.station_stats.GpsDateTime">GpsDateTime</a>]], latency: Optional[float], offset: Optional[float], sample_rate_hz: Optional[float], packet_duration: Optional[float])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A collection of station fields for a given API 900 or API 1000 packet.
@@ -440,7 +442,9 @@ These are used for timing correction and gap detection.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StationStat:
+<pre><code class="python">@dataclass_json
+@dataclass
+class StationStat:
     &#34;&#34;&#34;
     A collection of station fields for a given API 900 or API 1000 packet.
     These are used for timing correction and gap detection.
@@ -479,23 +483,23 @@ These are used for timing correction and gap detection.</p></div>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.station_stats.StationStat.app_start_dt"><code class="name">var <span class="ident">app_start_dt</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.app_start_dt"><code class="name">var <span class="ident">app_start_dt</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.gps_dts"><code class="name">var <span class="ident">gps_dts</span> : Union[List[<a title="redvox.cloud.station_stats.GpsDateTime" href="#redvox.cloud.station_stats.GpsDateTime">GpsDateTime</a>], NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.gps_dts"><code class="name">var <span class="ident">gps_dts</span> : Optional[List[<a title="redvox.cloud.station_stats.GpsDateTime" href="#redvox.cloud.station_stats.GpsDateTime">GpsDateTime</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.latency"><code class="name">var <span class="ident">latency</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.latency"><code class="name">var <span class="ident">latency</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.offset"><code class="name">var <span class="ident">offset</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.offset"><code class="name">var <span class="ident">offset</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.packet_duration"><code class="name">var <span class="ident">packet_duration</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.packet_duration"><code class="name">var <span class="ident">packet_duration</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -503,11 +507,11 @@ These are used for timing correction and gap detection.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.sample_rate_hz"><code class="name">var <span class="ident">sample_rate_hz</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.sample_rate_hz"><code class="name">var <span class="ident">sample_rate_hz</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStat.server_recv_dt"><code class="name">var <span class="ident">server_recv_dt</span> : Union[float, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStat.server_recv_dt"><code class="name">var <span class="ident">server_recv_dt</span> : Optional[float]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -687,7 +691,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.station_stats.StationStatReq"><code class="flex name class">
 <span>class <span class="ident">StationStatReq</span></span>
-<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: List[str], secret_token: Union[str, NoneType] = None)</span>
+<span>(</span><span>auth_token: str, start_ts_s: int, end_ts_s: int, station_ids: List[str], secret_token: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A StationStatReq container.</p></div>
@@ -695,7 +699,9 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StationStatReq:
+<pre><code class="python">@dataclass_json
+@dataclass
+class StationStatReq:
     &#34;&#34;&#34;
     A StationStatReq container.
     &#34;&#34;&#34;
@@ -716,7 +722,7 @@ def schema(cls: Type[A],
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.station_stats.StationStatReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.station_stats.StationStatReq.secret_token"><code class="name">var <span class="ident">secret_token</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -874,7 +880,9 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StationStatResp:
+<pre><code class="python">@dataclass_json
+@dataclass
+class StationStatResp:
     &#34;&#34;&#34;
     A response contain StationStat instances.
     &#34;&#34;&#34;
@@ -1053,7 +1061,8 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class StationStatsResp:
+<pre><code class="python">@dataclass
+class StationStatsResp:
     &#34;&#34;&#34;
     A response type converted into the file_statistics module representation.
     &#34;&#34;&#34;

@@ -1056,7 +1056,7 @@ def list_names() -&gt; List[str]:
 </dd>
 <dt id="redvox.common.gap_and_pad_utils.GapPadResult"><code class="flex name class">
 <span>class <span class="ident">GapPadResult</span></span>
-<span>(</span><span>result_df: Union[pandas.core.frame.DataFrame, NoneType] = None, gaps: List[Tuple[float, float]] = &lt;factory&gt;, errors: <a title="redvox.common.errors.RedVoxExceptions" href="errors.html#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a> = &lt;factory&gt;)</span>
+<span>(</span><span>result_df: Optional[pandas.core.frame.DataFrame] = None, gaps: List[Tuple[float, float]] = &lt;factory&gt;, errors: <a title="redvox.common.errors.RedVoxExceptions" href="errors.html#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a> = &lt;factory&gt;)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The result of filling gaps or padding a time series</p></div>
@@ -1064,7 +1064,9 @@ def list_names() -&gt; List[str]:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class GapPadResult:
+<pre><code class="python">@dataclass_json()
+@dataclass
+class GapPadResult:
     &#34;&#34;&#34;
     The result of filling gaps or padding a time series
     &#34;&#34;&#34;
@@ -1089,7 +1091,7 @@ def list_names() -&gt; List[str]:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.gap_and_pad_utils.GapPadResult.result_df"><code class="name">var <span class="ident">result_df</span> : Union[pandas.core.frame.DataFrame, NoneType]</code></dt>
+<dt id="redvox.common.gap_and_pad_utils.GapPadResult.result_df"><code class="name">var <span class="ident">result_df</span> : Optional[pandas.core.frame.DataFrame]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

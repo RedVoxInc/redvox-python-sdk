@@ -219,7 +219,7 @@ def refresh_token(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.auth_api.authenticate_user"><code class="name flex">
-<span>def <span class="ident">authenticate_user</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, authentication_request: <a title="redvox.cloud.auth_api.AuthReq" href="#redvox.cloud.auth_api.AuthReq">AuthReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None) ‑> <a title="redvox.cloud.auth_api.AuthResp" href="#redvox.cloud.auth_api.AuthResp">AuthResp</a></span>
+<span>def <span class="ident">authenticate_user</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, authentication_request: <a title="redvox.cloud.auth_api.AuthReq" href="#redvox.cloud.auth_api.AuthReq">AuthReq</a>, session: Optional[requests.sessions.Session] = None, timeout: Optional[float] = None) ‑> <a title="redvox.cloud.auth_api.AuthResp" href="#redvox.cloud.auth_api.AuthResp">AuthResp</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempts to authenticate a RedVox user.
@@ -264,7 +264,7 @@ def refresh_token(
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.refresh_token"><code class="name flex">
-<span>def <span class="ident">refresh_token</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, refresh_token_req: <a title="redvox.cloud.auth_api.RefreshTokenReq" href="#redvox.cloud.auth_api.RefreshTokenReq">RefreshTokenReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None) ‑> Union[<a title="redvox.cloud.auth_api.RefreshTokenResp" href="#redvox.cloud.auth_api.RefreshTokenResp">RefreshTokenResp</a>, NoneType]</span>
+<span>def <span class="ident">refresh_token</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, refresh_token_req: <a title="redvox.cloud.auth_api.RefreshTokenReq" href="#redvox.cloud.auth_api.RefreshTokenReq">RefreshTokenReq</a>, session: Optional[requests.sessions.Session] = None, timeout: Optional[float] = None) ‑> Optional[<a title="redvox.cloud.auth_api.RefreshTokenResp" href="#redvox.cloud.auth_api.RefreshTokenResp">RefreshTokenResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempt to refresh the given authentication token.
@@ -307,7 +307,7 @@ def refresh_token(
 </details>
 </dd>
 <dt id="redvox.cloud.auth_api.validate_token"><code class="name flex">
-<span>def <span class="ident">validate_token</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, validate_token_req: <a title="redvox.cloud.auth_api.ValidateTokenReq" href="#redvox.cloud.auth_api.ValidateTokenReq">ValidateTokenReq</a>, session: Union[requests.sessions.Session, NoneType] = None, timeout: Union[float, NoneType] = None) ‑> Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</span>
+<span>def <span class="ident">validate_token</span></span>(<span>redvox_config: <a title="redvox.cloud.config.RedVoxConfig" href="config.html#redvox.cloud.config.RedVoxConfig">RedVoxConfig</a>, validate_token_req: <a title="redvox.cloud.auth_api.ValidateTokenReq" href="#redvox.cloud.auth_api.ValidateTokenReq">ValidateTokenReq</a>, session: Optional[requests.sessions.Session] = None, timeout: Optional[float] = None) ‑> Optional[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Attempt to validate the provided auth token.
@@ -364,7 +364,9 @@ def refresh_token(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class AuthReq:
+<pre><code class="python">@dataclass_json
+@dataclass
+class AuthReq:
     &#34;&#34;&#34;
     An authentication request.
     &#34;&#34;&#34;
@@ -520,7 +522,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.auth_api.AuthResp"><code class="flex name class">
 <span>class <span class="ident">AuthResp</span></span>
-<span>(</span><span>status: int, auth_token: Union[str, NoneType], claims: Union[ForwardRef('<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>'), NoneType])</span>
+<span>(</span><span>status: int, auth_token: Optional[str], claims: Optional[ForwardRef('<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>')])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>An authentication response.</p></div>
@@ -528,7 +530,9 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class AuthResp:
+<pre><code class="python">@dataclass_json
+@dataclass
+class AuthResp:
     &#34;&#34;&#34;
     An authentication response.
     &#34;&#34;&#34;
@@ -549,11 +553,11 @@ def schema(cls: Type[A],
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.auth_api.AuthResp.auth_token"><code class="name">var <span class="ident">auth_token</span> : Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.auth_api.AuthResp.auth_token"><code class="name">var <span class="ident">auth_token</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.auth_api.AuthResp.claims"><code class="name">var <span class="ident">claims</span> : Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</code></dt>
+<dt id="redvox.cloud.auth_api.AuthResp.claims"><code class="name">var <span class="ident">claims</span> : Optional[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -727,7 +731,9 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class RefreshTokenReq:
+<pre><code class="python">@dataclass_json
+@dataclass
+class RefreshTokenReq:
     &#34;&#34;&#34;
     A token validation request.
     &#34;&#34;&#34;
@@ -878,7 +884,7 @@ def schema(cls: Type[A],
 </dd>
 <dt id="redvox.cloud.auth_api.RefreshTokenResp"><code class="flex name class">
 <span>class <span class="ident">RefreshTokenResp</span></span>
-<span>(</span><span>auth_token: Union[str, NoneType], claims: Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType])</span>
+<span>(</span><span>auth_token: Optional[str], claims: Optional[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A token validation request.</p></div>
@@ -886,7 +892,9 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class RefreshTokenResp:
+<pre><code class="python">@dataclass_json
+@dataclass
+class RefreshTokenResp:
     &#34;&#34;&#34;
     A token validation request.
     &#34;&#34;&#34;
@@ -896,11 +904,11 @@ def schema(cls: Type[A],
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.cloud.auth_api.RefreshTokenResp.auth_token"><code class="name">var <span class="ident">auth_token</span> : Union[str, NoneType]</code></dt>
+<dt id="redvox.cloud.auth_api.RefreshTokenResp.auth_token"><code class="name">var <span class="ident">auth_token</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.cloud.auth_api.RefreshTokenResp.claims"><code class="name">var <span class="ident">claims</span> : Union[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>, NoneType]</code></dt>
+<dt id="redvox.cloud.auth_api.RefreshTokenResp.claims"><code class="name">var <span class="ident">claims</span> : Optional[<a title="redvox.cloud.auth_api.ValidateTokenResp" href="#redvox.cloud.auth_api.ValidateTokenResp">ValidateTokenResp</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1050,7 +1058,9 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ValidateTokenReq:
+<pre><code class="python">@dataclass_json
+@dataclass
+class ValidateTokenReq:
     &#34;&#34;&#34;
     A token validation request.
     &#34;&#34;&#34;
@@ -1209,7 +1219,9 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ValidateTokenResp:
+<pre><code class="python">@dataclass_json
+@dataclass
+class ValidateTokenResp:
     &#34;&#34;&#34;
     A verified token response.
     &#34;&#34;&#34;

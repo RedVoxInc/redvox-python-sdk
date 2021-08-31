@@ -50,6 +50,7 @@ class DownloadResult:
 
     data_key: str
     resp_len: int
+    skipped: bool = False
 
 
 def download_process(
@@ -74,6 +75,7 @@ def download_process(
                 result_queue.put(DownloadResult(data_key, resp_len), True, None)
             except FileExistsError:
                 print(f&#34;File already exists, skipping...&#34;)
+                result_queue.put(DownloadResult(&#34;&#34;, 0, skipped=True), True, None)
                 continue
     # Thrown when the queue is empty
     except queue.Empty:
@@ -118,6 +120,11 @@ def download_files(
     start_time = time.monotonic_ns()
     while i &lt; len(urls):
         res: DownloadResult = result_queue.get(True, None)
+
+        if res.skipped:
+            i += 1
+            continue
+
         timestamp = time.monotonic_ns()
         time_range = (timestamp - start_time) / 1_000_000_000.0
         percentage: float = (float(i + 1) / float(len(urls))) * 100.0
@@ -149,7 +156,7 @@ def download_files(
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="redvox.cloud.data_client.download_files"><code class="name flex">
-<span>def <span class="ident">download_files</span></span>(<span>urls: List[str], out_dir: str, retries: int, num_processes: int = 12, out_queue: Union[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x142913df0>>, NoneType] = None) ‑> NoneType</span>
+<span>def <span class="ident">download_files</span></span>(<span>urls: List[str], out_dir: str, retries: int, num_processes: int = 12, out_queue: Optional[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x147549bb0>>] = None) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Downloads files in parallel from the provided URLs.
@@ -200,6 +207,11 @@ def download_files(
     start_time = time.monotonic_ns()
     while i &lt; len(urls):
         res: DownloadResult = result_queue.get(True, None)
+
+        if res.skipped:
+            i += 1
+            continue
+
         timestamp = time.monotonic_ns()
         time_range = (timestamp - start_time) / 1_000_000_000.0
         percentage: float = (float(i + 1) / float(len(urls))) * 100.0
@@ -224,7 +236,7 @@ def download_files(
 </details>
 </dd>
 <dt id="redvox.cloud.data_client.download_process"><code class="name flex">
-<span>def <span class="ident">download_process</span></span>(<span>input_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x142913df0>>, result_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x142913df0>>, out_dir: str, retries: int) ‑> NoneType</span>
+<span>def <span class="ident">download_process</span></span>(<span>input_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x147549bb0>>, result_queue: <bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x147549bb0>>, out_dir: str, retries: int) ‑> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>A function that runs in a separate process for downloading RedVox data.
@@ -258,6 +270,7 @@ def download_files(
                 result_queue.put(DownloadResult(data_key, resp_len), True, None)
             except FileExistsError:
                 print(f&#34;File already exists, skipping...&#34;)
+                result_queue.put(DownloadResult(&#34;&#34;, 0, skipped=True), True, None)
                 continue
     # Thrown when the queue is empty
     except queue.Empty:
@@ -271,7 +284,7 @@ def download_files(
 <dl>
 <dt id="redvox.cloud.data_client.DownloadResult"><code class="flex name class">
 <span>class <span class="ident">DownloadResult</span></span>
-<span>(</span><span>data_key: str, resp_len: int)</span>
+<span>(</span><span>data_key: str, resp_len: int, skipped: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The result of downloading a file.</p></div>
@@ -279,13 +292,15 @@ def download_files(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DownloadResult:
+<pre><code class="python">@dataclass
+class DownloadResult:
     &#34;&#34;&#34;
     The result of downloading a file.
     &#34;&#34;&#34;
 
     data_key: str
-    resp_len: int</code></pre>
+    resp_len: int
+    skipped: bool = False</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -294,6 +309,10 @@ def download_files(
 <div class="desc"></div>
 </dd>
 <dt id="redvox.cloud.data_client.DownloadResult.resp_len"><code class="name">var <span class="ident">resp_len</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.cloud.data_client.DownloadResult.skipped"><code class="name">var <span class="ident">skipped</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -326,6 +345,7 @@ def download_files(
 <ul class="">
 <li><code><a title="redvox.cloud.data_client.DownloadResult.data_key" href="#redvox.cloud.data_client.DownloadResult.data_key">data_key</a></code></li>
 <li><code><a title="redvox.cloud.data_client.DownloadResult.resp_len" href="#redvox.cloud.data_client.DownloadResult.resp_len">resp_len</a></code></li>
+<li><code><a title="redvox.cloud.data_client.DownloadResult.skipped" href="#redvox.cloud.data_client.DownloadResult.skipped">skipped</a></code></li>
 </ul>
 </li>
 </ul>

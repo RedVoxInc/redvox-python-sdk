@@ -1256,7 +1256,7 @@ Assuming all packets have been processed and all bad packets are marked with a 0
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData.get_latency_mean"><code class="name flex">
-<span>def <span class="ident">get_latency_mean</span></span>(<span>self) ‑> Union[float, NoneType]</span>
+<span>def <span class="ident">get_latency_mean</span></span>(<span>self) ‑> Optional[float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the mean of all latencies, and None if the latencies are invalid.
@@ -1277,7 +1277,7 @@ Assuming all packets have been processed and all bad packets are marked with a 0
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData.get_latency_std_dev"><code class="name flex">
-<span>def <span class="ident">get_latency_std_dev</span></span>(<span>self) ‑> Union[float, NoneType]</span>
+<span>def <span class="ident">get_latency_std_dev</span></span>(<span>self) ‑> Optional[float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the standard deviation (std_dev) of all latencies, and None if the latencies are invalid.
@@ -1298,7 +1298,7 @@ Assuming all packets have been processed and all bad packets are marked with a 0
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData.get_offset_mean"><code class="name flex">
-<span>def <span class="ident">get_offset_mean</span></span>(<span>self) ‑> Union[float, NoneType]</span>
+<span>def <span class="ident">get_offset_mean</span></span>(<span>self) ‑> Optional[float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the mean of all offsets, and 0.0 if the offsets or latencies are invalid.
@@ -1319,7 +1319,7 @@ Assuming all packets have been processed and all bad packets are marked with a 0
 </details>
 </dd>
 <dt id="redvox.api900.timesync.api900_timesync.TimeSyncData.get_offset_std_dev"><code class="name flex">
-<span>def <span class="ident">get_offset_std_dev</span></span>(<span>self) ‑> Union[float, NoneType]</span>
+<span>def <span class="ident">get_offset_std_dev</span></span>(<span>self) ‑> Optional[float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>return the standard deviation (std_dev) of all offsets, and 0.0 if the offsets or latencies are invalid.

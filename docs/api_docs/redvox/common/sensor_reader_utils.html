@@ -1500,7 +1500,7 @@ def load_apim_health_from_list(
             samples = metrics.network_type
             data_list[4].extend(
                 [
-                    NetworkType[&#34;UNKNOWN_NETWORK&#34;]
+                    NetworkType[&#34;UNKNOWN_NETWORK&#34;].value
                     if len(samples) &lt; i + 1
                     else samples[i]
                     for i in range(num_samples)
@@ -1513,7 +1513,7 @@ def load_apim_health_from_list(
             samples = metrics.power_state
             data_list[6].extend(
                 [
-                    PowerState[&#34;UNKNOWN_POWER_STATE&#34;]
+                    PowerState[&#34;UNKNOWN_POWER_STATE&#34;].value
                     if len(samples) &lt; i + 1
                     else samples[i]
                     for i in range(num_samples)
@@ -1530,7 +1530,7 @@ def load_apim_health_from_list(
             samples = metrics.cell_service_state
             data_list[9].extend(
                 [
-                    CellServiceState[&#34;UNKNOWN&#34;] if len(samples) &lt; i + 1 else samples[i]
+                    CellServiceState[&#34;UNKNOWN&#34;].value if len(samples) &lt; i + 1 else samples[i]
                     for i in range(num_samples)
                 ]
             )
@@ -1648,7 +1648,7 @@ def load_apim_health_from_list(
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.get_sensor_description_list"><code class="name flex">
-<span>def <span class="ident">get_sensor_description_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Union[str, NoneType]</span>
+<span>def <span class="ident">get_sensor_description_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Optional[str]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>read the sensor_type sensor's description from a list of packets</p>
@@ -1682,7 +1682,7 @@ def load_apim_health_from_list(
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_accelerometer"><code class="name flex">
-<span>def <span class="ident">load_apim_accelerometer</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_accelerometer</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load accelerometer data from a single redvox packet</p>
@@ -1708,7 +1708,7 @@ def load_apim_health_from_list(
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_accelerometer_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_accelerometer_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_accelerometer_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load accelerometer data from a list of redvox packets</p>
@@ -1737,7 +1737,7 @@ def load_apim_health_from_list(
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_ambient_temp"><code class="name flex">
-<span>def <span class="ident">load_apim_ambient_temp</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_ambient_temp</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load ambient temperature data from a single redvox packet</p>
@@ -1763,7 +1763,7 @@ def load_apim_health_from_list(
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_ambient_temp_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_ambient_temp_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_ambient_temp_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load ambient temperature data from a list of redvox packets</p>
@@ -1792,7 +1792,7 @@ def load_apim_health_from_list(
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_audio"><code class="name flex">
-<span>def <span class="ident">load_apim_audio</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_audio</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load audio data from a single redvox packet</p>
@@ -1837,7 +1837,7 @@ def load_apim_health_from_list(
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_audio_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_audio_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]) ‑> Tuple[Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType], List[Tuple[float, float]]]</span>
+<span>def <span class="ident">load_apim_audio_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]) ‑> Tuple[Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>], List[Tuple[float, float]]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load audio data from a list of redvox packets
@@ -1893,7 +1893,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_best_location"><code class="name flex">
-<span>def <span class="ident">load_apim_best_location</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_best_location</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load best location data from a single redvox packet</p>
@@ -1949,7 +1949,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_best_location_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_best_location_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_best_location_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load best location data from a list of redvox packets</p>
@@ -2010,7 +2010,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_compressed_audio"><code class="name flex">
-<span>def <span class="ident">load_apim_compressed_audio</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_compressed_audio</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load compressed audio data from a single redvox packet</p>
@@ -2055,7 +2055,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_compressed_audio_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_compressed_audio_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_compressed_audio_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load compressed audio data from a list of redvox packets</p>
@@ -2109,7 +2109,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_gravity"><code class="name flex">
-<span>def <span class="ident">load_apim_gravity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_gravity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load gravity data from a single redvox packet</p>
@@ -2130,7 +2130,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_gravity_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_gravity_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_gravity_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load gravity data from a list of redvox packets</p>
@@ -2159,7 +2159,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_gyroscope"><code class="name flex">
-<span>def <span class="ident">load_apim_gyroscope</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_gyroscope</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load gyroscope data from a single redvox packet</p>
@@ -2180,7 +2180,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_gyroscope_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_gyroscope_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_gyroscope_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load gyroscope data from a list of redvox packets</p>
@@ -2209,7 +2209,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_health"><code class="name flex">
-<span>def <span class="ident">load_apim_health</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_health</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load station health data from a single redvox packet</p>
@@ -2277,7 +2277,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_health_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_health_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_health_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load station health data from a list of redvox packets</p>
@@ -2320,7 +2320,7 @@ NOTE: This only works because audio sensors in the list should all have the same
             samples = metrics.network_type
             data_list[4].extend(
                 [
-                    NetworkType[&#34;UNKNOWN_NETWORK&#34;]
+                    NetworkType[&#34;UNKNOWN_NETWORK&#34;].value
                     if len(samples) &lt; i + 1
                     else samples[i]
                     for i in range(num_samples)
@@ -2333,7 +2333,7 @@ NOTE: This only works because audio sensors in the list should all have the same
             samples = metrics.power_state
             data_list[6].extend(
                 [
-                    PowerState[&#34;UNKNOWN_POWER_STATE&#34;]
+                    PowerState[&#34;UNKNOWN_POWER_STATE&#34;].value
                     if len(samples) &lt; i + 1
                     else samples[i]
                     for i in range(num_samples)
@@ -2350,7 +2350,7 @@ NOTE: This only works because audio sensors in the list should all have the same
             samples = metrics.cell_service_state
             data_list[9].extend(
                 [
-                    CellServiceState[&#34;UNKNOWN&#34;] if len(samples) &lt; i + 1 else samples[i]
+                    CellServiceState[&#34;UNKNOWN&#34;].value if len(samples) &lt; i + 1 else samples[i]
                     for i in range(num_samples)
                 ]
             )
@@ -2382,7 +2382,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_image"><code class="name flex">
-<span>def <span class="ident">load_apim_image</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_image</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load image data from a single redvox packet</p>
@@ -2425,7 +2425,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_image_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_image_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_image_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load image data from a list of redvox packets</p>
@@ -2491,7 +2491,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_light"><code class="name flex">
-<span>def <span class="ident">load_apim_light</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_light</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load light data from a single redvox packet</p>
@@ -2512,7 +2512,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_light_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_light_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_light_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load light data from a list of redvox packets</p>
@@ -2541,7 +2541,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_linear_accel"><code class="name flex">
-<span>def <span class="ident">load_apim_linear_accel</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_linear_accel</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load linear acceleration data from a single redvox packet</p>
@@ -2567,7 +2567,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_linear_accel_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_linear_accel_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_linear_accel_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load linear acceleration data from a list of redvox packets</p>
@@ -2596,7 +2596,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_location"><code class="name flex">
-<span>def <span class="ident">load_apim_location</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_location</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load location data from a single packet</p>
@@ -2665,7 +2665,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_location_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_location_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_location_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load location data from a list of redvox packets</p>
@@ -2766,7 +2766,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_magnetometer"><code class="name flex">
-<span>def <span class="ident">load_apim_magnetometer</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_magnetometer</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load magnetometer data from a single redvox packet</p>
@@ -2792,7 +2792,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_magnetometer_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_magnetometer_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_magnetometer_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load magnetometer data from a list of redvox packets</p>
@@ -2821,7 +2821,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_orientation"><code class="name flex">
-<span>def <span class="ident">load_apim_orientation</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_orientation</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load orientation data from a single redvox packet</p>
@@ -2845,7 +2845,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_orientation_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_orientation_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_orientation_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load orientation data from a list of redvox packets</p>
@@ -2874,7 +2874,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_pressure"><code class="name flex">
-<span>def <span class="ident">load_apim_pressure</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_pressure</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load pressure data from a single redvox packet</p>
@@ -2895,7 +2895,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_pressure_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_pressure_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_pressure_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load pressure data from a list of redvox packets</p>
@@ -2924,7 +2924,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_proximity"><code class="name flex">
-<span>def <span class="ident">load_apim_proximity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_proximity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load proximity data from a single redvox packet</p>
@@ -2945,7 +2945,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_proximity_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_proximity_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_proximity_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load proximity data from a list of redvox packets</p>
@@ -2974,7 +2974,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_rel_humidity"><code class="name flex">
-<span>def <span class="ident">load_apim_rel_humidity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_rel_humidity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load relative humidity data from a single redvox packet</p>
@@ -3000,7 +3000,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_rel_humidity_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_rel_humidity_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_rel_humidity_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load relative humidity data from a list of redvox packets</p>
@@ -3029,7 +3029,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_rotation_vector"><code class="name flex">
-<span>def <span class="ident">load_apim_rotation_vector</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_rotation_vector</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load rotation vector data from a single redvox packet</p>
@@ -3055,7 +3055,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_rotation_vector_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_rotation_vector_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_rotation_vector_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]]) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>load rotation vector data from a list of redvox packets</p>
@@ -3084,7 +3084,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_single_sensor_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_single_sensor_from_list</span></span>(<span>sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, timestamps: List[float], data: List[float], gaps: List[Tuple[float, float]], column_name: str, description: str, sample_interval_micros: float) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_single_sensor_from_list</span></span>(<span>sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, timestamps: List[float], data: List[float], gaps: List[Tuple[float, float]], column_name: str, description: str, sample_interval_micros: float) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a single channel sensor of sensor_type with the column name, timestamps, data, and description</p>
@@ -3136,7 +3136,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_apim_xyz_sensor_from_list"><code class="name flex">
-<span>def <span class="ident">load_apim_xyz_sensor_from_list</span></span>(<span>sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, data: List[List[float]], gaps: List[Tuple[float, float]], column_name: str, description: str, sample_interval_micros: float) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_apim_xyz_sensor_from_list</span></span>(<span>sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, data: List[List[float]], gaps: List[Tuple[float, float]], column_name: str, description: str, sample_interval_micros: float) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>create a three channel sensor of sensor_type with the column name, description, and data given.</p>
@@ -3191,7 +3191,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_single"><code class="name flex">
-<span>def <span class="ident">load_single</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_single</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3225,7 +3225,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_single_from_list"><code class="name flex">
-<span>def <span class="ident">load_single_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]], sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_single_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]], sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3303,7 +3303,7 @@ NOTE: This only works because audio sensors in the list should all have the same
 </details>
 </dd>
 <dt id="redvox.common.sensor_reader_utils.load_xyz_from_list"><code class="name flex">
-<span>def <span class="ident">load_xyz_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]], sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Union[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, NoneType]</span>
+<span>def <span class="ident">load_xyz_from_list</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], gaps: List[Tuple[float, float]], sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Optional[<a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>

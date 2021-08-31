@@ -620,7 +620,7 @@ class DataWindow:
 <dl>
 <dt id="redvox.common.data_window.DataWindow"><code class="flex name class">
 <span>class <span class="ident">DataWindow</span></span>
-<span>(</span><span>input_dir: str, structured_layout: bool = True, start_datetime: Union[datetime.datetime, NoneType] = None, end_datetime: Union[datetime.datetime, NoneType] = None, start_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), end_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), drop_time_s: float = 0.2, station_ids: Union[Iterable[str], NoneType] = None, extensions: Union[Set[str], NoneType] = None, api_versions: Union[Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>], NoneType] = None, apply_correction: bool = True, copy_edge_points: <a title="redvox.common.gap_and_pad_utils.DataPointCreationMode" href="gap_and_pad_utils.html#redvox.common.gap_and_pad_utils.DataPointCreationMode">DataPointCreationMode</a> = DataPointCreationMode.COPY, debug: bool = False, use_model_correction: bool = True)</span>
+<span>(</span><span>input_dir: str, structured_layout: bool = True, start_datetime: Optional[datetime.datetime] = None, end_datetime: Optional[datetime.datetime] = None, start_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), end_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), drop_time_s: float = 0.2, station_ids: Optional[Iterable[str]] = None, extensions: Optional[Set[str]] = None, api_versions: Optional[Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]] = None, apply_correction: bool = True, copy_edge_points: <a title="redvox.common.gap_and_pad_utils.DataPointCreationMode" href="gap_and_pad_utils.html#redvox.common.gap_and_pad_utils.DataPointCreationMode">DataPointCreationMode</a> = DataPointCreationMode.COPY, debug: bool = False, use_model_correction: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values</p>
@@ -1380,7 +1380,7 @@ def from_config_file(file: str) -&gt; &#34;DataWindow&#34;:
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>json_str: str, dw_base_dir: str, start_dt: Union[datetime.datetime, NoneType] = None, end_dt: Union[datetime.datetime, NoneType] = None, station_ids: Union[Iterable[str], NoneType] = None) ‑> Union[<a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a>, NoneType]</span>
+<span>def <span class="ident">from_json</span></span>(<span>json_str: str, dw_base_dir: str, start_dt: Optional[datetime.datetime] = None, end_dt: Optional[datetime.datetime] = None, station_ids: Optional[Iterable[str]] = None) ‑> Optional[<a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads a JSON string and checks if:
@@ -1423,7 +1423,7 @@ def from_json(json_str: str, dw_base_dir: str,
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.from_json_dict"><code class="name flex">
-<span>def <span class="ident">from_json_dict</span></span>(<span>json_dict: Dict, dw_base_dir: str, start_dt: Union[datetime.datetime, NoneType] = None, end_dt: Union[datetime.datetime, NoneType] = None, station_ids: Union[Iterable[str], NoneType] = None) ‑> Union[<a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a>, NoneType]</span>
+<span>def <span class="ident">from_json_dict</span></span>(<span>json_dict: Dict, dw_base_dir: str, start_dt: Optional[datetime.datetime] = None, end_dt: Optional[datetime.datetime] = None, station_ids: Optional[Iterable[str]] = None) ‑> Optional[<a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads a JSON string and checks if:
@@ -1477,7 +1477,7 @@ def from_json_dict(json_dict: Dict,
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.from_json_file"><code class="name flex">
-<span>def <span class="ident">from_json_file</span></span>(<span>base_dir: str, file_name: str, dw_base_dir: Union[str, NoneType] = None, start_dt: Union[datetime.datetime, NoneType] = None, end_dt: Union[datetime.datetime, NoneType] = None, station_ids: Union[Iterable[str], NoneType] = None) ‑> Union[<a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a>, NoneType]</span>
+<span>def <span class="ident">from_json_file</span></span>(<span>base_dir: str, file_name: str, dw_base_dir: Optional[str] = None, start_dt: Optional[datetime.datetime] = None, end_dt: Optional[datetime.datetime] = None, station_ids: Optional[Iterable[str]] = None) ‑> Optional[<a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads a JSON file and checks if:
@@ -1533,7 +1533,7 @@ def from_json_file(base_dir: str, file_name: str,
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.data_window.DataWindow.create_data_window"><code class="name flex">
-<span>def <span class="ident">create_data_window</span></span>(<span>self, pool: Union[multiprocessing.pool.Pool, NoneType] = None)</span>
+<span>def <span class="ident">create_data_window</span></span>(<span>self, pool: Optional[multiprocessing.pool.Pool] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>updates the data window to contain only the data within the window parameters
@@ -1608,7 +1608,7 @@ stations without audio or any data outside the window are removed</p></div>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.create_window_in_sensors"><code class="name flex">
-<span>def <span class="ident">create_window_in_sensors</span></span>(<span>self, station: <a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, start_datetime: Union[datetime.datetime, NoneType] = None, end_datetime: Union[datetime.datetime, NoneType] = None)</span>
+<span>def <span class="ident">create_window_in_sensors</span></span>(<span>self, station: <a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, start_datetime: Optional[datetime.datetime] = None, end_datetime: Optional[datetime.datetime] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
@@ -1657,7 +1657,7 @@ returns nothing, updates the station in place
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.get_station"><code class="name flex">
-<span>def <span class="ident">get_station</span></span>(<span>self, station_id: str, station_uuid: Union[str, NoneType] = None, start_timestamp: Union[float, NoneType] = None) ‑> Union[List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>], NoneType]</span>
+<span>def <span class="ident">get_station</span></span>(<span>self, station_id: str, station_uuid: Optional[str] = None, start_timestamp: Optional[float] = None) ‑> Optional[List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get stations from the data window.
@@ -1817,7 +1817,7 @@ Updates sensor in place, returns nothing.
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.serialize"><code class="name flex">
-<span>def <span class="ident">serialize</span></span>(<span>self, base_dir: str = '.', file_name: Union[str, NoneType] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
+<span>def <span class="ident">serialize</span></span>(<span>self, base_dir: str = '.', file_name: Optional[str] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Serializes and compresses this DataWindowFast to a file.
@@ -1845,7 +1845,7 @@ longer. (default=4).
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, compressed_file_base_dir: str = '.', compressed_file_name: Union[str, NoneType] = None, compression_format: str = 'lz4') ‑> str</span>
+<span>def <span class="ident">to_json</span></span>(<span>self, compressed_file_base_dir: str = '.', compressed_file_name: Optional[str] = None, compression_format: str = 'lz4') ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts the data window metadata into a JSON string, then compresses the data window and writes it to disk.
@@ -1877,7 +1877,7 @@ default lz4
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.to_json_file"><code class="name flex">
-<span>def <span class="ident">to_json_file</span></span>(<span>self, base_dir: str = '.', file_name: Union[str, NoneType] = None, compression_format: str = 'lz4') ‑> pathlib.Path</span>
+<span>def <span class="ident">to_json_file</span></span>(<span>self, base_dir: str = '.', file_name: Optional[str] = None, compression_format: str = 'lz4') ‑> pathlib.Path</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts the data window metadata into a JSON file and compresses the data window and writes it to disk.
