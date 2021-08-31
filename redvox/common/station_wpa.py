@@ -18,7 +18,7 @@ import pyarrow as pa
 
 from redvox.common import sensor_data_with_pyarrow as sd
 from redvox.common import station_utils as st_utils
-from redvox.common.timesync_wpa import TimeSyncAnalysis
+from redvox.common.timesync_wpa import TimeSyncArrow
 from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import packet_to_pyarrow as ptp
@@ -57,7 +57,7 @@ class StationPa:
 
         is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False
 
-        timesync_analysis: TimeSyncAnalysis object, contains information about the station's timing values
+        timesync_data: TimeSyncArrow object, contains information about the station's time synchronization values
 
         _correct_timestamps: bool, if True, timestamps are updated as soon as they can be, default False
 
@@ -102,7 +102,7 @@ class StationPa:
         self.last_data_timestamp = np.nan
         self.audio_sample_rate_nominal_hz = np.nan
         self.is_audio_scrambled = False
-        self.timesync_analysis = TimeSyncAnalysis()
+        self.timesync_data = TimeSyncArrow()
         self.is_timestamps_updated = False
         self.save_output: bool = save_output
         if self.save_output or base_out_dir:
@@ -196,22 +196,19 @@ class StationPa:
             self.packet_metadata = [
                 st_utils.StationPacketMetadata(packet) for packet in packets
             ]
-            self.timesync_analysis = TimeSyncAnalysis(
-                self._id, self.audio_sample_rate_nominal_hz, self._start_date
-            ).from_raw_packets(packets)
+            self.timesync_data = TimeSyncArrow().from_raw_packets(packets)
             if self._correct_timestamps:
-                self.timesync_analysis.update_timestamps(self.use_model_correction)
-                self._start_date = self.timesync_analysis.offset_model.update_time(
+                self._start_date = self.timesync_data.offset_model.update_time(
                     self._start_date, self.use_model_correction
                 )
             self.base_dir = os.path.join(self.base_dir, self._get_id_key())
-            if self.timesync_analysis.errors.get_num_errors() > 0:
-                self.errors.extend_error(self.timesync_analysis.errors)
             # self._audio_rate = packets[0].sensors.audio.sample_rate
             # self._audio_name = packets[0].sensors.audio.sensor_description
             if os.path.exists(self.base_dir):
                 shutil.rmtree(self.base_dir)
             os.makedirs(self.base_dir, exist_ok=True)
+            self.timesync_data.arrow_dir = os.path.join(self.base_dir, "timesync")
+            self.timesync_data.arrow_file_name = f"timesync_{self._get_id_key()}"
             self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
@@ -339,13 +336,7 @@ class StationPa:
             self.packet_metadata.extend(new_station.packet_metadata)
             self._sort_metadata_packets()
             self._get_start_and_end_timestamps()
-            self.timesync_analysis = TimeSyncAnalysis(
-                self._id,
-                self.audio_sample_rate_nominal_hz,
-                self._start_date,
-                self.timesync_analysis.timesync_data
-                + new_station.timesync_analysis.timesync_data,
-                )
+            self.timesync_data.append_timesync_arrow(new_station.timesync_data)
 
     def append_station_data(self, new_station_data: List[sd.SensorDataPa]):
         """
@@ -413,7 +404,7 @@ class StationPa:
         """
         return float(
             np.mean(
-                [tsd.packet_duration for tsd in self.timesync_analysis.timesync_data]
+                [tsd.packet_end_mach_timestamp - tsd.packet_start_mach_timestamp for tsd in self.packet_metadata]
             )
         )
 
@@ -431,7 +422,7 @@ class StationPa:
         """
         :return: True if there is timesync data for the station
         """
-        return len(self.timesync_analysis.timesync_data) > 0
+        return self.timesync_data.num_tri_messages() > 0
 
     def has_audio_sensor(self) -> bool:
         """
@@ -1173,22 +1164,22 @@ class StationPa:
         else:
             # if timestamps were not corrected on creation
             if not self._correct_timestamps:
-                self.timesync_analysis.update_timestamps(self.use_model_correction)
-                self._start_date = self.timesync_analysis.offset_model.update_time(
+                # self.timesync_data.update_timestamps(self.use_model_correction)
+                self._start_date = self.timesync_data.offset_model.update_time(
                     self._start_date, self.use_model_correction
                 )
                 self.base_dir = os.path.join(self.base_dir, self._get_id_key())
             for sensor in self._data:
-                sensor.update_data_timestamps(self.timesync_analysis.offset_model, self.use_model_correction)
+                sensor.update_data_timestamps(self.timesync_data.offset_model, self.use_model_correction)
             for packet in self.packet_metadata:
-                packet.update_timestamps(self.timesync_analysis.offset_model, self.use_model_correction)
+                packet.update_timestamps(self.timesync_data.offset_model, self.use_model_correction)
             for g in range(len(self._gaps)):
-                self._gaps[g] = (self.timesync_analysis.offset_model.update_time(self._gaps[g][0]),
-                                 self.timesync_analysis.offset_model.update_time(self._gaps[g][1]))
-            self.first_data_timestamp = self.timesync_analysis.offset_model.update_time(
+                self._gaps[g] = (self.timesync_data.offset_model.update_time(self._gaps[g][0]),
+                                 self.timesync_data.offset_model.update_time(self._gaps[g][1]))
+            self.first_data_timestamp = self.timesync_data.offset_model.update_time(
                 self.first_data_timestamp, self.use_model_correction
             )
-            self.last_data_timestamp = self.timesync_analysis.offset_model.update_time(
+            self.last_data_timestamp = self.timesync_data.offset_model.update_time(
                 self.last_data_timestamp, self.use_model_correction
             )
             self.is_timestamps_updated = True
@@ -1244,12 +1235,7 @@ class StationPa:
 
         ts_dir = os.path.join(self.base_dir, "timesync")
         os.makedirs(ts_dir, exist_ok=True)
-        ts_path: Path = Path(ts_dir).joinpath(f"timesync_{_file_name}.json")
-        with open(ts_path, "w") as t_p:
-            t_p.write(self.timesync_analysis.to_json())
-        for t_s_d in self.timesync_analysis.timesync_data:
-            ts_path = Path(ts_dir).joinpath(f"timesync_data_{int(t_s_d.packet_start_timestamp)}.parquet")
-            pq.write_table(t_s_d.data_as_pyarrow(), ts_path)
+        self.timesync_data.to_json_file()
 
         file_path: Path = Path(self.base_dir).joinpath(f"{_file_name}.json")
         with open(file_path, "w") as f_p:
@@ -1282,10 +1268,9 @@ class StationPa:
             for f in file:
                 result._data.append(sd.SensorDataPa.from_json(f))
 
-        # todo timesync needs work
-        # file = glob(os.path.join(json_data["base_dir"], "timesync", "*.json"))
-        # for f in file:
-        #     result.timesync_analysis = TimeSyncAnalysis.from_json(f)
+        file = glob(os.path.join(json_data["base_dir"], "timesync", "*.json"))
+        for f in file:
+            result.timesync_data = TimeSyncArrow.from_json(f)
 
         return result
 
@@ -1324,5 +1309,5 @@ class StationPaJson:
             packet_metadata["packet_end_os_timestamp"].append(pmd.packet_end_os_timestamp)
             packet_metadata["timing_info_score"].append(pmd.timing_info_score)
         self.packet_metadata = station.packet_metadata
-        self.timesync = station.timesync_analysis
+        self.timesync = station.timesync_data
         self.base_dir = station.base_dir
