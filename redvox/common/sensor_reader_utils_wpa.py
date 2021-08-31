@@ -469,7 +469,7 @@ def load_apim_audio_from_list(
             packet_info = [
                 (
                     p.sensors.audio.first_sample_timestamp,
-                    np.array(p.sensors.audio.samples.values),
+                    pa.Table.from_pydict({"microphone": np.array(p.sensors.audio.samples.values)}),
                 )
                 for p in packets
             ]

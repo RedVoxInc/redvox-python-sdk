@@ -248,7 +248,7 @@ class DataWindowConfigWpa:
                 }
 
 
-class DataWindow:
+class DataWindowArrow:
     """
     Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
 
@@ -327,17 +327,17 @@ class DataWindow:
                                                             self.station_out_dir, self.save_station_files))
 
     @staticmethod
-    def from_config_file(file: str) -> "DataWindow":
+    def from_config_file(file: str) -> "DataWindowArrow":
         """
         Loads a configuration file to create the DataWindow
 
         :param file: full path to config file
         :return: a data window
         """
-        return DataWindow.from_config(DataWindowConfig.from_path(file))
+        return DataWindowArrow.from_config(DataWindowConfig.from_path(file))
 
     @staticmethod
-    def from_config(config: DataWindowConfig) -> "DataWindow":
+    def from_config(config: DataWindowConfig) -> "DataWindowArrow":
         """
         Loads a configuration to create the DataWindow
 
@@ -371,7 +371,7 @@ class DataWindow:
             dwconfig.station_ids = set(config.station_ids)
         if config.edge_points_mode not in gpu.DataPointCreationMode.list_names():
             dwconfig.edge_points_mode = "COPY"
-        return DataWindow(
+        return DataWindowArrow(
             config.input_directory,
             dwconfig,
             # config.station_out
@@ -405,7 +405,7 @@ class DataWindow:
                                 event_location, event_radius, self.as_dict(), self._stations)
 
     @staticmethod
-    def deserialize(path: str) -> "DataWindow":
+    def deserialize(path: str) -> "DataWindowArrow":
         """
         Decompresses and deserializes a DataWindow written to disk.
 
@@ -462,7 +462,7 @@ class DataWindow:
                        # start_dt: Optional[dtu.datetime] = None,
                        # end_dt: Optional[dtu.datetime] = None,
                        # station_ids: Optional[Iterable[str]] = None
-                       ) -> Optional["DataWindow"]:
+                       ) -> Optional["DataWindowArrow"]:
         """
         Reads a JSON file and checks if:
             * The requested times are within the JSON file's times
@@ -480,7 +480,7 @@ class DataWindow:
         """
         with open(file_path, "r") as f_p:
             json_data = json.loads(f_p.read())
-        return DataWindow.from_json_dict(json_data)
+        return DataWindowArrow.from_json_dict(json_data)
         # if not dw_base_dir:
         #     dw_base_dir = Path(base_dir).joinpath("dw")
         # file_name += ".json"
@@ -491,7 +491,7 @@ class DataWindow:
     def from_json(json_str: str, dw_base_dir: str,
                   start_dt: Optional[dtu.datetime] = None,
                   end_dt: Optional[dtu.datetime] = None,
-                  station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
+                  station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindowArrow"]:
         """
         Reads a JSON string and checks if:
             * The requested times are within the JSON file's times
@@ -504,15 +504,15 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        return DataWindow.from_json_dict(dw_io.json_to_data_window(json_str), # dw_base_dir,
-                                         start_dt, end_dt, station_ids)
+        return DataWindowArrow.from_json_dict(dw_io.json_to_data_window(json_str),  # dw_base_dir,
+                                              start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json_dict(json_dict: Dict,
                        # dw_base_dir: str,
                        start_dt: Optional[dtu.datetime] = None,
                        end_dt: Optional[dtu.datetime] = None,
-                       station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindow"]:
+                       station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindowArrow"]:
         """
         Reads a JSON string and checks if:
             * The requested times are within the JSON file's times
@@ -526,7 +526,7 @@ class DataWindow:
         :return: the data window if it suffices, otherwise None
         """
         dct = json_dict["datawindow_metadata"]
-        dwin = DataWindow(dct["input_directory"])
+        dwin = DataWindowArrow(dct["input_directory"])
         dwin.config = dct["config"]
         dwin.debug = dct["debug"]
         dwin.errors = RedVoxExceptions.from_dict(dct["errors"])
@@ -566,6 +566,12 @@ class DataWindow:
         :return: list of stations in the data window
         """
         return self._stations
+
+    def station_ids(self) -> List[str]:
+        """
+        :return: ids of stations in the data window
+        """
+        return [s.get_id() for s in self._stations]
 
     def add_station(self, station: StationPa):
         """

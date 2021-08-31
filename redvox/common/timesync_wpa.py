@@ -304,8 +304,14 @@ class TimeSyncArrow:
                                                      new_data.time_sync_exchanges_list[4])
         self.time_sync_exchanges_list[5] = np.append(self.time_sync_exchanges_list[5],
                                                      new_data.time_sync_exchanges_list[5])
-        self.data_start = np.min([self.data_start, new_data.data_start])
-        self.data_end = np.man([self.data_end, new_data.data_end])
+        if np.isnan(self.data_start):
+            self.data_start = new_data.data_start
+        elif not np.isnan(new_data.data_start):
+            self.data_start = np.min([self.data_start, new_data.data_start])
+        if np.isnan(self.data_end):
+            self.data_end = new_data.data_end
+        elif not np.isnan(new_data.data_end):
+            self.data_end = np.max([self.data_end, new_data.data_end])
         tse = tms.TriMessageStats(
             "",
             np.array(self.time_sync_exchanges_list[0]),

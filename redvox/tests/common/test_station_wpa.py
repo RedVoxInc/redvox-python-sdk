@@ -45,7 +45,7 @@ class StationTest(unittest.TestCase):
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station._data), 6)
         self.assertEqual(
-            self.api900_station.timesync_analysis.get_best_latency(), 70278.0
+            self.api900_station.timesync_data.best_latency, 70278.0
         )
         self.assertTrue(self.api900_station.has_audio_sensor())
         audio_sensor = self.api900_station.audio_sensor()
@@ -57,7 +57,7 @@ class StationTest(unittest.TestCase):
 
     def test_apim_station(self):
         self.assertEqual(len(self.apim_station._data), 3)
-        self.assertEqual(self.apim_station.timesync_analysis.get_best_latency(), 1296.0)
+        self.assertEqual(self.apim_station.timesync_data.best_latency, 1296.0)
         audio_sensor = self.apim_station.audio_sensor()
         self.assertIsNotNone(audio_sensor)
         self.assertEqual(audio_sensor.sample_rate_hz, 48000.0)
@@ -97,7 +97,7 @@ class StationTest(unittest.TestCase):
         empty_apim_station.append_station(self.apim_station)
         self.assertEqual(len(empty_apim_station._data), 3)
         self.assertEqual(
-            empty_apim_station.timesync_analysis.get_best_latency(), 1296.0
+            empty_apim_station.timesync_data.best_latency, 1296.0
         )
 
     def test_append_sensor(self):
