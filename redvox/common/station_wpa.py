@@ -208,7 +208,7 @@ class StationPa:
                 shutil.rmtree(self.base_dir)
             os.makedirs(self.base_dir, exist_ok=True)
             self.timesync_data.arrow_dir = os.path.join(self.base_dir, "timesync")
-            self.timesync_data.arrow_file_name = f"timesync_{self._get_id_key()}"
+            self.timesync_data.arrow_file_name = f"timesync_{self.get_start_date()}"
             self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
@@ -280,7 +280,7 @@ class StationPa:
         """
         return self._uuid
 
-    def set_start_timestamp(self, start_timestamp: float) -> "StationPa":
+    def set_start_date(self, start_timestamp: float) -> "StationPa":
         """
         set the station's start timestamp in microseconds since epoch utc
 
@@ -290,7 +290,7 @@ class StationPa:
         self._start_date = start_timestamp
         return self
 
-    def get_start_timestamp(self) -> float:
+    def get_start_date(self) -> float:
         """
         :return: the station start timestamp or np.nan if it doesn't exist
         """

@@ -157,7 +157,7 @@ class TimeSyncArrow:
 
         :param file_name: the optional base file name.  Do not include a file extension.
                             If None, a default file name is created using this format:
-                            [timesync]_[station]_[first_timestamp].json
+                            timesync.json
         :return: path to json file
         """
         _file_name: str = (
@@ -366,32 +366,44 @@ class TimeSyncArrow:
                     if api900_pb2.TIME_SYNCHRONIZATION in ch.channel_types:
                         all_exchanges.extend(util_900.extract_payload(ch))
 
-        self.time_sync_exchanges_list = np.transpose([
-            all_exchanges[i: i + 6] for i in range(0, len(all_exchanges), 6)
-        ])
-
-        tse = tms.TriMessageStats(
-            "",
-            np.array(self.time_sync_exchanges_list[0]),
-            np.array(self.time_sync_exchanges_list[1]),
-            np.array(self.time_sync_exchanges_list[2]),
-            np.array(self.time_sync_exchanges_list[3]),
-            np.array(self.time_sync_exchanges_list[4]),
-            np.array(self.time_sync_exchanges_list[5]),
-        )
-        self.latencies = np.array((tse.latency1, tse.latency3))
-        self.offsets = np.array((tse.offset1, tse.offset3))
-        # Compute the statistics for latency and offset
-        self.mean_latency = np.mean([*self.latencies[0], *self.latencies[1]])
-        self.latency_std = np.std([*self.latencies[0], *self.latencies[1]])
-        self.mean_offset = np.mean([*self.offsets[0], *self.offsets[1]])
-        self.offset_std = np.std([*self.offsets[0], *self.offsets[1]])
-        self.best_latency_index = tse.best_latency_index
-        self.best_msg_array_index = tse.best_latency_array_index
-        self.best_latency = tse.best_latency
-        self.best_offset = tse.best_offset
-        self.best_offset = tse.best_offset
-        self.offset_model = OffsetModel(self.latencies.flatten(), self.offsets.flatten(),
-                                        self.get_device_exchanges_timestamps(),
-                                        self.data_start, self.data_end)
+        if len(all_exchanges) > 0:
+            self.time_sync_exchanges_list = np.transpose([
+                all_exchanges[i: i + 6] for i in range(0, len(all_exchanges), 6)
+            ])
+            tse = tms.TriMessageStats(
+                "",
+                np.array(self.time_sync_exchanges_list[0]),
+                np.array(self.time_sync_exchanges_list[1]),
+                np.array(self.time_sync_exchanges_list[2]),
+                np.array(self.time_sync_exchanges_list[3]),
+                np.array(self.time_sync_exchanges_list[4]),
+                np.array(self.time_sync_exchanges_list[5]),
+            )
+            self.latencies = np.array((tse.latency1, tse.latency3))
+            self.offsets = np.array((tse.offset1, tse.offset3))
+            # Compute the statistics for latency and offset
+            self.mean_latency = np.mean([*self.latencies[0], *self.latencies[1]])
+            self.latency_std = np.std([*self.latencies[0], *self.latencies[1]])
+            self.mean_offset = np.mean([*self.offsets[0], *self.offsets[1]])
+            self.offset_std = np.std([*self.offsets[0], *self.offsets[1]])
+            self.best_latency_index = tse.best_latency_index
+            self.best_msg_array_index = tse.best_latency_array_index
+            self.best_latency = tse.best_latency
+            self.best_offset = tse.best_offset
+            self.best_offset = tse.best_offset
+            self.offset_model = OffsetModel(self.latencies.flatten(), self.offsets.flatten(),
+                                            self.get_device_exchanges_timestamps(),
+                                            self.data_start, self.data_end)
+        else:
+            self.latencies = np.array(([], []))
+            self.offsets = np.array(([], []))
+            self.best_latency = np.nan
+            self.mean_latency = np.nan
+            self.latency_std = np.nan
+            self.best_offset = 0
+            self.mean_offset = np.nan
+            self.offset_std = np.nan
+            self.best_latency_index = -1
+            self.best_msg_array_index = 0
+            self.offset_model = OffsetModel.empty_model()
         return self

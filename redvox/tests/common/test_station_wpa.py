@@ -34,13 +34,13 @@ class StationTest(unittest.TestCase):
     def test_empty_station(self):
         empty_apim_station = StationPa()
         self.assertEqual(len(empty_apim_station._data), 0)
-        self.assertTrue(np.isnan(empty_apim_station.get_start_timestamp()))
+        self.assertTrue(np.isnan(empty_apim_station.get_start_date()))
         self.assertFalse(empty_apim_station.audio_sensor())
 
     def test_empty_station_update_timestamp(self):
         empty_apim_station = StationPa()
-        empty_apim_station.set_start_timestamp(empty_apim_station.get_start_timestamp() + 100)
-        self.assertTrue(np.isnan(empty_apim_station.get_start_timestamp()))
+        empty_apim_station.set_start_date(empty_apim_station.get_start_date() + 100)
+        self.assertTrue(np.isnan(empty_apim_station.get_start_date()))
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station._data), 6)
@@ -79,7 +79,7 @@ class StationTest(unittest.TestCase):
             self.assertFalse(empty_apim_station.check_key())
             empty_apim_station.set_uuid("abcdefghij")
             self.assertTrue(empty_apim_station.check_key())
-            empty_apim_station.set_start_timestamp(1579448154300000)
+            empty_apim_station.set_start_date(1579448154300000)
             self.assertTrue(empty_apim_station.check_key())
 
     def test_append_station_mismatch(self):
@@ -92,7 +92,7 @@ class StationTest(unittest.TestCase):
         empty_apim_station = StationPa()
         empty_apim_station.set_id(self.apim_station.get_id()).set_uuid(
             self.apim_station.get_uuid()
-        ).set_start_timestamp(self.apim_station.get_start_timestamp())
+        ).set_start_date(self.apim_station.get_start_date())
         empty_apim_station.metadata = self.apim_station.metadata
         empty_apim_station.append_station(self.apim_station)
         self.assertEqual(len(empty_apim_station._data), 3)
