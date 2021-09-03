@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.9rc1 (2021-9-1)
+
+* Merged latest release
+* Fixed bugs when loading data using pyarrow implementation
+
 ### 3.0.9 (2021-8-30)
 
 * Fix missing latencies and offsets attribute when data is missing from files.
