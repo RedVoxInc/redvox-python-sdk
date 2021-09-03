@@ -14,6 +14,8 @@ from redvox.api1000.wrapped_redvox_packet.station_information import (
     NetworkType,
     PowerState,
     CellServiceState,
+    WifiWakeLock,
+    ScreenState
 )
 from redvox.common.stats_helper import StatsContainer
 from redvox.common import date_time_utils as dtu
@@ -63,6 +65,10 @@ STATION_HEALTH_COLUMNS: List[str] = [
     "avail_ram",
     "avail_disk",
     "cell_service",
+    "cpu_utilization",
+    "wifi_wake_lock",
+    "screen_state",
+    "screen_brightness",
 ]
 
 # These are used for checking if a field is present or not
@@ -1403,6 +1409,10 @@ def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
         avail_ram_samples = metrics.available_ram.values
         avail_disk_samples = metrics.available_disk.values
         cell_samples = metrics.cell_service_state
+        cpu_util_samples = metrics.cpu_utilization.values
+        wake_lock_samples = metrics.wifi_wake_lock
+        screen_state_samples = metrics.screen_state
+        screen_bright_samples = metrics.screen_brightness.values
         data_for_df = []
         for i in range(len(timestamps)):
             new_entry = [
@@ -1417,6 +1427,10 @@ def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
                 np.nan if len(avail_ram_samples) < i + 1 else avail_ram_samples[i],
                 np.nan if len(avail_disk_samples) < i + 1 else avail_disk_samples[i],
                 np.nan if len(cell_samples) < i + 1 else cell_samples[i],
+                np.nan if len(cpu_util_samples) < i + 1 else cpu_util_samples[i],
+                np.nan if len(wake_lock_samples) < i + 1 else wake_lock_samples[i],
+                np.nan if len(screen_state_samples) < i + 1 else screen_state_samples[i],
+                np.nan if len(screen_bright_samples) < i + 1 else screen_bright_samples[i],
             ]
             data_for_df.append(new_entry)
         data_df = pd.DataFrame(
@@ -1449,7 +1463,7 @@ def load_apim_health_from_list(
     :param gaps: the list of non-inclusive start and end times of the gaps in the packets
     :return: station health sensor data if it exists, None otherwise
     """
-    data_list: List[List[float]] = [[], [], [], [], [], [], [], [], [], []]
+    data_list: List[List[float]] = [[], [], [], [], [], [], [], [], [], [], [], [], [], []]
     for packet in packets:
         metrics = packet.station_information.station_metrics
         timestamps = metrics.timestamps.timestamps
@@ -1505,6 +1519,24 @@ def load_apim_health_from_list(
                     for i in range(num_samples)
                 ]
             )
+            samples = metrics.cpu_utilization.values
+            data_list[10].extend(samples)
+            samples = metrics.wifi_wake_lock
+            data_list[11].extend(
+                [
+                    WifiWakeLock["OTHER"].value if len(samples) < i + 1 else samples[i]
+                    for i in range(num_samples)
+                ]
+            )
+            samples = metrics.screen_state
+            data_list[12].extend(
+                [
+                    ScreenState["UNKNOWN_SCREEN_STATE"].value if len(samples) < i + 1 else samples[i]
+                    for i in range(num_samples)
+                ]
+            )
+            samples = metrics.screen_brightness.values
+            data_list[13].extend(samples)
     if len(data_list[0]) > 0:
         data_list.insert(1, data_list[0].copy())
         # health is collected 1 per packet or 1 per second

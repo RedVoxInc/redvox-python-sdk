@@ -339,7 +339,7 @@ The table below shows which columns can be accessed by each sensor
 |gyroscope              |gyroscope_x, gyroscope_y, gyroscope_z|
 |gravity                |gravity_x, gravity_y, gravity_z |
 |location, best location|gps_timestamps, latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
-|station health         |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service|
+|station health         |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service, cpu_utilization, wifi wake lock, screen state, screen brightness|
 
 It is intentional that location and best location sensors have the same column names
 *** Please note that entering an invalid column name for a sensor will raise an error and print the list of allowed names.
@@ -369,7 +369,7 @@ The table below lists the sensors and their data's units
 |                        |altitude, horizontal accuracy, vertical accuracy|meters|
 |                        |speed, speed_accuracy   |meters per second|
 |                        |location_provider       |enumeration of LocationProvider|
-|station health          |battery_charge_remaining|percentage|
+|station health          |battery_charge_remaining, cpu_utilization, screen_brightness|percentage|
 |                        |battery_current_strength|microamperes|
 |                        |internal_temp_c         |degrees Celsius|
 |                        |network_type            |enumeration of NetworkType|
@@ -377,6 +377,8 @@ The table below lists the sensors and their data's units
 |                        |power_state             |enumeration of PowerState|
 |                        |avail_ram, avail_disk   |bytes|
 |                        |cell_service            |enumeration of CellServiceState|
+|                        |wifi_wake_lock          |enumeration of WifiWakeLock|
+|                        |screen_state            |enumeration of ScreenState|
 
 If Column Name is blank, then all non-timestamp columns in the dataframe have the unit specified.
 Refer to the previous table for specific column names for each sensor.
@@ -387,7 +389,7 @@ Please note that enumerations require you to import them from the [Redvox SDK](h
 
 Copy the following lines as needed:
 ```python
-from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
+from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState, WifiWakeLock, ScreenState
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec

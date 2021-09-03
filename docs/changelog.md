@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.9 (2021-8-30)
+
+* Fix missing latencies and offsets attribute when data is missing from files.
+* Added missing Health fields from Api 1000 data.
+
 ### 3.0.8rc1 (2021-8-30)
 
 * Added missing/incorrect values when creating stations using parquet files.
