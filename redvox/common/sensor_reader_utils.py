@@ -155,6 +155,24 @@ __SENSOR_TYPE_TO_SENSOR_FN: Dict[
 }
 
 
+def __fill_data_array(input_array: List, num_expected_values: int,
+                      default_value: Union[float, int] = np.nan) -> np.array:
+    """
+    creates a new array filled with [default value] to replace missing values from input_array
+    or returns the first [num_expected_values] from input_array
+
+    :param input_array: array of values to take from
+    :param num_expected_values: number of expected values to take
+    :param default_value: value to use if input_array is shorter than expected
+    :return: array of num_expected_values in length
+    """
+    if len(input_array) < 1:
+        return np.full(num_expected_values, default_value)
+    elif len(input_array) != num_expected_values:
+        return [default_value if len(input_array) < i + 1 else input_array[i] for i in range(num_expected_values)]
+    return input_array
+
+
 def __has_sensor(
         data: Union[api_m.RedvoxPacketM, api_m.RedvoxPacketM.Sensors], field_name: str
 ) -> bool:
@@ -1471,72 +1489,31 @@ def load_apim_health_from_list(
         if num_samples > 0:
             data_list[0].extend(timestamps)
             samples = metrics.battery.values
-            if len(samples) != num_samples:
-                samples = np.full(num_samples, np.nan)
-            data_list[1].extend(samples)
+            data_list[1].extend(__fill_data_array(samples, num_samples, np.nan))
             samples = metrics.battery_current.values
-            if len(samples) != num_samples:
-                samples = np.full(num_samples, np.nan)
-            data_list[2].extend(samples)
+            data_list[2].extend(__fill_data_array(samples, num_samples, np.nan))
             samples = metrics.temperature.values
-            if len(samples) != num_samples:
-                samples = np.full(num_samples, np.nan)
-            data_list[3].extend(samples)
+            data_list[3].extend(__fill_data_array(samples, num_samples, np.nan))
             samples = metrics.network_type
-            data_list[4].extend(
-                [
-                    NetworkType["UNKNOWN_NETWORK"].value
-                    if len(samples) < i + 1
-                    else samples[i]
-                    for i in range(num_samples)
-                ]
-            )
+            data_list[4].extend(__fill_data_array(samples, num_samples, NetworkType["UNKNOWN_NETWORK"].value))
             samples = metrics.network_strength.values
-            if len(samples) != num_samples:
-                samples = np.full(num_samples, np.nan)
-            data_list[5].extend(samples)
+            data_list[5].extend(__fill_data_array(samples, num_samples, np.nan))
             samples = metrics.power_state
-            data_list[6].extend(
-                [
-                    PowerState["UNKNOWN_POWER_STATE"].value
-                    if len(samples) < i + 1
-                    else samples[i]
-                    for i in range(num_samples)
-                ]
-            )
+            data_list[6].extend(__fill_data_array(samples, num_samples, PowerState["UNKNOWN_POWER_STATE"].value))
             samples = metrics.available_ram.values
-            if len(samples) != num_samples:
-                samples = np.full(num_samples, np.nan)
-            data_list[7].extend(samples)
+            data_list[7].extend(__fill_data_array(samples, num_samples, np.nan))
             samples = metrics.available_disk.values
-            data_list[8].extend(
-                samples if len(samples) == num_samples else np.full(num_samples, np.nan)
-            )
+            data_list[8].extend(__fill_data_array(samples, num_samples, np.nan))
             samples = metrics.cell_service_state
-            data_list[9].extend(
-                [
-                    CellServiceState["UNKNOWN"].value if len(samples) < i + 1 else samples[i]
-                    for i in range(num_samples)
-                ]
-            )
+            data_list[9].extend(__fill_data_array(samples, num_samples, CellServiceState["UNKNOWN"].value))
             samples = metrics.cpu_utilization.values
-            data_list[10].extend(samples)
+            data_list[10].extend(__fill_data_array(samples, num_samples, np.nan))
             samples = metrics.wifi_wake_lock
-            data_list[11].extend(
-                [
-                    WifiWakeLock["OTHER"].value if len(samples) < i + 1 else samples[i]
-                    for i in range(num_samples)
-                ]
-            )
+            data_list[11].extend(__fill_data_array(samples, num_samples, WifiWakeLock["OTHER"].value))
             samples = metrics.screen_state
-            data_list[12].extend(
-                [
-                    ScreenState["UNKNOWN_SCREEN_STATE"].value if len(samples) < i + 1 else samples[i]
-                    for i in range(num_samples)
-                ]
-            )
+            data_list[12].extend(__fill_data_array(samples, num_samples, ScreenState["UNKNOWN_SCREEN_STATE"].value))
             samples = metrics.screen_brightness.values
-            data_list[13].extend(samples)
+            data_list[13].extend(__fill_data_array(samples, num_samples, np.nan))
     if len(data_list[0]) > 0:
         data_list.insert(1, data_list[0].copy())
         # health is collected 1 per packet or 1 per second
