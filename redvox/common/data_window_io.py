@@ -21,6 +21,7 @@ from redvox.common.date_time_utils import (
 
 if TYPE_CHECKING:
     from redvox.common.data_window import DataWindow
+    from redvox.common.data_window_wpa import DataWindowArrow
 
 
 def json_to_data_window(json_str: str) -> Dict:
@@ -180,3 +181,55 @@ def data_window_to_json_file(
             )
         )
         return file_path.resolve(False)
+
+
+def serialize_data_window_wpa(
+        data_window: "DataWindowArrow",
+        base_dir: str = ".",
+        file_name: Optional[str] = None,
+        compression_factor: int = 4,
+) -> Path:
+    """
+    Serializes and compresses a DataWindow to a file.
+
+    :param data_window: The data window to serialize and compress.
+    :param base_dir: The base directory to write the serialized file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [start_ts]_[end_ts]_[num_stations].pkl.lz4
+    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                               (default=4).
+    :return: The path to the written file.
+    """
+
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f"{int(data_window.get_start_date())}"
+             f"_{int(data_window.get_end_date())}"
+             f"_{len(data_window.station_ids)}.pkl.lz4"
+    )
+
+    json_path: Path = Path(data_window.files_dir).joinpath(data_window.event_name + ".json")
+    with open(json_path, "w") as f:
+        f.write(data_window.to_json())
+        json_path.resolve(False)
+
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+
+    with lz4.frame.open(
+            file_path, "wb", compression_level=compression_factor
+    ) as compressed_out:
+        pickle.dump(data_window, compressed_out)
+        compressed_out.flush()
+        return file_path.resolve(False)
+
+
+def deserialize_data_window_wpa(path: str) -> "DataWindowArrow":
+    """
+    Decompresses and deserializes a DataWindow written to disk.
+
+    :param path: Path to the serialized and compressed data window.
+    :return: An instance of a DataWindow.
+    """
+    with lz4.frame.open(path, "rb") as compressed_in:
+        return pickle.load(compressed_in)

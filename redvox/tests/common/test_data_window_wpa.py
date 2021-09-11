@@ -90,12 +90,12 @@ class DataWindowJsonTest(unittest.TestCase):
 
     def test_dw_json_compression(self):
         d_w = dw.DataWindowArrow(tests.TEST_DATA_DIR, config=dw.DataWindowConfigWpa(False, station_ids={"0000000001"}),
-                                 save_station_files=True, station_out_dir=self.temp_dir_path)
-        json_str = d_w.to_json_file("d_w", self.temp_dir_path, dw.DataWindowResultLocation(), 0)
+                                 save_files=True, out_dir=self.temp_dir_path)
+        json_str = d_w.to_json_file("d_w", self.temp_dir_path, dw.DataWindowOrigin(), 0)
         unjsonified = dw.DataWindowArrow.from_json_file(self.temp_dir_path + "/d_w_dw.json")
         self.assertTrue("0000000001" in unjsonified.station_ids())
         self.assertTrue(unjsonified.get_station("0000000001")[0].has_audio_data())
-        json_str = d_w.to_json("d_w", self.temp_dir_path, dw.DataWindowResultLocation(), 0)
+        json_str = d_w.to_json("d_w", self.temp_dir_path, dw.DataWindowOrigin(), 0)
         unjsonified = dw.DataWindowArrow.from_json(json_str, self.temp_dir_path + "/d_w_dw.json")
         self.assertTrue("0000000001" in unjsonified.station_ids())
         self.assertTrue(unjsonified.get_station("0000000001")[0].has_audio_data())

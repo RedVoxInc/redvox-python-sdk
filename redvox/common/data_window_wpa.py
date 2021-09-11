@@ -3,12 +3,13 @@ This module creates specific time-bounded segments of data for users
 combines the base data files into a single composite object based on the user parameters
 """
 from pathlib import Path
-from typing import Optional, Set, List, Dict, Iterable, Tuple
+from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 import tempfile
 from glob import glob
 import os
 import json
+import enum
 
 import multiprocessing
 import multiprocessing.pool
@@ -37,17 +38,42 @@ DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to 
 DATA_DROP_DURATION_S: float = 0.2
 
 
-class DataWindowResultLocation:
+class DataWindowOutputType(enum.Enum):
     """
-    The data source, latitude, longitude, altitude and their standard deviations
+    Type of file to create when exporting DataWindow
+    """
+
+    NONE: int = 0
+    PICKLE: int = 1
+    LZ4: int = 2
+    PARQUET: int = 3
+
+    @staticmethod
+    def list_names() -> List[str]:
+        return [n.name for n in DataWindowOutputType]
+
+
+class DataWindowOrigin:
+    """
+    The origin event's latitude, longitude, altitude and their standard deviations, the device used to measure
+    the location data and the radius of the event
+
     Properties:
         provider: string, source of the location data (i.e. GPS or NETWORK), default UNKNOWN
+
         latitude: float, best estimate of latitude, default np.nan
+
         latitude_std: float, standard deviation of best estimate of latitude, default np.nan
+
         longitude: float, best estimate of longitude, default np.nan
+
         longitude_std: float, standard deviation of best estimate of longitude, default np.nan
+
         altitude: float, best estimate of altitude, default np.nan
+
         altitude_std: float, standard deviation of best estimate of altitude, default np.nan
+
+        event_radius_m: float, radius of event in meters
     """
     def __init__(self,
                  provider: str = "UNKNOWN",
@@ -56,7 +82,8 @@ class DataWindowResultLocation:
                  lon: float = np.nan,
                  lon_std: float = np.nan,
                  alt: float = np.nan,
-                 alt_std: float = np.nan):
+                 alt_std: float = np.nan,
+                 event_radius_m: float = 0.0):
         self.provider = provider
         self.latitude = lat
         self.longitude = lon
@@ -64,6 +91,7 @@ class DataWindowResultLocation:
         self.latitude_std = lat_std
         self.longitude_std = lon_std
         self.altitude_std = alt_std
+        self.event_radius_m = event_radius_m
 
     def as_dict(self) -> Dict:
         """
@@ -76,98 +104,23 @@ class DataWindowResultLocation:
             "longitude": self.longitude,
             "longitude_std": self.longitude_std,
             "altitude": self.altitude,
-            "altitude_std": self.altitude_std
+            "altitude_std": self.altitude_std,
+            "event_radius_m": self.event_radius_m
         }
 
-
-class DataWindowResult:
-    """
-    Holds the data for a given data window; used to find the data and to provide
-    enough metadata to get an idea of what is contained in the window
-    Properties:
-        event_name: string, identifier for the event
-        files_dir: string, directory where all the data files are
-        start_time: datetime, start of the window
-        end_time: datetime, end of the window
-        event_origin: Tuple of floats, lat, lon, altitude of the origin
-        event_radius: float, event radius in meters
-        datawindow_metadata: dict, DataWindow metadata including original request
-        stations:
-            id: string, id of station
-            is_time_corrected: bool, True if station's timestamps are updated.  default False
-            best_latency: float, best latency of station in microseconds.  default np.nan
-            best_offset: float, best offset of station in microseconds.  default 0
-            location: Tuple of string, floats, location provider, lat, lon, alt and std devs for each
-            gaps: List of Tuple of floats, timestamps of data points on the edge of data gaps.
-            sensor: (values unique to a sensor are noted)
-                name: str, name of sensor
-                sample_rate (audio only): float, sample rate of sensor
-    """
-    def __init__(self,
-                 event_name: str,
-                 files_dir: str,
-                 start_time: dtu.datetime,
-                 end_time: dtu.datetime,
-                 event_origin: DataWindowResultLocation,
-                 event_radius: float,
-                 data_window_meta: Dict,
-                 stations: List[StationPa]):
-        """
-        initialize the result of a DataWindow
-
-        :param event_name: the name of the event
-        :param files_dir: the directory where the data files exist
-        :param start_time: the start of the window in UTC
-        :param end_time: the end of the window in UTC
-        :param event_origin: the origin location of the event of interest
-        :param event_radius: the effective radius of the event
-        :param data_window_meta: metadata for DataWindow as a dictionary
-        :param stations: the stations that recorded the event
-        """
-        self.event_name = event_name
-        self.files_dir = files_dir
-        self.start_time = start_time
-        self.end_time = end_time
-        self.event_origin = event_origin
-        self.event_radius = event_radius
-        self.datawindow_metadata = data_window_meta
-        self.stations = stations
-
-    def to_json(self) -> json:
-        """
-        :return: DataWindow as JSON
-        """
-        d: dict = {
-            "event_name": self.event_name,
-            "files_dir": self.files_dir,
-            "start_time": us_dt(self.start_time),
-            "end_time": us_dt(self.end_time),
-            "event_origin": self.event_origin.as_dict(),
-            "event_radius": self.event_radius,
-            "datawindow_metadata": self.datawindow_metadata,
-            "stations": [s.default_station_json_file_name() for s in self.stations]
-        }
-        return json.dumps(d)
-
-    # todo: load json of datawindow, meaning datawindow has to set itself up first
-
-    def write(self) -> Path:
-        """
-        write the data to directory self.files_dir
-        """
-        os.makedirs(self.files_dir, exist_ok=True)
-        for s in self.stations:
-            s.to_json_file()
-        file_path: Path = Path(self.files_dir).joinpath(self.event_name + "_dw.json")
-        with open(file_path, "w") as f:
-            f.write(self.to_json())
-            return file_path.resolve(False)
+    @staticmethod
+    def from_dict(data_dict: Dict) -> "DataWindowOrigin":
+        return DataWindowOrigin(data_dict["provider"], data_dict["latitude"], data_dict["latitude_std"],
+                                data_dict["longitude"], data_dict["longitude_std"], data_dict["altitude"],
+                                data_dict["altitude_std"], data_dict["event_radius_m"])
 
 
 class DataWindowConfigWpa:
     """
     Properties:
-        structured_layout: bool, if True, the input_directory contains specially named and organized
+        input_dir: str, the directory that contains all the data
+
+        structured_layout: bool, if True, the input_dir contains specially named and organized
         directories of data.  Default True
 
         start_datetime: optional datetime, start datetime of the window.
@@ -204,6 +157,7 @@ class DataWindowConfigWpa:
     """
     def __init__(
             self,
+            input_dir: str,
             structured_layout: bool = True,
             start_datetime: Optional[dtu.datetime] = None,
             end_datetime: Optional[dtu.datetime] = None,
@@ -217,6 +171,7 @@ class DataWindowConfigWpa:
             copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
             use_model_correction: bool = True,
     ):
+        self.input_dir: str = input_dir
         self.structured_layout: bool = structured_layout
         self.start_datetime: Optional[dtu.datetime] = start_datetime
         self.end_datetime: Optional[dtu.datetime] = end_datetime
@@ -232,8 +187,9 @@ class DataWindowConfigWpa:
         self.use_model_correction = use_model_correction
         self.copy_edge_points = copy_edge_points
 
-    def as_dict(self) -> dict:
-        return {"structured_layout": self.structured_layout,
+    def as_dict(self) -> Dict:
+        return {"input_dir": self.input_dir,
+                "structured_layout": self.structured_layout,
                 "start_datetime": us_dt(self.start_datetime),
                 "end_datetime": us_dt(self.end_datetime),
                 "start_buffer_td": self.start_buffer_td.total_seconds(),
@@ -246,6 +202,18 @@ class DataWindowConfigWpa:
                 "use_model_correction": self.use_model_correction,
                 "copy_edge_points": self.copy_edge_points.value
                 }
+
+    @staticmethod
+    def from_dict(data_dict: Dict) -> "DataWindowConfigWpa":
+        return DataWindowConfigWpa(data_dict["input_dir"], data_dict["structured_layout"],
+                                   dtu.datetime_from_epoch_microseconds_utc(data_dict["start_datetime"]),
+                                   dtu.datetime_from_epoch_microseconds_utc(data_dict["end_datetime"]),
+                                   timedelta(seconds=data_dict["start_buffer_td"]),
+                                   timedelta(seconds=data_dict["end_buffer_td"]),
+                                   data_dict["drop_time_s"], data_dict["station_ids"], set(data_dict["extensions"]),
+                                   set(data_dict["api_versions"]), data_dict["apply_correction"],
+                                   data_dict["use_model_correction"], data_dict["copy_edge_points"]
+                                   )
 
 
 class DataWindowArrow:
@@ -274,45 +242,51 @@ class DataWindowArrow:
     """
     def __init__(
             self,
-            input_dir: str,
+            event_name: str = "dw",
+            event_location: Optional[DataWindowOrigin] = None,
             config: Optional[DataWindowConfigWpa] = None,
-            station_out_dir: str = ".",
-            save_station_files: bool = False,
+            out_dir: str = ".",
+            out_type: DataWindowOutputType = DataWindowOutputType.NONE,
             debug: bool = False,
     ):
         """
         Initialize the DataWindow
 
-        :param input_dir: directory that contains the files to read data from.  REQUIRED
-        :param config: Optional DataWindowConfigWpa which describes how to extract data from Redvox files.
-                        if None, assumes we're loading from an existing data window object in input_dir.  Default None
-        :param station_out_dir: output directory for station parquet files.  Default "." (current directory)
-        :param save_station_files: if True, save the station parquet files, otherwise delete them when finished.
-                                    Default False
+        :param event_name: name of the data window.  defaults to "dw"
+        :param event_location: Optional DataWindowOrigin which describes the physical location and radius of the
+                                origin event.  Default empty DataWindowOrigin (no valid data)
+        :param config: Optional DataWindowConfigWpa which describes how to extract data from Redvox files.  Default None
+        :param out_dir: output directory for files.  Default "." (current directory)
+        :param out_type: type of file to save the data window as.  Default DataWindowOutputType.NONE (no saving)
         :param debug: if True, outputs additional information during initialization. Default False
         """
-        self.input_directory: str = input_dir
-        self.debug: bool = debug
-        self.errors = RedVoxExceptions("DataWindow")
-        self._stations: List[StationPa] = []
-        self.save_station_files: bool = save_station_files
-        if self.save_station_files:
-            self.station_out_dir: str = station_out_dir
+        # todo: data window init options:
+        #  use config w/ data
+        #  use json file in input_dir
+        #  empty; no data or json
+        self.event_name: str = event_name
+        if event_location:
+            self.event_origin: DataWindowOrigin = event_location
+        else:
+            self.event_origin = DataWindowOrigin()
+        self.out_type: DataWindowOutputType = out_type
+        if self.out_type != DataWindowOutputType.NONE:
+            self.files_dir: str = out_dir
             self._temp_dir = None
         else:
             self._temp_dir = tempfile.TemporaryDirectory()
-            self.station_out_dir = self._temp_dir.name
+            self.files_dir = self._temp_dir.name
+        self.debug: bool = debug
+        self.sdk_version: str = redvox.VERSION
+        self.errors = RedVoxExceptions("DataWindow")
+        self._stations: List[StationPa] = []
+        self.config = config
         if config:
-            self.config = config
-            self.sdk_version: str = redvox.VERSION
-            self.data_window_results = None
             if config.start_datetime and config.end_datetime and (config.end_datetime <= config.start_datetime):
                 self.errors.append("DataWindow will not work when end datetime is before or equal to start datetime.\n"
                                    f"Your times: {config.end_datetime} <= {config.start_datetime}")
             else:
                 self.create_data_window()
-        else:
-            self.config = None
         if debug:
             self.print_errors()
 
@@ -320,11 +294,19 @@ class DataWindowArrow:
         if self._temp_dir:
             self._temp_dir.cleanup()
 
-    def from_dir(self, input_dir: str):
-        filelist = glob(os.path.join(input_dir, "*"))
-        for f in filelist:
-            self._stations.append(StationPa.create_from_dir(f, self.config.use_model_correction,
-                                                            self.station_out_dir, self.save_station_files))
+    def from_dir(self, input_dir: str) -> Optional["DataWindowArrow"]:
+        filelist = glob(os.path.join(input_dir, "*.json"))
+        if len(filelist) > 1:
+            print("Multiple json files found in ", input_dir)
+            print("Move the non-data window JSON files from the input directory.")
+            print("Invalid files: ")
+            for f in filelist:
+                print(f)
+        elif len(filelist) == 0:
+            print("No JSON files to load data window found in ", input_dir)
+        else:
+            return self.from_json_file(filelist[0])
+        return None
 
     @staticmethod
     def from_config_file(file: str) -> "DataWindowArrow":
@@ -380,29 +362,18 @@ class DataWindowArrow:
         )
 
     def as_dict(self) -> Dict:
-        return {"input_directory": self.input_directory,
+        return {"event_name": self.event_name,
+                "event_origin": self.event_origin.as_dict(),
+                "start_time": self.get_start_date(),
+                "end_time": self.get_end_date(),
+                "files_dir": self.files_dir if not self._temp_dir else "",
+                "stations": [s.default_station_json_file_name() for s in self._stations],
                 "config": self.config.as_dict(),
                 "debug": self.debug,
                 "errors": self.errors.as_dict(),
                 "sdk_version": self.sdk_version,
-                "save_station_files": self.save_station_files,
-                "station_out_dir": "" if self._temp_dir else self.station_out_dir
+                "out_type": self.out_type.name
                 }
-
-    def create_window_results(self, event_name: str, files_dir: str, event_location: DataWindowResultLocation,
-                              event_radius: float) -> DataWindowResult:
-        """
-        create a DataWindowResult from a DataWindow
-
-        :param event_name: name of the event
-        :param files_dir: path to directory where all files will be written to
-        :param event_location: coordinates of the source
-        :param event_radius: radius of the event area
-        :return: Summarized DataWindow object, with information written to files_dir
-        """
-        return DataWindowResult(event_name, files_dir, dtu.datetime_from_epoch_microseconds_utc(self.get_start_date()),
-                                dtu.datetime_from_epoch_microseconds_utc(self.get_end_date()),
-                                event_location, event_radius, self.as_dict(), self._stations)
 
     @staticmethod
     def deserialize(path: str) -> "DataWindowArrow":
@@ -412,9 +383,9 @@ class DataWindowArrow:
         :param path: Path to the serialized and compressed data window.
         :return: An instance of a DataWindow.
         """
-        return dw_io.deserialize_data_window(path)
+        return dw_io.deserialize_data_window_wpa(path)
 
-    def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
+    def serialize(self, compression_factor: int = 4) -> Path:
         """
         Serializes and compresses this DataWindow to a file.
 
@@ -425,129 +396,89 @@ class DataWindowArrow:
         longer. (default=4).
         :return: The path to the written file.
         """
-        return dw_io.serialize_data_window(self, base_dir, file_name, compression_factor)
+        return dw_io.serialize_data_window_wpa(self, self.files_dir, f"{self.event_name}.pkl.lz4", compression_factor)
 
-    def to_json_file(self, event_name: str, files_dir: str, event_location: DataWindowResultLocation,
-                     event_radius: float) -> Path:
+    def to_json_file(self) -> Path:
         """
         Converts the data window metadata into a JSON file and compresses the data window and writes it to disk.
 
-        :param event_name: name of the event
-        :param files_dir: path to directory where all files will be written to
-        :param event_location: coordinates of the source
-        :param event_radius: radius of the event area
         :return: The path to the written file
         """
-        return self.create_window_results(event_name, files_dir, event_location, event_radius).write()
-        # return dw_io.data_window_to_json_file(self, base_dir, file_name, compression_format)
+        os.makedirs(self.files_dir, exist_ok=True)
+        for s in self._stations:
+            s.to_json_file()
+        file_path: Path = Path(self.files_dir).joinpath(self.event_name + ".json")
+        with open(file_path, "w") as f:
+            f.write(self.to_json())
+            return file_path.resolve(False)
 
-    def to_json(self, event_name: str, files_dir: str, event_location: DataWindowResultLocation,
-                event_radius: float) -> str:
+    def to_json(self) -> str:
         """
         Converts the data window metadata into a JSON string, then compresses the data window and writes it to disk.
 
-        :param event_name: name of the event
-        :param files_dir: path to directory where all files will be written to
-        :param event_location: coordinates of the source
-        :param event_radius: radius of the event area
         :return: The json string
         """
-        return self.create_window_results(event_name, files_dir, event_location, event_radius).to_json()
-        # return dw_io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
+        return json.dumps(self.as_dict())
 
     @staticmethod
-    def from_json_file(file_path: str,
-                       # base_dir: str, file_name: str,
-                       # dw_base_dir: Optional[str] = None,
-                       # start_dt: Optional[dtu.datetime] = None,
-                       # end_dt: Optional[dtu.datetime] = None,
-                       # station_ids: Optional[Iterable[str]] = None
-                       ) -> Optional["DataWindowArrow"]:
+    def from_json_file(file_path: str) -> Optional["DataWindowArrow"]:
         """
-        Reads a JSON file and checks if:
-            * The requested times are within the JSON file's times
-            * The requested stations are a subset of the JSON file's stations
+        Reads a JSON file which contains data window metadata
 
         :param file_path: full path of file to load data from.
-        :param base_dir: the base directory containing the json file
-        :param file_name: the file name of the json file.  Do not include extensions
-        :param dw_base_dir: optional directory containing the compressed data window file.
-                            If not given, assume in subdirectory "dw".  default None
-        :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
-        :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
-        :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
         with open(file_path, "r") as f_p:
             json_data = json.loads(f_p.read())
         return DataWindowArrow.from_json_dict(json_data)
-        # if not dw_base_dir:
-        #     dw_base_dir = Path(base_dir).joinpath("dw")
-        # file_name += ".json"
-        # return DataWindow.from_json_dict(
-        #     dw_io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
 
     @staticmethod
-    def from_json(json_str: str, dw_base_dir: str,
-                  start_dt: Optional[dtu.datetime] = None,
-                  end_dt: Optional[dtu.datetime] = None,
-                  station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindowArrow"]:
+    def from_json(json_str: str) -> Optional["DataWindowArrow"]:
         """
         Reads a JSON string and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
 
         :param json_str: the JSON to read
-        :param dw_base_dir: directory containing the compressed data window file
-        :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
-        :param end_dt: the end datetime to check against.  if not given, assumes True.  default None
-        :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        return DataWindowArrow.from_json_dict(dw_io.json_to_data_window(json_str),  # dw_base_dir,
-                                              start_dt, end_dt, station_ids)
+        return DataWindowArrow.from_json_dict(dw_io.json_to_data_window(json_str))
 
     @staticmethod
-    def from_json_dict(json_dict: Dict,
-                       # dw_base_dir: str,
-                       start_dt: Optional[dtu.datetime] = None,
-                       end_dt: Optional[dtu.datetime] = None,
-                       station_ids: Optional[Iterable[str]] = None) -> Optional["DataWindowArrow"]:
+    def from_json_dict(json_dict: Dict) -> Optional["DataWindowArrow"]:
         """
-        Reads a JSON string and checks if:
-            * The requested times are within the JSON file's times
-            * The requested stations are a subset of the JSON file's stations
+        Reads a JSON dictionary and loads the data into the DataWindow
 
         :param json_dict: the dictionary to read
-        :param dw_base_dir: base directory for the compressed data window file
-        :param start_dt: optional start datetime to check against.  if not given, assumes True.  default None
-        :param end_dt: optional end datetime to check against.  if not given, assumes True.  default None
-        :param station_ids: optional station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        dct = json_dict["datawindow_metadata"]
-        dwin = DataWindowArrow(dct["input_directory"])
-        dwin.config = dct["config"]
-        dwin.debug = dct["debug"]
-        dwin.errors = RedVoxExceptions.from_dict(dct["errors"])
-        dwin.sdk_version = dct["sdk_version"]
-        dwin.station_out_dir = dct["station_out_dir"]
-        dwin.save_station_files = dct["save_station_files"]
-        for st in json_dict["stations"]:
-            dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["files_dir"], st, f"{st}.json")))
+        if DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.PARQUET:
+            dwin = DataWindowArrow(json_dict["event_name"], DataWindowOrigin.from_dict(json_dict["event_origin"]),
+                                   DataWindowConfigWpa.from_dict(json_dict["config"]), json_dict["files_dir"],
+                                   DataWindowOutputType[json_dict["out_type"]], json_dict["debug"])
+            dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
+            dwin.sdk_version = json_dict["sdk_version"]
+            for st in json_dict["stations"]:
+                dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["files_dir"], st, f"{st}.json")))
+        elif DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.LZ4:
+            dwin = DataWindowArrow.deserialize(os.path.join(json_dict["files_dir"],
+                                                            f"{json_dict['event_name']}.pkl.lz4"))
+        else:
+            dwin = DataWindowArrow()
+            raise ValueError("I DUN SAVE THAT WAY")
         return dwin
-        # if start_dt and json_dict["start_datetime"] >= dtu.datetime_to_epoch_microseconds_utc(start_dt):
-        #     return None
-        # if end_dt and json_dict["end_datetime"] < dtu.datetime_to_epoch_microseconds_utc(end_dt):
-        #     return None
-        # if station_ids and not all(a in json_dict["station_ids"] for a in station_ids):
-        #     return None
-        # comp_dw_path = str(Path(dw_base_dir).joinpath(json_dict["file_name"]))
-        # if json_dict["compression_format"] == "lz4":
-        #     return DataWindow.deserialize(comp_dw_path + ".pkl.lz4")
-        # else:
-        #     with open(comp_dw_path + ".pkl", 'rb') as fp:
-        #         return pickle.load(fp)
+
+    def save(self) -> Path:
+        """
+        save the data window
+        :return: the path to where the files exist
+        """
+        if self.out_type == DataWindowOutputType.PARQUET:
+            return self.to_json_file()
+        elif self.out_type == DataWindowOutputType.LZ4:
+            return self.serialize()
+        else:
+            raise ValueError("NO SAVE THAT WAY TRY AGAIN")
 
     def get_start_date(self) -> float:
         """
@@ -632,31 +563,27 @@ class DataWindowArrow:
         r_f.with_end_dt_buf(self.config.end_buffer_td)
 
         # get the data to convert into a window
-        a_r = ApiReader(self.input_directory, self.config.structured_layout, r_f, pool=_pool)
+        a_r = ApiReader(self.config.input_dir, self.config.structured_layout, r_f, pool=_pool)
 
         self.errors.extend_error(a_r.errors)
 
-        if not self.config.station_ids:
-            self.station_ids = a_r.index_summary.station_ids()
-        else:
-            self.station_ids = self.config.station_ids
         # Parallel update
         # Apply timing correction in parallel by station
 
         if self.config.apply_correction:
             for st in maybe_parallel_map(_pool, StationPa.update_timestamps,
                                          iter(a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
-                                             use_model_correction=self.config.use_model_correction,
-                                                                      base_dir=self.station_out_dir,
-                                                                      save_files=self.save_station_files)),
+                                                                      use_model_correction=self.config.use_model_correction,
+                                                                      base_dir=self.files_dir,
+                                                                      save_files=self.out_type != DataWindowOutputType.NONE)),
                                          chunk_size=1):
                 self._add_sensor_to_window(st)
         else:
             [self._add_sensor_to_window(s) for s in
              a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
                                      use_model_correction=self.config.use_model_correction,
-                                     base_dir=self.station_out_dir,
-                                     save_files=self.save_station_files)]
+                                     base_dir=self.files_dir,
+                                     save_files=self.out_type != DataWindowOutputType.NONE)]
 
         # check for stations without data
         self._check_for_audio()
@@ -671,17 +598,13 @@ class DataWindowArrow:
             self.config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
                 np.max([t.last_data_timestamp for t in self._stations]) + 1)
 
-        # if self.save_station_files:
-        #     self.data_window_results = DataWindowResult(self.event_name, self.station_out_dir, self.start_datetime,
-        #                                                 self.end_datetime, self.)
-
         # If the pool was created by this function, then it needs to managed by this function.
         if pool is None:
             _pool.close()
 
     def _check_for_audio(self):
         """
-        removes any station and station id without audio data from the data window
+        removes any station without audio data from the data window
         """
         remove = []
         for s in self._stations:
@@ -689,7 +612,6 @@ class DataWindowArrow:
                 remove.append(s.id)
         if len(remove) > 0:
             self._stations = [s for s in self._stations if s.id not in remove]
-            self.station_ids = [s for s in self.station_ids if s not in remove]
 
     def _check_valid_ids(self):
         """
@@ -698,15 +620,15 @@ class DataWindowArrow:
         if there are no stations, creates a single error message declaring no data found
         """
         if len(self._stations) < 1:
-            if len(self.station_ids) > 1:
-                add_ids = f"for all stations {self.station_ids} "
+            if len(self.config.station_ids) > 1:
+                add_ids = f"for all stations {self.config.station_ids} "
             else:
                 add_ids = ""
-            self.errors.append(f"No data matching criteria {add_ids}in {self.input_directory}"
+            self.errors.append(f"No data matching criteria {add_ids}in {self.config.input_dir}"
                                f"\nPlease adjust parameters of DataWindow")
-        elif len(self.station_ids) > 1:
-            for ids in self.station_ids:
-                if ids not in [i.get_id() for i in self._stations] and self.debug:
+        elif len(self.station_ids()) > 1:
+            for ids in self.config.station_ids:
+                if ids not in [i.get_id() for i in self._stations]:
                     self.errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )
