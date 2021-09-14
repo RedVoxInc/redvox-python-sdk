@@ -204,12 +204,13 @@ class StationPa:
             self.base_dir = os.path.join(self.base_dir, self._get_id_key())
             # self._audio_rate = packets[0].sensors.audio.sample_rate
             # self._audio_name = packets[0].sensors.audio.sensor_description
-            if os.path.exists(self.base_dir):
-                shutil.rmtree(self.base_dir)
-            os.makedirs(self.base_dir, exist_ok=True)
+            if self.save_output:
+                if os.path.exists(self.base_dir):
+                    shutil.rmtree(self.base_dir)
+                os.makedirs(self.base_dir, exist_ok=True)
             self.timesync_data.arrow_dir = os.path.join(self.base_dir, "timesync")
-            self.timesync_data.arrow_file_name = f"timesync_{self.get_start_date()}"
-            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir))
+            self.timesync_data.arrow_file_name = f"timesync_{int(self.get_start_date())}"
+            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir if self.save_output else None))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -1123,30 +1124,46 @@ class StationPa:
         self.errors.extend_error(sensor_summaries.errors)
         audo = sensor_summaries.get_audio()[0]
         if audo:
-            self._data.append(sd.SensorDataPa.from_dir(
-                sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
-                sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
-                sample_interval_std_s=0., is_sample_rate_fixed=True, arrow_dir=audo.fdir)
-            )
+            if self.save_output:
+                self._data.append(sd.SensorDataPa.from_dir(
+                    sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
+                    sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
+                    sample_interval_std_s=0., is_sample_rate_fixed=True)
+                )
+            else:
+                self._data.append(sd.SensorDataPa(audo.name, audo.data(), audo.stype,
+                                                  audo.srate_hz, 1/audo.srate_hz, 0., True))
             self._get_start_and_end_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
                 if np.isnan(sdata[0].srate_hz):
                     for sds in sdata:
                         stats.add(sds.smint_us, sds.sstd_us, sds.scount-1)
+                    if self.save_output:
+                        data_table = ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table()
+                    else:
+                        data_table = sdata[0].data()
+                        for i in range(1, len(sdata)):
+                            data_table = pa.concat_tables([data_table, sdata[i].data()])
                     d, g = gpu.fill_gaps(
-                        ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table(),
-                                         sensor_summaries.audio_gaps,
-                                         stats.mean_of_means(), True)
+                        data_table,
+                        sensor_summaries.audio_gaps,
+                        stats.mean_of_means(), True)
                     self._data.append(sd.SensorDataPa(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g,
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False, arrow_dir=sdata[0].fdir)
                     )
                 else:
+                    if self.save_output:
+                        data_table = ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table()
+                    else:
+                        data_table = sdata[0].data()
+                        for i in range(1, len(sdata)):
+                            data_table = pa.concat_tables([data_table, sdata[i].data()])
                     d, g = gpu.fill_gaps(
-                        ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table(),
-                                         sensor_summaries.audio_gaps,
-                                         sdata[0].smint_us, True)
+                        data_table,
+                        sensor_summaries.audio_gaps,
+                        sdata[0].smint_us, True)
                     self._data.append(sd.SensorDataPa(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g,
                         sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,

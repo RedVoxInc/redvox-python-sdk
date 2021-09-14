@@ -225,8 +225,7 @@ class SensorDataPa:
                 else:
                     if sensor_data["timestamps"].length() > 1:
                         self.sort_by_data_timestamps(sensor_data)
-                    else:
-                        self.write_pyarrow_table(sensor_data)
+                self.write_pyarrow_table(sensor_data)
 
     def __del__(self):
         self._temp_dir.cleanup()
@@ -243,8 +242,7 @@ class SensorDataPa:
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
-            save_data: bool = False,
-            arrow_dir: str = "") -> "SensorDataPa":
+            save_data: bool = False) -> "SensorDataPa":
         """
         init but with a path to directory containing parquet file(s) instead of a table of data
 
@@ -262,15 +260,13 @@ class SensorDataPa:
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
-        :param arrow_dir: directory to save pyarrow table, default "" (current dir).  default temporary dir if not
-                            saving data
         :return: SensorData object
         """
         return SensorDataPa(sensor_name,
                             ds.dataset(data_path, format="parquet", exclude_invalid_files=True).to_table(),
                             sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s, is_sample_rate_fixed,
                             are_timestamps_altered, calculate_stats, use_offset_model_for_correction, save_data,
-                            arrow_dir)
+                            data_path)
 
     @staticmethod
     def from_dict(
@@ -360,7 +356,9 @@ class SensorDataPa:
             order = "ascending"
         else:
             order = "descending"
-        self.write_pyarrow_table(pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", order)])))
+        data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", order)]))
+        self._arrow_file: str = f"{self.type.name}_{int(data['timestamps'][0].as_py())}.parquet"
+        self.write_pyarrow_table(data)
 
     def organize_and_update_stats(self, ptable: pa.Table) -> "SensorDataPa":
         """
@@ -536,19 +534,18 @@ class SensorDataPa:
         slope = dtu.seconds_to_microseconds(self.sample_interval_s) * (1 + offset_model.slope) \
             if use_model_function else dtu.seconds_to_microseconds(self.sample_interval_s)
         if self.type == SensorType.AUDIO:
-            tempme = self.pyarrow_table()
             # use the model to update the first timestamp or add the best offset (model's intercept value)
             timestamps = pa.array(
                 calc_evenly_sampled_timestamps(
                     offset_model.update_time(self.first_data_timestamp(), use_model_function),
                     self.num_samples(),
                     slope))
-            self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", timestamps))
         else:
-            self.write_pyarrow_table(
-                self.pyarrow_table().set_column(0, "timestamps",
-                                                pa.array(offset_model.update_timestamps(self.data_timestamps(),
-                                                                                        use_model_function))))
+            timestamps = pa.array(offset_model.update_timestamps(self.data_timestamps(),
+                                                                 use_model_function))
+        self.pyarrow_table().set_column(0, "timestamps", timestamps)
+        self._arrow_file: str = f"{self.type.name}_{int(self.first_data_timestamp())}.parquet"
+        self.write_pyarrow_table(self.pyarrow_table())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
             self.sample_interval_s = dtu.microseconds_to_seconds(slope)
@@ -660,6 +657,7 @@ class SensorDataPa:
                                            json_data["timestamps_altered"], False, json_data["use_offset_model"])
             result.errors = RedVoxExceptions.from_dict(json_data["errors"])
             result.gaps = json_data["gaps"]
+
         else:
             result = SensorDataPa("Empty")
             result.errors.append("Loading from json file failed; Sensor missing name.")

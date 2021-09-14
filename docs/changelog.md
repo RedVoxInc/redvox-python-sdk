@@ -1,13 +1,18 @@
 ## Changelog
 
-### 3.0.9rc1 (2021-9-1)
+### 3.0.10rc1 (2021-9-13)
 
-* Merged latest release
-* Fixed bugs when loading data using pyarrow implementation
+* Merged pyarrow loading into existing data window functionality
+* If user saves data to disk, parquet files will be created
 
 ### 3.0.10 (2021-9-9)
 
 * Fix missing values in Health Sensor fields
+
+### 3.0.9rc1 (2021-9-1)
+
+* Merged latest release
+* Fixed bugs when loading data using pyarrow implementation
 
 ### 3.0.9 (2021-8-30)
 
