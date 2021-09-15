@@ -174,21 +174,24 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
     res_summary = AggregateSummary()
     # fuse audio into a single result
     packet_info = []
-    if out_dir:
-        audio: PyarrowSummary = summary.get_audio()[0]
-        audio_files = glob(os.path.join(audio.fdir, "*.parquet"))
-        audio_files.sort()
-        for f in audio_files:
-            # Attempt to parse file name parts
-            split_name = f.split("/")[-1].split("_")
-            ts_str: str = split_name[1].split(".")[0]
-            packet_info.append((int(ts_str), pq.read_table(f)))
-    else:
-        audio: List[PyarrowSummary] = summary.get_audio()
-        for f in audio:
-            packet_info.append((int(f.start), f.data()))
-        audio = summary.get_audio()[0]
-        packet_info.sort()
+    audio: PyarrowSummary = summary.get_audio()[0]
+    # avoid converting packets into parquets for now; just load the data into memory and process
+    # if out_dir:
+    #     audio_files = glob(os.path.join(audio.fdir, "*.parquet"))
+    #     audio_files.sort()
+    #     for f in audio_files:
+    #         # Attempt to parse file name parts
+    #         split_name = f.split("/")[-1].split("_")
+    #         ts_str: str = split_name[1].split(".")[0]
+    #         packet_info.append((int(ts_str), pq.read_table(f)))
+    # else:
+    #     for f in summary.get_audio():
+    #         packet_info.append((int(f.start), f.data()))
+    #     packet_info.sort()
+
+    for f in summary.get_audio():
+        packet_info.append((int(f.start), f.data()))
+    packet_info.sort()
 
     gp_result = gpu.fill_audio_gaps(
         packet_info, dtu.seconds_to_microseconds(1 / audio.srate_hz)
@@ -199,8 +202,9 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
     if audio:
         audio_data = PyarrowSummary(audio.name, srupa.SensorType.AUDIO, audio.start, audio.srate_hz, audio.fdir,
                                     gp_result.result.num_rows, data=gp_result.result)
-        if out_dir:
-            audio_data.write_data(True)
+        # avoid converting packets into parquets for now; just load the data into memory and process
+        # if out_dir:
+        #     audio_data.write_data(True)
         res_summary.add_summary(audio_data)
     if res_summary.errors.get_num_errors() > 0:
         res_summary.errors.print()
@@ -251,7 +255,8 @@ def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -> A
                 sensor_dir = os.path.join(out_dir, data.stype.name)
                 os.makedirs(sensor_dir, exist_ok=True)
                 data.fdir = sensor_dir
-                data.write_data()
+            # avoid converting packets into parquets for now; just load the data into memory and process
+            #     data.write_data()
             result.add_summary(data)
     return result
 

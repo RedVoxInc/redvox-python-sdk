@@ -256,7 +256,7 @@ class DataWindowArrow:
         :param event_location: Optional DataWindowOrigin which describes the physical location and radius of the
                                 origin event.  Default empty DataWindowOrigin (no valid data)
         :param config: Optional DataWindowConfigWpa which describes how to extract data from Redvox files.  Default None
-        :param out_dir: output directory for files.  Default "." (current directory)
+        :param out_dir: output directory for saving files.  Default "." (current directory)
         :param out_type: type of file to save the data window as.  Default DataWindowOutputType.NONE (no saving)
         :param debug: if True, outputs additional information during initialization. Default False
         """
@@ -575,7 +575,7 @@ class DataWindowArrow:
                                          iter(a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
                                                                       use_model_correction=self.config.use_model_correction,
                                                                       base_dir=self.files_dir,
-                                                                      save_files=self.out_type != DataWindowOutputType.NONE)),
+                                                                      save_files=self.out_type == DataWindowOutputType.PARQUET)),
                                          chunk_size=1):
                 self._add_sensor_to_window(st)
         else:
@@ -583,7 +583,7 @@ class DataWindowArrow:
              a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
                                      use_model_correction=self.config.use_model_correction,
                                      base_dir=self.files_dir,
-                                     save_files=self.out_type != DataWindowOutputType.NONE)]
+                                     save_files=self.out_type == DataWindowOutputType.PARQUET)]
 
         # check for stations without data
         self._check_for_audio()
