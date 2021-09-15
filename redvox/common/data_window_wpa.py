@@ -569,21 +569,16 @@ class DataWindowArrow:
 
         # Parallel update
         # Apply timing correction in parallel by station
-
+        sts = a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
+                                      use_model_correction=self.config.use_model_correction,
+                                      base_dir=self.files_dir,
+                                      save_files=self.out_type == DataWindowOutputType.PARQUET)
         if self.config.apply_correction:
             for st in maybe_parallel_map(_pool, StationPa.update_timestamps,
-                                         iter(a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
-                                                                      use_model_correction=self.config.use_model_correction,
-                                                                      base_dir=self.files_dir,
-                                                                      save_files=self.out_type == DataWindowOutputType.PARQUET)),
-                                         chunk_size=1):
+                                         iter(sts), chunk_size=1):
                 self._add_sensor_to_window(st)
         else:
-            [self._add_sensor_to_window(s) for s in
-             a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
-                                     use_model_correction=self.config.use_model_correction,
-                                     base_dir=self.files_dir,
-                                     save_files=self.out_type == DataWindowOutputType.PARQUET)]
+            [self._add_sensor_to_window(s) for s in sts]
 
         # check for stations without data
         self._check_for_audio()

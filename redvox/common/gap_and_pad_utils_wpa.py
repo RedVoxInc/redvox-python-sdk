@@ -312,14 +312,13 @@ def add_data_points_to_df(dataframe: pa.Table,
         # create timestamps for every point that needs to be added
         new_timestamps = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
         if point_creation_mode == DataPointCreationMode.COPY:
-            new_dict = dataframe.to_pydict()
             # copy the start point
-            copy_point = {k: new_dict[k][start_index] for k in new_dict.keys()}
+            copy_row = dataframe.slice(start_index, 1).to_pydict()
             for t in new_timestamps:
-                copy_point["timestamps"] = t
-                for k in copy_point.keys():
-                    new_dict[k].append(copy_point[k])
-            dataframe = pa.Table.from_pydict(new_dict)
+                copy_row["timestamps"] = [t]
+                # for k in copy_row.keys():
+                #     new_dict[k].append(copy_row[k])
+            empty_df = pa.Table.from_pydict(copy_row)
         elif point_creation_mode == DataPointCreationMode.INTERPOLATE:
             # use the start point and the next point as the edges for interpolation
             start_point = dataframe.slice(start_index, 1).to_pydict()
@@ -343,7 +342,6 @@ def add_data_points_to_df(dataframe: pa.Table,
             empty_df = pa.Table.from_pydict({**numeric_diff, **non_numeric_diff})
             # merge dicts (python 3.9):
             # empty_df = pa.Table.from_pydict(numeric_diff | non_numeric_diff)
-            dataframe = pa.concat_tables([dataframe, empty_df])
         else:
             # add nans and defaults
             empty_dict: Dict[str, List] = {}
@@ -368,7 +366,7 @@ def add_data_points_to_df(dataframe: pa.Table,
                 else:
                     empty_dict[column_index] = np.full(num_samples_to_add, np.nan).tolist()
             empty_df = pa.Table.from_pydict(empty_dict)
-            dataframe = pa.concat_tables([dataframe, empty_df])
+        dataframe = pa.concat_tables([dataframe, empty_df])
 
     return dataframe
 

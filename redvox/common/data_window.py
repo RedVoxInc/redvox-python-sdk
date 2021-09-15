@@ -408,7 +408,6 @@ class DataWindow:
                 self._add_sensor_to_window(st)
         else:
             [self._add_sensor_to_window(s) for s in sts]
-
         # check for stations without data
         self._check_for_audio()
         self._check_valid_ids()
