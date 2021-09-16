@@ -6,14 +6,11 @@ from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 import tempfile
-from glob import glob
 import os
-import json
 import enum
 
 import multiprocessing
 import multiprocessing.pool
-import pickle
 import numpy as np
 import pyarrow as pa
 
@@ -28,7 +25,6 @@ from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station_wpa import StationPa
 from redvox.common.sensor_data_with_pyarrow import SensorType, SensorDataPa
 from redvox.common.api_reader import ApiReader
-from redvox.common.data_window_configuration import DataWindowConfig
 from redvox.common import gap_and_pad_utils_wpa as gpu
 from redvox.common.errors import RedVoxExceptions
 
@@ -44,13 +40,16 @@ class DataWindowOutputType(enum.Enum):
     """
 
     NONE: int = 0
-    PICKLE: int = 1
-    LZ4: int = 2
-    PARQUET: int = 3
+    LZ4: int = 1
+    PARQUET: int = 2
 
     @staticmethod
     def list_names() -> List[str]:
         return [n.name for n in DataWindowOutputType]
+
+    @staticmethod
+    def list_non_none_names() -> List[str]:
+        return [n.name for n in DataWindowOutputType if n != DataWindowOutputType.NONE]
 
 
 class DataWindowOrigin:
@@ -61,15 +60,15 @@ class DataWindowOrigin:
     Properties:
         provider: string, source of the location data (i.e. GPS or NETWORK), default UNKNOWN
 
-        latitude: float, best estimate of latitude, default np.nan
+        latitude: float, best estimate of latitude in degrees, default np.nan
 
         latitude_std: float, standard deviation of best estimate of latitude, default np.nan
 
-        longitude: float, best estimate of longitude, default np.nan
+        longitude: float, best estimate of longitude in degrees, default np.nan
 
         longitude_std: float, standard deviation of best estimate of longitude, default np.nan
 
-        altitude: float, best estimate of altitude, default np.nan
+        altitude: float, best estimate of altitude in meters, default np.nan
 
         altitude_std: float, standard deviation of best estimate of altitude, default np.nan
 
@@ -84,6 +83,16 @@ class DataWindowOrigin:
                  alt: float = np.nan,
                  alt_std: float = np.nan,
                  event_radius_m: float = 0.0):
+        """
+        :param provider: name of device that provided the information
+        :param lat: latitude in +/- degrees
+        :param lat_std: standard deviation of latitude
+        :param lon: longitude in +/- degrees
+        :param lon_std: standard deviation of longitude
+        :param alt: altitude in meters
+        :param alt_std: standard deviation of altitude
+        :param event_radius_m: radius of event in meters
+        """
         self.provider = provider
         self.latitude = lat
         self.longitude = lon
@@ -221,17 +230,20 @@ class DataWindowArrow:
     Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
 
     Properties:
-        input_directory: string, directory that contains the files to read data from.  REQUIRED
+        event_name: str, name of the data window.  defaults to "dw"
+
+        event_origin: Optional DataWindowOrigin which describes the physical location and radius of the
+        origin event.  Default empty DataWindowOrigin (no valid data)
 
         config: optional DataWindowConfigWpa with information on how to construct data window from
         Redvox (.rdvx*) files.  Default None
 
+        files_dir: str, output directory for station parquet files.  Default "." (current directory)
+
+        out_type: DataWindowOutputType, type of file to save the data window as.
+        Default DataWindowOutputType.NONE (no saving)
+
         sdk_version: str, the version of the Redvox SDK used to create the data window
-
-        station_out_dir: str, output directory for station parquet files.  Default "" (current directory)
-
-        save_station_files: bool, if True, save the station parquet files, otherwise delete them when finished.
-        Default False
 
         errors: DataWindowExceptions, class containing a list of all errors encountered by the data window.
 
@@ -260,10 +272,6 @@ class DataWindowArrow:
         :param out_type: type of file to save the data window as.  Default DataWindowOutputType.NONE (no saving)
         :param debug: if True, outputs additional information during initialization. Default False
         """
-        # todo: data window init options:
-        #  use config w/ data
-        #  use json file in input_dir
-        #  empty; no data or json
         self.event_name: str = event_name
         if event_location:
             self.event_origin: DataWindowOrigin = event_location
@@ -287,79 +295,65 @@ class DataWindowArrow:
                                    f"Your times: {config.end_datetime} <= {config.start_datetime}")
             else:
                 self.create_data_window()
-        if debug:
+        if self.debug:
             self.print_errors()
 
     def __del__(self):
         if self._temp_dir:
             self._temp_dir.cleanup()
 
-    def from_dir(self, input_dir: str) -> Optional["DataWindowArrow"]:
-        filelist = glob(os.path.join(input_dir, "*.json"))
-        if len(filelist) > 1:
-            print("Multiple json files found in ", input_dir)
-            print("Move the non-data window JSON files from the input directory.")
-            print("Invalid files: ")
-            for f in filelist:
-                print(f)
-        elif len(filelist) == 0:
-            print("No JSON files to load data window found in ", input_dir)
-        else:
-            return self.from_json_file(filelist[0])
-        return None
-
-    @staticmethod
-    def from_config_file(file: str) -> "DataWindowArrow":
-        """
-        Loads a configuration file to create the DataWindow
-
-        :param file: full path to config file
-        :return: a data window
-        """
-        return DataWindowArrow.from_config(DataWindowConfig.from_path(file))
-
-    @staticmethod
-    def from_config(config: DataWindowConfig) -> "DataWindowArrow":
-        """
-        Loads a configuration to create the DataWindow
-
-        :param config: DataWindow configuration object
-        :return: a data window
-        """
-        dwconfig = DataWindowConfigWpa()
-        if config.start_year:
-            dwconfig.start_time = dtu.datetime(
-                year=config.start_year,
-                month=config.start_month,
-                day=config.start_day,
-                hour=config.start_hour,
-                minute=config.start_minute,
-                second=config.start_second,
-            )
-        if config.end_year:
-            dwconfig.end_time = dtu.datetime(
-                year=config.end_year,
-                month=config.end_month,
-                day=config.end_day,
-                hour=config.end_hour,
-                minute=config.end_minute,
-                second=config.end_second,
-            )
-        if config.api_versions:
-            dwconfig.api_versions = set([io.ApiVersion.from_str(v) for v in config.api_versions])
-        if config.extensions:
-            dwconfig.extensions = set(config.extensions)
-        if config.station_ids:
-            dwconfig.station_ids = set(config.station_ids)
-        if config.edge_points_mode not in gpu.DataPointCreationMode.list_names():
-            dwconfig.edge_points_mode = "COPY"
-        return DataWindowArrow(
-            config.input_directory,
-            dwconfig,
-            # config.station_out
-            # config.save_files
-            debug=config.debug
-        )
+    # @staticmethod
+    # def from_config_file(file: str) -> "DataWindowArrow":
+    #     """
+    #     Loads a configuration file to create the DataWindow
+    #
+    #     :param file: full path to config file
+    #     :return: a data window
+    #     """
+    #     return DataWindowArrow.from_config(DataWindowConfig.from_path(file))
+    #
+    # @staticmethod
+    # def from_config(config: DataWindowConfig) -> "DataWindowArrow":
+    #     """
+    #     Loads a configuration to create the DataWindow
+    #
+    #     :param config: DataWindow configuration object
+    #     :return: a data window
+    #     """
+    #     dwconfig = DataWindowConfigWpa()
+    #     if config.start_year:
+    #         dwconfig.start_time = dtu.datetime(
+    #             year=config.start_year,
+    #             month=config.start_month,
+    #             day=config.start_day,
+    #             hour=config.start_hour,
+    #             minute=config.start_minute,
+    #             second=config.start_second,
+    #         )
+    #     if config.end_year:
+    #         dwconfig.end_time = dtu.datetime(
+    #             year=config.end_year,
+    #             month=config.end_month,
+    #             day=config.end_day,
+    #             hour=config.end_hour,
+    #             minute=config.end_minute,
+    #             second=config.end_second,
+    #         )
+    #     if config.api_versions:
+    #         dwconfig.api_versions = set([io.ApiVersion.from_str(v) for v in config.api_versions])
+    #     if config.extensions:
+    #         dwconfig.extensions = set(config.extensions)
+    #     if config.station_ids:
+    #         dwconfig.station_ids = set(config.station_ids)
+    #     if config.edge_points_mode not in gpu.DataPointCreationMode.list_names():
+    #         dwconfig.edge_points_mode = "COPY"
+    #     return DataWindowArrow(
+    #         config.input_directory,
+    #         dwconfig,
+    #         # config.station_out
+    #         # config.save_files
+    #         debug=config.debug
+    #     )
 
     def as_dict(self) -> Dict:
         return {"event_name": self.event_name,
@@ -389,84 +383,75 @@ class DataWindowArrow:
         """
         Serializes and compresses this DataWindow to a file.
 
-        :param base_dir: The base directory to write the serialized file to (default=.).
-        :param file_name: The optional file name. If None, a default filename with the following format is used:
-                          [start_ts]_[end_ts]_[num_stations].pkl.lz4
         :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take
         longer. (default=4).
         :return: The path to the written file.
         """
         return dw_io.serialize_data_window_wpa(self, self.files_dir, f"{self.event_name}.pkl.lz4", compression_factor)
 
-    def to_json_file(self) -> Path:
+    def _to_json_file(self) -> Path:
         """
         Converts the data window metadata into a JSON file and compresses the data window and writes it to disk.
 
         :return: The path to the written file
         """
-        os.makedirs(self.files_dir, exist_ok=True)
-        for s in self._stations:
-            s.to_json_file()
-        file_path: Path = Path(self.files_dir).joinpath(self.event_name + ".json")
-        with open(file_path, "w") as f:
-            f.write(self.to_json())
-            return file_path.resolve(False)
+        return dw_io.data_window_to_json_wpa(self, self.files_dir)
 
     def to_json(self) -> str:
         """
-        Converts the data window metadata into a JSON string, then compresses the data window and writes it to disk.
-
-        :return: The json string
+        :return: The data window metadata into a JSON string.
         """
-        return json.dumps(self.as_dict())
+        return dw_io.data_window_as_json(self)
 
     @staticmethod
-    def from_json_file(file_path: str) -> Optional["DataWindowArrow"]:
+    def from_json_file(input_dir: str, event_name: str) -> Optional["DataWindowArrow"]:
         """
-        Reads a JSON file which contains data window metadata
+        load a DataWindow from a JSON file with name: event_name.json
 
-        :param file_path: full path of file to load data from.
-        :return: the data window if it suffices, otherwise None
+        :param input_dir: the directory with the JSON metadata file
+        :param event_name: the name of the data window to load
+        :return: the DataWindow if it exists, or None otherwise
         """
-        with open(file_path, "r") as f_p:
-            json_data = json.loads(f_p.read())
-        return DataWindowArrow.from_json_dict(json_data)
+        return DataWindowArrow.from_json_dict(dw_io.json_file_to_data_window_wpa(input_dir, event_name))
 
     @staticmethod
-    def from_json(json_str: str) -> Optional["DataWindowArrow"]:
+    def from_json(json_str: str) -> "DataWindowArrow":
         """
-        Reads a JSON string and checks if:
-            * The requested times are within the JSON file's times
-            * The requested stations are a subset of the JSON file's stations
+        Read the DataWindow from a JSON string.  If file is improperly formatted, raises a ValueError.
 
         :param json_str: the JSON to read
-        :return: the data window if it suffices, otherwise None
+        :return: The DataWindow as defined by the JSON
         """
         return DataWindowArrow.from_json_dict(dw_io.json_to_data_window(json_str))
 
     @staticmethod
-    def from_json_dict(json_dict: Dict) -> Optional["DataWindowArrow"]:
+    def from_json_dict(json_dict: Dict) -> "DataWindowArrow":
         """
-        Reads a JSON dictionary and loads the data into the DataWindow
+        Reads a JSON dictionary and loads the data into the DataWindow.
+        If dictionary is improperly formatted, raises a ValueError.
 
         :param json_dict: the dictionary to read
-        :return: the data window if it suffices, otherwise None
+        :return: The DataWindow as defined by the JSON
         """
-        if DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.PARQUET:
-            dwin = DataWindowArrow(json_dict["event_name"], DataWindowOrigin.from_dict(json_dict["event_origin"]),
-                                   DataWindowConfigWpa.from_dict(json_dict["config"]), json_dict["files_dir"],
-                                   DataWindowOutputType[json_dict["out_type"]], json_dict["debug"])
-            dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
-            dwin.sdk_version = json_dict["sdk_version"]
-            for st in json_dict["stations"]:
-                dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["files_dir"], st, f"{st}.json")))
-        elif DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.LZ4:
-            dwin = DataWindowArrow.deserialize(os.path.join(json_dict["files_dir"],
-                                                            f"{json_dict['event_name']}.pkl.lz4"))
+        if "out_type" not in json_dict.keys() or json_dict["out_type"] not in DataWindowOutputType.list_names():
+            raise ValueError('Dictionary loading type is invalid or unknown.  '
+                             'Check the value "out_type"; it must be one of: '
+                             f'{DataWindowOutputType.list_non_none_names()}')
         else:
-            dwin = DataWindowArrow()
-            raise ValueError("I DUN SAVE THAT WAY")
-        return dwin
+            if DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.PARQUET:
+                dwin = DataWindowArrow(json_dict["event_name"], DataWindowOrigin.from_dict(json_dict["event_origin"]),
+                                       DataWindowConfigWpa.from_dict(json_dict["config"]), json_dict["files_dir"],
+                                       DataWindowOutputType[json_dict["out_type"]], json_dict["debug"])
+                dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
+                dwin.sdk_version = json_dict["sdk_version"]
+                for st in json_dict["stations"]:
+                    dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["files_dir"], st, f"{st}.json")))
+            elif DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.LZ4:
+                dwin = DataWindowArrow.deserialize(os.path.join(json_dict["files_dir"],
+                                                                f"{json_dict['event_name']}.pkl.lz4"))
+            else:
+                dwin = DataWindowArrow()
+            return dwin
 
     def save(self) -> Path:
         """
@@ -474,11 +459,11 @@ class DataWindowArrow:
         :return: the path to where the files exist
         """
         if self.out_type == DataWindowOutputType.PARQUET:
-            return self.to_json_file()
+            return self._to_json_file()
         elif self.out_type == DataWindowOutputType.LZ4:
             return self.serialize()
         else:
-            raise ValueError("NO SAVE THAT WAY TRY AGAIN")
+            raise ValueError(f"Cannot save as {self.out_type.name}; use a different method when creating data window.")
 
     def get_start_date(self) -> float:
         """

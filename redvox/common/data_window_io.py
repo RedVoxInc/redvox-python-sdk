@@ -128,7 +128,7 @@ def data_window_to_json(
     if not os.path.exists(base_dir):
         os.makedirs(base_dir)
     if compression_format == "lz4":
-        dfp = str(
+        _ = str(
             serialize_data_window(
                 data_win, base_dir, _file_name + ".pkl.lz4"
             ).resolve()
@@ -183,6 +183,55 @@ def data_window_to_json_file(
         return file_path.resolve(False)
 
 
+def data_window_as_json(
+        data_window: "DataWindowArrow"
+) -> str:
+    """
+    Converts the DataWindow's metadata into a JSON dictionary
+
+    :param data_window: The data window to convert
+    :return: The data window's metadata as a JSON dictionary
+    """
+    return json.dumps(data_window.as_dict())
+
+
+def data_window_to_json_wpa(
+        data_window: "DataWindowArrow",
+        base_dir: str = ".",
+        file_name: Optional[str] = None,
+) -> Path:
+    """
+    Converts the DataWindow into a JSON metadata file
+
+    :param data_window: The data window to convert.
+    :param base_dir: The base directory to write the JSON file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [event_name].json
+    :return: The path to the written metadata file.
+    """
+    _file_name = file_name if file_name is not None else data_window.event_name
+    os.makedirs(base_dir, exist_ok=True)
+    for s in data_window.stations():
+        s.to_json_file()
+    file_path: Path = Path(base_dir).joinpath(f"{_file_name}.json")
+    with open(file_path, "w") as f:
+        f.write(data_window.to_json())
+        return file_path.resolve(False)
+
+
+def json_file_to_data_window_wpa(input_dir: str, event_name: str) -> Dict:
+    """
+    load a specifically named DataWindow as a dictionary from a directory
+
+    :param input_dir: the directory with the json metadata file
+    :param event_name: the name of the DataWindow to load
+    :return: the dictionary of the DataWindow if it exists, or None otherwise
+    """
+    file = os.path.join(input_dir, f"{event_name}.json")
+    with open(file, "r") as f_p:
+        return json_to_data_window(f_p.read())
+
+
 def serialize_data_window_wpa(
         data_window: "DataWindowArrow",
         base_dir: str = ".",
@@ -190,15 +239,15 @@ def serialize_data_window_wpa(
         compression_factor: int = 4,
 ) -> Path:
     """
-    Serializes and compresses a DataWindow to a file.
+    Serializes and compresses a DataWindow to a file and creates a JSON metadata file for the compressed file.
 
     :param data_window: The data window to serialize and compress.
     :param base_dir: The base directory to write the serialized file to (default=.).
     :param file_name: The optional file name. If None, a default filename with the following format is used:
-                      [start_ts]_[end_ts]_[num_stations].pkl.lz4
+                      [start_ts]_[end_ts]_[event_name].pkl.lz4
     :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
                                (default=4).
-    :return: The path to the written file.
+    :return: The path to the written compressed file.
     """
 
     _file_name: str = (
@@ -206,7 +255,7 @@ def serialize_data_window_wpa(
         if file_name is not None
         else f"{int(data_window.get_start_date())}"
              f"_{int(data_window.get_end_date())}"
-             f"_{len(data_window.station_ids)}.pkl.lz4"
+             f"_{len(data_window.event_name)}.pkl.lz4"
     )
 
     json_path: Path = Path(data_window.files_dir).joinpath(data_window.event_name + ".json")

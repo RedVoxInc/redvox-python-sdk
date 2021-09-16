@@ -312,6 +312,12 @@ class SensorDataPa:
                             sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
                             calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)
 
+    def is_save_to_disk(self) -> bool:
+        """
+        :return: True if sensor will be saved to disk
+        """
+        return self._save_data
+
     def set_arrow_file(self, new_file: Optional[str] = None):
         """
         set the pyarrow file name or use the default: {sensor_type.name}_{int(first_timestamp)}.parquet
@@ -351,21 +357,25 @@ class SensorDataPa:
 
     def write_pyarrow_table(self, table: pa.Table):
         """
-        saves the pyarrow table to disk, using a default filename: {sensor_type}_{first_timestamp}.parquet
+        saves the pyarrow table to disk or to memory if self._save_data is False
+        if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
+        if writing to disk, removes the _data from memory.
+
         :param table: the table to write
         """
-        # clear the output dir where the table will be written to
         if self._save_data:
+            # clear the output dir where the table will be written to
             filelist = glob(os.path.join(self._arrow_dir, "*.parquet"))
             for f in filelist:
                 os.remove(f)
             pq.write_table(table, os.path.join(self._arrow_dir, self._arrow_file))
+            self._data = None
         else:
             self._data = table
 
     def sort_by_data_timestamps(self, ptable: pa.Table, ascending: bool = True):
         """
-        sorts the data based on timestamps, then writes it to disk
+        sorts the data based on timestamps
 
         :param ptable: pyarrow table to sort
         :param ascending: if True, timestamps are sorted in ascending order, else sort by descending order
@@ -376,7 +386,8 @@ class SensorDataPa:
             order = "descending"
         data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", order)]))
         self._arrow_file: str = f"{self.type.name}_{int(data['timestamps'][0].as_py())}.parquet"
-        self.write_pyarrow_table(data)
+        # self.write_pyarrow_table(data)
+        self._data = data
 
     def organize_and_update_stats(self, ptable: pa.Table) -> "SensorDataPa":
         """
@@ -655,6 +666,8 @@ class SensorDataPa:
             if file_name is not None
             else self._arrow_file.split(".")[0]
         )
+        if not self._save_data:
+            pq.write_table(self._data, os.path.join(self._arrow_dir, self._arrow_file))
         file_path: Path = Path(self._arrow_dir).joinpath(f"{_file_name}.json")
         with open(file_path, "w") as f_p:
             f_p.write(self.to_json())
