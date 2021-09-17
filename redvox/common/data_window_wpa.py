@@ -440,8 +440,9 @@ class DataWindowArrow:
         else:
             if DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.PARQUET:
                 dwin = DataWindowArrow(json_dict["event_name"], DataWindowOrigin.from_dict(json_dict["event_origin"]),
-                                       DataWindowConfigWpa.from_dict(json_dict["config"]), json_dict["files_dir"],
-                                       DataWindowOutputType[json_dict["out_type"]], json_dict["debug"])
+                                       None, json_dict["files_dir"], DataWindowOutputType[json_dict["out_type"]],
+                                       json_dict["debug"])
+                dwin.config = DataWindowConfigWpa.from_dict(json_dict["config"])
                 dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
                 dwin.sdk_version = json_dict["sdk_version"]
                 for st in json_dict["stations"]:

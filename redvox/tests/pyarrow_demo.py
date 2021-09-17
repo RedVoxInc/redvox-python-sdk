@@ -2,18 +2,7 @@ import os
 import timeit
 import pickle
 
-from redvox.common.data_window import DataWindow
 from redvox.common import data_window_wpa as dwpa
-
-
-# def print_station_stats(stations: list):
-#     for og in stations:
-#         print(og.first_data_timestamp)
-#         print(og.last_data_timestamp)
-#         print(og.audio_sensor().num_samples())
-#         og.errors.print()
-#         ppd = pickle.dumps(og).__sizeof__()
-#         print(ppd)
 
 
 def demo():
