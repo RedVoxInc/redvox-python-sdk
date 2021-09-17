@@ -127,7 +127,7 @@ class DataWindowOrigin:
 class DataWindowConfigWpa:
     """
     Properties:
-        input_dir: str, the directory that contains all the data
+        input_dir: str, the directory that contains all the data.  REQUIRED
 
         structured_layout: bool, if True, the input_dir contains specially named and organized
         directories of data.  Default True
