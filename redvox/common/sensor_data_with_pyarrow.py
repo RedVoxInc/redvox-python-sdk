@@ -224,10 +224,10 @@ class SensorDataPa:
                 self._arrow_file: str = f"{sensor_type.name}_{int(sensor_data['timestamps'][0].as_py())}.parquet"
                 if calculate_stats:
                     self.organize_and_update_stats(sensor_data)
+                elif sensor_data["timestamps"].length() > 1:
+                    self.sort_by_data_timestamps(sensor_data)
                 else:
-                    if sensor_data["timestamps"].length() > 1:
-                        self.sort_by_data_timestamps(sensor_data)
-                self.write_pyarrow_table(sensor_data)
+                    self.write_pyarrow_table(sensor_data)
 
     def __del__(self):
         self._temp_dir.cleanup()
@@ -572,9 +572,8 @@ class SensorDataPa:
         else:
             timestamps = pa.array(offset_model.update_timestamps(self.data_timestamps(),
                                                                  use_model_function))
-        self.pyarrow_table().set_column(0, "timestamps", timestamps)
+        self._data = self.pyarrow_table().set_column(0, "timestamps", timestamps)
         self.set_arrow_file()
-        self.write_pyarrow_table(self.pyarrow_table())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
             self.sample_interval_s = dtu.microseconds_to_seconds(slope)

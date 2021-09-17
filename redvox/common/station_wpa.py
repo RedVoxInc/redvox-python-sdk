@@ -209,7 +209,10 @@ class StationPa:
                     shutil.rmtree(self.base_dir)
                 os.makedirs(self.base_dir, exist_ok=True)
             self.timesync_data.arrow_dir = os.path.join(self.base_dir, "timesync")
-            self.timesync_data.arrow_file_name = f"timesync_{int(self.get_start_date())}"
+            if self._start_date and not np.isnan(self._start_date):
+                self.timesync_data.arrow_file_name = f"timesync_{int(self._start_date)}"
+            else:
+                self.timesync_data.arrow_file_name = f"timesync_0"
             self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir if self.save_output else None))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
@@ -1195,12 +1198,7 @@ class StationPa:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self.timesync_data.offset_model.update_time(self._gaps[g][0]),
                                  self.timesync_data.offset_model.update_time(self._gaps[g][1]))
-            self.first_data_timestamp = self.timesync_data.offset_model.update_time(
-                self.first_data_timestamp, self.use_model_correction
-            )
-            self.last_data_timestamp = self.timesync_data.offset_model.update_time(
-                self.last_data_timestamp, self.use_model_correction
-            )
+            self._get_start_and_end_timestamps()
             self.is_timestamps_updated = True
         return self
 
