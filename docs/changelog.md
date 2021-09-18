@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.10rc2 (2021-9-17)
+
+* Fixed bug when writing sensors to json files
+* Added default name
+
 ### 3.0.10rc1 (2021-9-13)
 
 * Merged pyarrow loading into existing data window functionality
