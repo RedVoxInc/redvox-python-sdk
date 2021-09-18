@@ -665,7 +665,7 @@ class SensorDataPa:
             if file_name is not None
             else self._arrow_file.split(".")[0]
         )
-        if not self._save_data:
+        if self._save_data:
             pq.write_table(self._data, os.path.join(self._arrow_dir, self._arrow_file))
         file_path: Path = Path(self._arrow_dir).joinpath(f"{_file_name}.json")
         with open(file_path, "w") as f_p:

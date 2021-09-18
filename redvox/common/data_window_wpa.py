@@ -570,14 +570,18 @@ class DataWindowArrow:
         self._check_for_audio()
         self._check_valid_ids()
 
+        # update the default data window name if it's still there
+        if self.event_name == "dw":
+            self.event_name = f"{self.get_start_date()}_{self.station_ids()}_dw"
+
         # update remaining data window values if they're still default
-        if not self.config.start_datetime and len(self._stations) > 0:
-            self.config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.min([t.first_data_timestamp for t in self._stations]))
+        # if not self.config.start_datetime and len(self._stations) > 0:
+        #     self.config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
+        #         np.min([t.first_data_timestamp for t in self._stations]))
         # end_datetime is non-inclusive, so it must be greater than our latest timestamp
-        if not self.config.end_datetime and len(self._stations) > 0:
-            self.config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.max([t.last_data_timestamp for t in self._stations]) + 1)
+        # if not self.config.end_datetime and len(self._stations) > 0:
+        #     self.config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
+        #         np.max([t.last_data_timestamp for t in self._stations]) + 1)
 
         # If the pool was created by this function, then it needs to managed by this function.
         if pool is None:
