@@ -1,6 +1,11 @@
 ## Changelog
 
-### 3.0.10rc2 (2021-9-27)
+### 3.0.10rc4 (2021-9-28)
+
+* fixed error when comparing configuration station ids that are shorter than 10 characters 
+* fixed incorrect default value for location providers when loading data using pyarrow
+
+### 3.0.10rc3 (2021-9-27)
 
 * Fixed bug when loading timestamps into offset model using datawindow arrow version
 * Allowed other iterables when creating DataWindowConfigWpa

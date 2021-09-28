@@ -118,11 +118,7 @@ class DataWindow:
             else timedelta(seconds=0)
         self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td > timedelta(seconds=0) else timedelta(seconds=0)
         self.drop_time_s: float = drop_time_s if drop_time_s > 0 else DATA_DROP_DURATION_S
-        self.station_ids: Optional[Set[str]]
-        if station_ids:
-            self.station_ids = set(station_ids)
-        else:
-            self.station_ids = None
+        self.station_ids: Optional[Set[str]] = set(station_ids) if station_ids else None
         self.extensions: Optional[Set[str]] = extensions
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
@@ -450,9 +446,9 @@ class DataWindow:
                 add_ids = ""
             self.errors.append(f"No data matching criteria {add_ids}in {self.input_directory}"
                                f"\nPlease adjust parameters of DataWindow")
-        elif len(self.station_ids) > 1:
+        elif len(self.station_ids) > 0:
             for ids in self.station_ids:
-                if ids not in [i.id for i in self.stations] and self.debug:
+                if ids.zfill(10) not in [i.id for i in self.stations]:
                     self.errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )

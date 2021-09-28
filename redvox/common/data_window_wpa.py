@@ -614,9 +614,9 @@ class DataWindowArrow:
                 add_ids = ""
             self.errors.append(f"No data matching criteria {add_ids}in {self.config.input_dir}"
                                f"\nPlease adjust parameters of DataWindow")
-        elif len(self.station_ids()) > 1 and self.config.station_ids:
+        elif len(self.station_ids()) > 0 and self.config.station_ids:
             for ids in self.config.station_ids:
-                if ids not in [i.get_id() for i in self._stations]:
+                if ids.zfill(10) not in [i.get_id() for i in self._stations]:
                     self.errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )

@@ -821,7 +821,8 @@ def apim_location_to_pyarrow(loc: api_m.RedvoxPacketM.Sensors.Location) -> pa.Ta
         data_for_df[9].append(np.nan if len(vert_acc_samples) <= i else vert_acc_samples[i])
         data_for_df[10].append(np.nan if len(spd_acc_samples) <= i else spd_acc_samples[i])
         data_for_df[11].append(np.nan if len(bear_acc_samples) <= i else bear_acc_samples[i])
-        data_for_df[12].append(np.nan if len(loc_prov_samples) <= i else loc_prov_samples[i])
+        data_for_df[12].append(api_m.RedvoxPacketM.Sensors.Location.LocationProvider.UNKNOWN
+                               if len(loc_prov_samples) <= i else loc_prov_samples[i])
     return pa.Table.from_pydict(dict(zip(LOCATION_COLUMNS, data_for_df)))
 
 
