@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.10rc2 (2021-9-27)
+
+* Fixed bug when loading timestamps into offset model using datawindow arrow version
+* Allowed other iterables when creating DataWindowConfigWpa
+
 ### 3.0.10rc2 (2021-9-17)
 
 * Fixed bug when writing sensors to json files

@@ -268,7 +268,9 @@ class TimeSyncArrow:
         """
         :return: timestamps of sync exchanges initiated by the device
         """
-        return self.time_sync_exchanges_list[3].tolist().extend(self.time_sync_exchanges_list[5].tolist())
+        # make this return the actual thing?
+        return np.concatenate((self.time_sync_exchanges_list[3].tolist(), self.time_sync_exchanges_list[5].tolist()))
+        # self.time_sync_exchanges_list[3].tolist().extend(self.time_sync_exchanges_list[5].tolist())
 
     def num_tri_messages(self) -> int:
         """
@@ -389,7 +391,6 @@ class TimeSyncArrow:
             self.best_latency_index = tse.best_latency_index
             self.best_msg_array_index = tse.best_latency_array_index
             self.best_latency = tse.best_latency
-            self.best_offset = tse.best_offset
             self.best_offset = tse.best_offset
             self.offset_model = OffsetModel(self.latencies.flatten(), self.offsets.flatten(),
                                             self.get_device_exchanges_timestamps(),

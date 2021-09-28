@@ -386,3 +386,18 @@ class SensorData:
             non_numeric_diff = non_numeric_start
         numeric_diff["timestamps"] = interpolate_timestamp
         return pd.concat([numeric_diff, non_numeric_diff])
+
+
+class AudioSensor(SensorData):
+    """
+    Audio specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.AUDIO, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
