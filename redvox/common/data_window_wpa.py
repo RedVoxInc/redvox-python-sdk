@@ -189,7 +189,7 @@ class DataWindowConfigWpa:
         self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td > timedelta(seconds=0) \
             else timedelta(seconds=0)
         self.drop_time_s: float = drop_time_s if drop_time_s > 0 else DATA_DROP_DURATION_S
-        self.station_ids: Optional[Set[str]] = set(station_ids)
+        self.station_ids: Optional[Set[str]] = set(station_ids) if station_ids else None
         self.extensions: Optional[Set[str]] = extensions
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
