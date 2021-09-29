@@ -36,7 +36,7 @@ def demo():
     drws.save()
 
     s = timeit.default_timer()
-    drws = dwpa.DataWindowArrow.from_json_file(save_path10, "large_test")
+    drws = dwpa.DataWindowArrow.load(os.path.join(save_path10, "large_test.json"))
     e = timeit.default_timer()
     print("load parquet", e-s)
 
@@ -45,9 +45,11 @@ def demo():
     e = timeit.default_timer()
     print("load lz4", e-s)
 
-    print("size of lz4:     ", pickle.dumps(dwaz).__sizeof__())
-    print("size of nosave:  ", pickle.dumps(dwa).__sizeof__())
-    print("size of parquet: ", pickle.dumps(drws).__sizeof__())
+    print("memory used by lz4:     ", pickle.dumps(dwaz).__sizeof__())
+    print("memory used by nosave:  ", pickle.dumps(dwa).__sizeof__())
+    print("memory used by parquet: ", pickle.dumps(drws).__sizeof__())
+    print("size of parquet files on disk: 109 MB")
+    print("size of lz4: 110.5 MB")
 
 
 if __name__ == "__main__":

@@ -219,16 +219,14 @@ def data_window_to_json_wpa(
         return file_path.resolve(False)
 
 
-def json_file_to_data_window_wpa(input_dir: str, event_name: str) -> Dict:
+def json_file_to_data_window_wpa(file_path: str) -> Dict:
     """
     load a specifically named DataWindow as a dictionary from a directory
 
-    :param input_dir: the directory with the json metadata file
-    :param event_name: the name of the DataWindow to load
+    :param file_path: full path of file to load
     :return: the dictionary of the DataWindow if it exists, or None otherwise
     """
-    file = os.path.join(input_dir, f"{event_name}.json")
-    with open(file, "r") as f_p:
+    with open(file_path, "r") as f_p:
         return json_to_data_window(f_p.read())
 
 

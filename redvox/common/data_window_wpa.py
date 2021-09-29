@@ -404,17 +404,6 @@ class DataWindowArrow:
         return dw_io.data_window_as_json(self)
 
     @staticmethod
-    def from_json_file(input_dir: str, event_name: str) -> Optional["DataWindowArrow"]:
-        """
-        load a DataWindow from a JSON file with name: event_name.json
-
-        :param input_dir: the directory with the JSON metadata file
-        :param event_name: the name of the data window to load
-        :return: the DataWindow if it exists, or None otherwise
-        """
-        return DataWindowArrow.from_json_dict(dw_io.json_file_to_data_window_wpa(input_dir, event_name))
-
-    @staticmethod
     def from_json(json_str: str) -> "DataWindowArrow":
         """
         Read the DataWindow from a JSON string.  If file is improperly formatted, raises a ValueError.
@@ -465,6 +454,16 @@ class DataWindowArrow:
             return self.serialize()
         else:
             raise ValueError(f"Cannot save as {self.out_type.name}; use a different method when creating data window.")
+
+    @staticmethod
+    def load(file_path: str) -> "DataWindowArrow":
+        """
+        load from json metadata and lz4 compressed file or directory of files
+
+        :param file_path: full path of file to load
+        :return: datawindow from json metadata
+        """
+        return DataWindowArrow.from_json_dict(dw_io.json_file_to_data_window_wpa(file_path))
 
     def get_start_date(self) -> float:
         """
