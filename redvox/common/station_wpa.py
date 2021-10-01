@@ -12,7 +12,6 @@ import shutil
 from glob import glob
 
 import numpy as np
-import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 import pyarrow as pa
 
@@ -24,6 +23,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import packet_to_pyarrow as ptp
 from redvox.common import gap_and_pad_utils_wpa as gpu
 from redvox.common.stats_helper import StatsContainer
+from redvox.common.date_time_utils import seconds_to_microseconds as s_to_us
 
 
 class StationPa:
@@ -1155,11 +1155,11 @@ class StationPa:
                     data_table = pa.concat_tables([data_table, sdata[i].data()])
                 if np.isnan(sdata[0].srate_hz):
                     for sds in sdata:
-                        stats.add(sds.smint_us, sds.sstd_us, sds.scount-1)
+                        stats.add(sds.smint_s, sds.sstd_s, sds.scount - 1)
                     d, g = gpu.fill_gaps(
                         data_table,
                         sensor_summaries.audio_gaps,
-                        stats.mean_of_means(), True)
+                        s_to_us(stats.mean_of_means()), True)
                     self._data.append(sd.SensorDataPa(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self.save_output,
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False, arrow_dir=sdata[0].fdir)
@@ -1168,7 +1168,7 @@ class StationPa:
                     d, g = gpu.fill_gaps(
                         data_table,
                         sensor_summaries.audio_gaps,
-                        sdata[0].smint_us, True)
+                        s_to_us(sdata[0].smint_s), True)
                     self._data.append(sd.SensorDataPa(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self.save_output,
                         sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,

@@ -52,7 +52,7 @@ class DataWindowOutputType(enum.Enum):
         return [n.name for n in DataWindowOutputType if n != DataWindowOutputType.NONE]
 
 
-class DataWindowOrigin:
+class EventOrigin:
     """
     The origin event's latitude, longitude, altitude and their standard deviations, the device used to measure
     the location data and the radius of the event
@@ -118,10 +118,10 @@ class DataWindowOrigin:
         }
 
     @staticmethod
-    def from_dict(data_dict: Dict) -> "DataWindowOrigin":
-        return DataWindowOrigin(data_dict["provider"], data_dict["latitude"], data_dict["latitude_std"],
-                                data_dict["longitude"], data_dict["longitude_std"], data_dict["altitude"],
-                                data_dict["altitude_std"], data_dict["event_radius_m"])
+    def from_dict(data_dict: Dict) -> "EventOrigin":
+        return EventOrigin(data_dict["provider"], data_dict["latitude"], data_dict["latitude_std"],
+                           data_dict["longitude"], data_dict["longitude_std"], data_dict["altitude"],
+                           data_dict["altitude_std"], data_dict["event_radius_m"])
 
 
 class DataWindowConfigWpa:
@@ -255,7 +255,7 @@ class DataWindowArrow:
     def __init__(
             self,
             event_name: str = "dw",
-            event_location: Optional[DataWindowOrigin] = None,
+            event_location: Optional[EventOrigin] = None,
             config: Optional[DataWindowConfigWpa] = None,
             out_dir: str = ".",
             out_type: DataWindowOutputType = DataWindowOutputType.NONE,
@@ -274,9 +274,9 @@ class DataWindowArrow:
         """
         self.event_name: str = event_name
         if event_location:
-            self.event_origin: DataWindowOrigin = event_location
+            self.event_origin: EventOrigin = event_location
         else:
-            self.event_origin = DataWindowOrigin()
+            self.event_origin = EventOrigin()
         self.out_type: DataWindowOutputType = out_type
         if self.out_type != DataWindowOutputType.NONE:
             self.files_dir: str = out_dir
@@ -428,7 +428,7 @@ class DataWindowArrow:
                              f'{DataWindowOutputType.list_non_none_names()}')
         else:
             if DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.PARQUET:
-                dwin = DataWindowArrow(json_dict["event_name"], DataWindowOrigin.from_dict(json_dict["event_origin"]),
+                dwin = DataWindowArrow(json_dict["event_name"], EventOrigin.from_dict(json_dict["event_origin"]),
                                        None, json_dict["files_dir"], DataWindowOutputType[json_dict["out_type"]],
                                        json_dict["debug"])
                 dwin.config = DataWindowConfigWpa.from_dict(json_dict["config"])

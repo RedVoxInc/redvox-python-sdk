@@ -69,13 +69,26 @@ station_schema = pa.schema([("id", pa.string()), ("uuid", pa.string()),
 class PyarrowSummary:
     def __init__(self, name: str, stype: srupa.SensorType, start: float, srate: float, fdir: str,
                  scount: int, smint: float = np.nan, sstd: float = np.nan, data: Optional[pa.Table] = None):
+        """
+        intialize a summary of a sensor
+
+        :param name: name of sensor
+        :param stype: sensor type of summary
+        :param start: start timestamp in microseconds since epoch utc of sensor
+        :param srate: sample rate in Hz
+        :param fdir: directory where files can be found
+        :param scount: number of samples to read
+        :param smint: mean interval of sample rate in seconds
+        :param sstd: std dev of sample rate in seconds
+        :param data: optional data as a pyarrow table
+        """
         self.name = name
         self.stype = stype
         self.start = start
         self.srate_hz = srate
         self.fdir = fdir
-        self.smint_us = smint
-        self.sstd_us = sstd
+        self.smint_s = smint
+        self.sstd_s = sstd
         self.scount = scount
         self._data = data
 
@@ -308,7 +321,7 @@ def load_apim_image(packet: RedvoxPacketM) -> Optional[PyarrowSummary]:
         image_sensor: RedvoxPacketM.Sensors.Image = packet.sensors.image
         timestamps = image_sensor.timestamps.timestamps
         if len(timestamps) > 1:
-            sample_rate = 1
+            sample_rate = 1.
         else:
             sample_rate = 1 / srupa.__packet_duration_s(packet)
         return PyarrowSummary(
