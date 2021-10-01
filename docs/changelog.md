@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.10rc5 (2021-9-30)
+
+* fixed error converting units of sample interval and std dev in pyarrow summaries
+* renamed DataWindowOrigin to EventOrigin
+
 ### 3.0.10rc4 (2021-9-28)
 
 * fixed error when comparing configuration station ids that are shorter than 10 characters 
