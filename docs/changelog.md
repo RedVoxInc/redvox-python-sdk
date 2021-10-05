@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.0.10rc6 (2021-10-5)
+
+* moved code in ApiReader involving DataWindowArrow to new file; api_reader_dw
+
 ### 3.0.10rc5 (2021-9-30)
 
 * fixed error converting units of sample interval and std dev in pyarrow summaries
