@@ -45,20 +45,13 @@ class ApiReaderDw(ApiReader):
         self.save_files = save_files
         self._stations = self.get_stations()
 
-    def _stations_by_index(self, findex: io.Index, correct_timestamps: bool = False,
-                           use_model_correction: bool = True,
-                           base_dir: str = "", save_files: bool = False) -> StationPa:
+    def _stations_by_index(self, findex: io.Index) -> StationPa:
         """
         :param findex: index with files to build a station with
-        :param correct_timestamps: if True, correct timestamps as soon as they're available.  Default False
-        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
-                                        best offset (intercept value) otherwise.  Default True
-        :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
-        :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
         :return: Station built from files in findex, without building the data from parquet
         """
-        stpa = StationPa.create_from_packets(self.read_files_in_index(findex), correct_timestamps,
-                                             use_model_correction, base_dir, save_files)
+        stpa = StationPa.create_from_packets(self.read_files_in_index(findex), self.correct_timestamps,
+                                             self.use_model_correction, self.dw_base_dir, self.save_files)
         if self.debug:
             print(f"station {stpa.get_id()} files read: {len(findex.entries)}")
         return stpa
