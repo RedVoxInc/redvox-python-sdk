@@ -24,7 +24,7 @@ from redvox.common import data_window_io as dw_io
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station_wpa import StationPa
 from redvox.common.sensor_data_with_pyarrow import SensorType, SensorDataPa
-from redvox.common.api_reader import ApiReader
+from redvox.common.api_reader_dw import ApiReaderDw
 from redvox.common import gap_and_pad_utils_wpa as gpu
 from redvox.common.errors import RedVoxExceptions
 
@@ -550,20 +550,26 @@ class DataWindowArrow:
         r_f.with_end_dt_buf(self.config.end_buffer_td)
 
         # get the data to convert into a window
-        a_r = ApiReader(self.config.input_dir, self.config.structured_layout, r_f, pool=_pool)
+        a_r = ApiReaderDw(self.config.input_dir, self.config.structured_layout, r_f,
+                          correct_timestamps=self.config.apply_correction,
+                          use_model_correction=self.config.use_model_correction,
+                          dw_base_dir=self.files_dir,
+                          save_files=self.out_type == DataWindowOutputType.PARQUET,
+                          debug=self.debug, pool=_pool)
 
         self.errors.extend_error(a_r.errors)
 
         # Parallel update
         # Apply timing correction in parallel by station
-        sts = a_r.get_stations_wpa_fs(correct_timestamps=self.config.apply_correction,
-                                      use_model_correction=self.config.use_model_correction,
-                                      base_dir=self.files_dir,
-                                      save_files=self.out_type == DataWindowOutputType.PARQUET)
+        sts = a_r.get_stations()
+        if self.debug:
+            print("num stations loaded: ", len(sts))
         if self.config.apply_correction:
             for st in maybe_parallel_map(_pool, StationPa.update_timestamps,
                                          iter(sts), chunk_size=1):
                 self._add_sensor_to_window(st)
+                if self.debug:
+                    print("station processed: ", st.get_id())
         else:
             [self._add_sensor_to_window(s) for s in sts]
 

@@ -2,7 +2,7 @@
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 """
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
@@ -63,7 +63,7 @@ class ApiReader:
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
         :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
-        :param debug: if True, output additional statements during function execution.  Default False.
+        :param debug: if True, output program warnings/errors during function execution.  Default False.
         """
         _pool: multiprocessing.pool.Pool = (
             multiprocessing.Pool() if pool is None else pool
@@ -317,148 +317,6 @@ class ApiReader:
         :return: list of all stations with the requested id or None if id can't be found
         """
         result = [s for s in self.get_stations() if s.id == get_id]
-        if len(result) < 1:
-            return None
-        return result
-
-    def _stations_wpa_by_index_fs(self, findex: io.Index, correct_timestamps: bool = False,
-                                  use_model_correction: bool = True,
-                                  base_dir: str = "", save_files: bool = False) -> StationPa:
-        """
-        :param findex: index with files to build a station with
-        :param correct_timestamps: if True, correct timestamps as soon as they're available.  Default False
-        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
-                                        best offset (intercept value) otherwise.  Default True
-        :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
-        :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
-        :return: Station built from files in findex, without building the data from parquet
-        """
-        stpa = StationPa.create_from_packets(self.read_files_in_index(findex), correct_timestamps,
-                                             use_model_correction, base_dir, save_files)
-        return stpa
-
-    def download_process(self, input_queue: Queue, result_queue: Queue, correct_timestamps: bool = False,
-                         use_model_correction: bool = True, base_dir: str = "", save_files: bool = False
-                         ) -> None:
-        """
-        A function that runs in a separate process for creating stations.
-        :param input_queue: A shared queue containing the list of items to be downloaded.
-        :param result_queue: A queue used to send results from the process to the caller.
-        :param correct_timestamps: if True, correct timestamps as soon as they're available.  Default False
-        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
-                                        best offset (intercept value) otherwise.  Default True
-        :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
-        :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
-        """
-        try:
-            # While there is still data in the queue, retrieve it.
-            while True:
-                files_index = input_queue.get_nowait()
-                try:
-                    st = StationPa.create_from_packets(self.read_files_in_index(files_index), correct_timestamps,
-                                                       use_model_correction, base_dir, save_files)
-                    result_queue.put(st, True, None)
-                except FileExistsError:
-                    print(f"File already exists, skipping...")
-                    continue
-        # Thrown when the queue is empty
-        except queue.Empty:
-            return
-
-    def download_files(self, num_processes: int = cpu_count(), correct_timestamps: bool = False,
-                       use_model_correction: bool = True, base_dir: str = "", save_files: bool = False):
-        """
-        Create stations in parallel.
-        :param num_processes: Number of processes to create for downloading data.
-        :param correct_timestamps: if True, correct timestamps as soon as possible, default False
-        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
-                                        best offset (intercept value) otherwise.  Default True
-        :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
-        :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
-        """
-        manager: Manager = Manager()
-        station_queue: Queue = manager.Queue(len(self.files_index))
-        result_queue: Queue = manager.Queue(len(self.files_index))
-        processes: List[Process] = []
-
-        # Add all URLs to shared queue
-        for findex in self.files_index:
-            station_queue.put(findex)
-
-        # Create the process pool
-        for _ in range(num_processes):
-            process: Process = Process(
-                target=self.download_process, args=(station_queue, result_queue, correct_timestamps,
-                                                    use_model_correction, base_dir, save_files)
-            )
-            processes.append(process)
-            process.start()
-
-        # Wait for all processes in pool to finish
-        for process in processes:
-            process.join()
-
-        result = []
-        try:
-            while True:
-                x = result_queue.get_nowait()
-                result.append(x)
-        except queue.Empty:
-            return result
-
-    def get_stations_wpa_fs(self,
-                            # pool: Optional[multiprocessing.pool.Pool] = None,
-                            correct_timestamps: bool = False,
-                            use_model_correction: bool = True,
-                            base_dir: str = "", save_files: bool = False) -> List[StationPa]:
-        """
-        # :param pool: optional multiprocessing pool
-        :param correct_timestamps: if True, correct timestamps as soon as possible, default False
-        :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
-                                        best offset (intercept value) otherwise.  Default True
-        :param base_dir: base directory to write data parquet files to.  Default "" (current directory)
-        :param save_files: if True, save files to disk, otherwise delete when finished.  Default False
-        :return: List of all stations in the ApiReader, without building the data from parquet
-        """
-        # return list(maybe_parallel_smap(pool,
-        #                                 self._stations_wpa_by_index_fs,
-        #                                 [self.files_index, repeat(base_dir), repeat(save_files)],
-        #                                 chunk_size=1
-        #                                 )
-        #             )
-        if settings.is_parallelism_enabled():
-            return self.download_files(correct_timestamps=correct_timestamps,
-                                       use_model_correction=use_model_correction,
-                                       base_dir=base_dir, save_files=save_files)
-        return list(map(self._stations_wpa_by_index_fs, self.files_index, repeat(correct_timestamps),
-                        repeat(use_model_correction), repeat(base_dir), repeat(save_files)))
-
-    def _stations_wpa_by_index(self, findex: io.Index) -> StationPa:
-        """
-        :param findex: index with files to build a station with
-        :return: Station built from files in findex
-        """
-        stpa = StationPa.create_from_packets(self.read_files_in_index(findex))
-        return stpa
-
-    def get_stations_wpa(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationPa]:
-        """
-        :param pool: optional multiprocessing pool
-        :return: List of all stations in the ApiReader
-        """
-        return list(maybe_parallel_map(pool,
-                                       self._stations_wpa_by_index,
-                                       self.files_index,
-                                       chunk_size=1
-                                       )
-                    )
-
-    def get_station_wpa_by_id(self, get_id: str) -> Optional[List[StationPa]]:
-        """
-        :param get_id: the id to filter on
-        :return: list of all stations with the requested id or None if id can't be found
-        """
-        result = [s for s in self.get_stations_wpa() if s.get_id() == get_id]
         if len(result) < 1:
             return None
         return result
