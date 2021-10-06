@@ -43,7 +43,7 @@ class ApiReaderDw(ApiReader):
         self.use_model_correction = use_model_correction
         self.dw_base_dir = dw_base_dir
         self.save_files = save_files
-        self._stations = self.get_stations()
+        self._stations = self._read_stations()
 
     def _stations_by_index(self, findex: io.Index) -> StationPa:
         """
@@ -57,6 +57,12 @@ class ApiReaderDw(ApiReader):
         return stpa
 
     def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationPa]:
+        """
+        :return: a list of stations read by the ApiReader
+        """
+        return self._stations
+
+    def _read_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationPa]:
         """
         :param pool: optional multiprocessing pool
         :return: List of all stations in the ApiReader, without building the data from parquet

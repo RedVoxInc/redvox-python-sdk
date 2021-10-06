@@ -9,6 +9,7 @@ import tempfile
 import os
 import enum
 
+import pprint
 import multiprocessing
 import multiprocessing.pool
 import numpy as np
@@ -177,8 +178,8 @@ class DataWindowConfigWpa:
             extensions: Optional[Set[str]] = None,
             api_versions: Optional[Set[io.ApiVersion]] = None,
             apply_correction: bool = True,
-            copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
             use_model_correction: bool = True,
+            copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
     ):
         self.input_dir: str = input_dir
         self.structured_layout: bool = structured_layout
@@ -220,8 +221,9 @@ class DataWindowConfigWpa:
                                    timedelta(seconds=data_dict["start_buffer_td"]),
                                    timedelta(seconds=data_dict["end_buffer_td"]),
                                    data_dict["drop_time_s"], data_dict["station_ids"], set(data_dict["extensions"]),
-                                   set(data_dict["api_versions"]), data_dict["apply_correction"],
-                                   data_dict["use_model_correction"], data_dict["copy_edge_points"]
+                                   set([io.ApiVersion.from_str(v) for v in data_dict["api_versions"]]),
+                                   data_dict["apply_correction"], data_dict["use_model_correction"],
+                                   gpu.DataPointCreationMode(data_dict["copy_edge_points"])
                                    )
 
 
@@ -368,6 +370,10 @@ class DataWindowArrow:
                 "sdk_version": self.sdk_version,
                 "out_type": self.out_type.name
                 }
+
+    def pretty(self) -> str:
+        # noinspection Mypy
+        return pprint.pformat(self.as_dict())
 
     @staticmethod
     def deserialize(path: str) -> "DataWindowArrow":
@@ -715,7 +721,7 @@ class DataWindowArrow:
                 _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
                 # if sensor is audio or location, we want nan'd edge points
                 if sensor.type in [SensorType.LOCATION, SensorType.AUDIO]:
-                    new_point_mode = gpu.DataPointCreationMode["NAN"]
+                    new_point_mode = gpu.DataPointCreationMode.NAN
                 else:
                     new_point_mode = self.config.copy_edge_points
                 # add in the data points at the edges of the window if there are defined start and/or end times

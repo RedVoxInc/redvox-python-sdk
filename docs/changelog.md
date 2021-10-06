@@ -3,6 +3,8 @@
 ### 3.0.10rc6 (2021-10-5)
 
 * moved code in ApiReader involving DataWindowArrow to new file; api_reader_dw
+* added pretty print option for DataWindowArrow
+* Fixed bugs when loading DataWindowArrow from a file
 
 ### 3.0.10rc5 (2021-9-30)
 

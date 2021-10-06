@@ -185,9 +185,9 @@ def fill_gaps(
                                sample_interval_micros * DEFAULT_GAP_UPPER_LIMIT else 0)) + 1
         if expected_samples > len(data_time_stamps):
             if copy:
-                pcm = DataPointCreationMode["COPY"]
+                pcm = DataPointCreationMode.COPY
             else:
-                pcm = DataPointCreationMode["NAN"]
+                pcm = DataPointCreationMode.NAN
             # make it safe to alter the gap values
             my_gaps = check_gap_list(gaps, data_time_stamps[0], data_time_stamps[-1])
             for gap in my_gaps:
