@@ -655,7 +655,7 @@ class DataWindowArrow:
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.get_id(), start_datetime, end_datetime)
-        for sensor in [s for s in station.data() if s.type != SensorType.AUDIO]:
+        for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
             self.process_sensor(sensor, station.get_id(), station.audio_sensor().first_data_timestamp(),
                                 station.audio_sensor().last_data_timestamp())
         # recalculate metadata
@@ -695,7 +695,7 @@ class DataWindowArrow:
                 first_after_end = None
                 end_index = sensor.num_samples()
             # check if all the samples have been cut off
-            is_audio = sensor.type == SensorType.AUDIO
+            is_audio = sensor.type() == SensorType.AUDIO
             if end_index <= start_index:
                 if is_audio:
                     self.errors.append(f"Data window for {station_id} "
@@ -714,13 +714,13 @@ class DataWindowArrow:
                                            self.config.copy_edge_points == gpu.DataPointCreationMode.COPY))
                 else:
                     self.errors.append(
-                        f"Data window for {station_id} {sensor.type.name} "
+                        f"Data window for {station_id} {sensor.type().name} "
                         f"sensor has truncated all data points"
                     )
             else:
                 _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
                 # if sensor is audio or location, we want nan'd edge points
-                if sensor.type in [SensorType.LOCATION, SensorType.AUDIO]:
+                if sensor.type() in [SensorType.LOCATION, SensorType.AUDIO]:
                     new_point_mode = gpu.DataPointCreationMode.NAN
                 else:
                     new_point_mode = self.config.copy_edge_points
@@ -731,7 +731,7 @@ class DataWindowArrow:
                     start_sample_interval = start_date_timestamp - sensor.first_data_timestamp()
                     start_samples_to_add = 1
                 else:
-                    end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s)
+                    end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s())
                     start_sample_interval = -end_sample_interval
                     if self.config.end_datetime:
                         end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.config.end_datetime)
@@ -756,7 +756,7 @@ class DataWindowArrow:
                                                     point_creation_mode=new_point_mode))
                 sensor.sort_by_data_timestamps(_arrow)
         else:
-            self.errors.append(f"Data window for {station_id} {sensor.type.name} "
+            self.errors.append(f"Data window for {station_id} {sensor.type().name} "
                                f"sensor has no data points!")
 
     def print_errors(self):

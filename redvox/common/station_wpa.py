@@ -30,10 +30,10 @@ class StationPa:
     """
     generic station for api-independent stuff; uses API M as the core data object since its quite versatile
     In order for a list of packets to be a station, all of the packets must:
-        Have the same station id
-        Have the same station uuid
-        Have the same start time
-        Have the same audio sample rate
+        * Have the same station id
+        * Have the same station uuid
+        * Have the same start time
+        * Have the same audio sample rate
     Properties:
         data: list sensor data associated with the station, default empty dictionary
 
@@ -355,7 +355,7 @@ class StationPa:
         """
         :return: a list of sensor types in the station
         """
-        return [s.type for s in self._data]
+        return [s.type() for s in self._data]
 
     def get_sensor_by_type(self, sensor_type: sd.SensorType) -> Optional[sd.SensorDataPa]:
         """
@@ -363,7 +363,7 @@ class StationPa:
         :return: the sensor of the type or None if it doesn't exist
         """
         for s in self._data:
-            if s.type == sensor_type:
+            if s.type() == sensor_type:
                 return s
         return None
 
@@ -373,11 +373,11 @@ class StationPa:
 
         :param sensor_data: the data to append
         """
-        if sensor_data.type in self.get_station_sensor_types():
-            self.get_sensor_by_type(sensor_data.type).append_sensor(sensor_data)
+        if sensor_data.type() in self.get_station_sensor_types():
+            self.get_sensor_by_type(sensor_data.type()).append_sensor(sensor_data)
         else:
-            self._add_sensor(sensor_data.type, sensor_data)
-        self.errors.extend_error(sensor_data.errors)
+            self._add_sensor(sensor_data.type(), sensor_data)
+        self.errors.extend_error(sensor_data.errors())
 
     def _delete_sensor(self, sensor_type: sd.SensorType):
         """
@@ -1192,7 +1192,7 @@ class StationPa:
                 )
                 self.base_dir = os.path.join(self.base_dir, self._get_id_key())
             for sensor in self._data:
-                sensor.update_data_timestamps(self.timesync_data.offset_model, self.use_model_correction)
+                sensor.update_data_timestamps(self.timesync_data.offset_model)
             for packet in self.packet_metadata:
                 packet.update_timestamps(self.timesync_data.offset_model, self.use_model_correction)
             for g in range(len(self._gaps)):
@@ -1221,7 +1221,7 @@ class StationPa:
             "packet_metadata": [p.__dict__ for p in self.packet_metadata],
             "gaps": self._gaps,
             "errors": self.errors.as_dict(),
-            "sensors": [s.type.name for s in self._data]
+            "sensors": [s.type().name for s in self._data]
         })
 
     def default_station_json_file_name(self) -> str:

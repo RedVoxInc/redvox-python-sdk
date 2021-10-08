@@ -8,7 +8,6 @@ import os
 import tempfile
 from glob import glob
 from pathlib import Path
-import json
 
 import numpy as np
 import pandas as pd
@@ -17,6 +16,7 @@ import pyarrow.compute as pc
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 
+import redvox.common.sensor_data_io as io
 import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om
 from redvox.common.errors import RedVoxExceptions
@@ -129,32 +129,34 @@ class SensorDataPa:
     Properties:
         name: string, name of sensor.  REQUIRED
 
-        type: SensorType, enumerated type of sensor, default UNKNOWN_SENSOR
+    Protected:
+        _type: SensorType, enumerated type of sensor, default UNKNOWN_SENSOR
 
-        sample_rate_hz: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+        _sample_rate_hz: float, sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
 
-        sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
+        _sample_interval_s: float, mean duration in seconds between samples, default np.nan, usually 1/sample_rate
 
-        sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
+        _sample_interval_std_s: float, standard deviation in seconds between samples, default np.nan
 
-        is_sample_rate_fixed: bool, True if sample rate is constant, default False
+        _is_sample_rate_fixed: bool, True if sample rate is constant, default False
 
-        timestamps_altered: bool, True if timestamps in the sensor have been altered from their original values
+        _timestamps_altered: bool, True if timestamps in the sensor have been altered from their original values
         default False
 
-        use_offset_model: bool, if True, use an offset model to correct timestamps, otherwise use the best known
+        _use_offset_model: bool, if True, use an offset model to correct timestamps, otherwise use the best known
         offset.  default False
 
-        errors: RedVoxExceptions, class containing a list of all errors encountered by the sensor.
+        _errors: RedVoxExceptions, class containing a list of all errors encountered by the sensor.
 
-        gaps: List of Tuples of floats, timestamps of data points on the edge of gaps, default empty list
+        _gaps: List of Tuples of floats, timestamps of data points on the edge of gaps, default empty list
 
-    Protected:
         _arrow_file: string, file name of data file
 
         _arrow_dir: string, directory where the data is saved to, default "" (current directory)
 
         _save_data: bool, if True, save data to _arrow_dir, otherwise use a temp dir.  default False
+
+        _data: pyarrow Table, used to store the data when it's not written to the disk.  default None
     """
 
     def __init__(
@@ -199,27 +201,24 @@ class SensorDataPa:
                         the pairs of points exists to maintain sample rate and are not considered valid points.
                         Default None
         """
-        self.errors: RedVoxExceptions = RedVoxExceptions("Sensor")
+        self._errors: RedVoxExceptions = RedVoxExceptions("Sensor")
         self.name: str = sensor_name
-        self.type: SensorType = sensor_type
-        self.sample_rate_hz: float = sample_rate_hz
-        self.sample_interval_s: float = sample_interval_s
-        self.sample_interval_std_s: float = sample_interval_std_s
-        self.is_sample_rate_fixed: bool = is_sample_rate_fixed
-        self.timestamps_altered: bool = are_timestamps_altered
-        self.use_offset_model: bool = use_offset_model_for_correction
+        self._type: SensorType = sensor_type
+        self._sample_rate_hz: float = sample_rate_hz
+        self._sample_interval_s: float = sample_interval_s
+        self._sample_interval_std_s: float = sample_interval_std_s
+        self._is_sample_rate_fixed: bool = is_sample_rate_fixed
+        self._timestamps_altered: bool = are_timestamps_altered
+        self._use_offset_model: bool = use_offset_model_for_correction
         self._arrow_file: str = ""
         self._save_data: bool = save_data
-        if gaps:
-            self.gaps = gaps
-        else:
-            self.gaps = []
+        self._data: Optional[pa.Table] = None
+        self._gaps: List[Tuple] = gaps if gaps else []
         self._temp_dir = tempfile.TemporaryDirectory()
         self._arrow_dir: str = arrow_dir if self._save_data or arrow_dir else self._temp_dir.name
-        self._data: Optional[pa.Table] = None
         if sensor_data:
             if "timestamps" not in sensor_data.schema.names:
-                self.errors.append('must have a column titled "timestamps"')
+                self._errors.append('must have a column titled "timestamps"')
             elif sensor_data['timestamps'].length() > 0:
                 self._arrow_file: str = f"{sensor_type.name}_{int(sensor_data['timestamps'][0].as_py())}.parquet"
                 if calculate_stats:
@@ -320,20 +319,37 @@ class SensorDataPa:
 
     def set_arrow_file(self, new_file: Optional[str] = None):
         """
-        set the pyarrow file name or use the default: {sensor_type.name}_{int(first_timestamp)}.parquet
+        set the pyarrow file name or use the default: {sensor_type}_{int(first_timestamp)}.parquet
+
         :param new_file: optional file name to change to; default None (use default name)
         """
-        if new_file:
-            self._arrow_file = new_file
-        else:
-            self._arrow_file = f"{self.type.name}_{int(self.first_data_timestamp())}.parquet"
+        self._arrow_file = new_file if new_file else f"{self._type.name}_{int(self.first_data_timestamp())}.parquet"
 
-    def set_arrow_dir(self, new_dir: str):
+    def set_arrow_dir(self, new_dir: Optional[str] = None):
         """
-        set the pyarrow directory
-        :param new_dir: the directory to change to
+        set the pyarrow directory or use the default: "." (current directory)
+
+        :param new_dir: the directory to change to; default None (use current directory)
         """
-        self._arrow_dir = new_dir
+        self._arrow_dir = new_dir if new_dir else "."
+
+    def arrow_file(self) -> str:
+        """
+        :return: name of parquet file containing the data
+        """
+        return self._arrow_file
+
+    def arrow_dir(self) -> str:
+        """
+        :return: directory containing parquet files for the sensor
+        """
+        return self._arrow_dir
+
+    def get_file_path(self) -> str:
+        """
+        :return: the supposed file path to the data file
+        """
+        return os.path.join(self._arrow_dir, self._arrow_file)
 
     def pyarrow_ds(self) -> ds.Dataset:
         """
@@ -345,9 +361,9 @@ class SensorDataPa:
         """
         :return: the table defined by the dataset stored in self._arrow_dir
         """
-        if self._data:
-            return self._data
-        return self.pyarrow_ds().to_table()
+        if self._save_data:
+            return self.pyarrow_ds().to_table()
+        return self._data
 
     def data_df(self) -> pd.DataFrame:
         """
@@ -363,8 +379,8 @@ class SensorDataPa:
 
         :param table: the table to write
         """
+        # clear the output dir where the table will be written to
         if self._save_data:
-            # clear the output dir where the table will be written to
             filelist = glob(os.path.join(self._arrow_dir, "*.parquet"))
             for f in filelist:
                 os.remove(f)
@@ -372,6 +388,68 @@ class SensorDataPa:
             self._data = None
         else:
             self._data = table
+
+    def errors(self) -> RedVoxExceptions:
+        """
+        :return: errors of the sensor
+        """
+        return self._errors
+
+    def gaps(self) -> List[Tuple]:
+        """
+        :return: start and end timestamps of gaps in data
+        """
+        return self._gaps
+
+    def type(self) -> SensorType:
+        """
+        :return: type of sensor
+        """
+        return self._type
+
+    def type_as_str(self) -> str:
+        """
+        gets the sensor type as a string
+
+        :return: sensor type of the sensor as a string
+        """
+        return self._type.name
+
+    def sample_rate_hz(self) -> float:
+        """
+        :return: sample rate in Hz
+        """
+        return self._sample_rate_hz
+
+    def sample_interval_s(self) -> float:
+        """
+        :return: mean sample interval in seconds
+        """
+        return self._sample_interval_s
+
+    def sample_interval_std_s(self) -> float:
+        """
+        :return: sample interval standard deviation in seconds
+        """
+        return self._sample_interval_std_s
+
+    def is_sample_rate_fixed(self) -> bool:
+        """
+        :return: true if sample rate of sensor is constant
+        """
+        return self._is_sample_rate_fixed
+
+    def is_timestamps_altered(self) -> bool:
+        """
+        :return: true if timestamps have been changed from original data values
+        """
+        return self._timestamps_altered
+
+    def used_offset_model(self) -> bool:
+        """
+        :return: true if an offset model was used to perform timestamp corrections
+        """
+        return self._use_offset_model
 
     def sort_by_data_timestamps(self, ptable: pa.Table, ascending: bool = True):
         """
@@ -385,9 +463,8 @@ class SensorDataPa:
         else:
             order = "descending"
         data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", order)]))
-        self._arrow_file: str = f"{self.type.name}_{int(data['timestamps'][0].as_py())}.parquet"
-        # self.write_pyarrow_table(data)
-        self._data = data
+        self._arrow_file: str = f"{self._type.name}_{int(data['timestamps'][0].as_py())}.parquet"
+        self.write_pyarrow_table(data)
 
     def organize_and_update_stats(self, ptable: pa.Table) -> "SensorDataPa":
         """
@@ -399,24 +476,24 @@ class SensorDataPa:
         :return: updated version of self
         """
         self.sort_by_data_timestamps(ptable)
-        if not self.is_sample_rate_fixed:
+        if not self._is_sample_rate_fixed:
             if self.num_samples() > 1:
                 timestamp_diffs = np.diff(self.data_timestamps())
-                self.sample_interval_s = dtu.microseconds_to_seconds(
+                self._sample_interval_s = dtu.microseconds_to_seconds(
                     float(np.mean(timestamp_diffs))
                 )
-                self.sample_interval_std_s = dtu.microseconds_to_seconds(
+                self._sample_interval_std_s = dtu.microseconds_to_seconds(
                     float(np.std(timestamp_diffs))
                 )
-                self.sample_rate_hz = (
+                self._sample_rate_hz = (
                     np.nan
                     if self.is_sample_interval_invalid()
-                    else 1 / self.sample_interval_s
+                    else 1 / self._sample_interval_s
                 )
             else:
-                self.sample_interval_s = np.nan
-                self.sample_interval_std_s = np.nan
-                self.sample_rate_hz = np.nan
+                self._sample_interval_s = np.nan
+                self._sample_interval_std_s = np.nan
+                self._sample_rate_hz = np.nan
         return self
 
     def append_sensor(self, new_sensor: "SensorDataPa", recalculate_stats: bool = False) -> "SensorDataPa":
@@ -430,7 +507,7 @@ class SensorDataPa:
         :return: the updated SensorData object
         """
         _arrow: pa.Table = pa.concat_tables([self.pyarrow_table(), new_sensor.pyarrow_table()])
-        if recalculate_stats and not self.is_sample_rate_fixed:
+        if recalculate_stats and not self._is_sample_rate_fixed:
             self.organize_and_update_stats(_arrow)
         else:
             self.write_pyarrow_table(_arrow)
@@ -451,7 +528,7 @@ class SensorDataPa:
         _arrow = pa.concat_tables([self.pyarrow_table(),
                                    pa.Table.from_arrays(arrays=[pa.array(s) for s in new_data],
                                                         names=self.data_channels())])
-        if recalculate_stats and not self.is_sample_rate_fixed:
+        if recalculate_stats and not self._is_sample_rate_fixed:
             self.organize_and_update_stats(_arrow)
         else:
             self.write_pyarrow_table(_arrow)
@@ -461,15 +538,7 @@ class SensorDataPa:
         """
         :return: True if sample interval is np.nan or equal to 0.0
         """
-        return np.isnan(self.sample_interval_s) or self.sample_interval_s == 0.0
-
-    def sensor_type_as_str(self) -> str:
-        """
-        gets the sensor type as a string
-
-        :return: sensor type of the sensor as a string
-        """
-        return self.type.name
+        return np.isnan(self._sample_interval_s) or self._sample_interval_s == 0.0
 
     def data_timestamps(self) -> np.array:
         """
@@ -499,8 +568,8 @@ class SensorDataPa:
         """
         :return: the number of rows (samples) in the dataframe
         """
-        if self._arrow_file:
-            return len(self.data_timestamps())
+        if self.pyarrow_table():
+            return self.pyarrow_table().num_rows
         return 0
 
     def samples(self) -> np.ndarray:
@@ -526,7 +595,7 @@ class SensorDataPa:
         """
         _arrow = self.pyarrow_table()
         if channel_name not in _arrow.schema.names:
-            self.errors.append(f"WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}")
+            self._errors.append(f"WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}")
             return []
         if channel_name == "location_provider":
             return [LocationProvider(c).name for c in _arrow[channel_name]]
@@ -552,35 +621,33 @@ class SensorDataPa:
         channel_data = self.get_data_channel(channel_name)
         return channel_data[~np.isnan(channel_data)]
 
-    def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = True):
+    def update_data_timestamps(self, offset_model: om.OffsetModel):
         """
         updates the timestamps of the data points
 
         :param offset_model: model used to update the timestamps
-        :param use_model_function: if True, use the offset model's correction function to correct time,
-                                    otherwise use best offset (model's intercept value).  default True
         """
-        slope = dtu.seconds_to_microseconds(self.sample_interval_s) * (1 + offset_model.slope) \
-            if use_model_function else dtu.seconds_to_microseconds(self.sample_interval_s)
-        if self.type == SensorType.AUDIO:
+        slope = dtu.seconds_to_microseconds(self._sample_interval_s) * (1 + offset_model.slope) \
+            if self._use_offset_model else dtu.seconds_to_microseconds(self._sample_interval_s)
+        if self._type == SensorType.AUDIO:
             # use the model to update the first timestamp or add the best offset (model's intercept value)
             timestamps = pa.array(
                 calc_evenly_sampled_timestamps(
-                    offset_model.update_time(self.first_data_timestamp(), use_model_function),
+                    offset_model.update_time(self.first_data_timestamp(), self._use_offset_model),
                     self.num_samples(),
                     slope))
         else:
             timestamps = pa.array(offset_model.update_timestamps(self.data_timestamps(),
-                                                                 use_model_function))
-        self._data = self.pyarrow_table().set_column(0, "timestamps", timestamps)
+                                                                 self._use_offset_model))
+        self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", timestamps))
         self.set_arrow_file()
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
-            self.sample_interval_s = dtu.microseconds_to_seconds(slope)
-            if self.sample_interval_s > 0:
-                self.sample_rate_hz = 1 / self.sample_interval_s
-                self.sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
-        self.timestamps_altered = True
+            self._sample_interval_s = dtu.microseconds_to_seconds(slope)
+            if self._sample_interval_s > 0:
+                self._sample_rate_hz = 1 / self._sample_interval_s
+                self._sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
+        self._timestamps_altered = True
 
     def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
                     copy: bool = True) -> pa.Table:
@@ -619,37 +686,31 @@ class SensorDataPa:
         i_p["timestamps"] = [interpolate_timestamp]
         return pa.Table.from_pydict(i_p)
 
-    def get_file_path(self) -> str:
-        """
-        :return: the supposed file path to the data file
-        """
-        return os.path.join(self._arrow_dir, self._arrow_file)
-
     def as_dict(self) -> dict:
         """
         :return: sensor as dict
         """
         return {
             "name": self.name,
-            "type": self.type.name,
+            "type": self._type.name,
             "num_samples": self.num_samples(),
-            "sample_rate_hz": self.sample_rate_hz,
-            "sample_interval_s": self.sample_interval_s,
-            "sample_interval_std_s": self.sample_interval_std_s,
-            "is_sample_rate_fixed": self.is_sample_rate_fixed,
-            "timestamps_altered": self.timestamps_altered,
-            "use_offset_model": self.use_offset_model,
-            "gaps": self.gaps,
+            "sample_rate_hz": self._sample_rate_hz,
+            "sample_interval_s": self._sample_interval_s,
+            "sample_interval_std_s": self._sample_interval_std_s,
+            "is_sample_rate_fixed": self._is_sample_rate_fixed,
+            "timestamps_altered": self._timestamps_altered,
+            "use_offset_model": self._use_offset_model,
+            "gaps": self._gaps,
             "parquet_dir": self._arrow_dir,
             "parquet_file": self._arrow_file,
-            "errors": self.errors.as_dict()
+            "errors": self._errors.as_dict()
         }
 
     def to_json(self) -> str:
         """
         :return: sensor as json string
         """
-        return json.dumps(self.as_dict())
+        return io.to_json(self)
 
     def to_json_file(self, file_name: Optional[str] = None) -> Path:
         """
@@ -660,36 +721,26 @@ class SensorDataPa:
                             [sensor_type]_[first_timestamp].json
         :return: path to json file
         """
-        _file_name: str = (
-            file_name
-            if file_name is not None
-            else self._arrow_file.split(".")[0]
-        )
-        if self._save_data:
-            pq.write_table(self._data, os.path.join(self._arrow_dir, self._arrow_file))
-        file_path: Path = Path(self._arrow_dir).joinpath(f"{_file_name}.json")
-        with open(file_path, "w") as f_p:
-            f_p.write(self.to_json())
-            return file_path.resolve(False)
+        return io.to_json_file(self, file_name)
 
     @staticmethod
     def from_json(file_path: str) -> "SensorDataPa":
         """
         convert contents of json file to SensorData
+
         :param file_path: full path of file to load data from.
         :return: SensorData object
         """
-        with open(file_path, "r") as f_p:
-            json_data = json.loads(f_p.read())
+        json_data = io.from_json(file_path)
         if "name" in json_data.keys():
             result = SensorDataPa.from_dir(json_data["name"], json_data["parquet_dir"], SensorType[json_data["type"]],
                                            json_data["sample_rate_hz"], json_data["sample_interval_s"],
                                            json_data["sample_interval_std_s"], json_data["is_sample_rate_fixed"],
                                            json_data["timestamps_altered"], False, json_data["use_offset_model"])
-            result.errors = RedVoxExceptions.from_dict(json_data["errors"])
-            result.gaps = json_data["gaps"]
+            result._errors = RedVoxExceptions.from_dict(json_data["errors"])
+            result._gaps = json_data["gaps"]
 
         else:
             result = SensorDataPa("Empty")
-            result.errors.append("Loading from json file failed; Sensor missing name.")
+            result._errors.append("Loading from json file failed; Sensor missing name.")
         return result
