@@ -198,7 +198,7 @@ class StationPa:
             ]
             self.timesync_data = TimeSyncArrow().from_raw_packets(packets)
             if self._correct_timestamps:
-                self._start_date = self.timesync_data.offset_model.update_time(
+                self._start_date = self.timesync_data.offset_model().update_time(
                     self._start_date, self.use_model_correction
                 )
             self.base_dir = os.path.join(self.base_dir, self._get_id_key())
@@ -209,10 +209,8 @@ class StationPa:
                     shutil.rmtree(self.base_dir)
                 os.makedirs(self.base_dir, exist_ok=True)
             self.timesync_data.arrow_dir = os.path.join(self.base_dir, "timesync")
-            if self._start_date and not np.isnan(self._start_date):
-                self.timesync_data.arrow_file_name = f"timesync_{int(self._start_date)}"
-            else:
-                self.timesync_data.arrow_file_name = f"timesync_0"
+            file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
+            self.timesync_data.arrow_file = f"timesync_{file_date}"
             self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir if self.save_output else None))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
@@ -1187,17 +1185,17 @@ class StationPa:
             # if timestamps were not corrected on creation
             if not self._correct_timestamps:
                 # self.timesync_data.update_timestamps(self.use_model_correction)
-                self._start_date = self.timesync_data.offset_model.update_time(
+                self._start_date = self.timesync_data.offset_model().update_time(
                     self._start_date, self.use_model_correction
                 )
                 self.base_dir = os.path.join(self.base_dir, self._get_id_key())
             for sensor in self._data:
-                sensor.update_data_timestamps(self.timesync_data.offset_model)
+                sensor.update_data_timestamps(self.timesync_data.offset_model())
             for packet in self.packet_metadata:
-                packet.update_timestamps(self.timesync_data.offset_model, self.use_model_correction)
+                packet.update_timestamps(self.timesync_data.offset_model(), self.use_model_correction)
             for g in range(len(self._gaps)):
-                self._gaps[g] = (self.timesync_data.offset_model.update_time(self._gaps[g][0]),
-                                 self.timesync_data.offset_model.update_time(self._gaps[g][1]))
+                self._gaps[g] = (self.timesync_data.offset_model().update_time(self._gaps[g][0]),
+                                 self.timesync_data.offset_model().update_time(self._gaps[g][1]))
             self._get_start_and_end_timestamps()
             self.is_timestamps_updated = True
         return self

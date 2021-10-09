@@ -486,7 +486,7 @@ def load_apim_audio_from_list(
                 True,
                 )
             if len(gp_result.errors.get()) > 0:
-                sensor_data.errors.extend_error(gp_result.errors)
+                sensor_data.extend_errors(gp_result.errors)
 
             return (
                 sensor_data,

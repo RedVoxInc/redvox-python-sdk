@@ -621,6 +621,19 @@ class SensorDataPa:
         channel_data = self.get_data_channel(channel_name)
         return channel_data[~np.isnan(channel_data)]
 
+    def print_errors(self):
+        """
+        print all errors to screen
+        """
+        self._errors.print()
+
+    def extend_errors(self, errors: RedVoxExceptions):
+        """
+        add errors to the SensorData's errors
+        :param errors: errors to add
+        """
+        self._errors.extend_error(errors)
+
     def update_data_timestamps(self, offset_model: om.OffsetModel):
         """
         updates the timestamps of the data points
