@@ -658,7 +658,7 @@ class TimeSyncAnalysis:
         :param use_model: if True, use the model, otherwise use best offset
         """
         if use_model and self.offset_model:
-            self.station_start_timestamp += self.offset_model.get_offset_at_new_time(self.station_start_timestamp)
+            self.station_start_timestamp += self.offset_model.get_offset_at_time(self.station_start_timestamp)
             for tsd in self.timesync_data:
                 tsd.update_timestamps(self.offset_model)
         else:

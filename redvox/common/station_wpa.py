@@ -1285,7 +1285,7 @@ class StationPa:
 
         file = glob(os.path.join(json_data["base_dir"], "timesync", "*.json"))
         for f in file:
-            result.timesync_data = TimeSyncArrow.from_json(f)
+            result.timesync_data = TimeSyncArrow.from_json_file(f)
 
         return result
 

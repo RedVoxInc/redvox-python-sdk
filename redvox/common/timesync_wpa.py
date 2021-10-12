@@ -13,7 +13,6 @@ import os
 # noinspection Mypy
 import numpy as np
 import pyarrow as pa
-import pyarrow.parquet as pq
 import pyarrow.dataset as ds
 
 import redvox.common.timesync_io as io
@@ -58,10 +57,10 @@ class TimeSyncArrow:
 
         _data_end: float, end timestamp of the data, default np.nan
 
-        _best_exchange_latency_index: int, index in latencies/sync exchanges array that contains the best latency,
-        default np.nan
+        _best_latency_index: int, index in latencies/sync exchanges array that contains the best latency,
+        default -1
 
-        _best_msg_timestamp_index: int, indicates which latency array has the best latency.
+        _best_msg_array_index: int, indicates which latency array has the best latency.
         Must be 1 or 3, other values are invalid.  Default 0
 
         _offset_model: OffsetModel, used to correct timestamps.
@@ -171,7 +170,7 @@ class TimeSyncArrow:
         return io.to_json_file(self, file_name)
 
     @staticmethod
-    def from_json(file_path: str) -> "TimeSyncArrow":
+    def from_json_file(file_path: str) -> "TimeSyncArrow":
         """
         convert contents of json file to TimeSync data
 
@@ -416,11 +415,41 @@ class TimeSyncArrow:
             self._offset_model = OffsetModel.empty_model()
         return self
 
+    def sync_exchanges(self) -> np.ndarray:
+        """
+        :return: time sync exchanges
+        """
+        return self._time_sync_exchanges_list
+
     def latencies(self) -> np.ndarray:
         """
         :return: latencies as two np.arrays
         """
         return self._latencies
+
+    def best_latency(self) -> float:
+        """
+        :return: best latency of data
+        """
+        return self._best_latency
+
+    def mean_latency(self) -> float:
+        """
+        :return: mean latency of data
+        """
+        return self._mean_latency
+
+    def latency_std(self) -> float:
+        """
+        :return: standard deviation of latency
+        """
+        return self._latency_std
+
+    def best_latency_index(self) -> float:
+        """
+        :return: index/position of best latency
+        """
+        return self._best_latency_index
 
     def offsets(self) -> np.ndarray:
         """
@@ -428,8 +457,38 @@ class TimeSyncArrow:
         """
         return self._offsets
 
+    def best_offset(self) -> float:
+        """
+        :return: best offset of data
+        """
+        return self._best_offset
+
+    def mean_offset(self) -> float:
+        """
+        :return: mean offset of data
+        """
+        return self._mean_offset
+
+    def offset_std(self) -> float:
+        """
+        :return: standard deviation of offset
+        """
+        return self._offset_std
+
     def offset_model(self) -> OffsetModel:
         """
         :return: OffsetModel of the TimeSync
         """
         return self._offset_model
+
+    def data_start_timestamp(self) -> float:
+        """
+        :return: timestamp of first data point
+        """
+        return self._data_start
+
+    def data_end_timestamp(self) -> float:
+        """
+        :return: timestamp of last data point
+        """
+        return self._data_end
