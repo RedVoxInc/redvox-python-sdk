@@ -3,7 +3,6 @@ tests for data window objects
 """
 import unittest
 import contextlib
-import tempfile
 
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt

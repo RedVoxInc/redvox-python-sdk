@@ -495,7 +495,7 @@ class DataWindowArrow:
         """
         :return: ids of stations in the data window
         """
-        return [s.get_id() for s in self._stations]
+        return [s.id() for s in self._stations]
 
     def add_station(self, station: StationPa):
         """
@@ -524,7 +524,7 @@ class DataWindowArrow:
         return None
 
     def _add_sensor_to_window(self, station: StationPa):
-        self.errors.extend_error(station.errors)
+        self.errors.extend_error(station.errors())
         # set the window start and end if they were specified, otherwise use the bounds of the data
         self.create_window_in_sensors(station, self.config.start_datetime, self.config.end_datetime)
 
@@ -575,7 +575,7 @@ class DataWindowArrow:
                                          iter(sts), chunk_size=1):
                 self._add_sensor_to_window(st)
                 if self.debug:
-                    print("station processed: ", st.get_id())
+                    print("station processed: ", st.id())
         else:
             [self._add_sensor_to_window(s) for s in sts]
 
@@ -608,9 +608,9 @@ class DataWindowArrow:
         remove = []
         for s in self._stations:
             if not s.has_audio_sensor():
-                remove.append(s.id)
+                remove.append(s.id())
         if len(remove) > 0:
-            self._stations = [s for s in self._stations if s.id not in remove]
+            self._stations = [s for s in self._stations if s.id() not in remove]
 
     def _check_valid_ids(self):
         """
@@ -627,7 +627,7 @@ class DataWindowArrow:
                                f"\nPlease adjust parameters of DataWindow")
         elif len(self.station_ids()) > 0 and self.config.station_ids:
             for ids in self.config.station_ids:
-                if ids.zfill(10) not in [i.get_id() for i in self._stations]:
+                if ids.zfill(10) not in [i.id() for i in self._stations]:
                     self.errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )
@@ -654,14 +654,14 @@ class DataWindowArrow:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime)
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
-        self.process_sensor(station.audio_sensor(), station.get_id(), start_datetime, end_datetime)
+        self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
         for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
-            self.process_sensor(sensor, station.get_id(), station.audio_sensor().first_data_timestamp(),
+            self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
                                 station.audio_sensor().last_data_timestamp())
         # recalculate metadata
         station.first_data_timestamp = station.audio_sensor().first_data_timestamp()
         station.last_data_timestamp = station.audio_sensor().data_timestamps()[-1]
-        station.packet_metadata = [meta for meta in station.packet_metadata
+        station.packet_metadata = [meta for meta in station.packet_metadata()
                                    if meta.packet_start_mach_timestamp < station.last_data_timestamp and
                                    meta.packet_end_mach_timestamp >= station.first_data_timestamp]
         self._stations.append(station)

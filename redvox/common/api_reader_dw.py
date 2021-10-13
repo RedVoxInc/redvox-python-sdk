@@ -53,7 +53,7 @@ class ApiReaderDw(ApiReader):
         stpa = StationPa.create_from_packets(self.read_files_in_index(findex), self.correct_timestamps,
                                              self.use_model_correction, self.dw_base_dir, self.save_files)
         if self.debug:
-            print(f"station {stpa.get_id()} files read: {len(findex.entries)}")
+            print(f"station {stpa.id()} files read: {len(findex.entries)}")
         return stpa
 
     def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationPa]:
@@ -79,7 +79,7 @@ class ApiReaderDw(ApiReader):
         :param get_id: the id to filter on
         :return: list of all stations with the requested id or None if id can't be found
         """
-        result = [s for s in self._stations if s.get_id() == get_id]
+        result = [s for s in self._stations if s.id() == get_id]
         if len(result) < 1:
             return None
         return result

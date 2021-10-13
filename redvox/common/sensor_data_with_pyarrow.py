@@ -737,7 +737,7 @@ class SensorDataPa:
         return io.to_json_file(self, file_name)
 
     @staticmethod
-    def from_json(file_path: str) -> "SensorDataPa":
+    def from_json_file(file_path: str) -> "SensorDataPa":
         """
         convert contents of json file to SensorData
 
