@@ -71,7 +71,7 @@ These are the properties of the Station class and their default values:
 14.`_correct_timestamps`: boolean; if True, corrects the timestamps of the data.  default False
 15.`_gaps`: List of Tuples; pairs of timestamps indicating start and end times of gaps.  Times are not inclusive of 
     the gap. Set by reading the data.  default empty list.
-14. `save_output`: boolean; if True, saves the Station to disk.  default False
+14. `_save_data`: boolean; if True, saves the Station to disk.  default False
 15. `base_dir`: string; the directory to save the Station to.  default "." (current directory)
 16. `_errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the station.  
     This is set by the SDK.  default empty RedVoxExceptions

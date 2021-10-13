@@ -317,6 +317,21 @@ class SensorDataPa:
         """
         return self._save_data
 
+    def enable_save_to_disk(self, new_dir: Optional[str] = None):
+        """
+        set the sensor to save to disk at directory new_dir.  if not specified, uses current directory (".")
+        :param new_dir: optional directory to save to; default None (use current directory)
+        """
+        self._save_data = True
+        self.set_arrow_dir(new_dir)
+
+    def disable_save_to_disk(self):
+        """
+        set the sensor to disable saving to disk
+        """
+        self._save_data = False
+        self._arrow_dir = self._temp_dir.name
+
     def set_arrow_file(self, new_file: Optional[str] = None):
         """
         set the pyarrow file name or use the default: {sensor_type}_{int(first_timestamp)}.parquet
