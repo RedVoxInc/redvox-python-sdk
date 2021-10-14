@@ -409,6 +409,652 @@ class AudioSensor(SensorData):
         return super().get_valid_data_channel_values('microphone')
 
 
+class CompressedAudioSensor(SensorData):
+    """
+    Compressed-audio specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.COMPRESSED_AUDIO, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_compressed_audio_data(self):
+        return super().get_data_channel('compressed_audio')
+
+    def get_valid_compressed_audio_data(self):
+        return super().get_valid_data_channel_values('compressed_audio')
+
+    def get_audio_codec_data(self):
+        return super().get_data_channel('audio_codec')
+
+    def get_valid_audio_codec_data(self):
+        return super().get_valid_data_channel_values('audio_codec')
+
+
+class ImageSensor(SensorData):
+    """
+    Image specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.IMAGE, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_image_data(self):
+        return super().get_data_channel('image')
+
+    def get_valid_image_data(self):
+        return super().get_valid_data_channel_values('image')
+
+    def get_image_codec_data(self):
+        return super().get_data_channel('image_codec')
+
+    def get_valid_image_codec_data(self):
+        return super().get_valid_data_channel_values('image_codec')
+
+
+class PressureSensor(SensorData):
+    """
+    Pressure specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.PRESSURE, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_pressure_data(self):
+        return super().get_data_channel('pressure')
+
+    def get_valid_pressure_data(self):
+        return super().get_valid_data_channel_values('pressure')
+
+
+class LightSensor(SensorData):
+    """
+    Light specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.LIGHT, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_light_data(self):
+        return super().get_data_channel('light')
+
+    def get_valid_light_data(self):
+        return super().get_valid_data_channel_values('light')
+
+
+class ProximitySensor(SensorData):
+    """
+    Proximity specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.PROXIMITY, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_proximity_data(self):
+        return super().get_data_channel('proximity')
+
+    def get_valid_proximity_data(self):
+        return super().get_valid_data_channel_values('proximity')
+
+
+class AmbientTemperatureSensor(SensorData):
+    """
+    Ambient-temperature specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.AMBIENT_TEMPERATURE, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_ambient_temperature_data(self):
+        return super().get_data_channel('ambient_temp')
+
+    def get_valid_ambient_temperature_data(self):
+        return super().get_valid_data_channel_values('ambient_temp')
+
+
+class RelativeHumiditySensor(SensorData):
+    """
+    Relative-humidity specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.RELATIVE_HUMIDITY, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_relative_humidity_data(self):
+        return super().get_data_channel('rel_humidity')
+
+    def get_valid_relative_humidity_data(self):
+        return super().get_valid_data_channel_values('rel_humidity')
+
+
+class AccelerometerSensor(SensorData):
+    """
+    Accelerometer specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.ACCELEROMETER, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_accelerometer_x_data(self):
+        return super().get_data_channel('accelerometer_x')
+
+    def get_valid_accelerometer_x_data(self):
+        return super().get_valid_data_channel_values('accelerometer_x')
+
+    def get_accelerometer_y_data(self):
+        return super().get_data_channel('accelerometer_y')
+
+    def get_valid_accelerometer_y_data(self):
+        return super().get_valid_data_channel_values('accelerometer_y')
+
+    def get_accelerometer_z_data(self):
+        return super().get_data_channel('accelerometer_z')
+
+    def get_valid_accelerometer_z_data(self):
+        return super().get_valid_data_channel_values('accelerometer_z')
+
+
+class MagnetometerSensor(SensorData):
+    """
+    Magnetometer specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.MAGNETOMETER, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_magnetometer_x_data(self):
+        return super().get_data_channel('magnetometer_x')
+
+    def get_valid_magnetometer_x_data(self):
+        return super().get_valid_data_channel_values('magnetometer_x')
+
+    def get_magnetometer_y_data(self):
+        return super().get_data_channel('magnetometer_y')
+
+    def get_valid_magnetometer_y_data(self):
+        return super().get_valid_data_channel_values('magnetometer_y')
+
+    def get_magnetometer_z_data(self):
+        return super().get_data_channel('magnetometer_z')
+
+    def get_valid_magnetometer_z_data(self):
+        return super().get_valid_data_channel_values('magnetometer_z')
+
+
+class LinearAccelerationSensor(SensorData):
+    """
+    Linear-acceleration specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.LINEAR_ACCELERATION, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_linear_acceleration_x_data(self):
+        return super().get_data_channel('linear_acceleration_x')
+
+    def get_valid_linear_acceleration_x_data(self):
+        return super().get_valid_data_channel_values('linear_acceleration_x')
+
+    def get_linear_acceleration_y_data(self):
+        return super().get_data_channel('linear_acceleration_y')
+
+    def get_valid_linear_acceleration_y_data(self):
+        return super().get_valid_data_channel_values('linear_acceleration_y')
+
+    def get_linear_acceleration_z_data(self):
+        return super().get_data_channel('linear_acceleration_z')
+
+    def get_valid_linear_acceleration_z_data(self):
+        return super().get_valid_data_channel_values('linear_acceleration_z')
+
+
+class OrientationSensor(SensorData):
+    """
+    Orientation specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.ORIENTATION, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_orientation_x_data(self):
+        return super().get_data_channel('orientation_x')
+
+    def get_valid_orientation_x_data(self):
+        return super().get_valid_data_channel_values('orientation_x')
+
+    def get_orientation_y_data(self):
+        return super().get_data_channel('orientation_y')
+
+    def get_valid_orientation_y_data(self):
+        return super().get_valid_data_channel_values('orientation_y')
+
+    def get_orientation_z_data(self):
+        return super().get_data_channel('orientation_z')
+
+    def get_valid_orientation_z_data(self):
+        return super().get_valid_data_channel_values('orientation_z')
+
+
+class RotationVectorSensor(SensorData):
+    """
+    Rotation-vector specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.ROTATION_VECTOR, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_rotation_vector_x_data(self):
+        return super().get_data_channel('rotation_vector_x')
+
+    def get_valid_rotation_vector_x_data(self):
+        return super().get_valid_data_channel_values('rotation_vector_x')
+
+    def get_rotation_vector_y_data(self):
+        return super().get_data_channel('rotation_vector_y')
+
+    def get_valid_rotation_vector_y_data(self):
+        return super().get_valid_data_channel_values('rotation_vector_y')
+
+    def get_rotation_vector_z_data(self):
+        return super().get_data_channel('rotation_vector_z')
+
+    def get_valid_rotation_vector_z_data(self):
+        return super().get_valid_data_channel_values('rotation_vector_z')
+
+
+class GyroscopeSensor(SensorData):
+    """
+    Gyroscope specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.GYROSCOPE, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_gyroscope_x_data(self):
+        return super().get_data_channel('gyroscope_x')
+
+    def get_valid_gyroscope_x_data(self):
+        return super().get_valid_data_channel_values('gyroscope_x')
+
+    def get_gyroscope_y_data(self):
+        return super().get_data_channel('gyroscope_y')
+
+    def get_valid_gyroscope_y_data(self):
+        return super().get_valid_data_channel_values('gyroscope_y')
+
+    def get_gyroscope_z_data(self):
+        return super().get_data_channel('gyroscope_z')
+
+    def get_valid_gyroscope_z_data(self):
+        return super().get_valid_data_channel_values('gyroscope_z')
+
+
+class GravitySensor(SensorData):
+    """
+    Gravity specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.GRAVITY, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_gravity_x_data(self):
+        return super().get_data_channel('gravity_x')
+
+    def get_valid_x_data(self):
+        return super().get_valid_data_channel_values('gravity_x')
+
+    def get_gravity_y_data(self):
+        return super().get_data_channel('gravity_y')
+
+    def get_valid_y_data(self):
+        return super().get_valid_data_channel_values('gravity_y')
+
+    def get_gravity_z_data(self):
+        return super().get_data_channel('gravity_z')
+
+    def get_valid_z_data(self):
+        return super().get_valid_data_channel_values('gravity_z')
+
+
+class LocationSensor(SensorData):
+    """
+    Location specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.LOCATION, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_gps_timestamps_data(self):
+        return super().get_data_channel('gps_timestamps')
+
+    def get_valid_gps_timestamps_data(self):
+        return super().get_valid_data_channel_values('gps_timestamps')
+
+    def get_latitude_data(self):
+        return super().get_data_channel('latitude')
+
+    def get_valid_latitude_data(self):
+        return super().get_valid_data_channel_values('latitude')
+
+    def get_longitude_data(self):
+        return super().get_data_channel('longitude')
+
+    def get_valid_longitude_data(self):
+        return super().get_valid_data_channel_values('longitude')
+
+    def get_altitude_data(self):
+        return super().get_data_channel('altitude')
+
+    def get_valid_altitude_data(self):
+        return super().get_valid_data_channel_values('altitude')
+
+    def get_speed_data(self):
+        return super().get_data_channel('speed')
+
+    def get_valid_speed_data(self):
+        return super().get_valid_data_channel_values('speed')
+
+    def get_bearing_data(self):
+        return super().get_data_channel('bearing')
+
+    def get_valid_bearing_data(self):
+        return super().get_valid_data_channel_values('bearing')
+
+    def get_horizontal_accuracy_data(self):
+        return super().get_data_channel('horizontal_accuracy')
+
+    def get_valid_horizontal_accuracy_data(self):
+        return super().get_valid_data_channel_values('horizontal_accuracy')
+
+    def get_vertical_accuracy_data(self):
+        return super().get_data_channel('vertical_accuracy')
+
+    def get_valid_vertical_accuracy_data(self):
+        return super().get_valid_data_channel_values('vertical_accuracy')
+
+    def get_speed_accuracy_data(self):
+        return super().get_data_channel('speed_accuracy')
+
+    def get_valid_speed_accuracy_data(self):
+        return super().get_valid_data_channel_values('speed_accuracy')
+
+    def get_bearing_accuracy_data(self):
+        return super().get_data_channel('bearing_accuracy')
+
+    def get_valid_bearing_accuracy_data(self):
+        return super().get_valid_data_channel_values('bearing_accuracy')
+
+    def get_location_provider_data(self):
+        return super().get_data_channel('location_provider')
+
+    def get_valid_location_provider_data(self):
+        return super().get_valid_data_channel_values('location_provider')
+
+
+class BestLocationSensor(SensorData):
+    """
+    Best-location specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.BEST_LOCATION, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+    def get_gps_timestamps_data(self):
+        return super().get_data_channel('gps_timestamps')
+
+    def get_valid_gps_timestamps_data(self):
+        return super().get_valid_data_channel_values('gps_timestamps')
+
+    def get_latitude_data(self):
+        return super().get_data_channel('latitude')
+
+    def get_valid_latitude_data(self):
+        return super().get_valid_data_channel_values('latitude')
+
+    def get_longitude_data(self):
+        return super().get_data_channel('longitude')
+
+    def get_valid_longitude_data(self):
+        return super().get_valid_data_channel_values('longitude')
+
+    def get_altitude_data(self):
+        return super().get_data_channel('altitude')
+
+    def get_valid_altitude_data(self):
+        return super().get_valid_data_channel_values('altitude')
+
+    def get_speed_data(self):
+        return super().get_data_channel('speed')
+
+    def get_valid_speed_data(self):
+        return super().get_valid_data_channel_values('speed')
+
+    def get_bearing_data(self):
+        return super().get_data_channel('bearing')
+
+    def get_valid_bearing_data(self):
+        return super().get_valid_data_channel_values('bearing')
+
+    def get_horizontal_accuracy_data(self):
+        return super().get_data_channel('horizontal_accuracy')
+
+    def get_valid_horizontal_accuracy_data(self):
+        return super().get_valid_data_channel_values('horizontal_accuracy')
+
+    def get_vertical_accuracy_data(self):
+        return super().get_data_channel('vertical_accuracy')
+
+    def get_valid_vertical_accuracy_data(self):
+        return super().get_valid_data_channel_values('vertical_accuracy')
+
+    def get_speed_accuracy_data(self):
+        return super().get_data_channel('speed_accuracy')
+
+    def get_valid_speed_accuracy_data(self):
+        return super().get_valid_data_channel_values('speed_accuracy')
+
+    def get_bearing_accuracy_data(self):
+        return super().get_data_channel('bearing_accuracy')
+
+    def get_valid_bearing_accuracy_data(self):
+        return super().get_valid_data_channel_values('bearing_accuracy')
+
+    def get_location_provider_data(self):
+        return super().get_data_channel('location_provider')
+
+    def get_valid_location_provider_data(self):
+        return super().get_valid_data_channel_values('location_provider')
+
+
+class StationHealthSensor(SensorData):
+    """
+    Station-health specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.STATION_HEALTH, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+
+
+    def get_battery_charge_remaining_data(self):
+        return super().get_data_channel('battery_charge_remaining')
+
+    def get_valid_battery_charge_remaining_data(self):
+        return super().get_valid_data_channel_values('battery_charge_remaining')
+
+    def get_battery_current_strength_data(self):
+        return super().get_data_channel('battery_current_strength')
+
+    def get_valid_battery_current_strength_data(self):
+        return super().get_valid_data_channel_values('battery_current_strength')
+
+    def get_internal_temp_c_data(self):
+        return super().get_data_channel('internal_temp_c')
+
+    def get_valid_internal_temp_c_data(self):
+        return super().get_valid_data_channel_values('internal_temp_c')
+
+    def get_network_type_data(self):
+        return super().get_data_channel('network_type')
+
+    def get_valid_network_type_data(self):
+        return super().get_valid_data_channel_values('network_type')
+
+    def get_network_strength_data(self):
+        return super().get_data_channel('network_strength')
+
+    def get_valid_network_strength_data(self):
+        return super().get_valid_data_channel_values('network_strength')
+
+    def get_power_state_data(self):
+        return super().get_data_channel('power_state')
+
+    def get_valid_power_state_data(self):
+        return super().get_valid_data_channel_values('power_state')
+
+    def get_avail_ram_data(self):
+        return super().get_data_channel('avail_ram')
+
+    def get_valid_avail_ram_data(self):
+        return super().get_valid_data_channel_values('avail_ram')
+
+    def get_avail_disk_data(self):
+        return super().get_data_channel('avail_disk')
+
+    def get_valid_avail_disk_data(self):
+        return super().get_valid_data_channel_values('avail_disk')
+
+    def get_cell_service_data(self):
+        return super().get_data_channel('cell_service')
+
+    def get_valid_cell_service_data(self):
+        return super().get_valid_data_channel_values('cell_service')
+
+    def get_cpu_utilization_data(self):
+        return super().get_data_channel('cpu_utilization')
+
+    def get_valid_cpu_utilization_data(self):
+        return super().get_valid_data_channel_values('cpu_utilization')
+
+    def get_wifi_wake_lock_data(self):
+        return super().get_data_channel('wifi_wake_lock')
+
+    def get_valid_wifi_wake_lock_data(self):
+        return super().get_valid_data_channel_values('wifi_wake_lock')
+
+    def get_screen_state_data(self):
+        return super().get_data_channel('screen_state')
+
+    def get_valid_screen_state_data(self):
+        return super().get_valid_data_channel_values('screen_state')
+
+    def get_screen_brightness_data(self):
+        return super().get_data_channel('screen_brightness')
+
+    def get_valid_screen_brightness_data(self):
+        return super().get_valid_data_channel_values('screen_brightness')
+
+
 ''' TEMPLATE
 class [+++++](SensorData):
     """
@@ -424,20 +1070,9 @@ class [+++++](SensorData):
         super().__init__(sensor_name, sensor_data, SensorType.[+++++], sample_rate_hz, sample_interval_s,
                          sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
     
-    def get_():
+    def get_(self):
         return super().get_data_channel()
-    def get_valid_():
+    def get_valid_(self):
         return super().get_valid_data_channel_values()
 
 '''
-
-class CompressedAudioSensor(SensorData):
-    def __init__():
-        pass
-
-    def get_compressed_audio_data(self):
-        pass
-
-    # todo: finish audio sensor functions
-
-    # todo: other sensors and their functions
