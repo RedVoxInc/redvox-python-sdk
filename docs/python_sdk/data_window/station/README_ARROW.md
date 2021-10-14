@@ -425,8 +425,11 @@ These functions are approved methods of interacting with protected properties of
 13. `is_timestamps_altered()`: Returns the value of `_timestamps_altered`
 14. `used_offset_model()`: Returns the value of `_use_offset_model`
 15. `is_save_to_disk()`: Returns the value of `_save_data`
-16. `gaps()`: Returns the list of gaps
-17. `errors()`: Returns the error object
+16. `enable_save_to_disk(new_dir: Optional[str] = None)`: Use this function to enable saving data to disk at the directory given.
+    If you call this function without giving a name, it uses the current directory.
+17. `disable_save_to_disk()`: Sets `_save_data` to False
+18. `gaps()`: Returns the list of gaps
+19. `errors()`: Returns the error object
 
 _[Table of Contents](#table-of-contents)_
 
@@ -578,3 +581,12 @@ accel_sample_interval_s = station.accelerometer_sensor().sample_interval_s()
 
 _[Table of Contents](#table-of-contents)_
 
+## General notes on property naming conventions
+
+* anything that can be freely edited without consequence has no underscore.
+
+* anything that would affect object key has underscore
+
+* anything that requires additional housekeeping has underscore
+
+Generally things that require interaction with other properties require a function.
