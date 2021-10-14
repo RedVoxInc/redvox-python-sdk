@@ -649,22 +649,22 @@ class LinearAccelerationSensor(SensorData):
                          sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
 
     def get_linear_acceleration_x_data(self):
-        return super().get_data_channel('linear_acceleration_x')
+        return super().get_data_channel('linear_accel_x')
 
     def get_valid_linear_acceleration_x_data(self):
-        return super().get_valid_data_channel_values('linear_acceleration_x')
+        return super().get_valid_data_channel_values('linear_accel_x')
 
     def get_linear_acceleration_y_data(self):
-        return super().get_data_channel('linear_acceleration_y')
+        return super().get_data_channel('linear_accel_y')
 
     def get_valid_linear_acceleration_y_data(self):
-        return super().get_valid_data_channel_values('linear_acceleration_y')
+        return super().get_valid_data_channel_values('linear_accel_y')
 
     def get_linear_acceleration_z_data(self):
-        return super().get_data_channel('linear_acceleration_z')
+        return super().get_data_channel('linear_accel_z')
 
     def get_valid_linear_acceleration_z_data(self):
-        return super().get_valid_data_channel_values('linear_acceleration_z')
+        return super().get_valid_data_channel_values('linear_accel_z')
 
 
 class OrientationSensor(SensorData):
@@ -783,19 +783,19 @@ class GravitySensor(SensorData):
     def get_gravity_x_data(self):
         return super().get_data_channel('gravity_x')
 
-    def get_valid_x_data(self):
+    def get_valid_gravity_x_data(self):
         return super().get_valid_data_channel_values('gravity_x')
 
     def get_gravity_y_data(self):
         return super().get_data_channel('gravity_y')
 
-    def get_valid_y_data(self):
+    def get_valid_gravity_y_data(self):
         return super().get_valid_data_channel_values('gravity_y')
 
     def get_gravity_z_data(self):
         return super().get_data_channel('gravity_z')
 
-    def get_valid_z_data(self):
+    def get_valid_gravity_z_data(self):
         return super().get_valid_data_channel_values('gravity_z')
 
 
@@ -975,7 +975,6 @@ class StationHealthSensor(SensorData):
         super().__init__(sensor_name, sensor_data, SensorType.STATION_HEALTH, sample_rate_hz, sample_interval_s,
                          sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
 
-
     def get_battery_charge_remaining_data(self):
         return super().get_data_channel('battery_charge_remaining')
 
@@ -1053,26 +1052,3 @@ class StationHealthSensor(SensorData):
 
     def get_valid_screen_brightness_data(self):
         return super().get_valid_data_channel_values('screen_brightness')
-
-
-''' TEMPLATE
-class [+++++](SensorData):
-    """
-    [+++++] specific functions
-    """
-    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
-                 sample_rate_hz: float = np.nan,
-                 sample_interval_s: float = np.nan,
-                 sample_interval_std_s: float = np.nan,
-                 is_sample_rate_fixed: bool = False,
-                 are_timestamps_altered: bool = False,
-                 calculate_stats: bool = False):
-        super().__init__(sensor_name, sensor_data, SensorType.[+++++], sample_rate_hz, sample_interval_s,
-                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
-    
-    def get_(self):
-        return super().get_data_channel()
-    def get_valid_(self):
-        return super().get_valid_data_channel_values()
-
-'''
