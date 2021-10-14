@@ -402,6 +402,42 @@ class AudioSensor(SensorData):
         super().__init__(sensor_name, sensor_data, SensorType.AUDIO, sample_rate_hz, sample_interval_s,
                          sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
 
+    def get_microphone_data(self):
+        return super().get_data_channel('microphone')
+
+    def get_valid_microphone_data(self):
+        return super().get_valid_data_channel_values('microphone')
+
+
+''' TEMPLATE
+class [+++++](SensorData):
+    """
+    [+++++] specific functions
+    """
+    def __init__(self, sensor_name: str, sensor_data: pd.DataFrame,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.[+++++], sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats)
+    
+    def get_():
+        return super().get_data_channel()
+    def get_valid_():
+        return super().get_valid_data_channel_values()
+
+'''
+
+class CompressedAudioSensor(SensorData):
+    def __init__():
+        pass
+
+    def get_compressed_audio_data(self):
+        pass
+
     # todo: finish audio sensor functions
 
     # todo: other sensors and their functions
