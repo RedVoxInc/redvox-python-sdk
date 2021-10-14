@@ -345,17 +345,17 @@ class Station:
         """
         :return: True if location sensor exists and has any data
         """
-        location_sensor: Optional[sd.SensorData] = self.location_sensor()
+        location_sensor: Optional[sd.LocationSensor] = self.location_sensor()
         return location_sensor is not None and location_sensor.num_samples() > 0
 
-    def location_sensor(self) -> Optional[sd.SensorData]:
+    def location_sensor(self) -> Optional[sd.LocationSensor]:
         """
         :return: location sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.LOCATION)
 
     def set_location_sensor(
-            self, loc_sensor: Optional[sd.SensorData] = None
+            self, loc_sensor: Optional[sd.LocationSensor] = None
     ) -> "Station":
         """
         sets the location sensor; can remove location sensor by passing None

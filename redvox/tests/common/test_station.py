@@ -65,7 +65,7 @@ class StationTest(unittest.TestCase):
         loc_sensor = self.apim_station.location_sensor()
         self.assertIsNotNone(loc_sensor)
         self.assertEqual(loc_sensor.data_df.shape, (3, 13))
-        self.assertAlmostEqual(loc_sensor.get_data_channel("latitude")[0], 21.309, 3)
+        self.assertAlmostEqual(loc_sensor.get_latitude_data()[0], 21.309, 3)
         accel_sensor = self.apim_station.accelerometer_sensor()
         self.assertIsNone(accel_sensor)
         health_sensor = self.apim_station.health_sensor()

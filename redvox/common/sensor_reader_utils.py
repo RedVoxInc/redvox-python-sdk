@@ -20,7 +20,7 @@ from redvox.api1000.wrapped_redvox_packet.station_information import (
 from redvox.common.stats_helper import StatsContainer
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
-from redvox.common.sensor_data import SensorType, SensorData
+from redvox.common.sensor_data import SensorType, SensorData, LocationSensor
 
 # Dataframe column definitions
 COMPRESSED_AUDIO_COLUMNS: List[str] = [
@@ -913,7 +913,7 @@ def load_apim_location_from_list(
                     )
     if len(data_list[0]) > 0:
         data_list.insert(1, data_list[0].copy())
-        return SensorData(
+        return LocationSensor(
             get_sensor_description_list(packets, SensorType.LOCATION),
             gpu.fill_gaps(
                 pd.DataFrame(np.transpose(data_list), columns=LOCATION_COLUMNS),
@@ -921,7 +921,6 @@ def load_apim_location_from_list(
                 loc_stats.mean_of_means(),
                 True,
             ),
-            SensorType.LOCATION,
             calculate_stats=True,
         )
     return None
