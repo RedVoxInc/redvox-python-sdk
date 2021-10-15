@@ -37,11 +37,11 @@ def to_json_file(sensor: "SensorDataPa",
     _file_name: str = (
         file_name
         if file_name is not None
-        else sensor.arrow_file().split(".")[0]
+        else sensor.file_name()
     )
     if sensor.is_save_to_disk():
-        pq.write_table(sensor.pyarrow_table(), sensor.get_file_path())
-    file_path: Path = Path(sensor.arrow_dir()).joinpath(f"{_file_name}.json")
+        pq.write_table(sensor.pyarrow_table(), sensor.full_path())
+    file_path: Path = Path(sensor.base_dir()).joinpath(f"{_file_name}.json")
     with open(file_path, "w") as f_p:
         f_p.write(to_json(sensor))
         return file_path.resolve(False)

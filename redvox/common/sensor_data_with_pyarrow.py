@@ -5,7 +5,6 @@ all timestamps are integers in microseconds unless otherwise stated
 import enum
 from typing import List, Union, Dict, Optional, Tuple
 import os
-import tempfile
 from glob import glob
 from pathlib import Path
 
@@ -18,6 +17,7 @@ import pyarrow.parquet as pq
 
 import redvox.common.sensor_data_io as io
 import redvox.common.date_time_utils as dtu
+from redvox.common.io import FileSystemWriter as fsw
 from redvox.common import offset_model as om
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.gap_and_pad_utils_wpa import calc_evenly_sampled_timestamps
@@ -150,11 +150,7 @@ class SensorDataPa:
 
         _gaps: List of Tuples of floats, timestamps of data points on the edge of gaps, default empty list
 
-        _arrow_file: string, file name of data file
-
-        _arrow_dir: string, directory where the data is saved to, default "" (current directory)
-
-        _save_data: bool, if True, save data to _arrow_dir, otherwise use a temp dir.  default False
+        _fs_write: FileSystemWriter, handles file system i/o
 
         _data: pyarrow Table, used to store the data when it's not written to the disk.  default None
     """
@@ -172,8 +168,9 @@ class SensorDataPa:
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
             save_data: bool = False,
-            arrow_dir: str = ".",
-            gaps: Optional[List[Tuple[float, float]]] = None
+            base_dir: str = ".",
+            gaps: Optional[List[Tuple[float, float]]] = None,
+            show_errors: bool = False
     ):
         """
         initialize the sensor data with params
@@ -182,8 +179,8 @@ class SensorDataPa:
         :param sensor_type: enumerated type of the sensor, default SensorType.UNKNOWN_SENSOR
         :param sensor_data: Optional pyarrow table with the timestamps and sensor data;
                             first column is always the timestamps,
-                            the other columns are the data channels in the sensor
-                            if not given, will search arrow_dir for data
+                            the other columns are specific metadata and data channels in the sensor
+                            default is None
         :param sample_rate_hz: sample rate in hz of the data
         :param sample_interval_s: sample interval in seconds of the data
         :param sample_interval_std_s: std dev of sample interval in seconds of the data
@@ -195,11 +192,12 @@ class SensorDataPa:
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
-        :param arrow_dir: directory to save pyarrow table, default "." (current dir).  internally uses a temporary
+        :param base_dir: directory to save pyarrow table, default "." (current dir).  internally uses a temporary
                             dir if not saving data
         :param gaps: Optional list of timestamp pairs of data points on the edge of gaps in the data.  anything between
                         the pairs of points exists to maintain sample rate and are not considered valid points.
                         Default None
+        :param show_errors: if True, show any errors encountered.  Default False
         """
         self._errors: RedVoxExceptions = RedVoxExceptions("Sensor")
         self.name: str = sensor_name
@@ -210,29 +208,26 @@ class SensorDataPa:
         self._is_sample_rate_fixed: bool = is_sample_rate_fixed
         self._timestamps_altered: bool = are_timestamps_altered
         self._use_offset_model: bool = use_offset_model_for_correction
-        self._arrow_file: str = ""
-        self._save_data: bool = save_data
-        self._data: Optional[pa.Table] = None
+        self._fs_writer = fsw("", "parquet", base_dir, save_data)
         self._gaps: List[Tuple] = gaps if gaps else []
-        self._temp_dir = tempfile.TemporaryDirectory()
-        self._arrow_dir: str = arrow_dir if self._save_data or arrow_dir else self._temp_dir.name
         if sensor_data:
             if "timestamps" not in sensor_data.schema.names:
                 self._errors.append('must have a column titled "timestamps"')
             elif sensor_data['timestamps'].length() > 0:
-                self._arrow_file: str = f"{sensor_type.name}_{int(sensor_data['timestamps'][0].as_py())}.parquet"
+                self.set_file_name(f"{sensor_type.name}_{int(sensor_data['timestamps'][0].as_py())}")
                 if calculate_stats:
                     self.organize_and_update_stats(sensor_data)
                 elif sensor_data["timestamps"].length() > 1:
                     self.sort_by_data_timestamps(sensor_data)
                 else:
                     self.write_pyarrow_table(sensor_data)
+        else:
+            self._errors.append('cannot be empty')
+        if show_errors:
+            self.print_errors()
 
-    def __del__(self):
-        self._temp_dir.cleanup()
-
-    @staticmethod
     def from_dir(
+            self,
             sensor_name: str,
             data_path: str,
             sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
@@ -263,11 +258,11 @@ class SensorDataPa:
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
         :return: SensorData object
         """
-        result = SensorDataPa(sensor_name, None,
+        result = SensorDataPa(sensor_name, self.pyarrow_ds(data_path).to_table(),
                               sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s,
                               is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
                               use_offset_model_for_correction, save_data, data_path)
-        result.set_arrow_file()
+        result.set_file_name()
         return result
 
     @staticmethod
@@ -315,70 +310,69 @@ class SensorDataPa:
         """
         :return: True if sensor will be saved to disk
         """
-        return self._save_data
+        return self._fs_writer.save_to_disk
 
-    def enable_save_to_disk(self, new_dir: Optional[str] = None):
+    def set_save_to_disk(self, save: bool):
         """
-        set the sensor to save to disk at directory new_dir.  if not specified, uses current directory (".")
-        :param new_dir: optional directory to save to; default None (use current directory)
+        :param save: If True, save to disk
         """
-        self._save_data = True
-        self.set_arrow_dir(new_dir)
+        self._fs_writer.save_to_disk = save
 
-    def disable_save_to_disk(self):
+    def set_file_name(self, new_file: Optional[str] = None):
         """
-        set the sensor to disable saving to disk
-        """
-        self._save_data = False
-        self._arrow_dir = self._temp_dir.name
-
-    def set_arrow_file(self, new_file: Optional[str] = None):
-        """
-        set the pyarrow file name or use the default: {sensor_type}_{int(first_timestamp)}.parquet
+        set the pyarrow file name or use the default: {sensor_type}_{int(first_timestamp)}
+        Do not give an extension
 
         :param new_file: optional file name to change to; default None (use default name)
         """
-        self._arrow_file = new_file if new_file else f"{self._type.name}_{int(self.first_data_timestamp())}.parquet"
+        self._fs_writer.file_name = new_file if new_file else f"{self._type.name}_{int(self.first_data_timestamp())}"
 
-    def set_arrow_dir(self, new_dir: Optional[str] = None):
+    def set_base_dir(self, new_dir: Optional[str] = None):
         """
         set the pyarrow directory or use the default: "." (current directory)
 
         :param new_dir: the directory to change to; default None (use current directory)
         """
-        self._arrow_dir = new_dir if new_dir else "."
+        self._fs_writer.base_dir = new_dir if new_dir else "."
 
-    def arrow_file(self) -> str:
+    def full_file_name(self) -> str:
         """
-        :return: name of parquet file containing the data
+        :return: full name of parquet file containing the data
         """
-        return self._arrow_file
+        return self._fs_writer.full_name()
 
-    def arrow_dir(self) -> str:
+    def file_name(self) -> str:
+        """
+        :return: file name without extension
+        """
+        return self._fs_writer.file_name
+
+    def base_dir(self) -> str:
         """
         :return: directory containing parquet files for the sensor
         """
-        return self._arrow_dir
+        return self._fs_writer.save_dir()
 
-    def get_file_path(self) -> str:
+    def full_path(self) -> str:
         """
-        :return: the supposed file path to the data file
+        :return: the full path to the data file
         """
-        return os.path.join(self._arrow_dir, self._arrow_file)
+        return self._fs_writer.full_path()
 
-    def pyarrow_ds(self) -> ds.Dataset:
+    def pyarrow_ds(self, base_dir: Optional[str] = None) -> ds.Dataset:
         """
-        :return: the dataset stored in self._arrow_dir
+        :param base_dir: optional directory to use when loading the dataset.  if None, use self.base_dir()
+        :return: the dataset stored in base_dir
         """
-        return ds.dataset(self._arrow_dir, format="parquet", exclude_invalid_files=True)
+        if base_dir is None:
+            base_dir = self.base_dir()
+        return ds.dataset(base_dir, format="parquet", exclude_invalid_files=True)
 
     def pyarrow_table(self) -> pa.Table:
         """
-        :return: the table defined by the dataset stored in self._arrow_dir
+        :return: the table defined by the dataset stored in self
         """
-        if self._save_data:
-            return self.pyarrow_ds().to_table()
-        return self._data
+        return self.pyarrow_ds().to_table()
 
     def data_df(self) -> pd.DataFrame:
         """
@@ -388,21 +382,17 @@ class SensorDataPa:
 
     def write_pyarrow_table(self, table: pa.Table):
         """
-        saves the pyarrow table to disk or to memory if self._save_data is False
+        saves the pyarrow table to disk or to memory.
         if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
-        if writing to disk, removes the _data from memory.
+        and removes any existing parquet files
 
         :param table: the table to write
         """
         # clear the output dir where the table will be written to
-        if self._save_data:
-            filelist = glob(os.path.join(self._arrow_dir, "*.parquet"))
-            for f in filelist:
-                os.remove(f)
-            pq.write_table(table, os.path.join(self._arrow_dir, self._arrow_file))
-            self._data = None
-        else:
-            self._data = table
+        filelist = glob(os.path.join(self.base_dir(), "*.parquet"))
+        for f in filelist:
+            os.remove(f)
+        pq.write_table(table, self.full_path())
 
     def errors(self) -> RedVoxExceptions:
         """
@@ -478,7 +468,7 @@ class SensorDataPa:
         else:
             order = "descending"
         data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", order)]))
-        self._arrow_file: str = f"{self._type.name}_{int(data['timestamps'][0].as_py())}.parquet"
+        self.set_file_name(f"{self._type.name}_{int(data['timestamps'][0].as_py())}")
         self.write_pyarrow_table(data)
 
     def organize_and_update_stats(self, ptable: pa.Table) -> "SensorDataPa":
@@ -559,13 +549,19 @@ class SensorDataPa:
         """
         :return: the timestamps as a numpy array
         """
-        return self.pyarrow_table()["timestamps"].to_numpy()
+        if "timestamps" in self.pyarrow_table().schema.names:
+            return self.pyarrow_table()["timestamps"].to_numpy()
+        else:
+            return np.nan
 
     def unaltered_data_timestamps(self) -> np.array:
         """
         :return: the unaltered timestamps as a numpy array
         """
-        return self.pyarrow_table()["unaltered_timestamps"].to_numpy()
+        if "unaltered_timestamps" in self.pyarrow_table().schema.names:
+            return self.pyarrow_table()["unaltered_timestamps"].to_numpy()
+        else:
+            return np.nan
 
     def first_data_timestamp(self) -> float:
         """
@@ -668,7 +664,7 @@ class SensorDataPa:
             timestamps = pa.array(offset_model.update_timestamps(self.data_timestamps(),
                                                                  self._use_offset_model))
         self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", timestamps))
-        self.set_arrow_file()
+        self.set_file_name()
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
             self._sample_interval_s = dtu.microseconds_to_seconds(slope)
@@ -729,8 +725,7 @@ class SensorDataPa:
             "timestamps_altered": self._timestamps_altered,
             "use_offset_model": self._use_offset_model,
             "gaps": self._gaps,
-            "parquet_dir": self._arrow_dir,
-            "parquet_file": self._arrow_file,
+            "fs_writer": self._fs_writer.as_dict(),
             "errors": self._errors.as_dict()
         }
 
@@ -761,7 +756,8 @@ class SensorDataPa:
         """
         json_data = io.from_json(file_path)
         if "name" in json_data.keys():
-            result = SensorDataPa.from_dir(json_data["name"], json_data["parquet_dir"], SensorType[json_data["type"]],
+            result = SensorDataPa.from_dir(json_data["name"], json_data["fs_writer"]["base_dir"],
+                                           SensorType[json_data["type"]],
                                            json_data["sample_rate_hz"], json_data["sample_interval_s"],
                                            json_data["sample_interval_std_s"], json_data["is_sample_rate_fixed"],
                                            json_data["timestamps_altered"], False, json_data["use_offset_model"])

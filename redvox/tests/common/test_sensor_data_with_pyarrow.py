@@ -43,6 +43,10 @@ class SensorDataTest(unittest.TestCase):
             False,
         )
 
+    def test_empty(self):
+        self.empty_sensor = SensorDataPa("empty")
+        self.assertEqual(self.empty_sensor.errors().get_num_errors(), 1)
+
     def test_name(self):
         self.assertEqual(self.even_sensor.name, "test")
         self.assertEqual(self.uneven_sensor.name, "test")
@@ -68,18 +72,18 @@ class SensorDataTest(unittest.TestCase):
         self.assertTrue(self.even_sensor.is_sample_rate_fixed())
         self.assertFalse(self.uneven_sensor.is_sample_rate_fixed())
 
-    def test_empty_dataframe(self):
+    def test_empty_data(self):
         empty = SensorDataPa.from_dict("", {"": []}, is_sample_rate_fixed=True)
-        self.assertTrue(empty.errors().get_num_errors() == 0)
+        self.assertTrue(empty.errors().get_num_errors() == 1)
         self.assertEqual(empty.type().value, SensorType.UNKNOWN_SENSOR.value)
 
-    def test_invalid_dataframe(self):
+    def test_invalid_data(self):
         invalid = SensorDataPa.from_dict(
             "",
             {"not_timestamps": [1]},
             is_sample_rate_fixed=True,
         )
-        self.assertTrue(invalid.errors().get_num_errors() > 0)
+        self.assertTrue(invalid.errors().get_num_errors() == 1)
 
     def test_append_data(self):
         self.even_sensor.append_data(

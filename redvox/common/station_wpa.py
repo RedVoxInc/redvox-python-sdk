@@ -1133,7 +1133,7 @@ class StationPa:
             #                                       audo.srate_hz, 1/audo.srate_hz, 0., True))
             self._data.append(sd.SensorDataPa(audo.name, audo.data(), audo.stype,
                                               audo.srate_hz, 1 / audo.srate_hz, 0., True,
-                                              arrow_dir=audo.fdir, save_data=self._save_data))
+                                              base_dir=audo.fdir, save_data=self._save_data))
             self._get_start_and_end_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
@@ -1156,7 +1156,7 @@ class StationPa:
                         s_to_us(stats.mean_of_means()), True)
                     self._data.append(sd.SensorDataPa(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._save_data,
-                        sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False, arrow_dir=sdata[0].fdir)
+                        sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False, base_dir=sdata[0].fdir)
                     )
                 else:
                     d, g = gpu.fill_gaps(
@@ -1166,7 +1166,7 @@ class StationPa:
                     self._data.append(sd.SensorDataPa(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._save_data,
                         sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
-                        sample_interval_std_s=0., is_sample_rate_fixed=True, arrow_dir=sdata[0].fdir)
+                        sample_interval_std_s=0., is_sample_rate_fixed=True, base_dir=sdata[0].fdir)
                     )
         else:
             self._errors.append("Audio Sensor expected, but does not exist.")

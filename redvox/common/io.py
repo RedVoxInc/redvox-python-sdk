@@ -8,6 +8,7 @@ from glob import glob
 import os.path
 import multiprocessing
 import multiprocessing.pool
+import tempfile
 from pathlib import Path, PurePath
 from shutil import copy2, move
 from typing import (
@@ -41,6 +42,82 @@ from redvox.common.parallel_utils import maybe_parallel_map
 if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
     from redvox.api900.lib.api900_pb2 import RedvoxPacket
+
+
+class FileSystemWriter:
+    """
+    This class holds basic information about writing and reading objects from a file system
+    If user does not enable saving to disk, we use a temporary directory to store large files
+
+    Properties:
+        file_name: str, the name of the file (do not include extension)
+        file_ext: str, the extension used by the file (do not include the .).  Default "NONE"
+        base_dir: str, the directory to save the file to.  Default "." (current dir)
+        save_to_disk: bool, if True, save data to disk.  Default False
+
+    Protected:
+        _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
+    """
+
+    def __init__(self, file_name: Optional[str], file_ext: str = "NONE",
+                 base_dir: str = ".", save_enabled: bool = False):
+        """
+        initialize FileSystemWriter
+
+        :param file_name: name of file
+        :param file_ext: extension of file, default "NONE:
+        :param base_dir: directory to save file to, default "." (current dir)
+        :param save_enabled: if True, save to the file specified by, default False
+        """
+        self.file_name: str = file_name
+        self.file_extension: str = file_ext
+        self.save_to_disk: bool = save_enabled
+        self.base_dir: str = base_dir
+        self._temp_dir = tempfile.TemporaryDirectory()
+
+    def save_dir(self) -> str:
+        """
+        :return: directory where file would be saved based on current value of _save_to_disk
+        """
+        return self.base_dir if self.save_to_disk else self._temp_dir.name
+
+    def full_name(self) -> str:
+        """
+        :return: file name with extension
+        """
+        return f"{self.file_name}.{self.file_extension}"
+
+    def full_path(self) -> str:
+        """
+        :return: the full path to where the file would be written
+        """
+        return os.path.join(self.save_dir(), self.full_name())
+
+    def set_name_and_extension(self, name: str, ext: str):
+        """
+        set the name and extension of the output file.  Do not include the . for the extension
+        :param name: file name
+        :param ext: file extension
+        """
+        self.file_name = name
+        self.file_extension = ext
+
+    def __del__(self):
+        """
+        remove temp dir
+        """
+        self._temp_dir.cleanup()
+
+    def as_dict(self) -> dict:
+        """
+        :return: FileSystemWriter as dictionary
+        """
+        return {
+            "file_name": self.file_name,
+            "file_extension": self.file_extension,
+            "base_dir": self.base_dir,
+            "save_to_disk": self.save_to_disk
+        }
 
 
 def _is_int(value: str) -> Optional[int]:
