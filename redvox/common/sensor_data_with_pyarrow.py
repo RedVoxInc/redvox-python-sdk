@@ -17,7 +17,7 @@ import pyarrow.parquet as pq
 
 import redvox.common.sensor_data_io as io
 import redvox.common.date_time_utils as dtu
-from redvox.common.io import FileSystemWriter as fsw
+from redvox.common.io import FileSystemWriter as Fsw
 from redvox.common import offset_model as om
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.gap_and_pad_utils_wpa import calc_evenly_sampled_timestamps
@@ -25,6 +25,8 @@ from redvox.api1000.wrapped_redvox_packet.station_information import (
     NetworkType,
     PowerState,
     CellServiceState,
+    WifiWakeLock,
+    ScreenState,
 )
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
@@ -33,8 +35,8 @@ from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 # columns that cannot be interpolated
 NON_INTERPOLATED_COLUMNS = ["compressed_audio", "image"]
 # columns that are not numeric but can be interpolated
-NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec",
-                       "network_type", "power_state", "cell_service"]
+NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec", "network_type",
+                       "power_state", "cell_service", "wifi_wake_lock", "screen_state"]
 
 
 class SensorType(enum.Enum):
@@ -61,8 +63,9 @@ class SensorType(enum.Enum):
     ROTATION_VECTOR = 16  # Unitless
     INFRARED = 17  # this is proximity
     STATION_HEALTH = 18
-    # battery charge and current level, phone internal temperature, network source and strength,
+    # Health sensors: battery charge and current level, phone internal temperature, network source and strength,
     # available RAM of the system, cell service status, amount of hard disk space left, power charging state
+    # wifi lock state, cpu utilization, screen state, and screen brightness
     BEST_LOCATION = 19  # See standard
 
     @staticmethod
@@ -208,7 +211,7 @@ class SensorDataPa:
         self._is_sample_rate_fixed: bool = is_sample_rate_fixed
         self._timestamps_altered: bool = are_timestamps_altered
         self._use_offset_model: bool = use_offset_model_for_correction
-        self._fs_writer = fsw("", "parquet", base_dir, save_data)
+        self._fs_writer = Fsw("", "parquet", base_dir, save_data)
         self._gaps: List[Tuple] = gaps if gaps else []
         if sensor_data:
             if "timestamps" not in sensor_data.schema.names:
@@ -620,6 +623,10 @@ class SensorDataPa:
             return [PowerState(c).name for c in _arrow[channel_name]]
         elif channel_name == "cell_service":
             return [CellServiceState(c).name for c in _arrow[channel_name]]
+        elif channel_name == "wifi_wake_lock":
+            return [WifiWakeLock(c).name for c in _arrow[channel_name]]
+        elif channel_name == "screen_state":
+            return [ScreenState(c).name for c in _arrow[channel_name]]
         return _arrow[channel_name].to_numpy()
 
     def get_valid_data_channel_values(self, channel_name: str) -> np.array:
