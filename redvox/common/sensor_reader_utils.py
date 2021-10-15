@@ -20,7 +20,8 @@ from redvox.api1000.wrapped_redvox_packet.station_information import (
 from redvox.common.stats_helper import StatsContainer
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
-from redvox.common.sensor_data import SensorType, SensorData, LocationSensor
+from redvox.common.sensor_data import SensorType, SensorData, AudioSensor, CompressedAudioSensor,\
+    ImageSensor, LocationSensor, BestLocationSensor, StationHealthSensor
 
 # Dataframe column definitions
 COMPRESSED_AUDIO_COLUMNS: List[str] = [
@@ -437,7 +438,7 @@ def load_apim_single_sensor_from_list(
     return None
 
 
-def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
+def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[AudioSensor]:
     """
     load audio data from a single redvox packet
 
@@ -453,7 +454,7 @@ def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
             dtu.seconds_to_microseconds(1.0 / audio_sensor.sample_rate),
         )
 
-        return SensorData(
+        return AudioSensor(
             audio_sensor.sensor_description,
             pd.DataFrame(
                 np.transpose(
@@ -461,7 +462,6 @@ def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
                 ),
                 columns=gpu.AUDIO_DF_COLUMNS,
             ),
-            SensorType.AUDIO,
             audio_sensor.sample_rate,
             1.0 / audio_sensor.sample_rate,
             0.0,
@@ -473,7 +473,7 @@ def load_apim_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
 
 def load_apim_audio_from_list(
         packets: List[api_m.RedvoxPacketM],
-) -> Tuple[Optional[SensorData], List[Tuple[float, float]]]:
+) -> Tuple[Optional[AudioSensor], List[Tuple[float, float]]]:
     """
     load audio data from a list of redvox packets
     NOTE: This only works because audio sensors in the list should all have the same number of data points.
@@ -496,10 +496,9 @@ def load_apim_audio_from_list(
             gp_result = gpu.fill_audio_gaps(
                 packet_info, dtu.seconds_to_microseconds(1 / sample_rate_hz)
             )
-            sensor_data = SensorData(
+            sensor_data = AudioSensor(
                 get_sensor_description_list(packets, SensorType.AUDIO),
                 gp_result.result_df,
-                SensorType.AUDIO,
                 sample_rate_hz,
                 1 / sample_rate_hz,
                 0.0,
@@ -515,7 +514,7 @@ def load_apim_audio_from_list(
     return None, []
 
 
-def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
+def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -> Optional[CompressedAudioSensor]:
     """
     load compressed audio data from a single redvox packet
 
@@ -527,7 +526,7 @@ def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorDa
             packet.sensors.compressed_audio
         )
         sample_rate_hz = comp_audio.sample_rate
-        return SensorData(
+        return CompressedAudioSensor(
             comp_audio.sensor_description,
             pd.DataFrame(
                 np.transpose(
@@ -540,7 +539,6 @@ def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorDa
                 ),
                 columns=COMPRESSED_AUDIO_COLUMNS,
             ),
-            SensorType.COMPRESSED_AUDIO,
             sample_rate_hz,
             1 / sample_rate_hz,
             0.0,
@@ -551,7 +549,7 @@ def load_apim_compressed_audio(packet: api_m.RedvoxPacketM) -> Optional[SensorDa
 
 def load_apim_compressed_audio_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
-) -> Optional[SensorData]:
+) -> Optional[CompressedAudioSensor]:
     """
     load compressed audio data from a list of redvox packets
 
@@ -579,10 +577,9 @@ def load_apim_compressed_audio_from_list(
         )
         data_df["audio_codec"] = [d for d in data_df["audio_codec"]]
         sample_rate_hz = packets[0].sensors.compressed_audio.sample_rate
-        return SensorData(
+        return CompressedAudioSensor(
             get_sensor_description_list(packets, SensorType.COMPRESSED_AUDIO),
             data_df,
-            SensorType.COMPRESSED_AUDIO,
             sample_rate_hz,
             1 / sample_rate_hz,
             0.0,
@@ -591,7 +588,7 @@ def load_apim_compressed_audio_from_list(
     return None
 
 
-def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
+def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[ImageSensor]:
     """
     load image data from a single redvox packet
 
@@ -611,10 +608,9 @@ def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
         sample_rate, sample_interval, sample_interval_std = __stats_for_sensor_per_packet_per_second(
             1, __packet_duration_s(packet), timestamps
         )
-        return SensorData(
+        return ImageSensor(
             image_sensor.sensor_description,
             data_df,
-            SensorType.IMAGE,
             sample_rate,
             sample_interval,
             sample_interval_std,
@@ -625,7 +621,7 @@ def load_apim_image(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
 
 def load_apim_image_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
-) -> Optional[SensorData]:
+) -> Optional[ImageSensor]:
     """
     load image data from a list of redvox packets
 
@@ -660,7 +656,7 @@ def load_apim_image_from_list(
         df["timestamps"] = df["timestamps"].astype(float)
         df["unaltered_timestamps"] = df["unaltered_timestamps"].astype(float)
         df["image_codec"] = df["image_codec"].astype(float)
-        return SensorData(
+        return ImageSensor(
             get_sensor_description_list(packets, SensorType.IMAGE),
             gpu.fill_gaps(
                 df,
@@ -668,7 +664,6 @@ def load_apim_image_from_list(
                 dtu.seconds_to_microseconds(sample_interval),
                 True,
             ),
-            SensorType.IMAGE,
             sample_rate,
             sample_interval,
             sample_interval_std,
@@ -686,7 +681,7 @@ def __is_only_best_values(loc: api_m.RedvoxPacketM.Sensors.Location) -> bool:
     )
 
 
-def load_apim_best_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
+def load_apim_best_location(packet: api_m.RedvoxPacketM) -> Optional[BestLocationSensor]:
     """
     load best location data from a single redvox packet
 
@@ -719,10 +714,9 @@ def load_apim_best_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]
                 ]
             ], columns=LOCATION_COLUMNS)
             sample_rate = 1 / __packet_duration_s(packet)
-            return SensorData(
+            return BestLocationSensor(
                 loc.sensor_description,
                 data_df,
-                SensorType.BEST_LOCATION,
                 sample_rate,
                 1 / sample_rate,
                 np.nan,
@@ -733,7 +727,7 @@ def load_apim_best_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]
 
 def load_apim_best_location_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
-) -> Optional[SensorData]:
+) -> Optional[BestLocationSensor]:
     """
     load best location data from a list of redvox packets
 
@@ -767,7 +761,7 @@ def load_apim_best_location_from_list(
                 data_list[12].append(best_loc.location_provider)
                 loc_stats.add(__packet_duration_us(packet), 0, 1)
     if len(data_list[0]) > 0:
-        return SensorData(
+        return BestLocationSensor(
             get_sensor_description_list(packets, SensorType.BEST_LOCATION),
             gpu.fill_gaps(
                 pd.DataFrame(np.transpose(data_list), columns=LOCATION_COLUMNS),
@@ -775,12 +769,12 @@ def load_apim_best_location_from_list(
                 loc_stats.mean_of_means(),
                 True,
             ),
-            SensorType.BEST_LOCATION,
             calculate_stats=True,
         )
+    return None
 
 
-def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
+def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[LocationSensor]:
     """
     load location data from a single packet
 
@@ -826,10 +820,9 @@ def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
         sample_rate, sample_interval, sample_interval_std = get_sample_statistics(
             data_df
         )
-        return SensorData(
+        return LocationSensor(
             loc.sensor_description,
             data_df,
-            SensorType.LOCATION,
             sample_rate,
             sample_interval,
             sample_interval_std,
@@ -840,7 +833,7 @@ def load_apim_location(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
 
 def load_apim_location_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
-) -> Optional[SensorData]:
+) -> Optional[LocationSensor]:
     """
     load location data from a list of redvox packets
 
@@ -1405,7 +1398,7 @@ def load_apim_rotation_vector_from_list(
     )
 
 
-def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
+def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[StationHealthSensor]:
     """
     load station health data from a single redvox packet
 
@@ -1458,10 +1451,9 @@ def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
         sample_rate, sample_interval, sample_interval_std = __stats_for_sensor_per_packet_per_second(
             1, __packet_duration_s(packet), timestamps
         )
-        return SensorData(
+        return StationHealthSensor(
             "station health",
             data_df,
-            SensorType.STATION_HEALTH,
             sample_rate,
             sample_interval,
             sample_interval_std,
@@ -1472,7 +1464,7 @@ def load_apim_health(packet: api_m.RedvoxPacketM) -> Optional[SensorData]:
 
 def load_apim_health_from_list(
         packets: List[api_m.RedvoxPacketM], gaps: List[Tuple[float, float]]
-) -> Optional[SensorData]:
+) -> Optional[StationHealthSensor]:
     """
     load station health data from a list of redvox packets
 
@@ -1528,10 +1520,9 @@ def load_apim_health_from_list(
             dtu.seconds_to_microseconds(sample_interval),
             True,
         )
-        return SensorData(
+        return StationHealthSensor(
             "station health",
             df,
-            SensorType.STATION_HEALTH,
             sample_rate,
             sample_interval,
             sample_interval_std,

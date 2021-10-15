@@ -312,21 +312,21 @@ class Station:
         """
         :return: True if audio sensor exists and has any data
         """
-        audio_sensor: Optional[sd.SensorData] = self.audio_sensor()
+        audio_sensor: Optional[sd.AudioSensor] = self.audio_sensor()
         return audio_sensor is not None and audio_sensor.num_samples() > 0
 
-    def audio_sensor(self) -> Optional[sd.SensorData]:
+    def audio_sensor(self) -> Optional[sd.AudioSensor]:
         """
         :return: audio sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.AUDIO)
 
     def set_audio_sensor(
-            self, audio_sensor: Optional[sd.SensorData] = None
+            self, audio_sensor: Optional[sd.AudioSensor] = None
     ) -> "Station":
         """
         sets the audio sensor; can remove audio sensor by passing None
-        :param audio_sensor: the SensorData to set or None
+        :param audio_sensor: the AudioSensor to set or None
         :return: the edited Station
         """
         if self.has_audio_sensor():
@@ -359,7 +359,7 @@ class Station:
     ) -> "Station":
         """
         sets the location sensor; can remove location sensor by passing None
-        :param loc_sensor: the SensorData to set or None
+        :param loc_sensor: the LocationSensor to set or None
         :return: the edited Station
         """
         if self.has_location_sensor():
@@ -378,21 +378,21 @@ class Station:
         """
         :return: True if best location sensor exists and has any data
         """
-        location_sensor: Optional[sd.SensorData] = self.best_location_sensor()
+        location_sensor: Optional[sd.BestLocationSensor] = self.best_location_sensor()
         return location_sensor is not None and location_sensor.num_samples() > 0
 
-    def best_location_sensor(self) -> Optional[sd.SensorData]:
+    def best_location_sensor(self) -> Optional[sd.BestLocationSensor]:
         """
         :return: best location sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.BEST_LOCATION)
 
     def set_best_location_sensor(
-            self, best_loc_sensor: Optional[sd.SensorData] = None
+            self, best_loc_sensor: Optional[sd.BestLocationSensor] = None
     ) -> "Station":
         """
         sets the best location sensor; can remove location sensor by passing None
-        :param best_loc_sensor: the SensorData to set or None
+        :param best_loc_sensor: the BestLocationSensor to set or None
         :return: the edited Station
         """
         if self.has_best_location_sensor():
@@ -411,21 +411,21 @@ class Station:
         """
         :return: True if accelerometer sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.accelerometer_sensor()
+        sensor: Optional[sd.AccelerometerSensor] = self.accelerometer_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def accelerometer_sensor(self) -> Optional[sd.SensorData]:
+    def accelerometer_sensor(self) -> Optional[sd.AccelerometerSensor]:
         """
         :return: accelerometer sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.ACCELEROMETER)
 
     def set_accelerometer_sensor(
-            self, acc_sensor: Optional[sd.SensorData] = None
+            self, acc_sensor: Optional[sd.AccelerometerSensor] = None
     ) -> "Station":
         """
         sets the accelerometer sensor; can remove accelerometer sensor by passing None
-        :param acc_sensor: the SensorData to set or None
+        :param acc_sensor: the AccelerometerSensor to set or None
         :return: the edited Station
         """
         if self.has_accelerometer_sensor():
@@ -444,21 +444,21 @@ class Station:
         """
         :return: True if magnetometer sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.magnetometer_sensor()
+        sensor: Optional[sd.MagnetometerSensor] = self.magnetometer_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def magnetometer_sensor(self) -> Optional[sd.SensorData]:
+    def magnetometer_sensor(self) -> Optional[sd.MagnetometerSensor]:
         """
         :return: magnetometer sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.MAGNETOMETER)
 
     def set_magnetometer_sensor(
-            self, mag_sensor: Optional[sd.SensorData] = None
+            self, mag_sensor: Optional[sd.MagnetometerSensor] = None
     ) -> "Station":
         """
         sets the magnetometer sensor; can remove magnetometer sensor by passing None
-        :param mag_sensor: the SensorData to set or None
+        :param mag_sensor: the MagnetometerSensor to set or None
         :return: the edited Station
         """
         if self.has_magnetometer_sensor():
@@ -477,21 +477,21 @@ class Station:
         """
         :return: True if gyroscope sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.gyroscope_sensor()
+        sensor: Optional[sd.GyroscopeSensor] = self.gyroscope_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def gyroscope_sensor(self) -> Optional[sd.SensorData]:
+    def gyroscope_sensor(self) -> Optional[sd.GyroscopeSensor]:
         """
         :return: gyroscope sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.GYROSCOPE)
 
     def set_gyroscope_sensor(
-            self, gyro_sensor: Optional[sd.SensorData] = None
+            self, gyro_sensor: Optional[sd.GyroscopeSensor] = None
     ) -> "Station":
         """
         sets the gyroscope sensor; can remove gyroscope sensor by passing None
-        :param gyro_sensor: the SensorData to set or None
+        :param gyro_sensor: the GyroscopeSensor to set or None
         :return: the edited Station
         """
         if self.has_gyroscope_sensor():
@@ -510,21 +510,21 @@ class Station:
         """
         :return: True if pressure sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.pressure_sensor()
+        sensor: Optional[sd.PressureSensor] = self.pressure_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def pressure_sensor(self) -> Optional[sd.SensorData]:
+    def pressure_sensor(self) -> Optional[sd.PressureSensor]:
         """
         :return: pressure sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.PRESSURE)
 
     def set_pressure_sensor(
-            self, pressure_sensor: Optional[sd.SensorData] = None
+            self, pressure_sensor: Optional[sd.PressureSensor] = None
     ) -> "Station":
         """
         sets the pressure sensor; can remove pressure sensor by passing None
-        :param pressure_sensor: the SensorData to set or None
+        :param pressure_sensor: the PressureSensor to set or None
         :return: the edited Station
         """
         if self.has_pressure_sensor():
@@ -571,21 +571,21 @@ class Station:
         """
         :return: True if light sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.light_sensor()
+        sensor: Optional[sd.LightSensor] = self.light_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def light_sensor(self) -> Optional[sd.SensorData]:
+    def light_sensor(self) -> Optional[sd.LightSensor]:
         """
         :return: light sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.LIGHT)
 
     def set_light_sensor(
-            self, light_sensor: Optional[sd.SensorData] = None
+            self, light_sensor: Optional[sd.LightSensor] = None
     ) -> "Station":
         """
         sets the light sensor; can remove light sensor by passing None
-        :param light_sensor: the SensorData to set or None
+        :param light_sensor: the LightSensor to set or None
         :return: the edited Station
         """
         if self.has_light_sensor():
@@ -632,21 +632,21 @@ class Station:
         """
         :return: True if proximity sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.proximity_sensor()
+        sensor: Optional[sd.ProximitySensor] = self.proximity_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def proximity_sensor(self) -> Optional[sd.SensorData]:
+    def proximity_sensor(self) -> Optional[sd.ProximitySensor]:
         """
         :return: proximity sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.PROXIMITY)
 
     def set_proximity_sensor(
-            self, proximity_sensor: Optional[sd.SensorData] = None
+            self, proximity_sensor: Optional[sd.ProximitySensor] = None
     ) -> "Station":
         """
         sets the proximity sensor; can remove proximity sensor by passing None
-        :param proximity_sensor: the SensorData to set or None
+        :param proximity_sensor: the ProximitySensor to set or None
         :return: the edited Station
         """
         if self.has_proximity_sensor():
@@ -665,19 +665,19 @@ class Station:
         """
         :return: True if image sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.image_sensor()
+        sensor: Optional[sd.ImageSensor] = self.image_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def image_sensor(self) -> Optional[sd.SensorData]:
+    def image_sensor(self) -> Optional[sd.ImageSensor]:
         """
         :return: image sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.IMAGE)
 
-    def set_image_sensor(self, img_sensor: Optional[sd.SensorData] = None) -> "Station":
+    def set_image_sensor(self, img_sensor: Optional[sd.ImageSensor] = None) -> "Station":
         """
         sets the image sensor; can remove image sensor by passing None
-        :param img_sensor: the SensorData to set or None
+        :param img_sensor: the ImageSensor to set or None
         :return: the edited Station
         """
         if self.has_image_sensor():
@@ -696,21 +696,21 @@ class Station:
         """
         :return: True if ambient temperature sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.ambient_temperature_sensor()
+        sensor: Optional[sd.AmbientTemperatureSensor] = self.ambient_temperature_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def ambient_temperature_sensor(self) -> Optional[sd.SensorData]:
+    def ambient_temperature_sensor(self) -> Optional[sd.AmbientTemperatureSensor]:
         """
         :return: ambient temperature sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.AMBIENT_TEMPERATURE)
 
     def set_ambient_temperature_sensor(
-            self, amb_temp_sensor: Optional[sd.SensorData] = None
+            self, amb_temp_sensor: Optional[sd.AmbientTemperatureSensor] = None
     ) -> "Station":
         """
         sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
-        :param amb_temp_sensor: the SensorData to set or None
+        :param amb_temp_sensor: the AmbientTemperatureSensor to set or None
         :return: the edited Station
         """
         if self.has_ambient_temperature_sensor():
@@ -729,21 +729,21 @@ class Station:
         """
         :return: True if relative humidity sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.relative_humidity_sensor()
+        sensor: Optional[sd.RelativeHumiditySensor] = self.relative_humidity_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def relative_humidity_sensor(self) -> Optional[sd.SensorData]:
+    def relative_humidity_sensor(self) -> Optional[sd.RelativeHumiditySensor]:
         """
         :return: relative humidity sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.RELATIVE_HUMIDITY)
 
     def set_relative_humidity_sensor(
-            self, rel_hum_sensor: Optional[sd.SensorData] = None
+            self, rel_hum_sensor: Optional[sd.RelativeHumiditySensor] = None
     ) -> "Station":
         """
         sets the relative humidity sensor; can remove relative humidity sensor by passing None
-        :param rel_hum_sensor: the SensorData to set or None
+        :param rel_hum_sensor: the RelativeHumiditySensor to set or None
         :return: the edited Station
         """
         if self.has_relative_humidity_sensor():
@@ -762,21 +762,21 @@ class Station:
         """
         :return: True if gravity sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.gravity_sensor()
+        sensor: Optional[sd.GravitySensor] = self.gravity_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def gravity_sensor(self) -> Optional[sd.SensorData]:
+    def gravity_sensor(self) -> Optional[sd.GravitySensor]:
         """
         :return: gravity sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.GRAVITY)
 
     def set_gravity_sensor(
-            self, grav_sensor: Optional[sd.SensorData] = None
+            self, grav_sensor: Optional[sd.GravitySensor] = None
     ) -> "Station":
         """
         sets the gravity sensor; can remove gravity sensor by passing None
-        :param grav_sensor: the SensorData to set or None
+        :param grav_sensor: the GravitySensor to set or None
         :return: the edited Station
         """
         if self.has_gravity_sensor():
@@ -795,21 +795,21 @@ class Station:
         """
         :return: True if linear acceleration sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.linear_acceleration_sensor()
+        sensor: Optional[sd.LinearAccelerationSensor] = self.linear_acceleration_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def linear_acceleration_sensor(self) -> Optional[sd.SensorData]:
+    def linear_acceleration_sensor(self) -> Optional[sd.LinearAccelerationSensor]:
         """
         :return: linear acceleration sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.LINEAR_ACCELERATION)
 
     def set_linear_acceleration_sensor(
-            self, lin_acc_sensor: Optional[sd.SensorData] = None
+            self, lin_acc_sensor: Optional[sd.LinearAccelerationSensor] = None
     ) -> "Station":
         """
         sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
-        :param lin_acc_sensor: the SensorData to set or None
+        :param lin_acc_sensor: the LinearAccelerationSensor to set or None
         :return: the edited Station
         """
         if self.has_linear_acceleration_sensor():
@@ -828,21 +828,21 @@ class Station:
         """
         :return: True if orientation sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.orientation_sensor()
+        sensor: Optional[sd.OrientationSensor] = self.orientation_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def orientation_sensor(self) -> Optional[sd.SensorData]:
+    def orientation_sensor(self) -> Optional[sd.OrientationSensor]:
         """
         :return: orientation sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.ORIENTATION)
 
     def set_orientation_sensor(
-            self, orientation_sensor: Optional[sd.SensorData] = None
+            self, orientation_sensor: Optional[sd.OrientationSensor] = None
     ) -> "Station":
         """
         sets the orientation sensor; can remove orientation sensor by passing None
-        :param orientation_sensor: the SensorData to set or None
+        :param orientation_sensor: the OrientationSensor to set or None
         :return: the edited Station
         """
         if self.has_orientation_sensor():
@@ -861,21 +861,21 @@ class Station:
         """
         :return: True if rotation vector sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.rotation_vector_sensor()
+        sensor: Optional[sd.RotationVectorSensor] = self.rotation_vector_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def rotation_vector_sensor(self) -> Optional[sd.SensorData]:
+    def rotation_vector_sensor(self) -> Optional[sd.RotationVectorSensor]:
         """
         :return: rotation vector sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.ROTATION_VECTOR)
 
     def set_rotation_vector_sensor(
-            self, rot_vec_sensor: Optional[sd.SensorData] = None
+            self, rot_vec_sensor: Optional[sd.RotationVectorSensor] = None
     ) -> "Station":
         """
         sets the rotation vector sensor; can remove rotation vector sensor by passing None
-        :param rot_vec_sensor: the SensorData to set or None
+        :param rot_vec_sensor: the RotationVectorSensor to set or None
         :return: the edited DataPacket
         """
         if self.has_rotation_vector_sensor():
@@ -894,21 +894,21 @@ class Station:
         """
         :return: True if compressed audio sensor exists and has any data
         """
-        sensor: Optional[sd.SensorData] = self.compressed_audio_sensor()
+        sensor: Optional[sd.CompressedAudioSensor] = self.compressed_audio_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def compressed_audio_sensor(self) -> Optional[sd.SensorData]:
+    def compressed_audio_sensor(self) -> Optional[sd.CompressedAudioSensor]:
         """
         :return: compressed audio sensor if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.COMPRESSED_AUDIO)
 
     def set_compressed_audio_sensor(
-            self, comp_audio_sensor: Optional[sd.SensorData] = None
+            self, comp_audio_sensor: Optional[sd.CompressedAudioSensor] = None
     ) -> "Station":
         """
         sets the compressed audio sensor; can remove compressed audio sensor by passing None
-        :param comp_audio_sensor: the SensorData to set or None
+        :param comp_audio_sensor: the CompressedAudioSensor to set or None
         :return: the edited DataPacket
         """
         if self.has_compressed_audio_sensor():
@@ -927,17 +927,17 @@ class Station:
         """
         :return: True if health sensor (station metrics) exists and has data
         """
-        sensor: Optional[sd.SensorData] = self.health_sensor()
+        sensor: Optional[sd.StationHealthSensor] = self.health_sensor()
         return sensor is not None and sensor.num_samples() > 0
 
-    def health_sensor(self) -> Optional[sd.SensorData]:
+    def health_sensor(self) -> Optional[sd.StationHealthSensor]:
         """
         :return: station health sensor (station metrics) if it exists, None otherwise
         """
         return self.get_sensor_by_type(sd.SensorType.STATION_HEALTH)
 
     def set_health_sensor(
-            self, health_sensor: Optional[sd.SensorData] = None
+            self, health_sensor: Optional[sd.StationHealthSensor] = None
     ) -> "Station":
         """
         sets the health sensor; can remove health sensor by passing None
