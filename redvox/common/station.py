@@ -326,7 +326,7 @@ class Station:
     ) -> "Station":
         """
         sets the audio sensor; can remove audio sensor by passing None
-        :param audio_sensor: the SensorData to set or None
+        :param audio_sensor: the AudioSensor to set or None
         :return: the edited Station
         """
         if self.has_audio_sensor():
@@ -359,7 +359,7 @@ class Station:
     ) -> "Station":
         """
         sets the location sensor; can remove location sensor by passing None
-        :param loc_sensor: the SensorData to set or None
+        :param loc_sensor: the LocationSensor to set or None
         :return: the edited Station
         """
         if self.has_location_sensor():
@@ -392,7 +392,7 @@ class Station:
     ) -> "Station":
         """
         sets the best location sensor; can remove location sensor by passing None
-        :param best_loc_sensor: the SensorData to set or None
+        :param best_loc_sensor: the BestLocationSensor to set or None
         :return: the edited Station
         """
         if self.has_best_location_sensor():
@@ -425,7 +425,7 @@ class Station:
     ) -> "Station":
         """
         sets the accelerometer sensor; can remove accelerometer sensor by passing None
-        :param acc_sensor: the SensorData to set or None
+        :param acc_sensor: the AccelerometerSensor to set or None
         :return: the edited Station
         """
         if self.has_accelerometer_sensor():
@@ -458,7 +458,7 @@ class Station:
     ) -> "Station":
         """
         sets the magnetometer sensor; can remove magnetometer sensor by passing None
-        :param mag_sensor: the SensorData to set or None
+        :param mag_sensor: the MagnetometerSensor to set or None
         :return: the edited Station
         """
         if self.has_magnetometer_sensor():
@@ -491,7 +491,7 @@ class Station:
     ) -> "Station":
         """
         sets the gyroscope sensor; can remove gyroscope sensor by passing None
-        :param gyro_sensor: the SensorData to set or None
+        :param gyro_sensor: the GyroscopeSensor to set or None
         :return: the edited Station
         """
         if self.has_gyroscope_sensor():
@@ -524,7 +524,7 @@ class Station:
     ) -> "Station":
         """
         sets the pressure sensor; can remove pressure sensor by passing None
-        :param pressure_sensor: the SensorData to set or None
+        :param pressure_sensor: the PressureSensor to set or None
         :return: the edited Station
         """
         if self.has_pressure_sensor():
@@ -585,7 +585,7 @@ class Station:
     ) -> "Station":
         """
         sets the light sensor; can remove light sensor by passing None
-        :param light_sensor: the SensorData to set or None
+        :param light_sensor: the LightSensor to set or None
         :return: the edited Station
         """
         if self.has_light_sensor():
@@ -646,7 +646,7 @@ class Station:
     ) -> "Station":
         """
         sets the proximity sensor; can remove proximity sensor by passing None
-        :param proximity_sensor: the SensorData to set or None
+        :param proximity_sensor: the ProximitySensor to set or None
         :return: the edited Station
         """
         if self.has_proximity_sensor():
@@ -677,7 +677,7 @@ class Station:
     def set_image_sensor(self, img_sensor: Optional[sd.ImageSensor] = None) -> "Station":
         """
         sets the image sensor; can remove image sensor by passing None
-        :param img_sensor: the SensorData to set or None
+        :param img_sensor: the ImageSensor to set or None
         :return: the edited Station
         """
         if self.has_image_sensor():
@@ -710,7 +710,7 @@ class Station:
     ) -> "Station":
         """
         sets the ambient temperature sensor; can remove ambient temperature sensor by passing None
-        :param amb_temp_sensor: the SensorData to set or None
+        :param amb_temp_sensor: the AmbientTemperatureSensor to set or None
         :return: the edited Station
         """
         if self.has_ambient_temperature_sensor():
@@ -743,7 +743,7 @@ class Station:
     ) -> "Station":
         """
         sets the relative humidity sensor; can remove relative humidity sensor by passing None
-        :param rel_hum_sensor: the SensorData to set or None
+        :param rel_hum_sensor: the RelativeHumiditySensor to set or None
         :return: the edited Station
         """
         if self.has_relative_humidity_sensor():
@@ -776,7 +776,7 @@ class Station:
     ) -> "Station":
         """
         sets the gravity sensor; can remove gravity sensor by passing None
-        :param grav_sensor: the SensorData to set or None
+        :param grav_sensor: the GravitySensor to set or None
         :return: the edited Station
         """
         if self.has_gravity_sensor():
@@ -809,7 +809,7 @@ class Station:
     ) -> "Station":
         """
         sets the linear acceleration sensor; can remove linear acceleration sensor by passing None
-        :param lin_acc_sensor: the SensorData to set or None
+        :param lin_acc_sensor: the LinearAccelerationSensor to set or None
         :return: the edited Station
         """
         if self.has_linear_acceleration_sensor():
@@ -842,7 +842,7 @@ class Station:
     ) -> "Station":
         """
         sets the orientation sensor; can remove orientation sensor by passing None
-        :param orientation_sensor: the SensorData to set or None
+        :param orientation_sensor: the OrientationSensor to set or None
         :return: the edited Station
         """
         if self.has_orientation_sensor():
@@ -875,7 +875,7 @@ class Station:
     ) -> "Station":
         """
         sets the rotation vector sensor; can remove rotation vector sensor by passing None
-        :param rot_vec_sensor: the SensorData to set or None
+        :param rot_vec_sensor: the RotationVectorSensor to set or None
         :return: the edited DataPacket
         """
         if self.has_rotation_vector_sensor():
@@ -908,7 +908,7 @@ class Station:
     ) -> "Station":
         """
         sets the compressed audio sensor; can remove compressed audio sensor by passing None
-        :param comp_audio_sensor: the SensorData to set or None
+        :param comp_audio_sensor: the CompressedAudioSensor to set or None
         :return: the edited DataPacket
         """
         if self.has_compressed_audio_sensor():
