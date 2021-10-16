@@ -74,8 +74,14 @@ class SensorDataTest(unittest.TestCase):
 
     def test_empty_data(self):
         empty = SensorDataPa.from_dict("", {"": []}, is_sample_rate_fixed=True)
-        self.assertTrue(empty.errors().get_num_errors() == 1)
+        self.assertEqual(empty.errors().get_num_errors(), 1)
         self.assertEqual(empty.type().value, SensorType.UNKNOWN_SENSOR.value)
+        self.assertTrue(np.isnan(empty.first_data_timestamp()))
+        self.assertTrue(np.isnan(empty.last_data_timestamp()))
+        self.assertEqual(empty.num_samples(), 0)
+        self.assertEqual(len(empty.data_channels()), 0)
+        self.assertEqual(len(empty.get_data_channel("failure")), 0)
+        self.assertEqual(empty.errors().get_num_errors(), 2)
 
     def test_invalid_data(self):
         invalid = SensorDataPa.from_dict(

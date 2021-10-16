@@ -555,7 +555,7 @@ class SensorDataPa:
         if "timestamps" in self.pyarrow_table().schema.names:
             return self.pyarrow_table()["timestamps"].to_numpy()
         else:
-            return np.nan
+            return np.array([np.nan])
 
     def unaltered_data_timestamps(self) -> np.array:
         """
@@ -564,7 +564,7 @@ class SensorDataPa:
         if "unaltered_timestamps" in self.pyarrow_table().schema.names:
             return self.pyarrow_table()["unaltered_timestamps"].to_numpy()
         else:
-            return np.nan
+            return np.array([np.nan])
 
     def first_data_timestamp(self) -> float:
         """
@@ -648,6 +648,7 @@ class SensorDataPa:
     def extend_errors(self, errors: RedVoxExceptions):
         """
         add errors to the SensorData's errors
+
         :param errors: errors to add
         """
         self._errors.extend_error(errors)
