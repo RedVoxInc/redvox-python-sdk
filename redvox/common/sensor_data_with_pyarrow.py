@@ -4,7 +4,6 @@ all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
 from typing import List, Union, Dict, Optional, Tuple
-import os
 from pathlib import Path
 
 import numpy as np
@@ -212,6 +211,7 @@ class SensorDataPa:
         self._use_offset_model: bool = use_offset_model_for_correction
         self._fs_writer = Fsw("", "parquet", base_dir, save_data)
         self._gaps: List[Tuple] = gaps if gaps else []
+        self._data: Optional[pa.Table()] = None
         if sensor_data:
             if "timestamps" not in sensor_data.schema.names:
                 self._errors.append('must have a column titled "timestamps"')
@@ -381,7 +381,7 @@ class SensorDataPa:
         """
         :return: the table defined by the dataset stored in self
         """
-        return self.pyarrow_ds().to_table()
+        return self._data if self._data else self.pyarrow_ds().to_table()
 
     def data_df(self) -> pd.DataFrame:
         """
@@ -397,8 +397,14 @@ class SensorDataPa:
 
         :param table: the table to write
         """
+        self._data = table
+        # self._fs_writer.create_dir()
+        # pq.write_table(table, self.full_path())
+
+    def _actual_file_write_table(self):
         self._fs_writer.create_dir()
-        pq.write_table(table, self.full_path())
+        pq.write_table(self._data, self.full_path())
+        self._data = None
 
     def errors(self) -> RedVoxExceptions:
         """
@@ -474,9 +480,9 @@ class SensorDataPa:
         else:
             order = "descending"
         data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", order)]))
-        if not np.isnan(self.first_data_timestamp()) and self.first_data_timestamp() != data['timestamps'][0].as_py():
-            os.remove(self.full_path())
-        self.set_file_name(f"{self._type.name}_{int(data['timestamps'][0].as_py())}")
+        # if not np.isnan(self.first_data_timestamp()) and self.first_data_timestamp() != data['timestamps'][0].as_py():
+        #     os.remove(self.full_path())
+        # self.set_file_name(f"{self._type.name}_{int(data['timestamps'][0].as_py())}")
         self.write_pyarrow_table(data)
 
     def organize_and_update_stats(self, ptable: pa.Table) -> "SensorDataPa":
@@ -676,10 +682,10 @@ class SensorDataPa:
         else:
             timestamps = pa.array(offset_model.update_timestamps(self.data_timestamps(),
                                                                  self._use_offset_model))
-        old_name = self.full_path()
+        # old_name = self.full_path()
         self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", timestamps))
         self.set_file_name()
-        os.rename(old_name, self.full_path())
+        # os.rename(old_name, self.full_path())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
             self._sample_interval_s = dtu.microseconds_to_seconds(slope)
@@ -759,6 +765,8 @@ class SensorDataPa:
                             [sensor_type]_[first_timestamp].json
         :return: path to json file
         """
+        if self._fs_writer.file_extension == "parquet":
+            self._actual_file_write_table()
         return io.to_json_file(self, file_name)
 
     @staticmethod

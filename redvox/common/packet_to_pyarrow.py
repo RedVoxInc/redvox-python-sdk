@@ -266,10 +266,10 @@ def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -> A
             data.start = packet_start
             if out_dir:
                 sensor_dir = os.path.join(out_dir, data.stype.name)
-                os.makedirs(sensor_dir, exist_ok=True)
+                # os.makedirs(sensor_dir, exist_ok=True)
                 data.fdir = sensor_dir
             # avoid converting packets into parquets for now; just load the data into memory and process
-            #     data.write_data()
+            # data.write_data()
             result.add_summary(data)
     return result
 
