@@ -4,16 +4,15 @@ all timestamps are integers in microseconds unless otherwise stated
 Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
 from typing import List, Optional, Tuple
-import tempfile
 import os
 from pathlib import Path
-import shutil
 from glob import glob
 
 import numpy as np
 import pyarrow as pa
 
 from redvox.common import station_io as io
+from redvox.common.io import FileSystemWriter as Fsw
 from redvox.common import sensor_data_with_pyarrow as sd
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync_wpa import TimeSyncArrow
@@ -65,7 +64,7 @@ class StationPa:
 
         _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
 
-        _save_data: bool, if True, save the data to disk, default False
+        _fs_writer: FileSystemWriter, handles file system i/o parameters
 
         _errors: RedvoxExceptions, errors encountered by the Station
     """
@@ -77,8 +76,8 @@ class StationPa:
             start_timestamp: float = np.nan,
             correct_timestamps: bool = False,
             use_model_correction: bool = True,
-            base_out_dir: str = "",
-            save_output: bool = False
+            base_dir: str = "",
+            save_data: bool = False
     ):
         """
         initialize Station
@@ -89,10 +88,9 @@ class StationPa:
         :param correct_timestamps: if True, correct all timestamps as soon as they can be, default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_out_dir: directory to save parquet files, default "" (current directory)
-        :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :param base_dir: directory to save parquet files, default "" (current directory)
+        :param save_data: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
         """
-        # _sensors is type, name, rate
         self._id = station_id
         self._uuid = uuid
         self._start_date = start_timestamp
@@ -107,21 +105,10 @@ class StationPa:
         self._is_audio_scrambled = False
         self._timesync_data = TimeSyncArrow()
         self._is_timestamps_updated = False
-        self._save_data: bool = save_output
-        if self._save_data or base_out_dir:
-            self.base_dir: str = base_out_dir
-            self._temp_dir = None
-        else:
-            self._temp_dir = tempfile.TemporaryDirectory()
-            self.base_dir = self._temp_dir.name
+        self._fs_writer = Fsw("", "", base_dir, save_data)
 
         self._data: List[sd.SensorDataPa] = []
-        # self._sensors: Dict[sd.SensorType, Tuple[str, float]] = {}
         self._gaps: List[Tuple[float, float]] = []
-
-    def __del__(self):
-        if self._temp_dir:
-            self._temp_dir.cleanup()
 
     def data(self) -> List[sd.SensorDataPa]:
         """
@@ -129,17 +116,22 @@ class StationPa:
         """
         return self._data
 
-    @staticmethod
-    def create_from_dir(in_dir: str = "") -> "StationPa":
+    def save_dir(self) -> str:
         """
-        :param in_dir: structured directory with parquet files to load
-        :return: station using data from parquet files
+        :return: directory where files are being written to
         """
-        raise AttributeError("Not enough data yet to make station.")
-        # station = StationPa(use_model_correction=use_model_correction,
-        #                     base_out_dir=base_out_dir, save_output=save_output)
-        # station.load_data_from_parquet(in_dir)
-        # return station
+        return os.path.join(self._fs_writer.save_dir(), self._get_id_key())
+
+    def load(self, in_dir: str = "") -> "StationPa":
+        """
+        :param in_dir: structured directory with json metadata file to load
+
+        :return: station using data from files
+        """
+        files = glob(f"{in_dir}/*.json")
+        if len(files) != 1:
+            raise KeyError("Only one .json file can be used to define a station.")
+        return self.from_json_file(files[0])
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
@@ -157,7 +149,7 @@ class StationPa:
         :return: station using data from redvox packets.
         """
         station = StationPa(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
-                            base_out_dir=base_out_dir, save_output=save_output)
+                            base_dir=base_out_dir, save_data=save_output)
         station.load_data_from_packets(packets)
         return station
 
@@ -176,8 +168,8 @@ class StationPa:
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
         :return: StationPa without any sensor or timing
         """
-        station = StationPa(use_model_correction=use_model_correction, base_out_dir=base_out_dir,
-                            save_output=save_output)
+        station = StationPa(use_model_correction=use_model_correction, base_dir=base_out_dir,
+                            save_data=save_output)
         station._load_metadata_from_packet(packet)
         return station
 
@@ -197,17 +189,13 @@ class StationPa:
                 self._start_date = self._timesync_data.offset_model().update_time(
                     self._start_date, self._use_model_correction
                 )
-            self.base_dir = os.path.join(self.base_dir, self._get_id_key())
-            # self._audio_rate = packets[0].sensors.audio.sample_rate
-            # self._audio_name = packets[0].sensors.audio.sensor_description
-            if self._save_data:
-                if os.path.exists(self.base_dir):
-                    shutil.rmtree(self.base_dir)
-                os.makedirs(self.base_dir, exist_ok=True)
-            self._timesync_data.arrow_dir = os.path.join(self.base_dir, "timesync")
+            self._fs_writer.file_name = self._get_id_key()
+            self._fs_writer.create_dir()
+            self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
             file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
             self._timesync_data.arrow_file = f"timesync_{file_date}"
-            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.base_dir if self._save_data else None))
+            self._set_pyarrow_sensors(
+                ptp.stream_to_pyarrow(packets, self.save_dir() if self._fs_writer.save_to_disk else None))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -1133,7 +1121,7 @@ class StationPa:
             #                                       audo.srate_hz, 1/audo.srate_hz, 0., True))
             self._data.append(sd.SensorDataPa(audo.name, audo.data(), audo.stype,
                                               audo.srate_hz, 1 / audo.srate_hz, 0., True,
-                                              base_dir=audo.fdir, save_data=self._save_data))
+                                              base_dir=audo.fdir, save_data=self._fs_writer.save_to_disk))
             self._get_start_and_end_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
@@ -1155,7 +1143,7 @@ class StationPa:
                         sensor_summaries.audio_gaps,
                         s_to_us(stats.mean_of_means()), True)
                     self._data.append(sd.SensorDataPa(
-                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._save_data,
+                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.save_to_disk,
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False, base_dir=sdata[0].fdir)
                     )
                 else:
@@ -1164,7 +1152,7 @@ class StationPa:
                         sensor_summaries.audio_gaps,
                         s_to_us(sdata[0].smint_s), True)
                     self._data.append(sd.SensorDataPa(
-                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._save_data,
+                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.save_to_disk,
                         sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
                         sample_interval_std_s=0., is_sample_rate_fixed=True, base_dir=sdata[0].fdir)
                     )
@@ -1242,7 +1230,13 @@ class StationPa:
         """
         :return: if station is saving data to disk
         """
-        return self._save_data
+        return self._fs_writer.save_to_disk
+
+    def fs_writer(self) -> Fsw:
+        """
+        :return: FileSystemWriter for station
+        """
+        return self._fs_writer
 
     def update_timestamps(self) -> "StationPa":
         """
@@ -1257,7 +1251,6 @@ class StationPa:
                 self._start_date = self._timesync_data.offset_model().update_time(
                     self._start_date, self._use_model_correction
                 )
-                self.base_dir = os.path.join(self.base_dir, self._get_id_key())
             for sensor in self._data:
                 sensor.update_data_timestamps(self._timesync_data.offset_model())
             for packet in self._packet_metadata:
@@ -1266,6 +1259,10 @@ class StationPa:
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
             self._get_start_and_end_timestamps()
+            if self._fs_writer.file_name != self._get_id_key():
+                old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
+                self._fs_writer.file_name = self._get_id_key()
+                os.rename(old_name, self.save_dir())
             self._is_timestamps_updated = True
         return self
 
@@ -1277,7 +1274,7 @@ class StationPa:
             "id": self._id,
             "uuid": self._uuid,
             "start_date": self._start_date,
-            "base_dir": self.base_dir,
+            "base_dir": self.save_dir(),
             "use_model_correction": self._use_model_correction,
             "is_audio_scrambled": self._is_audio_scrambled,
             "is_timestamps_updated": self._is_timestamps_updated,
@@ -1319,7 +1316,7 @@ class StationPa:
         """
         json_data = io.from_json(file_path)
         result = StationPa(json_data["id"], json_data["uuid"], json_data["start_date"],
-                           json_data["use_model_correction"])
+                           use_model_correction=json_data["use_model_correction"])
         result._is_audio_scrambled = json_data["is_audio_scrambled"]
         result._is_timestamps_updated = json_data["is_timestamps_updated"]
         result._audio_sample_rate_nominal_hz = json_data["audio_sample_rate_nominal_hz"]

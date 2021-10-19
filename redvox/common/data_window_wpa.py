@@ -7,7 +7,6 @@ from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
 import tempfile
 import os
-import enum
 
 import pprint
 import multiprocessing
@@ -33,24 +32,6 @@ DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding t
 DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
 # minimum default length of time in seconds for data to be off by to be considered suspicious
 DATA_DROP_DURATION_S: float = 0.2
-
-
-class DataWindowOutputType(enum.Enum):
-    """
-    Type of file to create when exporting DataWindow
-    """
-
-    NONE: int = 0
-    LZ4: int = 1
-    PARQUET: int = 2
-
-    @staticmethod
-    def list_names() -> List[str]:
-        return [n.name for n in DataWindowOutputType]
-
-    @staticmethod
-    def list_non_none_names() -> List[str]:
-        return [n.name for n in DataWindowOutputType if n != DataWindowOutputType.NONE]
 
 
 class EventOrigin:
@@ -240,7 +221,7 @@ class DataWindowArrow:
         config: optional DataWindowConfigWpa with information on how to construct data window from
         Redvox (.rdvx*) files.  Default None
 
-        files_dir: str, output directory for station parquet files.  Default "." (current directory)
+        base_dir: str, output directory for station parquet files.  Default "." (current directory)
 
         out_type: DataWindowOutputType, type of file to save the data window as.
         Default DataWindowOutputType.NONE (no saving)
@@ -260,7 +241,7 @@ class DataWindowArrow:
             event_location: Optional[EventOrigin] = None,
             config: Optional[DataWindowConfigWpa] = None,
             out_dir: str = ".",
-            out_type: DataWindowOutputType = DataWindowOutputType.NONE,
+            out_type: str = "NONE",
             debug: bool = False,
     ):
         """
@@ -279,30 +260,20 @@ class DataWindowArrow:
             self.event_origin: EventOrigin = event_location
         else:
             self.event_origin = EventOrigin()
-        self.out_type: DataWindowOutputType = out_type
-        if self.out_type != DataWindowOutputType.NONE:
-            self.files_dir: str = out_dir
-            self._temp_dir = None
-        else:
-            self._temp_dir = tempfile.TemporaryDirectory()
-            self.files_dir = self._temp_dir.name
+        self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_dir, out_type)
         self.debug: bool = debug
         self.sdk_version: str = redvox.VERSION
-        self.errors = RedVoxExceptions("DataWindow")
+        self._errors = RedVoxExceptions("DataWindow")
         self._stations: List[StationPa] = []
         self.config = config
         if config:
             if config.start_datetime and config.end_datetime and (config.end_datetime <= config.start_datetime):
-                self.errors.append("DataWindow will not work when end datetime is before or equal to start datetime.\n"
-                                   f"Your times: {config.end_datetime} <= {config.start_datetime}")
+                self._errors.append("DataWindow will not work when end datetime is before or equal to start datetime.\n"
+                                    f"Your times: {config.end_datetime} <= {config.start_datetime}")
             else:
                 self.create_data_window()
         if self.debug:
             self.print_errors()
-
-    def __del__(self):
-        if self._temp_dir:
-            self._temp_dir.cleanup()
 
     # @staticmethod
     # def from_config_file(file: str) -> "DataWindowArrow":
@@ -357,18 +328,32 @@ class DataWindowArrow:
     #         debug=config.debug
     #     )
 
+    def save_dir(self):
+        """
+        :return: directory data is saved to
+        """
+        if self._fs_writer.save_to_disk:
+            return self._fs_writer.save_dir()
+        return ""
+
+    def fs_writer(self):
+        """
+        :return: FileSystemWriter for DataWindow
+        """
+        return self._fs_writer
+
     def as_dict(self) -> Dict:
         return {"event_name": self.event_name,
                 "event_origin": self.event_origin.as_dict(),
                 "start_time": self.get_start_date(),
                 "end_time": self.get_end_date(),
-                "files_dir": self.files_dir if not self._temp_dir else "",
+                "base_dir": self.save_dir(),
                 "stations": [s.default_station_json_file_name() for s in self._stations],
                 "config": self.config.as_dict(),
                 "debug": self.debug,
-                "errors": self.errors.as_dict(),
+                "errors": self._errors.as_dict(),
                 "sdk_version": self.sdk_version,
-                "out_type": self.out_type.name
+                "out_type": self._fs_writer.file_extension
                 }
 
     def pretty(self) -> str:
@@ -393,7 +378,7 @@ class DataWindowArrow:
         longer. (default=4).
         :return: The path to the written file.
         """
-        return dw_io.serialize_data_window_wpa(self, self.files_dir, f"{self.event_name}.pkl.lz4", compression_factor)
+        return dw_io.serialize_data_window_wpa(self, self.save_dir(), f"{self.event_name}.pkl.lz4", compression_factor)
 
     def _to_json_file(self) -> Path:
         """
@@ -401,7 +386,7 @@ class DataWindowArrow:
 
         :return: The path to the written file
         """
-        return dw_io.data_window_to_json_wpa(self, self.files_dir)
+        return dw_io.data_window_to_json_wpa(self, self.save_dir())
 
     def to_json(self) -> str:
         """
@@ -428,22 +413,22 @@ class DataWindowArrow:
         :param json_dict: the dictionary to read
         :return: The DataWindow as defined by the JSON
         """
-        if "out_type" not in json_dict.keys() or json_dict["out_type"] not in DataWindowOutputType.list_names():
+        if "out_type" not in json_dict.keys() or json_dict["out_type"] not in dw_io.DataWindowOutputType.list_names():
             raise ValueError('Dictionary loading type is invalid or unknown.  '
                              'Check the value "out_type"; it must be one of: '
-                             f'{DataWindowOutputType.list_non_none_names()}')
+                             f'{dw_io.DataWindowOutputType.list_non_none_names()}')
         else:
-            if DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.PARQUET:
+            if dw_io.DataWindowOutputType[json_dict["out_type"]] == dw_io.DataWindowOutputType.PARQUET:
                 dwin = DataWindowArrow(json_dict["event_name"], EventOrigin.from_dict(json_dict["event_origin"]),
-                                       None, json_dict["files_dir"], DataWindowOutputType[json_dict["out_type"]],
+                                       None, json_dict["base_dir"], dw_io.DataWindowOutputType[json_dict["out_type"]],
                                        json_dict["debug"])
                 dwin.config = DataWindowConfigWpa.from_dict(json_dict["config"])
                 dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
                 dwin.sdk_version = json_dict["sdk_version"]
                 for st in json_dict["stations"]:
-                    dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["files_dir"], st, f"{st}.json")))
-            elif DataWindowOutputType[json_dict["out_type"]] == DataWindowOutputType.LZ4:
-                dwin = DataWindowArrow.deserialize(os.path.join(json_dict["files_dir"],
+                    dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["base_dir"], st, f"{st}.json")))
+            elif dw_io.DataWindowOutputType[json_dict["out_type"]] == dw_io.DataWindowOutputType.LZ4:
+                dwin = DataWindowArrow.deserialize(os.path.join(json_dict["base_dir"],
                                                                 f"{json_dict['event_name']}.pkl.lz4"))
             else:
                 dwin = DataWindowArrow()
@@ -454,12 +439,14 @@ class DataWindowArrow:
         save the data window
         :return: the path to where the files exist
         """
-        if self.out_type == DataWindowOutputType.PARQUET:
-            return self._to_json_file()
-        elif self.out_type == DataWindowOutputType.LZ4:
-            return self.serialize()
+        if self._fs_writer.save_to_disk:
+            if self._fs_writer.file_extension == "parquet":
+                return self._to_json_file()
+            elif self._fs_writer.file_extension == "lz4":
+                return self.serialize()
         else:
-            raise ValueError(f"Cannot save as {self.out_type.name}; use a different method when creating data window.")
+            self._errors.append("Saving not enabled.")
+            print("WARNING: Cannot save data window without knowing extension.")
 
     @staticmethod
     def load(file_path: str) -> "DataWindowArrow":
@@ -519,12 +506,12 @@ class DataWindowArrow:
         if len(result) > 0:
             return result
         if self.debug:
-            self.errors.append(f"Attempted to get station {station_id}, "
-                               f"but that station is not in this data window!")
+            self._errors.append(f"Attempted to get station {station_id}, "
+                                f"but that station is not in this data window!")
         return None
 
     def _add_sensor_to_window(self, station: StationPa):
-        self.errors.extend_error(station.errors())
+        self._errors.extend_error(station.errors())
         # set the window start and end if they were specified, otherwise use the bounds of the data
         self.create_window_in_sensors(station, self.config.start_datetime, self.config.end_datetime)
 
@@ -559,11 +546,11 @@ class DataWindowArrow:
         a_r = ApiReaderDw(self.config.input_dir, self.config.structured_layout, r_f,
                           correct_timestamps=self.config.apply_correction,
                           use_model_correction=self.config.use_model_correction,
-                          dw_base_dir=self.files_dir,
-                          save_files=self.out_type == DataWindowOutputType.PARQUET,
+                          dw_base_dir=self.save_dir(),
+                          save_files=self._fs_writer.save_to_disk,
                           debug=self.debug, pool=_pool)
 
-        self.errors.extend_error(a_r.errors)
+        self._errors.extend_error(a_r.errors)
 
         # Parallel update
         # Apply timing correction in parallel by station
@@ -623,12 +610,12 @@ class DataWindowArrow:
                 add_ids = f"for all stations {self.config.station_ids} "
             else:
                 add_ids = ""
-            self.errors.append(f"No data matching criteria {add_ids}in {self.config.input_dir}"
-                               f"\nPlease adjust parameters of DataWindow")
+            self._errors.append(f"No data matching criteria {add_ids}in {self.config.input_dir}"
+                                f"\nPlease adjust parameters of DataWindow")
         elif len(self.station_ids()) > 0 and self.config.station_ids:
             for ids in self.config.station_ids:
                 if ids.zfill(10) not in [i.id() for i in self._stations]:
-                    self.errors.append(
+                    self._errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )
 
@@ -698,8 +685,8 @@ class DataWindowArrow:
             is_audio = sensor.type() == SensorType.AUDIO
             if end_index <= start_index:
                 if is_audio:
-                    self.errors.append(f"Data window for {station_id} "
-                                       f"Audio sensor has truncated all data points")
+                    self._errors.append(f"Data window for {station_id} "
+                                        f"Audio sensor has truncated all data points")
                 elif last_before_start is not None and first_after_end is None:
                     first_entry = sensor.pyarrow_table().slice(last_before_start, 1).to_pydict()
                     first_entry["timestamps"] = [start_date_timestamp]
@@ -713,7 +700,7 @@ class DataWindowArrow:
                         sensor.interpolate(start_date_timestamp, last_before_start, 1,
                                            self.config.copy_edge_points == gpu.DataPointCreationMode.COPY))
                 else:
-                    self.errors.append(
+                    self._errors.append(
                         f"Data window for {station_id} {sensor.type().name} "
                         f"sensor has truncated all data points"
                     )
@@ -756,11 +743,11 @@ class DataWindowArrow:
                                                     point_creation_mode=new_point_mode))
                 sensor.sort_by_data_timestamps(_arrow)
         else:
-            self.errors.append(f"Data window for {station_id} {sensor.type().name} "
-                               f"sensor has no data points!")
+            self._errors.append(f"Data window for {station_id} {sensor.type().name} "
+                                f"sensor has no data points!")
 
     def print_errors(self):
         """
         prints errors to screen
         """
-        self.errors.print()
+        self._errors.print()

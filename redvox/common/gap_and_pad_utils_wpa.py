@@ -293,6 +293,7 @@ def add_data_points_to_df(dataframe: pa.Table,
             * dataframe must not be empty
             * start_index must be non-negative and less than the length of dataframe
             * num_samples_to_add must be greater than 0
+            * sample_interval_micros cannot be 0
             * points are added onto the end and the result is not sorted
         Options for point_creation_mode are:
             * NAN: default values and nans
@@ -307,7 +308,7 @@ def add_data_points_to_df(dataframe: pa.Table,
     :param point_creation_mode: the mode of point creation to use
     :return: updated dataframe with synthetic data points
     """
-    if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0:
+    if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0 and sample_interval_micros != 0.:
         start_timestamp = dataframe["timestamps"][start_index].as_py()
         # create timestamps for every point that needs to be added
         new_timestamps = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros

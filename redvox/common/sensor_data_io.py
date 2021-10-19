@@ -9,8 +9,6 @@ from typing import (
     TYPE_CHECKING,
 )
 
-import pyarrow.parquet as pq
-
 
 if TYPE_CHECKING:
     from redvox.common.sensor_data_with_pyarrow import SensorDataPa
@@ -39,9 +37,7 @@ def to_json_file(sensor: "SensorDataPa",
         if file_name is not None
         else sensor.file_name()
     )
-    if sensor.is_save_to_disk():
-        pq.write_table(sensor.pyarrow_table(), sensor.full_path())
-    file_path: Path = Path(sensor.base_dir()).joinpath(f"{_file_name}.json")
+    file_path: Path = sensor.fs_writer().json_path()
     with open(file_path, "w") as f_p:
         f_p.write(to_json(sensor))
         return file_path.resolve(False)

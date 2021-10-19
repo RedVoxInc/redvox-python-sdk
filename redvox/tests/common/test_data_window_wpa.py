@@ -49,7 +49,7 @@ class DataWindowTest(unittest.TestCase):
             self.assertEqual(test_sensor.num_samples(), 720000)
             test_sensor = datawindow.get_station("0000000001")[0].location_sensor()
             self.assertIsNotNone(test_sensor)
-            self.assertEqual(test_sensor.num_samples(), 5)
+            self.assertEqual(test_sensor.num_samples(), 4)
 
     def test_dw_with_start_end(self):
         with contextlib.redirect_stdout(None):

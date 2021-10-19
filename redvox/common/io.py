@@ -10,7 +10,7 @@ import multiprocessing
 import multiprocessing.pool
 import tempfile
 from pathlib import Path, PurePath
-from shutil import copy2, move
+from shutil import copy2, move, rmtree
 from typing import (
     Any,
     Dict,
@@ -59,25 +59,25 @@ class FileSystemWriter:
         _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
     """
 
-    def __init__(self, file_name: Optional[str], file_ext: str = "NONE",
+    def __init__(self, file_name: str, file_ext: str = "none",
                  base_dir: str = ".", save_enabled: bool = False):
         """
         initialize FileSystemWriter
 
         :param file_name: name of file
-        :param file_ext: extension of file, default "NONE:
+        :param file_ext: extension of file, default "none"
         :param base_dir: directory to save file to, default "." (current dir)
         :param save_enabled: if True, save to the file specified by, default False
         """
         self.file_name: str = file_name
-        self.file_extension: str = file_ext
+        self.file_extension: str = file_ext.lower()
         self.save_to_disk: bool = save_enabled
         self.base_dir: str = base_dir
         self._temp_dir = tempfile.TemporaryDirectory()
 
     def save_dir(self) -> str:
         """
-        :return: directory where file would be saved based on current value of _save_to_disk
+        :return: directory where file would be saved based on current value of self.save_to_disk
         """
         return self.base_dir if self.save_to_disk else self._temp_dir.name
 
@@ -101,6 +101,28 @@ class FileSystemWriter:
         """
         self.file_name = name
         self.file_extension = ext
+
+    def json_file_name(self) -> str:
+        """
+        :return: file name with .json extension
+        """
+        return f"{self.file_name}.json"
+
+    def json_path(self) -> Path:
+        """
+        :return: full path to json file
+        """
+        return Path(self.save_dir()).joinpath(self.json_file_name())
+
+    def create_dir(self):
+        """
+        if saving to disk, otherwise remove any files in the directory,
+        then create the directory if it doesn't exist
+        """
+        if self.save_to_disk:
+            if os.path.exists(self.save_dir()):
+                rmtree(self.save_dir())
+            os.makedirs(self.save_dir(), exist_ok=True)
 
     def __del__(self):
         """

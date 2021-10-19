@@ -6,14 +6,18 @@ import os.path
 from pathlib import Path
 import pickle
 import json
+import enum
+
 from typing import (
     Dict,
+    List,
     Optional,
     TYPE_CHECKING,
 )
 
 import lz4.frame
 
+from redvox.common.io import FileSystemWriter
 from redvox.common.date_time_utils import (
     datetime_to_epoch_microseconds_utc as us_dt,
 )
@@ -22,6 +26,61 @@ from redvox.common.date_time_utils import (
 if TYPE_CHECKING:
     from redvox.common.data_window import DataWindow
     from redvox.common.data_window_wpa import DataWindowArrow
+
+
+class DataWindowOutputType(enum.Enum):
+    """
+    Type of file to create when exporting DataWindow
+    """
+
+    NONE: int = 0
+    LZ4: int = 1
+    PARQUET: int = 2
+
+    @staticmethod
+    def list_names() -> List[str]:
+        """
+        :return: list of possible values for OutputType
+        """
+        return [n.name for n in DataWindowOutputType]
+
+    @staticmethod
+    def list_non_none_names() -> List[str]:
+        """
+        :return: List of possible non-None values for OutputType
+        """
+        return [n.name for n in DataWindowOutputType if n != DataWindowOutputType.NONE]
+
+    @staticmethod
+    def str_to_type(str_type: str) -> "DataWindowOutputType":
+        """
+        converts the string to the corresponding OutputType
+        if the type given is not in list_non_none_names(), returns NONE value
+
+        :param str_type: string to convert
+        :return: DataWindowOutputType matching string given or NONE
+        """
+        str_type = str_type.upper()
+        if str_type == "LZ4" or str_type == "PARQUET":
+            return DataWindowOutputType[str_type.upper()]
+        return DataWindowOutputType["NONE"]
+
+
+class DataWindowFileSystemWriter(FileSystemWriter):
+    """
+    This class holds the FileSystemWriter info for DataWindows
+    """
+
+    def __init__(self, file_name: str, file_ext: str = "none", base_dir: str = "."):
+        """
+        initialize FileSystemWriter
+
+        :param file_name: name of file
+        :param file_ext: extension of file, default "none"
+        :param base_dir: directory to save file to, default "." (current dir)
+        """
+        super().__init__(file_name, file_ext, base_dir,
+                         False if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.NONE else True)
 
 
 def json_to_data_window(json_str: str) -> Dict:
@@ -256,7 +315,7 @@ def serialize_data_window_wpa(
              f"_{len(data_window.event_name)}.pkl.lz4"
     )
 
-    json_path: Path = Path(data_window.files_dir).joinpath(data_window.event_name + ".json")
+    json_path: Path = data_window.fs_writer().json_path()
     with open(json_path, "w") as f:
         f.write(data_window.to_json())
         json_path.resolve(False)

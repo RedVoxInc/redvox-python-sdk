@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.10rc7 (2021-10-19)
+
+* Shifted DataWindowArrow, StationPa and SensorDataPa to use filesystem to store data
+* Standardized attribute access for arrow classes
+
 ### 3.0.10rc6 (2021-10-5)
 
 * moved code in ApiReader involving DataWindowArrow to new file; api_reader_dw

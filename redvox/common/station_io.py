@@ -10,8 +10,6 @@ from typing import (
     TYPE_CHECKING,
 )
 
-import pyarrow.parquet as pq
-
 
 if TYPE_CHECKING:
     from redvox.common.station_wpa import StationPa
@@ -44,11 +42,11 @@ def to_json_file(station: "StationPa",
     for datas in station.data():
         datas.to_json_file()
 
-    ts_dir = os.path.join(station.base_dir, "timesync")
+    ts_dir = os.path.join(station.save_dir(), "timesync")
     os.makedirs(ts_dir, exist_ok=True)
     station.timesync_data().to_json_file()
 
-    file_path: Path = Path(station.base_dir).joinpath(f"{_file_name}.json")
+    file_path: Path = station.fs_writer().json_path()
     with open(file_path, "w") as f_p:
         f_p.write(to_json(station))
         return file_path.resolve(False)

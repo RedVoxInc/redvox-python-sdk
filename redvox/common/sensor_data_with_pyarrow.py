@@ -5,7 +5,6 @@ all timestamps are integers in microseconds unless otherwise stated
 import enum
 from typing import List, Union, Dict, Optional, Tuple
 import os
-from glob import glob
 from pathlib import Path
 
 import numpy as np
@@ -153,7 +152,7 @@ class SensorDataPa:
 
         _gaps: List of Tuples of floats, timestamps of data points on the edge of gaps, default empty list
 
-        _fs_write: FileSystemWriter, handles file system i/o
+        _fs_writer: FileSystemWriter, handles file system i/o parameters
 
         _data: pyarrow Table, used to store the data when it's not written to the disk.  default None
     """
@@ -362,6 +361,12 @@ class SensorDataPa:
         """
         return self._fs_writer.full_path()
 
+    def fs_writer(self) -> Fsw:
+        """
+        :return: FileSystemWriter object
+        """
+        return self._fs_writer
+
     def pyarrow_ds(self, base_dir: Optional[str] = None) -> ds.Dataset:
         """
         :param base_dir: optional directory to use when loading the dataset.  if None, use self.base_dir()
@@ -387,14 +392,11 @@ class SensorDataPa:
         """
         saves the pyarrow table to disk or to memory.
         if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
-        and removes any existing parquet files
+        creates the directory if it doesn't exist and removes any existing parquet files
 
         :param table: the table to write
         """
-        # clear the output dir where the table will be written to
-        filelist = glob(os.path.join(self.base_dir(), "*.parquet"))
-        for f in filelist:
-            os.remove(f)
+        self._fs_writer.create_dir()
         pq.write_table(table, self.full_path())
 
     def errors(self) -> RedVoxExceptions:
@@ -471,6 +473,8 @@ class SensorDataPa:
         else:
             order = "descending"
         data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", order)]))
+        if not np.isnan(self.first_data_timestamp()) and self.first_data_timestamp() != data['timestamps'][0].as_py():
+            os.remove(self.full_path())
         self.set_file_name(f"{self._type.name}_{int(data['timestamps'][0].as_py())}")
         self.write_pyarrow_table(data)
 
@@ -550,7 +554,7 @@ class SensorDataPa:
 
     def data_timestamps(self) -> np.array:
         """
-        :return: the timestamps as a numpy array
+        :return: the timestamps as a numpy array or [np.nan] if none exist
         """
         if "timestamps" in self.pyarrow_table().schema.names:
             return self.pyarrow_table()["timestamps"].to_numpy()
@@ -568,13 +572,13 @@ class SensorDataPa:
 
     def first_data_timestamp(self) -> float:
         """
-        :return: timestamp of the first data point
+        :return: timestamp of the first data point or np.nan if no timestamps
         """
         return self.data_timestamps()[0]
 
     def last_data_timestamp(self) -> float:
         """
-        :return: timestamp of the last data point
+        :return: timestamp of the last data point or np.nan if no timestamps
         """
         return self.data_timestamps()[-1]
 
@@ -671,8 +675,10 @@ class SensorDataPa:
         else:
             timestamps = pa.array(offset_model.update_timestamps(self.data_timestamps(),
                                                                  self._use_offset_model))
+        old_name = self.full_path()
         self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", timestamps))
         self.set_file_name()
+        os.rename(old_name, self.full_path())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:
             self._sample_interval_s = dtu.microseconds_to_seconds(slope)
@@ -771,7 +777,6 @@ class SensorDataPa:
                                            json_data["timestamps_altered"], False, json_data["use_offset_model"])
             result._errors = RedVoxExceptions.from_dict(json_data["errors"])
             result._gaps = json_data["gaps"]
-
         else:
             result = SensorDataPa("Empty")
             result._errors.append("Loading from json file failed; Sensor missing name.")
