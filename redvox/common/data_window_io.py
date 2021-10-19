@@ -274,7 +274,7 @@ def data_window_to_json_wpa(
         s.to_json_file()
     file_path: Path = Path(base_dir).joinpath(f"{_file_name}.json")
     with open(file_path, "w") as f:
-        f.write(data_window.to_json())
+        f.write(data_window_as_json(data_window))
         return file_path.resolve(False)
 
 

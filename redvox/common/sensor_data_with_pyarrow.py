@@ -228,8 +228,8 @@ class SensorDataPa:
         if show_errors:
             self.print_errors()
 
+    @staticmethod
     def from_dir(
-            self,
             sensor_name: str,
             data_path: str,
             sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
@@ -260,7 +260,8 @@ class SensorDataPa:
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
         :return: SensorData object
         """
-        result = SensorDataPa(sensor_name, self.pyarrow_ds(data_path).to_table(),
+        result = SensorDataPa(sensor_name,
+                              ds.dataset(data_path, format="parquet", exclude_invalid_files=True).to_table(),
                               sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s,
                               is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
                               use_offset_model_for_correction, save_data, data_path)

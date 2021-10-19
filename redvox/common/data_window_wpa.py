@@ -260,7 +260,7 @@ class DataWindowArrow:
             self.event_origin: EventOrigin = event_location
         else:
             self.event_origin = EventOrigin()
-        self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_dir, out_type)
+        self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, out_dir)
         self.debug: bool = debug
         self.sdk_version: str = redvox.VERSION
         self._errors = RedVoxExceptions("DataWindow")
@@ -413,21 +413,23 @@ class DataWindowArrow:
         :param json_dict: the dictionary to read
         :return: The DataWindow as defined by the JSON
         """
-        if "out_type" not in json_dict.keys() or json_dict["out_type"] not in dw_io.DataWindowOutputType.list_names():
+        if "out_type" not in json_dict.keys() \
+                or json_dict["out_type"].upper() not in dw_io.DataWindowOutputType.list_names():
             raise ValueError('Dictionary loading type is invalid or unknown.  '
                              'Check the value "out_type"; it must be one of: '
                              f'{dw_io.DataWindowOutputType.list_non_none_names()}')
         else:
-            if dw_io.DataWindowOutputType[json_dict["out_type"]] == dw_io.DataWindowOutputType.PARQUET:
+            out_type = dw_io.DataWindowOutputType.str_to_type(json_dict["out_type"])
+            if out_type == dw_io.DataWindowOutputType.PARQUET:
                 dwin = DataWindowArrow(json_dict["event_name"], EventOrigin.from_dict(json_dict["event_origin"]),
-                                       None, json_dict["base_dir"], dw_io.DataWindowOutputType[json_dict["out_type"]],
+                                       None, json_dict["base_dir"], json_dict["out_type"],
                                        json_dict["debug"])
                 dwin.config = DataWindowConfigWpa.from_dict(json_dict["config"])
                 dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
                 dwin.sdk_version = json_dict["sdk_version"]
                 for st in json_dict["stations"]:
                     dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["base_dir"], st, f"{st}.json")))
-            elif dw_io.DataWindowOutputType[json_dict["out_type"]] == dw_io.DataWindowOutputType.LZ4:
+            elif out_type == dw_io.DataWindowOutputType.LZ4:
                 dwin = DataWindowArrow.deserialize(os.path.join(json_dict["base_dir"],
                                                                 f"{json_dict['event_name']}.pkl.lz4"))
             else:
