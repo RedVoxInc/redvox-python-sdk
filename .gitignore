@@ -11,3 +11,4 @@ redvox.egg-info/
 .coverage
 htmlcov/
 .venv
+.DS_Store

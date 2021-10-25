@@ -85,8 +85,17 @@ class ApiReader:
         if debug:
             self.errors.print()
 
+        self.helper()
+
         if pool is None:
             _pool.close()
+
+    def helper(self):
+        # helper function for any use for dealing with issue-360
+        # print(len(self.files_index))
+        # for item in self.files_index:
+        #     print(item)
+        print(self.index_summary)
 
     def _flatten_files_index(self):
         """
