@@ -11,6 +11,7 @@ from multiprocessing import cpu_count, Manager, Process, Queue
 import queue
 
 import pyarrow as pa
+import os
 
 import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
@@ -95,7 +96,21 @@ class ApiReader:
         # print(len(self.files_index))
         # for item in self.files_index:
         #     print(item)
-        print(self.index_summary)
+
+        # files_index is a list of Index object
+        # Index.entries is list of IndexEntry object
+        # Index object is per station?
+
+        mem = 0
+        for index in self.files_index:
+            for entry in index.entries:
+                mem += os.stat(entry.full_path).st_size
+                # print(entry.full_path)
+        print(mem)
+        # print(type(self.files_index), len(self.files_index))
+        # print(type(self.files_index[0].entries))
+        # for item in self.files_index[0].entries:
+        #     print(os.stat(item.full_path).st_size)
 
     def _flatten_files_index(self):
         """
