@@ -118,7 +118,6 @@ class ApiReader:
         print("method 3:", mem_3, end - start)
 
 
-
     def _flatten_files_index(self):
         """
         :return: flattened version of files_index

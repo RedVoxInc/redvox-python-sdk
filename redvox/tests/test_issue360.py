@@ -12,8 +12,17 @@ def main():
     input_dir = "/Users/yusukehatanaka/Desktop/DATA/20200222_GoodComms/"
     dw = DataWindow(
         input_dir=input_dir,
-        # station_ids=['1637610028']
     )
+    stations = dw.station_ids
+    print(stations)
+
+    for station in stations:
+        print(f"processing {station}")
+        _ = DataWindow(
+            input_dir=input_dir,
+            station_ids=[station]
+        )
+        print('==================================')
     # input_dir = "/Users/yusukehatanaka/Desktop/DATA/20200222_GoodComms/api900/2020/02/22/"
     # start = time()
     # only_files = [f for f in listdir(input_dir) if isfile(join(input_dir, f))]
