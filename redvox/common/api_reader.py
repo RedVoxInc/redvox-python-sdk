@@ -12,6 +12,9 @@ import queue
 
 import pyarrow as pa
 import os
+import numpy as np
+from time import time
+
 
 import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
@@ -92,25 +95,29 @@ class ApiReader:
             _pool.close()
 
     def helper(self):
-        # helper function for any use for dealing with issue-360
-        # print(len(self.files_index))
-        # for item in self.files_index:
-        #     print(item)
-
-        # files_index is a list of Index object
-        # Index.entries is list of IndexEntry object
-        # Index object is per station?
-
-        mem = 0
+        # method one
+        start = time()
+        mem_1 = 0
         for index in self.files_index:
             for entry in index.entries:
-                mem += os.stat(entry.full_path).st_size
-                # print(entry.full_path)
-        print(mem)
-        # print(type(self.files_index), len(self.files_index))
-        # print(type(self.files_index[0].entries))
-        # for item in self.files_index[0].entries:
-        #     print(os.stat(item.full_path).st_size)
+                mem_1 += os.stat(entry.full_path).st_size
+        end = time()
+        print("method 1:", mem_1, end - start)
+        # method two
+        start = time()
+        mem_2 = 0
+        for index in self.files_index:
+            mem_2 += np.sum([os.stat(entry.full_path).st_size for entry in index.entries])
+        end = time()
+        print("method 2:", mem_2, end - start)
+
+        # method three
+        start = time()
+        mem_3 = np.sum([np.sum([os.stat(entry.full_path).st_size for entry in index.entries]) for index in self.files_index])
+        end = time()
+        print("method 3:", mem_3, end - start)
+
+
 
     def _flatten_files_index(self):
         """
