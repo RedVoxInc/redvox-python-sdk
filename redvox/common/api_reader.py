@@ -95,28 +95,12 @@ class ApiReader:
             _pool.close()
 
     def helper(self):
-        # method one
         start = time()
-        mem_1 = 0
+        mem = 0
         for index in self.files_index:
-            for entry in index.entries:
-                mem_1 += os.stat(entry.full_path).st_size
+            mem += np.sum([os.stat(entry.full_path).st_size for entry in index.entries])
         end = time()
-        print("method 1:", mem_1, end - start)
-        # method two
-        start = time()
-        mem_2 = 0
-        for index in self.files_index:
-            mem_2 += np.sum([os.stat(entry.full_path).st_size for entry in index.entries])
-        end = time()
-        print("method 2:", mem_2, end - start)
-
-        # method three
-        start = time()
-        mem_3 = np.sum([np.sum([os.stat(entry.full_path).st_size for entry in index.entries]) for index in self.files_index])
-        end = time()
-        print("method 3:", mem_3, end - start)
-
+        print("Elapsed time for calculation:", mem, end - start)
 
     def _flatten_files_index(self):
         """
