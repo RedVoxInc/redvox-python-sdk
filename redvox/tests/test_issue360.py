@@ -7,8 +7,12 @@ from os import listdir
 from os.path import isfile, join
 import numpy as np
 
+from redvox.common import data_window_wpa as dwpa
+from redvox.common import data_window_io as dw_io
+
 
 def main():
+    """
     input_dir = "/Users/yusukehatanaka/Desktop/DATA/20200222_GoodComms/"
     dw = DataWindow(
         input_dir=input_dir,
@@ -23,14 +27,24 @@ def main():
             station_ids=[station]
         )
         print('==================================')
-    # input_dir = "/Users/yusukehatanaka/Desktop/DATA/20200222_GoodComms/api900/2020/02/22/"
-    # start = time()
-    # only_files = [f for f in listdir(input_dir) if isfile(join(input_dir, f))]
-    # # print("expected:", os.stat(input_dir + only_files[0]).st_size)
-    # temp = np.sum([os.stat(input_dir + item).st_size for item in only_files])
-    # print(temp)
-    # end = time()
-    # print(end - start)
+    """
+    # ['1637199002', '1637610029',
+    # '1637662003', '1637610028',
+    # '1637110701', '1637199003']
+    path = "/Users/yusukehatanaka/Desktop/DATA/20200222_GoodComms/"
+    save_path = "/Users/yusukehatanaka/Desktop/DATA/issue_360/"
+    dw_config = dwpa.DataWindowConfigWpa(
+        input_dir=path,
+        station_ids=['1637110701']
+    )
+
+    drws = dwpa.DataWindowArrow(
+        "single_station_no_save",
+        config=dw_config,
+        out_dir=save_path,
+        out_type="PARQUET"
+    )
+    drws.save()
 
 
 if __name__ == '__main__':
