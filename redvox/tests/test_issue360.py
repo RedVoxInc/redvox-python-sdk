@@ -6,6 +6,7 @@ import os
 from os import listdir
 from os.path import isfile, join
 import numpy as np
+from pathlib import Path
 
 from redvox.common import data_window_wpa as dwpa
 from redvox.common import data_window_io as dw_io
@@ -33,9 +34,12 @@ def main():
     # '1637110701', '1637199003']
     path = "/Users/yusukehatanaka/Desktop/DATA/20200222_GoodComms/"
     save_path = "/Users/yusukehatanaka/Desktop/DATA/issue_360/"
+    if os.path.exists(save_path):
+        # os.rmdir(save_path)
+        shutil.rmtree(save_path)
+    os.mkdir(save_path)
     dw_config = dwpa.DataWindowConfigWpa(
-        input_dir=path,
-        station_ids=['1637110701', '1637199003']
+        input_dir=path
     )
 
     drws = dwpa.DataWindowArrow(
@@ -45,6 +49,8 @@ def main():
         out_type="PARQUET"
     )
     drws.save()
+    file_bytes = sum(file.stat().st_size for file in Path(save_path).rglob('*'))
+    print(file_bytes)
 
 
 if __name__ == '__main__':
