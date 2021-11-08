@@ -35,7 +35,7 @@ def main():
     save_path = "/Users/yusukehatanaka/Desktop/DATA/issue_360/"
     dw_config = dwpa.DataWindowConfigWpa(
         input_dir=path,
-        station_ids=['1637110701']
+        station_ids=['1637110701', '1637199003']
     )
 
     drws = dwpa.DataWindowArrow(

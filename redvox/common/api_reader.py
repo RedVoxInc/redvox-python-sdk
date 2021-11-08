@@ -89,18 +89,18 @@ class ApiReader:
         if debug:
             self.errors.print()
 
-        self.helper()
+        # self.helper()
 
         if pool is None:
             _pool.close()
 
-    def helper(self):
-        start = time()
-        mem = 0
-        for index in self.files_index:
-            mem += np.sum([os.stat(entry.full_path).st_size for entry in index.entries])
-        end = time()
-        print("Elapsed time for calculation:", mem, end - start)
+    # def helper(self):
+    #     start = time()
+    #     mem = 0
+    #     for index in self.files_index:
+    #         mem += np.sum([os.stat(entry.full_path).st_size for entry in index.entries])
+    #     end = time()
+    #     print("Elapsed time for calculation:", mem, end - start)
 
     def _flatten_files_index(self):
         """
@@ -125,10 +125,23 @@ class ApiReader:
         index: List[io.Index] = []
         # this guarantees that all ids we search for are valid
         all_index = self._apply_filter(pool=_pool)
+        total_bytes_loading = 0
+        overhead = 0
         for station_id in all_index.summarize().station_ids():
             id_index = all_index.get_index_for_station_id(station_id)
             checked_index = self._check_station_stats(id_index, pool=_pool)
+            start = time()
+            bytes_per_station = np.sum([os.stat(entry.full_path).st_size for entry in id_index.entries])
+            end = time()
+            total_bytes_loading += bytes_per_station
+            overhead += end - start
+            print(
+                f"station_id: {station_id}, " +
+                f"num_bytes: {bytes_per_station / 1000} KB"
+            )
             index.extend(checked_index)
+        print(f"Total memory loading: {total_bytes_loading / 1000} KB")
+        print(f"Overhead for calculating the file size: {overhead}")
 
         if pool is None:
             _pool.close()
