@@ -140,8 +140,8 @@ class ApiReader:
                 f"num_bytes: {bytes_per_station / 1000} KB"
             )
             index.extend(checked_index)
-        print(f"Total memory loading: {total_bytes_loading / 1000} KB")
-        print(f"Overhead for calculating the file size: {overhead}")
+        # print(f"Total memory loading: {total_bytes_loading / 1000} KB")
+        # print(f"Overhead for calculating the file size: {overhead}")
 
         if pool is None:
             _pool.close()

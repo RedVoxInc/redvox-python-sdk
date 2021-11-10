@@ -52,6 +52,23 @@ def main():
     file_bytes = sum(file.stat().st_size for file in Path(save_path).rglob('*'))
     print(file_bytes)
 
+    print(drws.station_ids())
+    for station in drws.station_ids():
+        sample_rate = drws.get_station(station)[0].audio_sample_rate_nominal_hz()
+        print(f"station: {station}, SR: {sample_rate}")
+
+    print(folder_size(save_path))
+
+
+def folder_size(path='.'):
+    total = 0
+    for entry in os.scandir(path):
+        if entry.is_file():
+            total += entry.stat().st_size
+        elif entry.is_dir():
+            total += folder_size(entry.path)
+    return total
+
 
 if __name__ == '__main__':
     main()
