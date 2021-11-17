@@ -8,7 +8,7 @@ from datetime import timedelta
 import shutil
 import os
 import inspect
-from redvox.tests import run_me
+from redvox.common.temp import run_me
 
 import pprint
 import multiprocessing
