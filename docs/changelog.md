@@ -1,10 +1,14 @@
 ## Changelog
 
+### 3.0.10rc8 (2021-11-16)
+
+* Updated filesystem writing functions
+* Added subclasses to SensorData objects (pyarrow and regular versions)
+
 ### 3.0.10rc7 (2021-10-19)
 
 * Shifted DataWindowArrow, StationPa and SensorDataPa to use filesystem to store data
 * Standardized attribute access for arrow classes
-* Updated filesystem writing functions to operate on relative paths
 
 ### 3.0.10rc6 (2021-10-5)
 
