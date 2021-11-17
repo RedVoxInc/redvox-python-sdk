@@ -14,6 +14,7 @@ import numpy as np
 import redvox
 from redvox.common import date_time_utils as dtu
 from redvox.common import io
+from redvox.common import data_window_io as dw_io
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, SensorData
@@ -31,6 +32,7 @@ DATA_DROP_DURATION_S: float = 0.2
 class DataWindow:
     """
     Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
+
     Properties:
         input_directory: string, directory that contains the files to read data from.  REQUIRED
         structured_layout: bool, if True, the input_directory contains specially named and organized
@@ -80,6 +82,7 @@ class DataWindow:
     ):
         """
         Initialize the DataWindow
+
         :param input_dir: directory that contains the files to read data from.  REQUIRED
         :param structured_layout: if True, the input_directory contains specially named and organized directories of
                                     data.  Default True
@@ -115,11 +118,7 @@ class DataWindow:
             else timedelta(seconds=0)
         self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td > timedelta(seconds=0) else timedelta(seconds=0)
         self.drop_time_s: float = drop_time_s if drop_time_s > 0 else DATA_DROP_DURATION_S
-        self.station_ids: Optional[Set[str]]
-        if station_ids:
-            self.station_ids = set(station_ids)
-        else:
-            self.station_ids = None
+        self.station_ids: Optional[Set[str]] = set(station_ids) if station_ids else None
         self.extensions: Optional[Set[str]] = extensions
         self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
         self.apply_correction: bool = apply_correction
@@ -140,6 +139,7 @@ class DataWindow:
     def from_config_file(file: str) -> "DataWindow":
         """
         Loads a configuration file to create the DataWindow
+
         :param file: full path to config file
         :return: a data window
         """
@@ -149,6 +149,7 @@ class DataWindow:
     def from_config(config: DataWindowConfig) -> "DataWindow":
         """
         Loads a configuration to create the DataWindow
+
         :param config: DataWindow configuration object
         :return: a data window
         """
@@ -209,14 +210,16 @@ class DataWindow:
     def deserialize(path: str) -> "DataWindow":
         """
         Decompresses and deserializes a DataWindow written to disk.
+
         :param path: Path to the serialized and compressed data window.
-        :return: An instance of a DataWindowFast.
+        :return: An instance of a DataWindow.
         """
-        return io.deserialize_data_window(path)
+        return dw_io.deserialize_data_window(path)
 
     def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
         """
-        Serializes and compresses this DataWindowFast to a file.
+        Serializes and compresses this DataWindow to a file.
+
         :param base_dir: The base directory to write the serialized file to (default=.).
         :param file_name: The optional file name. If None, a default filename with the following format is used:
                           [start_ts]_[end_ts]_[num_stations].pkl.lz4
@@ -224,12 +227,13 @@ class DataWindow:
         longer. (default=4).
         :return: The path to the written file.
         """
-        return io.serialize_data_window(self, base_dir, file_name, compression_factor)
+        return dw_io.serialize_data_window(self, base_dir, file_name, compression_factor)
 
     def to_json_file(self, base_dir: str = ".", file_name: Optional[str] = None,
                      compression_format: str = "lz4") -> Path:
         """
         Converts the data window metadata into a JSON file and compresses the data window and writes it to disk.
+
         :param base_dir: base directory to write the json file to.  Default . (local directory)
         :param file_name: the optional file name.  Do not include a file extension.
                             If None, a default file name is created using this format:
@@ -237,12 +241,13 @@ class DataWindow:
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The path to the written file
         """
-        return io.data_window_to_json_file(self, base_dir, file_name, compression_format)
+        return dw_io.data_window_to_json_file(self, base_dir, file_name, compression_format)
 
     def to_json(self, compressed_file_base_dir: str = ".", compressed_file_name: Optional[str] = None,
                 compression_format: str = "lz4") -> str:
         """
         Converts the data window metadata into a JSON string, then compresses the data window and writes it to disk.
+
         :param compressed_file_base_dir: base directory to write the json file to.  Default . (local directory)
         :param compressed_file_name: the optional file name.  Do not include a file extension.
                                         If None, a default file name is created using this format:
@@ -250,7 +255,7 @@ class DataWindow:
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The json string
         """
-        return io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
+        return dw_io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
 
     @staticmethod
     def from_json_file(base_dir: str, file_name: str,
@@ -262,6 +267,7 @@ class DataWindow:
         Reads a JSON file and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
+
         :param base_dir: the base directory containing the json file
         :param file_name: the file name of the json file.  Do not include extensions
         :param dw_base_dir: optional directory containing the compressed data window file.
@@ -275,7 +281,7 @@ class DataWindow:
             dw_base_dir = Path(base_dir).joinpath("dw")
         file_name += ".json"
         return DataWindow.from_json_dict(
-            io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
+            dw_io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json(json_str: str, dw_base_dir: str,
@@ -286,6 +292,7 @@ class DataWindow:
         Reads a JSON string and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
+
         :param json_str: the JSON to read
         :param dw_base_dir: directory containing the compressed data window file
         :param start_dt: the start datetime to check against.  if not given, assumes True.  default None
@@ -293,7 +300,7 @@ class DataWindow:
         :param station_ids: the station ids to check against.  if not given, assumes True.  default None
         :return: the data window if it suffices, otherwise None
         """
-        return DataWindow.from_json_dict(io.json_to_data_window(json_str), dw_base_dir,
+        return DataWindow.from_json_dict(dw_io.json_to_dict(json_str), dw_base_dir,
                                          start_dt, end_dt, station_ids)
 
     @staticmethod
@@ -306,6 +313,7 @@ class DataWindow:
         Reads a JSON string and checks if:
             * The requested times are within the JSON file's times
             * The requested stations are a subset of the JSON file's stations
+
         :param json_dict: the dictionary to read
         :param dw_base_dir: base directory for the compressed data window file
         :param start_dt: optional start datetime to check against.  if not given, assumes True.  default None
@@ -331,6 +339,7 @@ class DataWindow:
         """
         Get stations from the data window.  Must give at least the station's id.  Other parameters may be None,
         which means the value will be ignored when searching.  Results will match all non-None parameters given.
+
         :param station_id: station id
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
@@ -395,7 +404,6 @@ class DataWindow:
                 self._add_sensor_to_window(st)
         else:
             [self._add_sensor_to_window(s) for s in sts]
-
         # check for stations without data
         self._check_for_audio()
         self._check_valid_ids()
@@ -438,9 +446,9 @@ class DataWindow:
                 add_ids = ""
             self.errors.append(f"No data matching criteria {add_ids}in {self.input_directory}"
                                f"\nPlease adjust parameters of DataWindow")
-        elif len(self.station_ids) > 1:
+        elif len(self.station_ids) > 0:
             for ids in self.station_ids:
-                if ids not in [i.id for i in self.stations] and self.debug:
+                if ids.zfill(10) not in [i.id for i in self.stations]:
                     self.errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )
@@ -454,6 +462,7 @@ class DataWindow:
         if the start and/or end are not specified, keeps all audio data that fits and uses it
         to truncate the other sensors.
         returns nothing, updates the station in place
+
         :param station: station object to truncate sensors of
         :param start_datetime: datetime of start of window, default None
         :param end_datetime: datetime of end of window, default None
@@ -482,6 +491,7 @@ class DataWindow:
                        end_date_timestamp: float):
         """
         process a non audio sensor to fit within the data window.  Updates sensor in place, returns nothing.
+
         :param sensor: sensor to process
         :param station_id: station id
         :param start_date_timestamp: start of data window according to data

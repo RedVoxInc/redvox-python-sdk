@@ -80,3 +80,28 @@ class RedVoxExceptions:
             print(f"Errors encountered while creating {self._obj_class}:")
             for error in self._errors:
                 print(error)
+
+    def as_dict(self) -> dict:
+        """
+        :return: self as dict
+        """
+        return {
+            "obj_class": self._obj_class,
+            "num_errors": self._num_errors,
+            "errors": [str(e) for e in self._errors]
+        }
+
+    @staticmethod
+    def from_dict(errors_dict: dict) -> "RedVoxExceptions":
+        """
+        :param errors_dict: dictionary representing a RedvoxExceptions object
+        :return: RedvoxExceptions object
+        """
+        if "obj_class" not in errors_dict.keys():
+            result = RedVoxExceptions("ExceptionsLoadFailure")
+            result.append("Failed to load errors due to missing obj_class")
+        else:
+            result = RedVoxExceptions(errors_dict["obj_class"])
+            for er in errors_dict["errors"]:
+                result.append(er)
+        return result

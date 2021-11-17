@@ -155,6 +155,7 @@ class TimeSyncData:
     def num_tri_messages(self) -> int:
         """
         return the number of tri-message exchanges
+
         :return: number of tri-message exchanges
         """
         return np.size(self.time_sync_exchanges_list, 0)
@@ -164,6 +165,7 @@ class TimeSyncData:
         update timestamps by adding microseconds based on the OffsetModel.
         if model not supplied, uses the best offset.
         uses negative values to go backwards in time
+
         :param om: OffsetModel to calculate offsets, default None
         """
         if not om:
@@ -273,6 +275,7 @@ class TimeSyncAnalysis:
     ):
         """
         Initialize the object
+
         :param station_id: id of the station to analyze, default empty string
         :param audio_sample_rate_hz: audio sample rate in hz of the station, default np.nan
         :param station_start_timestamp: timestamp of when station started recording, default np.nan
@@ -339,6 +342,7 @@ class TimeSyncAnalysis:
     def from_packets(self, packets: List[Union[WrappedRedvoxPacketM, WrappedRedvoxPacket]]) -> 'TimeSyncAnalysis':
         """
         converts packets into TimeSyncData objects, then performs analysis
+
         :param packets: list of WrappedRedvoxPacketM to convert
         :return: modified version of self
         """
@@ -373,6 +377,7 @@ class TimeSyncAnalysis:
     def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -> 'TimeSyncAnalysis':
         """
         converts packets into TimeSyncData objects, then performs analysis
+
         :param packets: list of WrappedRedvoxPacketM to convert
         :return: modified version of self
         """
@@ -446,6 +451,7 @@ class TimeSyncAnalysis:
     def add_timesync_data(self, timesync_data: TimeSyncData):
         """
         adds a TimeSyncData object to the analysis
+
         :param timesync_data: TimeSyncData to add
         """
         self.timesync_data.append(timesync_data)
@@ -570,6 +576,7 @@ class TimeSyncAnalysis:
         """
         confirms if station_start_timestamp differs in any of the timesync_data
         outputs warnings if a change in timestamps is detected
+
         :param debug: if True, output warning message, default False
         :return: True if no change
         """
@@ -594,6 +601,7 @@ class TimeSyncAnalysis:
         """
         confirms if sample rate is the same across all timesync_data
         outputs warning if a change in sample rate is detected
+
         :param debug: if True, output warning message, default False
         :return: True if no change
         """
@@ -617,6 +625,7 @@ class TimeSyncAnalysis:
         """
         confirms there are no data gaps between packets
         outputs warning if a gap is detected
+
         :param gap_duration_s: length of time in seconds to be detected as a gap
         :param debug: if True, output warning message, default False
         :return: True if no gap
@@ -645,10 +654,11 @@ class TimeSyncAnalysis:
     def update_timestamps(self, use_model: bool = True):
         """
         update timestamps by adding microseconds based on the OffsetModel.
+
         :param use_model: if True, use the model, otherwise use best offset
         """
         if use_model and self.offset_model:
-            self.station_start_timestamp += self.offset_model.get_offset_at_new_time(self.station_start_timestamp)
+            self.station_start_timestamp += self.offset_model.get_offset_at_time(self.station_start_timestamp)
             for tsd in self.timesync_data:
                 tsd.update_timestamps(self.offset_model)
         else:
@@ -660,6 +670,7 @@ class TimeSyncAnalysis:
 def validate_sensors(tsa_data: TimeSyncAnalysis) -> bool:
     """
     Examine all sample rates and mach time zeros to ensure that sensor settings do not change
+
     :param tsa_data: the TimeSyncAnalysis data to validate
     :return: True if sensor settings do not change
     """
@@ -684,6 +695,7 @@ def update_evenly_sampled_time_array(
     Expects tsd to have the same number of packets as elements in time_start_array.
     Expects there are no gaps in the data or changes in station sample rate or start time.
     Throws an exception if the number of packets in tsa does not match the length of time_start_array
+
     :param ts_analysis: TimeSyncAnalysis object that contains the information needed to update the time array
     :param num_samples: number of samples in one file; optional, uses number based on sample rate if not given
     :param time_start_array_s: the array of timestamps to correct in seconds; optional, uses the start times in the
@@ -744,6 +756,7 @@ def update_evenly_sampled_time_array(
 def update_time_array(ts_data: TimeSyncData, time_array_s: np.array) -> np.ndarray:
     """
     Correct timestamps in time_array using information from TimeSyncData
+
     :param ts_data: TimeSyncData object that contains the information needed to update the time array
     :param time_array_s: the list of timestamps to correct in seconds
     :return: Revised time array in epoch seconds
@@ -756,6 +769,7 @@ def update_time_array_from_analysis(
 ) -> np.ndarray:
     """
     Correct timestamps in time_array using information from TimeSyncAnalysis
+
     :param ts_analysis: TimeSyncAnalysis object that contains the information needed to update the time array
     :param time_array_s: the list of timestamps to correct in seconds
     :return: Revised time array in epoch seconds

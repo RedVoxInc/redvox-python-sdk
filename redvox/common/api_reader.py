@@ -2,11 +2,17 @@
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 """
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
+from itertools import repeat
+from multiprocessing import cpu_count, Manager, Process, Queue
+import queue
 
+import pyarrow as pa
+
+import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import offset_model
 from redvox.common import api_conversions as ac
@@ -14,7 +20,17 @@ from redvox.common import io
 from redvox.common import file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
+from redvox.common.station_wpa import StationPa
 from redvox.common.errors import RedVoxExceptions
+
+
+id_py_stct = pa.struct([("id", pa.string()), ("uuid", pa.string()), ("start_time", pa.float64()),
+                        ])
+meta_py_stct = pa.struct([("api", pa.float64()), ("sub_api", pa.float64()), ("make", pa.string()),
+                          ("model", pa.string()), ("os", pa.int64()), ("os_version", pa.string()),
+                          ("app", pa.string()), ("app_version", pa.string()), ("is_private", pa.bool_()),
+                          ("packet_duration_s", pa.float64()), ("station_description", pa.string()),
+                          ])
 
 
 class ApiReader:
@@ -47,7 +63,7 @@ class ApiReader:
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
         :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
-        :param debug: if True, output additional statements during function execution.  Default False.
+        :param debug: if True, output program warnings/errors during function execution.  Default False.
         """
         _pool: multiprocessing.pool.Pool = (
             multiprocessing.Pool() if pool is None else pool

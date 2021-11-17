@@ -62,7 +62,7 @@ class TriMessageStats:
         self.offset1: np.ndarray = offsets_tuple[0]
         self.offset3: np.ndarray = offsets_tuple[1]
 
-        self.best_latency: Optional[float] = None
+        self.best_latency: Optional[float] = np.nan
         self.best_latency_array_index: Optional[int] = None
         self.best_latency_index: Optional[int] = None
         self.best_offset: Optional[float] = 0.0
@@ -87,11 +87,11 @@ class TriMessageStats:
             if d3_min > d1_min:
                 self.best_latency = d1_min  # server round trip is shorter
                 self.best_latency_array_index = 1
-                self.best_latency_index = np.where(self.latency1 == d1_min)[0][0]
+                self.best_latency_index = int(np.where(self.latency1 == d1_min)[0][0])
             else:
                 self.best_latency = d3_min
                 self.best_latency_array_index = 3
-                self.best_latency_index = np.where(self.latency3 == d3_min)[0][0]
+                self.best_latency_index = int(np.where(self.latency3 == d3_min)[0][0])
 
     def find_best_offset(self) -> None:
         """

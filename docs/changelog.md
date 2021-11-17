@@ -1,17 +1,70 @@
 ## Changelog
 
+### 3.0.10rc7 (2021-10-19)
+
+* Shifted DataWindowArrow, StationPa and SensorDataPa to use filesystem to store data
+* Standardized attribute access for arrow classes
+* Updated filesystem writing functions to operate on relative paths
+
+### 3.0.10rc6 (2021-10-5)
+
+* moved code in ApiReader involving DataWindowArrow to new file; api_reader_dw
+* added pretty print option for DataWindowArrow
+* Fixed bugs when loading DataWindowArrow from a file
+
+### 3.0.10rc5 (2021-9-30)
+
+* fixed error converting units of sample interval and std dev in pyarrow summaries
+* renamed DataWindowOrigin to EventOrigin
+
+### 3.0.10rc4 (2021-9-28)
+
+* fixed error when comparing configuration station ids that are shorter than 10 characters 
+* fixed incorrect default value for location providers when loading data using pyarrow
+
+### 3.0.10rc3 (2021-9-27)
+
+* Fixed bug when loading timestamps into offset model using datawindow arrow version
+* Allowed other iterables when creating DataWindowConfigWpa
+
+### 3.0.10rc2 (2021-9-17)
+
+* Fixed bug when writing sensors to json files
+* Added default name
+
+### 3.0.10rc1 (2021-9-13)
+
+* Merged pyarrow loading into existing data window functionality
+* If user saves data to disk, parquet files will be created
+
 ### 3.0.10 (2021-9-9)
 
 * Fix missing values in Health Sensor fields
+
+### 3.0.9rc1 (2021-9-1)
+
+* Merged latest release
+* Fixed bugs when loading data using pyarrow implementation
 
 ### 3.0.9 (2021-8-30)
 
 * Fix missing latencies and offsets attribute when data is missing from files.
 * Added missing Health fields from Api 1000 data.
 
+### 3.0.8rc1 (2021-8-30)
+
+* Added missing/incorrect values when creating stations using parquet files.
+* Updated version number and changelog to represent correct dates and version numbers.
+* Pyarrow functionality complete for data window.  Refer to *_wpa files.
+
 ### 3.0.8 (2021-8-11)
 
 * Fix inconsistent storing of enum data from station metrics
+
+### 3.0.7rc0 (2021-8-3)
+
+* Testing pyarrow functionality for Sensors and Stations
+* Save parquets of data from Redvox files instead of loading everything at once
 
 ### 3.0.7 (2021-7-29)
 

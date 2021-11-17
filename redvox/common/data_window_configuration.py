@@ -9,6 +9,8 @@ from typing import Optional, List, MutableMapping
 import pprint
 import toml
 
+import redvox.common.date_time_utils as dtu
+
 
 # defaults for configuration
 DEFAULT_DROP_TIME_S: float = 0.2  # seconds between packets to be considered a gap
@@ -95,3 +97,27 @@ class DataWindowConfig:
     def pretty(self) -> str:
         # noinspection Mypy
         return pprint.pformat(self.to_dict())
+
+    def start_dt(self) -> dtu.datetime:
+        return dtu.datetime(self.start_year, self.start_month, self.start_day,
+                            self.start_hour, self.start_minute, self.start_second)
+
+    def set_start_dt(self, start_dt: dtu.datetime):
+        self.start_year = start_dt.year
+        self.start_month = start_dt.month
+        self.start_day = start_dt.day
+        self.start_hour = start_dt.hour
+        self.start_minute = start_dt.minute
+        self.start_second = start_dt.second
+
+    def end_dt(self) -> dtu.datetime:
+        return dtu.datetime(self.end_year, self.end_month, self.end_day,
+                            self.end_hour, self.end_minute, self.end_second)
+
+    def set_end_dt(self, end_dt: dtu.datetime):
+        self.end_year = end_dt.year
+        self.end_month = end_dt.month
+        self.end_day = end_dt.day
+        self.end_hour = end_dt.hour
+        self.end_minute = end_dt.minute
+        self.end_second = end_dt.second

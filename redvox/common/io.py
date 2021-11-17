@@ -5,13 +5,13 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
+import json
 import os.path
 import multiprocessing
 import multiprocessing.pool
+import tempfile
 from pathlib import Path, PurePath
-import pickle
-import json
-from shutil import copy2, move
+from shutil import copy2, move, rmtree
 from typing import (
     Any,
     Dict,
@@ -42,8 +42,135 @@ from redvox.common.parallel_utils import maybe_parallel_map
 
 if TYPE_CHECKING:
     from redvox.api900.wrapped_redvox_packet import WrappedRedvoxPacket
-    from redvox.common.data_window import DataWindow
     from redvox.api900.lib.api900_pb2 import RedvoxPacket
+
+
+class FileSystemWriter:
+    """
+    This class holds basic information about writing and reading objects from a file system
+    If user does not enable saving to disk, we use a temporary directory to store large files
+
+    Properties:
+        file_name: str, the name of the file (do not include extension)
+        file_ext: str, the extension used by the file (do not include the .).  Default "NONE"
+        base_dir: str, the directory to save the file to.  Default "." (current dir)
+        save_to_disk: bool, if True, save data to disk.  Default False
+
+    Protected:
+        _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
+    """
+
+    def __init__(self, file_name: str, file_ext: str = "none",
+                 base_dir: str = ".", save_enabled: bool = False):
+        """
+        initialize FileSystemWriter
+
+        :param file_name: name of file
+        :param file_ext: extension of file, default "none"
+        :param base_dir: directory to save file to, default "." (current dir)
+        :param save_enabled: if True, save to the file specified by, default False
+        """
+        self.file_name: str = file_name
+        self.file_extension: str = file_ext.lower()
+        self.save_to_disk: bool = save_enabled
+        self.base_dir: str = base_dir
+        self._temp_dir = tempfile.TemporaryDirectory()
+
+    def save_dir(self) -> str:
+        """
+        :return: directory where file would be saved based on current value of self.save_to_disk
+        """
+        return self.base_dir if self.save_to_disk else self._temp_dir.name
+
+    def full_name(self) -> str:
+        """
+        :return: file name with extension
+        """
+        return f"{self.file_name}.{self.file_extension}"
+
+    def full_path(self) -> str:
+        """
+        :return: the full path to where the file would be written
+        """
+        return os.path.join(self.save_dir(), self.full_name())
+
+    def set_name_and_extension(self, name: str, ext: str):
+        """
+        set the name and extension of the output file.  Do not include the . for the extension
+        :param name: file name
+        :param ext: file extension
+        """
+        self.file_name = name
+        self.file_extension = ext
+
+    def json_file_name(self) -> str:
+        """
+        :return: file name with .json extension
+        """
+        return f"{self.file_name}.json"
+
+    def json_path(self) -> Path:
+        """
+        :return: full path to json file
+        """
+        return Path(self.save_dir()).joinpath(self.json_file_name())
+
+    def create_dir(self):
+        """
+        if saving to disk, otherwise remove any files in the directory,
+        then create the directory if it doesn't exist
+        """
+        if self.save_to_disk:
+            if os.path.exists(self.save_dir()):
+                rmtree(self.save_dir())
+            os.makedirs(self.save_dir(), exist_ok=True)
+
+    def __del__(self):
+        """
+        remove temp dir
+        """
+        self._temp_dir.cleanup()
+
+    def as_dict(self) -> dict:
+        """
+        :return: FileSystemWriter as dictionary
+        """
+        return {
+            "file_name": self.file_name,
+            "file_extension": self.file_extension,
+            "base_dir": self.base_dir,
+            "save_to_disk": self.save_to_disk
+        }
+
+
+def json_to_dict(json_str: str) -> Dict:
+    """
+    :param json_str: string of json to convert to dictionary
+    :return: json string as a dictionary
+    """
+    return json.loads(json_str)
+
+
+def json_file_to_dict(file_path: str) -> Dict:
+    """
+    :param file_path: full path of file to load data from.
+    :return: json file as python dictionary
+    """
+    with open(file_path, "r") as f_p:
+        return json_to_dict(f_p.read())
+
+
+def get_json_file(file_dir: str) -> Optional[str]:
+    """
+    Finds the first json file in the file_dir specified or None if there is no file
+
+    :param file_dir: directory to find json file in
+    :return: full name of first json file in the directory or None if no files found
+    """
+    file_names = glob(os.path.join(file_dir, "*.json"))
+    if len(file_names) < 1:
+        return None
+    return Path(file_names[0]).name
 
 
 def _is_int(value: str) -> Optional[int]:
@@ -1219,162 +1346,3 @@ def sort_unstructured_redvox_data(
             move(value.full_path, file_out_dir)
 
     return True
-
-
-def json_to_data_window(json_str: str) -> Dict:
-    """
-    load a data window from json string
-
-    :param json_str: json string to read
-    :return: a dictionary of a data window
-    """
-    return json.loads(json_str)
-
-
-@dataclass
-class DataWindowSerializationResult:
-    path: str
-    serialized_bytes: int
-    compressed_bytes: int
-
-
-def serialize_data_window(
-        data_window: "DataWindow",
-        base_dir: str = ".",
-        file_name: Optional[str] = None,
-        compression_factor: int = 4,
-) -> Path:
-    """
-    Serializes and compresses a DataWindow to a file.
-
-    :param data_window: The data window to serialize and compress.
-    :param base_dir: The base directory to write the serialized file to (default=.).
-    :param file_name: The optional file name. If None, a default filename with the following format is used:
-                      [start_ts]_[end_ts]_[num_stations].pkl.lz4
-    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
-                               (default=4).
-    :return: The path to the written file.
-    """
-
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else f"{int(data_window.start_datetime.timestamp())}"
-             f"_{int(data_window.end_datetime.timestamp())}"
-             f"_{len(data_window.station_ids)}.pkl.lz4"
-    )
-
-    file_path: Path = Path(base_dir).joinpath(_file_name)
-
-    with lz4.frame.open(
-            file_path, "wb", compression_level=compression_factor
-    ) as compressed_out:
-        pickle.dump(data_window, compressed_out)
-        compressed_out.flush()
-        return file_path.resolve(False)
-
-
-def deserialize_data_window(path: str) -> "DataWindow":
-    """
-    Decompresses and deserializes a DataWindow written to disk.
-
-    :param path: Path to the serialized and compressed data window.
-    :return: An instance of a DataWindow.
-    """
-    with lz4.frame.open(path, "rb") as compressed_in:
-        return pickle.load(compressed_in)
-
-
-def json_file_to_data_window(base_dir: str, file_name: str) -> Dict:
-    """
-    load a data window from json written to disk
-
-    :param base_dir: directory where json file is saved
-    :param file_name: name of json file to load
-    :return: a dictionary representing a json-ified data window
-    """
-    with open(Path(base_dir).joinpath(file_name), "r") as r_f:
-        return json_to_data_window(r_f.read())
-
-
-def data_window_to_json(
-    data_win: "DataWindow",
-    base_dir: str = ".",
-    file_name: Optional[str] = None,
-    compression_format: str = "lz4",
-) -> str:
-    """
-    Converts a data window to json format
-
-    :param data_win: the data window object to convert
-    :param base_dir: the base directory to write the data file to
-    :param file_name: the data object's optional base file name.  Do not include a file extension.
-                        If None, a default file name is created using this format:
-                        [start_ts]_[end_ts]_[num_stations].[compression_type]
-    :param compression_format: the compression format to use.  default lz4
-    :return: The path to the written file
-    """
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else f"{int(data_win.start_datetime.timestamp())}"
-        f"_{int(data_win.end_datetime.timestamp())}"
-        f"_{len(data_win.station_ids)}"
-    )
-    base_dir = os.path.join(base_dir, "dw")
-    if not os.path.exists(base_dir):
-        os.makedirs(base_dir)
-    if compression_format == "lz4":
-        dfp = str(
-            serialize_data_window(
-                data_win, base_dir, _file_name + ".pkl.lz4"
-            ).resolve()
-        )
-    else:
-        dfp = os.path.join(base_dir, _file_name + ".pkl")
-        with open(dfp, "wb") as compressed_out:
-            pickle.dump(data_win, compressed_out)
-    data_win_dict = {
-        "start_datetime": us_dt(data_win.start_datetime)
-        if data_win.start_datetime
-        else None,
-        "end_datetime": us_dt(data_win.end_datetime) if data_win.end_datetime else None,
-        "station_ids": list(data_win.station_ids),
-        "compression_format": compression_format,
-        "file_name": _file_name,
-    }
-    return json.dumps(data_win_dict)
-
-
-def data_window_to_json_file(
-    data_window: "DataWindow",
-    base_dir: str = ".",
-    file_name: Optional[str] = None,
-    compression_format: str = "lz4",
-) -> Path:
-    """
-    Converts a data window to json format.
-
-    :param data_window: the data window object to convert
-    :param base_dir: the base directory to write the json file to
-    :param file_name: the optional base file name.  Do not include a file extension.
-                        If None, a default file name is created using this format:
-                        [start_ts]_[end_ts]_[num_stations].json
-    :param compression_format: the type of compression to use.  default lz4
-    :return: The path to the written file
-    """
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else f"{int(data_window.start_datetime.timestamp())}"
-        f"_{int(data_window.end_datetime.timestamp())}"
-        f"_{len(data_window.station_ids)}"
-    )
-    file_path: Path = Path(base_dir).joinpath(f"{_file_name}.json")
-    with open(file_path, "w") as f_p:
-        f_p.write(
-            data_window_to_json(
-                data_window, base_dir, file_name, compression_format
-            )
-        )
-        return file_path.resolve(False)
