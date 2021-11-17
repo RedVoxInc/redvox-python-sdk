@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.0.10rc9 (2021-11-16)
+
+* Added missing file used to read data windows written to disk
+
 ### 3.0.10rc8 (2021-11-16)
 
 * Updated filesystem writing functions
