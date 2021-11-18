@@ -9,8 +9,9 @@ def main():
     # '1637662003', '1637610028',
     # '1637110701', '1637199003']
     # path = "/Users/yusukehatanaka/Desktop/DATA/20200222_GoodComms/"
+    path = "/Users/yusukehatanaka/Desktop/DATA/20201006_SPX_F9"
     # path = "/Users/yusukehatanaka/Desktop/DATA/20201027_SDK_Example/"
-    path = "/Users/yusukehatanaka/Desktop/DATA/20180824_Hurricane_Lane"
+    # path = "/Users/yusukehatanaka/Desktop/DATA/20180824_Hurricane_Lane"
 
     save_path = "/Users/yusukehatanaka/Desktop/DATA/issue_360/"
     if os.path.exists(save_path):
