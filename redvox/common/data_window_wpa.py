@@ -223,19 +223,17 @@ class DataWindowArrow:
         config: optional DataWindowConfigWpa with information on how to construct data window from
         Redvox (.rdvx*) files.  Default None
 
-        base_dir: str, output directory for station parquet files.  Default "." (current directory)
-
-        out_type: DataWindowOutputType, type of file to save the data window as.
-        Default DataWindowOutputType.NONE (no saving)
-
         sdk_version: str, the version of the Redvox SDK used to create the data window
-
-        errors: DataWindowExceptions, class containing a list of all errors encountered by the data window.
 
         debug: bool, if True, outputs additional information during initialization. Default False
 
     Protected:
+        _fs_writer: FileSystemWriter; includes event_name, output directory (Default "."),
+        and output type (Default NONE)
+
         _stations: List of Stations that belong to the DataWindow
+
+        _errors: RedVoxExceptions; contains a list of all errors encountered by the data window
     """
     def __init__(
             self,
@@ -252,9 +250,10 @@ class DataWindowArrow:
         :param event_name: name of the data window.  defaults to "dw"
         :param event_location: Optional DataWindowOrigin which describes the physical location and radius of the
                                 origin event.  Default empty DataWindowOrigin (no valid data)
-        :param config: Optional DataWindowConfigWpa which describes how to extract data from Redvox files.  Default None
+        :param config: Optional DataWindowConfigWpa which describes how to extract data from Redvox files.
+                        Default None
         :param out_dir: output directory for saving files.  Default "." (current directory)
-        :param out_type: type of file to save the data window as.  Default DataWindowOutputType.NONE (no saving)
+        :param out_type: type of file to save the data window as.  Default "NONE" (no saving)
         :param debug: if True, outputs additional information during initialization. Default False
         """
         self.event_name: str = event_name
@@ -277,59 +276,6 @@ class DataWindowArrow:
         if self.debug:
             self.print_errors()
 
-    # @staticmethod
-    # def from_config_file(file: str) -> "DataWindowArrow":
-    #     """
-    #     Loads a configuration file to create the DataWindow
-    #
-    #     :param file: full path to config file
-    #     :return: a data window
-    #     """
-    #     return DataWindowArrow.from_config(DataWindowConfig.from_path(file))
-    #
-    # @staticmethod
-    # def from_config(config: DataWindowConfig) -> "DataWindowArrow":
-    #     """
-    #     Loads a configuration to create the DataWindow
-    #
-    #     :param config: DataWindow configuration object
-    #     :return: a data window
-    #     """
-    #     dwconfig = DataWindowConfigWpa()
-    #     if config.start_year:
-    #         dwconfig.start_time = dtu.datetime(
-    #             year=config.start_year,
-    #             month=config.start_month,
-    #             day=config.start_day,
-    #             hour=config.start_hour,
-    #             minute=config.start_minute,
-    #             second=config.start_second,
-    #         )
-    #     if config.end_year:
-    #         dwconfig.end_time = dtu.datetime(
-    #             year=config.end_year,
-    #             month=config.end_month,
-    #             day=config.end_day,
-    #             hour=config.end_hour,
-    #             minute=config.end_minute,
-    #             second=config.end_second,
-    #         )
-    #     if config.api_versions:
-    #         dwconfig.api_versions = set([io.ApiVersion.from_str(v) for v in config.api_versions])
-    #     if config.extensions:
-    #         dwconfig.extensions = set(config.extensions)
-    #     if config.station_ids:
-    #         dwconfig.station_ids = set(config.station_ids)
-    #     if config.edge_points_mode not in gpu.DataPointCreationMode.list_names():
-    #         dwconfig.edge_points_mode = "COPY"
-    #     return DataWindowArrow(
-    #         config.input_directory,
-    #         dwconfig,
-    #         # config.station_out
-    #         # config.save_files
-    #         debug=config.debug
-    #     )
-
     def save_dir(self):
         """
         :return: directory data is saved to
@@ -343,6 +289,13 @@ class DataWindowArrow:
         :return: FileSystemWriter for DataWindow
         """
         return self._fs_writer
+
+    def set_out_type(self, new_out_type: str):
+        """
+        set the output type of the data window.  options are "NONE", "PARQUET" and "LZ4"
+        :param new_out_type: new output type of the data window
+        """
+        self._fs_writer.file_extension = new_out_type
 
     def as_dict(self) -> Dict:
         return {"event_name": self.event_name,
@@ -424,15 +377,15 @@ class DataWindowArrow:
             out_type = dw_io.DataWindowOutputType.str_to_type(json_dict["out_type"])
             if out_type == dw_io.DataWindowOutputType.PARQUET:
                 dwin = DataWindowArrow(json_dict["event_name"], EventOrigin.from_dict(json_dict["event_origin"]),
-                                       None, json_dict["files_dir"], json_dict["out_type"],
+                                       None, json_dict["base_dir"], json_dict["out_type"],
                                        json_dict["debug"])
                 dwin.config = DataWindowConfigWpa.from_dict(json_dict["config"])
                 dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
                 dwin.sdk_version = json_dict["sdk_version"]
                 for st in json_dict["stations"]:
-                    dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["files_dir"], st), f"{st}.json"))
+                    dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["base_dir"], st), f"{st}.json"))
             elif out_type == dw_io.DataWindowOutputType.LZ4:
-                dwin = DataWindowArrow.deserialize(os.path.join(json_dict["files_dir"],
+                dwin = DataWindowArrow.deserialize(os.path.join(json_dict["base_dir"],
                                                                 f"{json_dict['event_name']}.pkl.lz4"))
             else:
                 dwin = DataWindowArrow()
@@ -470,14 +423,14 @@ class DataWindowArrow:
         :return: minimum start timestamp of the data
         """
         if len(self._stations) > 0:
-            return np.min([s.first_data_timestamp for s in self._stations])
+            return np.min([s.first_data_timestamp() for s in self._stations])
         return np.nan
 
     def get_end_date(self) -> float:
         """
         :return: maximum end timestamp of the data
         """
-        return np.max([s.last_data_timestamp for s in self._stations])
+        return np.max([s.last_data_timestamp() for s in self._stations])
 
     def stations(self) -> List[StationPa]:
         """
@@ -637,11 +590,11 @@ class DataWindowArrow:
         # update remaining data window values if they're still default
         if not self.config.start_datetime and len(self._stations) > 0:
             self.config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.min([t.first_data_timestamp for t in self._stations]))
+                np.min([t.first_data_timestamp() for t in self._stations]))
         # end_datetime is non-inclusive, so it must be greater than our latest timestamp
         if not self.config.end_datetime and len(self._stations) > 0:
             self.config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.max([t.last_data_timestamp for t in self._stations]) + 1)
+                np.max([t.last_data_timestamp() for t in self._stations]) + 1)
 
         # If the pool was created by this function, then it needs to managed by this function.
         if pool is None:
@@ -705,11 +658,10 @@ class DataWindowArrow:
             self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
                                 station.audio_sensor().last_data_timestamp())
         # recalculate metadata
-        station.first_data_timestamp = station.audio_sensor().first_data_timestamp()
-        station.last_data_timestamp = station.audio_sensor().data_timestamps()[-1]
+        station.update_start_and_end_timestamps()
         station.packet_metadata = [meta for meta in station.packet_metadata()
-                                   if meta.packet_start_mach_timestamp < station.last_data_timestamp and
-                                   meta.packet_end_mach_timestamp >= station.first_data_timestamp]
+                                   if meta.packet_start_mach_timestamp < station.last_data_timestamp() and
+                                   meta.packet_end_mach_timestamp >= station.first_data_timestamp()]
         self._stations.append(station)
 
     def process_sensor(self, sensor: SensorDataPa, station_id: str, start_date_timestamp: float,

@@ -177,7 +177,7 @@ class TimeSyncArrow:
         :param file_path: full path of file to load data from.
         :return: TimeSyncArrow object
         """
-        json_data = io.from_json(file_path)
+        json_data = io.json_file_to_dict(file_path)
         data = ds.dataset(os.path.join(json_data["arrow_dir"], json_data["arrow_file_name"] + ".parquet"),
                           format="parquet", exclude_invalid_files=True).to_table()
         result = TimeSyncArrow(None, np.array((data["latencies1"], data["latencies3"])),

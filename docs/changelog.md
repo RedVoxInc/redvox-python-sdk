@@ -1,6 +1,6 @@
 ## Changelog
 
-### 3.0.10rc10 (2021-11-16)
+### 3.0.10rc11 (2021-11-16)
 
 * Added missing file used to read data windows written to disk
 

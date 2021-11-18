@@ -784,7 +784,7 @@ class SensorDataPa:
             "timestamps_altered": self._timestamps_altered,
             "use_offset_model": self._use_offset_model,
             "gaps": self._gaps,
-            "fs_writer": self._fs_writer.as_dict(),
+            "base_dir": os.path.basename(self._fs_writer.save_dir()),
             "errors": self._errors.as_dict()
         }
 
@@ -822,10 +822,9 @@ class SensorDataPa:
                 result = SensorDataPa("Empty")
                 result.append_error("File to load Sensor from not found.")
                 return result
-        json_data = io.from_json(os.path.join(file_dir, file_name))
+        json_data = io.json_file_to_dict(os.path.join(file_dir, file_name))
         if "name" in json_data.keys():
-            result = SensorDataPa.from_dir(json_data["name"], json_data["fs_writer"]["base_dir"],
-                                           SensorType[json_data["type"]],
+            result = SensorDataPa.from_dir(json_data["name"], file_dir, SensorType[json_data["type"]],
                                            json_data["sample_rate_hz"], json_data["sample_interval_s"],
                                            json_data["sample_interval_std_s"], json_data["is_sample_rate_fixed"],
                                            json_data["timestamps_altered"], False, json_data["use_offset_model"])

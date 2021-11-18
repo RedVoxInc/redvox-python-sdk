@@ -122,6 +122,13 @@ class StationPa:
         """
         return [s.name for s in self._data]
 
+    def set_save_data(self, save_on: bool = False):
+        """
+        set the option to save the station
+        :param save_on: if True, saves the station data, default False
+        """
+        self._fs_writer.save_to_disk = save_on
+
     def save_dir(self) -> str:
         """
         :return: directory where files are being written to
@@ -234,7 +241,7 @@ class StationPa:
         """
         self._packet_metadata.sort(key=lambda t: t.packet_start_mach_timestamp)
 
-    def _get_start_and_end_timestamps(self):
+    def update_start_and_end_timestamps(self):
         """
         uses the audio data to get the first and last timestamp of the station
         """
@@ -328,7 +335,7 @@ class StationPa:
             self.append_station_data(new_station._data)
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
-            self._get_start_and_end_timestamps()
+            self.update_start_and_end_timestamps()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
 
     def append_station_data(self, new_station_data: List[sd.SensorDataPa]):
@@ -1128,7 +1135,7 @@ class StationPa:
             #                                       audo.srate_hz, 1/audo.srate_hz, 0., True))
             self._data.append(sd.AudioSensor(audo.name, audo.data(), audo.srate_hz, 1 / audo.srate_hz, 0., True,
                                              base_dir=audo.fdir, save_data=self._fs_writer.save_to_disk))
-            self._get_start_and_end_timestamps()
+            self.update_start_and_end_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
                 # avoid converting packets into parquets for now; just load the data into memory and process
@@ -1264,7 +1271,7 @@ class StationPa:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
-            self._get_start_and_end_timestamps()
+            self.update_start_and_end_timestamps()
             if self._fs_writer.file_name != self._get_id_key():
                 old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
                 self._fs_writer.file_name = self._get_id_key()
@@ -1287,7 +1294,7 @@ class StationPa:
             "id": self._id,
             "uuid": self._uuid,
             "start_date": self._start_date,
-            "base_dir": self.save_dir(),
+            "base_dir": os.path.basename(self.save_dir()),
             "use_model_correction": self._use_model_correction,
             "is_audio_scrambled": self._is_audio_scrambled,
             "is_timestamps_updated": self._is_timestamps_updated,
@@ -1350,13 +1357,9 @@ class StationPa:
             result._errors = RedVoxExceptions.from_dict(json_data["errors"])
 
             for s in json_data["sensors"]:
-                file = glob(os.path.join(json_data["base_dir"], s, "*.json"))
-                for f in file:
-                    result._data.append(sd.SensorDataPa.from_json_file(s, f))
-
-            file = glob(os.path.join(json_data["base_dir"], "timesync", "*.json"))
-            for f in file:
-                result._timesync_data = TimeSyncArrow.from_json_file(f)
+                result._data.append(sd.SensorDataPa.from_json_file(os.path.join(file_dir, s)))
+            ts_file_name = io.get_json_file(os.path.join(file_dir, "timesync"))
+            result._timesync_data = TimeSyncArrow.from_json_file(os.path.join(file_dir, "timesync", ts_file_name))
         else:
             result = StationPa()
             result.append_error(f"Missing id and start date to identify station in {file_name}")

@@ -9,6 +9,8 @@ from typing import (
     TYPE_CHECKING,
 )
 
+from redvox.common.io import json_file_to_dict
+
 import pyarrow.parquet as pq
 
 
@@ -44,14 +46,3 @@ def to_json_file(timesync: "TimeSyncArrow",
     with open(file_path, "w") as f_p:
         f_p.write(to_json(timesync))
         return file_path.resolve(False)
-
-
-def from_json(file_path: str) -> Dict:
-    """
-    convert contents of json file to TimeSync dictionary
-
-    :param file_path: full path of file to load data from.
-    :return: Dictionary of TimeSync
-    """
-    with open(file_path, "r") as f_p:
-        return json.loads(f_p.read())

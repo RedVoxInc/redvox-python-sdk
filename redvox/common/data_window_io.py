@@ -79,6 +79,8 @@ class DataWindowFileSystemWriter(FileSystemWriter):
         :param file_ext: extension of file, default "none"
         :param base_dir: directory to save file to, default "." (current dir)
         """
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir, exist_ok=True)
         os.chdir(base_dir)
         super().__init__(file_name, file_ext, ".",
                          False if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.NONE else True)
