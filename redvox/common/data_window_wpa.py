@@ -56,7 +56,7 @@ class EventOrigin:
 
         altitude_std: float, standard deviation of best estimate of altitude, default np.nan
 
-        event_radius_m: float, radius of event in meters
+        event_radius_m: float, radius of event in meters, default 0.0
     """
     def __init__(self,
                  provider: str = "UNKNOWN",
@@ -238,7 +238,7 @@ class DataWindowArrow:
     def __init__(
             self,
             event_name: str = "dw",
-            event_location: Optional[EventOrigin] = None,
+            event_origin: Optional[EventOrigin] = None,
             config: Optional[DataWindowConfigWpa] = None,
             out_dir: str = ".",
             out_type: str = "NONE",
@@ -248,8 +248,8 @@ class DataWindowArrow:
         Initialize the DataWindow
 
         :param event_name: name of the data window.  defaults to "dw"
-        :param event_location: Optional DataWindowOrigin which describes the physical location and radius of the
-                                origin event.  Default empty DataWindowOrigin (no valid data)
+        :param event_origin: Optional EventOrigin which describes the physical location and radius of the
+                                origin event.  Default empty EventOrigin (no valid data)
         :param config: Optional DataWindowConfigWpa which describes how to extract data from Redvox files.
                         Default None
         :param out_dir: output directory for saving files.  Default "." (current directory)
@@ -257,13 +257,13 @@ class DataWindowArrow:
         :param debug: if True, outputs additional information during initialization. Default False
         """
         self.event_name: str = event_name
-        if event_location:
-            self.event_origin: EventOrigin = event_location
+        if event_origin:
+            self.event_origin: EventOrigin = event_origin
         else:
             self.event_origin = EventOrigin()
         self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, out_dir)
         self.debug: bool = debug
-        self.sdk_version: str = redvox.VERSION
+        self._sdk_version: str = redvox.VERSION
         self._errors = RedVoxExceptions("DataWindow")
         self._stations: List[StationPa] = []
         self.config = config
@@ -276,7 +276,7 @@ class DataWindowArrow:
         if self.debug:
             self.print_errors()
 
-    def save_dir(self):
+    def save_dir(self) -> str:
         """
         :return: directory data is saved to
         """
@@ -284,7 +284,7 @@ class DataWindowArrow:
             return self._fs_writer.save_dir()
         return ""
 
-    def fs_writer(self):
+    def fs_writer(self) -> io.FileSystemWriter:
         """
         :return: FileSystemWriter for DataWindow
         """
@@ -293,25 +293,32 @@ class DataWindowArrow:
     def set_out_type(self, new_out_type: str):
         """
         set the output type of the data window.  options are "NONE", "PARQUET" and "LZ4"
+
         :param new_out_type: new output type of the data window
         """
         self._fs_writer.file_extension = new_out_type
 
     def as_dict(self) -> Dict:
+        """
+        :return: data window properties as dictionary
+        """
         return {"event_name": self.event_name,
                 "event_origin": self.event_origin.as_dict(),
-                "start_time": self.get_start_date(),
-                "end_time": self.get_end_date(),
+                "start_time": self.start_date(),
+                "end_time": self.end_date(),
                 "base_dir": self.save_dir(),
                 "stations": [s.default_station_json_file_name() for s in self._stations],
                 "config": self.config.as_dict(),
                 "debug": self.debug,
                 "errors": self._errors.as_dict(),
-                "sdk_version": self.sdk_version,
+                "sdk_version": self._sdk_version,
                 "out_type": self._fs_writer.file_extension
                 }
 
     def pretty(self) -> str:
+        """
+        :return: data window as dictionary, but easier to read
+        """
         # noinspection Mypy
         return pprint.pformat(self.as_dict())
 
@@ -381,7 +388,7 @@ class DataWindowArrow:
                                        json_dict["debug"])
                 dwin.config = DataWindowConfigWpa.from_dict(json_dict["config"])
                 dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
-                dwin.sdk_version = json_dict["sdk_version"]
+                dwin._sdk_version = json_dict["sdk_version"]
                 for st in json_dict["stations"]:
                     dwin.add_station(StationPa.from_json_file(os.path.join(json_dict["base_dir"], st), f"{st}.json"))
             elif out_type == dw_io.DataWindowOutputType.LZ4:
@@ -418,19 +425,27 @@ class DataWindowArrow:
         os.chdir(os.path.dirname(file_path))
         return DataWindowArrow.from_json_dict(dw_io.json_file_to_data_window_wpa(file_path))
 
-    def get_start_date(self) -> float:
+    def sdk_version(self) -> str:
         """
-        :return: minimum start timestamp of the data
+        :return: sdk version used to create the DataWindow
+        """
+        return self._sdk_version
+
+    def start_date(self) -> float:
+        """
+        :return: minimum start timestamp of the data or np.nan if no data
         """
         if len(self._stations) > 0:
             return np.min([s.first_data_timestamp() for s in self._stations])
         return np.nan
 
-    def get_end_date(self) -> float:
+    def end_date(self) -> float:
         """
-        :return: maximum end timestamp of the data
+        :return: maximum end timestamp of the data or np.nan if no data
         """
-        return np.max([s.last_data_timestamp() for s in self._stations])
+        if len(self._stations) > 0:
+            return np.max([s.last_data_timestamp() for s in self._stations])
+        return np.nan
 
     def stations(self) -> List[StationPa]:
         """
@@ -490,7 +505,8 @@ class DataWindowArrow:
     def first_station(self, station_id: Optional[str] = None) -> Optional[StationPa]:
         """
         :param station_id: optional station id to filter on
-        :return: first station matching params; if no params given, gets first station in list
+        :return: first station matching params; if no params given, gets first station in list.
+                    returns None if no station with given station_id exists.
         """
         if station_id:
             result = [s for s in self._stations if s.get_key().check_key(station_id, None, None)]
@@ -584,7 +600,7 @@ class DataWindowArrow:
 
         # update the default data window name if we have data and the default name exists
         if self.event_name == "dw" and len(self._stations) > 0:
-            self.event_name = f"dw_{int(self.get_start_date())}_{len(self._stations)}"
+            self.event_name = f"dw_{int(self.start_date())}_{len(self._stations)}"
 
         # must update the start and end in order for the data to be saved
         # update remaining data window values if they're still default

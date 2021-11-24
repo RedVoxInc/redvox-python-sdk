@@ -85,11 +85,13 @@ class RedVoxExceptions:
         """
         :return: self as dict
         """
-        return {
-            "obj_class": self._obj_class,
-            "num_errors": self._num_errors,
-            "errors": [str(e) for e in self._errors]
-        }
+        if self._num_errors > 0:
+            return {
+                "obj_class": self._obj_class,
+                "num_errors": self._num_errors,
+                "errors": [str(e) for e in self._errors]
+            }
+        return {"obj_class": self._obj_class}
 
     @staticmethod
     def from_dict(errors_dict: dict) -> "RedVoxExceptions":

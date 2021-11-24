@@ -6,7 +6,6 @@ Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due
 from typing import List, Optional, Tuple
 import os
 from pathlib import Path
-from glob import glob
 
 import numpy as np
 import pyarrow as pa

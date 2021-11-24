@@ -303,8 +303,8 @@ def serialize_data_window_wpa(
     _file_name: str = (
         file_name
         if file_name is not None
-        else f"{int(data_window.get_start_date())}"
-             f"_{int(data_window.get_end_date())}"
+        else f"{int(data_window.start_date())}"
+             f"_{int(data_window.end_date())}"
              f"_{len(data_window.event_name)}.pkl.lz4"
     )
 

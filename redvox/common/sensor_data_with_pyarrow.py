@@ -820,7 +820,7 @@ class SensorDataPa:
             file_name = io.get_json_file(file_dir)
             if file_name is None:
                 result = SensorDataPa("Empty")
-                result.append_error("File to load Sensor from not found.")
+                result.append_error("JSON file to load Sensor from not found.")
                 return result
         json_data = io.json_file_to_dict(os.path.join(file_dir, file_name))
         if "name" in json_data.keys():
@@ -832,7 +832,7 @@ class SensorDataPa:
             result.set_gaps(json_data["gaps"])
         else:
             result = SensorDataPa("Empty")
-            result.append_error(f"Loading from {file_name} failed; Sensor missing name.")
+            result.append_error(f"Loading from {file_name} failed; missing Sensor name.")
         return result
 
     def class_from_type(self) -> "SensorDataPa":
