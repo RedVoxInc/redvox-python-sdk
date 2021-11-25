@@ -1,14 +1,14 @@
 from glob import glob
 
 import matplotlib.pyplot as plt
-import redvox.common.data_window_wpa as dwa
+import redvox.common.data_window as dwa
 
 
 def main():
     files = glob("./*.json")
     if len(files) < 1:
         raise KeyError("Missing .json file to load!")
-    dw = dwa.DataWindowArrow.load(files[0])
+    dw = dwa.DataWindow.load(files[0])
 
     print("Stations in Data Window:", dw.stations())
     st = dw.first_station()

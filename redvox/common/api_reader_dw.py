@@ -9,7 +9,7 @@ import redvox.settings as settings
 from redvox.common import io
 from redvox.common.api_reader import ApiReader
 from redvox.common.parallel_utils import maybe_parallel_map
-from redvox.common.station_wpa import StationPa
+from redvox.common.station import Station
 
 
 class ApiReaderDw(ApiReader):
@@ -45,24 +45,24 @@ class ApiReaderDw(ApiReader):
         self.save_files = save_files
         self._stations = self._read_stations()
 
-    def _stations_by_index(self, findex: io.Index) -> StationPa:
+    def _stations_by_index(self, findex: io.Index) -> Station:
         """
         :param findex: index with files to build a station with
         :return: Station built from files in findex, without building the data from parquet
         """
-        stpa = StationPa.create_from_packets(self.read_files_in_index(findex), self.correct_timestamps,
-                                             self.use_model_correction, self.dw_base_dir, self.save_files)
+        stpa = Station.create_from_packets(self.read_files_in_index(findex), self.correct_timestamps,
+                                           self.use_model_correction, self.dw_base_dir, self.save_files)
         if self.debug:
             print(f"station {stpa.id()} files read: {len(findex.entries)}")
         return stpa
 
-    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationPa]:
+    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[Station]:
         """
         :return: a list of stations read by the ApiReader
         """
         return self._stations
 
-    def _read_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationPa]:
+    def _read_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[Station]:
         """
         :param pool: optional multiprocessing pool
         :return: List of all stations in the ApiReader, without building the data from parquet
@@ -74,7 +74,7 @@ class ApiReaderDw(ApiReader):
                                            ))
         return list(map(self._stations_by_index, self.files_index))
 
-    def get_station_by_id(self, get_id: str) -> Optional[List[StationPa]]:
+    def get_station_by_id(self, get_id: str) -> Optional[List[Station]]:
         """
         :param get_id: the id to filter on
         :return: list of all stations with the requested id or None if id can't be found

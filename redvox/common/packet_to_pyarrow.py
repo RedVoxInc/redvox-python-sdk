@@ -9,8 +9,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
-from redvox.common import sensor_reader_utils_wpa as srupa
-from redvox.common import gap_and_pad_utils_wpa as gpu
+from redvox.common import sensor_reader_utils as srupa
+from redvox.common import gap_and_pad_utils as gpu
 from redvox.common import date_time_utils as dtu
 from redvox.common.errors import RedVoxExceptions
 

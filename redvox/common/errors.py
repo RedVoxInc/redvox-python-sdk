@@ -104,6 +104,7 @@ class RedVoxExceptions:
             result.append("Failed to load errors due to missing obj_class")
         else:
             result = RedVoxExceptions(errors_dict["obj_class"])
-            for er in errors_dict["errors"]:
-                result.append(er)
+            if "errors" in errors_dict.keys():
+                for er in errors_dict["errors"]:
+                    result.append(er)
         return result

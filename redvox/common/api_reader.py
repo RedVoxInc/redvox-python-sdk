@@ -19,8 +19,8 @@ from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
+from redvox.common.station_old import Station as StationOld
 from redvox.common.station import Station
-from redvox.common.station_wpa import StationPa
 from redvox.common.errors import RedVoxExceptions
 
 
@@ -292,14 +292,14 @@ class ApiReader:
 
         return result
 
-    def _stations_by_index(self, findex: io.Index) -> Station:
+    def _stations_by_index(self, findex: io.Index) -> StationOld:
         """
         :param findex: index with files to build a station with
         :return: Station built from files in findex
         """
-        return Station(self.read_files_in_index(findex))
+        return StationOld(self.read_files_in_index(findex))
 
-    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[Station]:
+    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[StationOld]:
         """
         :param pool: optional multiprocessing pool
         :return: List of all stations in the ApiReader
@@ -311,7 +311,7 @@ class ApiReader:
                                        )
                     )
 
-    def get_station_by_id(self, get_id: str) -> Optional[List[Station]]:
+    def get_station_by_id(self, get_id: str) -> Optional[List[StationOld]]:
         """
         :param get_id: the id to filter on
         :return: list of all stations with the requested id or None if id can't be found

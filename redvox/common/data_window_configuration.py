@@ -18,6 +18,7 @@ DEFAULT_START_PADDING_S: float = 120.0  # time to add before start time when sea
 DEFAULT_END_PADDING_S: float = 120.0  # time to add after end time when searching
 
 
+# todo: implement data window arrow values
 @dataclass_json()
 @dataclass
 class DataWindowConfig:

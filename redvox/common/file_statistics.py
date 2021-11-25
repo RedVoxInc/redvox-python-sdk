@@ -11,7 +11,7 @@ from multiprocessing.pool import Pool
 
 import numpy as np
 
-from redvox.common.timesync import TimeSyncData
+from redvox.common.timesync_old import TimeSyncData
 from redvox.common.parallel_utils import maybe_parallel_map
 
 # noinspection Mypy
