@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.10rc12 (2021-11-29)
+
+* Update SensorData, Station, DataWindow and related classes to use Pyarrow implementations
+* Shifted previous versions of the above to *_old files while updated classes in testing
+
 ### 3.0.10rc11 (2021-11-16)
 
 * Added missing file used to read data windows written to disk
