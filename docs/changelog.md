@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.0.10rc13 (2021-11-30)
+
+* Added functions to TimeSync to display individual values per exchange
+* updated installation requirements
+
 ### 3.0.10rc12 (2021-11-29)
 
 * Update SensorData, Station, DataWindow and related classes to use Pyarrow implementations

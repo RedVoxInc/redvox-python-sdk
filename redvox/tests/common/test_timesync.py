@@ -28,6 +28,18 @@ class TimesyncTest(unittest.TestCase):
         self.assertEqual(len(self.timesync.offsets()[0]), 14)
         self.assertEqual(self.timesync.offsets()[0][0], -22907018.5)
 
+    def test_best_latencies_per_exchange(self):
+        ltncs = self.timesync.best_latency_per_exchange()
+        self.assertEqual(len(ltncs), 14)
+        self.assertEqual(ltncs[0], 74559.5)
+        self.assertEqual(self.timesync.best_latency(), ltncs[2])
+
+    def test_best_offsets_per_exchange(self):
+        ofsts = self.timesync.best_offset_per_exchange()
+        self.assertEqual(len(ofsts), 14)
+        self.assertEqual(ofsts[0], -22907018.5)
+        self.assertEqual(self.timesync.best_offset(), ofsts[2])
+
     def test_best_latency(self):
         self.assertEqual(self.timesync.best_latency(), 69664.0)
         self.assertEqual(self.timesync.best_latency_index(), 2)

@@ -1149,7 +1149,7 @@ class Station:
                     data_table = pa.concat_tables([data_table, sdata[i].data()])
                 if np.isnan(sdata[0].srate_hz):
                     for sds in sdata:
-                        stats.add(sds.smint_s, sds.sstd_s, sds.scount - 1)
+                        stats.add(sds.smint_s, sds.sstd_s, sds.scount)
                     d, g = gpu.fill_gaps(
                         data_table,
                         sensor_summaries.audio_gaps,
