@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.1.0rc1 (2021-12-1)
+
+* 
+
 ### 3.0.10rc13 (2021-11-30)
 
 * Added functions to TimeSync to display individual values per exchange

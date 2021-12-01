@@ -13,7 +13,7 @@ def main():
     print("Stations in Data Window:", dw.stations())
     st = dw.first_station()
 
-    print(f"Sensors in Station {st.id()}:", st.sensors())
+    print(f"Sensors in Station {st.id()}:", st.get_sensors())
     audio = st.audio_sensor()
     print(f"Audio Sensor {audio.name} Data: ", audio.get_microphone_data())
 

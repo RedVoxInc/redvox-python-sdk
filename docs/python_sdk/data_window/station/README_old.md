@@ -18,14 +18,10 @@ RedVox data, but it is capable of representing a variety of station and sensor c
   * [Station Packet Metadata](#station-packet-metadata)
   * [Timesync and Offset Model](#timesync-and-offset-model)
 - [Sensor Data](#sensor-data)
-  * [Sensor Data Creation](#sensor-data-creation)
   * [Sensor Data Properties](#sensor-data-properties)
-  * [Sensor Data Protected Properties](#sensor-data-protected-properties)
-  * [Sensor Data Accessor Functions](#sensor-data-accessor-functions)
   * [Sensor Data Functions](#sensor-data-functions)
-  * [Sensor Data Access](#sensor-data-access)
+  * [Sensor Data DataFrame Access](#sensor-data-dataframe-access)
     + [A note on enumerated types](#a-note-on-enumerated-types)
-  * [Sensor Subclasses](#sensor-subclasses)
   * [Using Sensor Data](#using-sensor-data)
 
 <!-- tocstop -->
@@ -52,29 +48,23 @@ _[Table of Contents](#table-of-contents)_
 ### Station Properties
 
 These are the properties of the Station class and their default values:
-1. `_id`: string; id of the station, default None
-2. `_uuid`: string; uuid of the station, default None
-3. `_start_date`: float; microseconds since epoch UTC when the station started recording, default np.nan
-4. `_data`: dictionary of sensor type and sensor data associated with the station, default empty dictionary
-5. `_metadata`: StationMetadata that didn't go into the sensor data, default empty StationMetadata object
-6. `_packet_metadata`: list of StationPacketMetadata that changes from packet to packet, default empty list
-7. `_first_data_timestamp`: float; microseconds since epoch UTC of the first data point, default np.nan
-8. `_station_end_timestamp`: float; microseconds since epoch UTC of the last data point, default np.nan
-9. `_audio_sample_rate_nominal_hz`: float of nominal sample rate of audio component in hz, default np.nan
-10. `_is_audio_scrambled`: boolean; True if audio data is scrambled, default False
-11. `_is_timestamps_updated`: boolean; True if timestamps have been altered from original data values, default False
-12. `_timesync_data`: TimeSync object; contains information about the station's timing values.  Refer to 
-    the UPDATED[Timesync Documentation](#UPDATEDtimesync-and-offset-model) for more information
-13. `_use_model_correction`: boolean; if True, time correction is done using OffsetModel functions, otherwise
+1. `id`: string; id of the station, default None
+2. `uuid`: string; uuid of the station, default None
+3. `data`: dictionary of sensor type and sensor data associated with the station, default empty dictionary
+4. `metadata`: StationMetadata that didn't go into the sensor data, default empty StationMetadata object
+6. `packet_metadata`: list of StationPacketMetadata that changes from packet to packet, default empty list
+7. `start_timestamp`: float; microseconds since epoch UTC when the station started recording, default np.nan
+7. `first_data_timestamp`: float; microseconds since epoch UTC of the first data point, default np.nan
+8. `station_end_timestamp`: float; microseconds since epoch UTC of the last data point, default np.nan
+9. `audio_sample_rate_nominal_hz`: float of nominal sample rate of audio component in hz, default np.nan
+10. `is_audio_scrambled`: boolean; True if audio data is scrambled, default False
+11. `is_timestamps_updated`: boolean; True if timestamps have been altered from original data values, default False
+12. `timesync_analysis`: TimeSyncAnalysis object; contains information about the station's timing values.  Refer to 
+    the [Timesync Documentation](#timesync-and-offset-model) for more information
+13. `use_model_correction`: boolean, if True, time correction is done using OffsetModel functions, otherwise
     correction is done by adding the best offset from the OffsetModel (also known as the model's intercept value or
     the best offset from TimeSyncAnalysis).  default True
-14.`_correct_timestamps`: boolean; if True, corrects the timestamps of the data.  default False
-15.`_gaps`: List of Tuples; pairs of timestamps indicating start and end times of gaps.  Times are not inclusive of 
-    the gap. Set by reading the data.  default empty list.
-14. `_save_data`: boolean; if True, saves the Station to disk.  default False
-15. `base_dir`: string; the directory to save the Station to.  default "." (current directory)
-16. `_errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the station.  
-    This is set by the SDK.  default empty RedVoxExceptions
+14. `errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the station.  This is set by the SDK.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -224,35 +214,22 @@ _[Table of Contents](#table-of-contents)_
 
 ### Timesync and Offset Model
 
-The _timesync_data property of Station contains information about the clock synchronization.
-The information is stored as a TimeSync object.
+The timesync_analysis property of Station contains information about the clock synchronization.
+The information is stored as a TimeSyncAnalysis object.
 
-The TimeSync class summarizes the timing information of the station.
+The TimeSyncAnalysis class has a few properties and functions that summarize the timing information of the station.
 
-These are the accessible properties of the class:
-1. `arrow_dir`: string; the directory to save the TimeSync data to.  Defaults to "." (current directory)
-2. `arrow_file`: string; the name of the JSON file to save the TimeSync data to.  Do not include the extension when setting.
-    Defaults to "timesync".
-   
-These are the functions that retrieve the data:
-1. `best_latency()`: Returns the best (lowest) latency of the station
-2. `latencies()`: Returns a numpy.array of all latencies of the station
-3. `mean_latency()`: Returns the mean of the latencies
-4. `latency_std()`: Returns the standard deviation of the latencies
-5. `best_latency_index()`: Returns the position of the best latency in the exchanges
-6. `best_offset()`: Returns the best offset of the station
-7. `offsets()`: Returns a numpy.array of all offsets of the station
-8. `mean_offset()`: Returns the mean of the offsets
-9. `offset_std()`: Returns the standard deviation of the offsets
-10. `sync_exchanges()`: Returns the timesync exchanges of the station as 6 arrays.  Each array is the same length.  
-   The order of the arrays is a1, a2, a3, b1, b2, b3
-11. `data_start_timestamp()`: Returns the first timestamp of the data
-12. `data_end_timestamp()`: Returns the last timestamp of the data
-13. `offset_model()`: Returns the OffsetModel used to calculate offset of the station at a given point in time.
+1. get_best_latency(): Returns the best (lowest) latency of the station
+2. get_latencies(): Returns a numpy.array of all latencies of the station
+3. latency_stats: StatsContainer; the statistics (mean, std deviation and variance) of the latencies
+4. get_best_offset(): Returns the best (corresponding to best latency) offset of the station
+5. get_offsets(): Returns a numpy.array of all the offsets of the station
+6. offset_stats: StatsContainer; the statistics of the offsets
+7. sample_rate_hz: float; the audio sample rate in hz of the station, default np.nan
+8. timesync_data: list of TimeSyncData; the TimeSyncData being analyzed, default empty list
+9. station_start_timestamp: float; the timestamp of when the station became active, default np.nan
+10. offset_model: OffsetModel; model used to calculate offset of the station at a given point in time, default empty model
     See below for more information about OffsetModel
-14. `to_json_file(file_name: Optional[str] = None)`: Save the TimeSync object to a json file and the data as a parquet.
-    If `file_name` is not specified, uses the TimeSync's `arrow_file` property.  Returns the path to the file if successful.
-15. `from_json_file(file_path: str)`: Returns a TimeSync object using the information specified in the JSON file named `file_path` 
 
 OffsetModel is the primary source for information used to correct the Station's timestamps.
 
@@ -270,29 +247,20 @@ These are the properties of the OffsetModel class and their default values:
 8. `mean_latency`: float; mean latency of the data
 9. `std_dev_latency`: float; latency standard deviation
 
-These are the functions of the OffsetModel:
-1. `get_offset_at_time(time: float)`: Returns the offset at the specified `time`
-2. `update_time(time: float, use_model_function: bool = True)`: Returns `time` modified by the offset at `time` 
-   if `use_model_function` is True, otherwise uses the offset at `start_time`.
-3. `update_timestamps(timestamps: np.array, use_model_function: bool = True)`: Returns `timestamps` modified by the offset
-   at their respective times if `use_model_function` is True, otherwise uses the offset at `start_time`.
-
-We recommend only reading information from the TimeSync and OffsetModel objects.  
+We recommend only reading information from the TimeSyncAnalysis and OffsetModel objects.  
 Setting or changing any of the properties may cause unexpected results.
 
 _Example:_
 ```python
-from redvox.common.data_window_wpa import DataWindowArrow, DataWindowConfigWpa
-from redvox.common.station_wpa import StationPa
+from redvox.common.data_window import DataWindow
+from redvox.common.station import Station
 
-conf = DataWindowConfigWpa("input_dir_str")
+dw = DataWindow(input_dir_str)
 
-dw = DataWindowArrow("test_event", config=conf)
+my_station: Station = dw.get_station("id01")[0]
 
-my_station: StationPa = dw.get_station("id01")[0]
-
-my_ts = my_station.timesync_data()
-my_om = my_ts.offset_model()
+my_ts = my_station.timesync_analysis
+my_om = my_ts.offset_model
 print(my_om.slope)
 print(my_om.intercept)
 ```
@@ -305,163 +273,54 @@ SensorData is a format-agnostic representation of the data.  This data can be ga
 
 SensorData represents a single real world recording device like a microphone or accelerometer.
 
-Each SensorData object stores the data as a Pyarrow table, either locally or on disk as a parquet file.
+Each SensorData object is a Pandas DataFrame with some additional metadata.
 
 Refer to the [SensorData API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/sensor_data.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
 
-### Sensor Data Creation
-
-Use one of these functions to create a SensorData object:
-
-1. ```
-   __init__(sensor_name: str,
-            sensor_data: Optional[pa.Table] = None,
-            sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
-            sample_rate_hz: float = np.nan,
-            sample_interval_s: float = np.nan,
-            sample_interval_std_s: float = np.nan,
-            is_sample_rate_fixed: bool = False,
-            are_timestamps_altered: bool = False,
-            calculate_stats: bool = False,
-            use_offset_model_for_correction: bool = False,
-            save_data: bool = False,
-            arrow_dir: str = ".",
-            gaps: Optional[List[Tuple[float, float]]] = None)
-   ```
-   Initialization function.
-   
-   _Example:_
-   ```python
-   import pyarrow as pa
-   from redvox.common.sensor_data_with_pyarrow import SensorDataPa, SensorType
-   
-   data_table: pa.Table
-   audio_type = SensorType.AUDIO
-   
-   the_sensor = SensorDataPa("my_sensor", data_table, audio_type)
-   ```
-2. ```
-    from_dir(sensor_name: str,
-             data_path: str,
-             sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
-             sample_rate_hz: float = np.nan,
-             sample_interval_s: float = np.nan,
-             sample_interval_std_s: float = np.nan,
-             is_sample_rate_fixed: bool = False,
-             are_timestamps_altered: bool = False,
-             calculate_stats: bool = False,
-             use_offset_model_for_correction: bool = False,
-             save_data: bool = False) -> "SensorDataPa":
-   ```
-   Return a SensorData object using a directory as the data source.
-
-3. ```
-   from_dict(
-            sensor_name: str,
-            sensor_data: Dict,
-            sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
-            sample_rate_hz: float = np.nan,
-            sample_interval_s: float = np.nan,
-            sample_interval_std_s: float = np.nan,
-            is_sample_rate_fixed: bool = False,
-            are_timestamps_altered: bool = False,
-            calculate_stats: bool = False,
-            use_offset_model_for_correction: bool = False,
-            save_data: bool = False,
-            arrow_dir: str = "") -> "SensorDataPa":
-   ```
-   Return a SensorData object using a dictionary as the data source.
-
 ### Sensor Data Properties
 
-These are the publicly accessible properties of the SensorData class: 
+These are the properties of the SensorData class:
 
 1. `name`: string; name of sensor
-   
-### Sensor Data Protected Properties
-
-These are the protected properties of the SensorData class.  These values are set during initialization of SensorData.
-You must use a function to return or update the values.  We do not recommend updating or editing these properties without using their accessor functions.
-
-1. `_type`: SensorType; enumerated type of sensor
-2. `_data`: Pyarrow table of the sensor data; always has timestamps as the first column, the other columns are the data fields
-   This value is only used when the data is not saved as a parquet file.
-3. `_arrow_file`: string; the name of the parquet file that contains the data.  Defaults to the form of `[type]_[first_timestamp].parquet`
-4. `_arrow_dir`: string; the name of the directory containing the parquet file.  Defaults to current directory if data is
-   being saved and a temporary directory if data is not being saved.
-5. `_sample_rate_hz`: float; sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
-6. `_sample_interval_s`: float; mean duration in seconds between samples, default np.nan, usually 1/sample_rate
-7. `_sample_interval_std_s`: float; standard deviation in seconds between samples, default np.nan
-8. `_is_sample_rate_fixed`: boolean; True if sample rate is expected to be constant, default False
-9. `_timestamps_altered`: boolean; True if timestamps in the sensor have been altered from their original values, default False
-10. `_use_offset_model`: boolean, if True, uses an offset model to correct timestamps, default False
-11. `_save_data`: boolean, if True, saves the data as a parquet file named `_arrow_file` in directory `_arrow_dir`, default False
-12. `_gaps`: List of paired tuples; the timestamps of data points on the edge of data gaps.  Any point between the timestamps
-   is not valid and exists purely to maintain sample rate.
-13. `_errors`: RedVoxExceptions of the sensor data; contains a list of all errors encountered by the sensor.  This is set by the SDK.
-
-_[Table of Contents](#table-of-contents)_
-
-### Sensor Data Accessor Functions
-
-These functions are approved methods of interacting with protected properties of Sensor Data
-
-1. `type()`: Returns the enumerated type of the sensor
-2. `type_as_str()`: Returns the type as a string
-3. `arrow_file()`: Returns the value of `_arrow_file`
-4. `set_arrow_file(new_file: Optional[str] = None)`: Use this function to change the name of the parquet file
-   Include the extension.  If you call this function without giving a name, it uses the default form.
-5. `arrow_dir()`: Returns the value of `_arrow_dir`
-6. `set_arrow_dir(new_dir: Optional[str] = None)`: Use this function to change the directory containing the parquet file.
-   If you call this function without giving a name, it uses the current directory.
-7. `pyarrow_table()`: Returns the data as a Pyarrow table
-8. `data_df()`: Returns the data as a Pandas dataframe
-9. `sample_rate_hz()`: Returns the value of `_sample_rate_hz`
-10. `sample_interval_s()`: Returns the value of `_sample_interval_s`
-11. `sample_interval_std_s()`: Returns the value of `_sample_interval_std_s`
-12. `is_sample_rate_fixed()`: Returns the value of `_is_sample_rate_fixed`
-13. `is_timestamps_altered()`: Returns the value of `_timestamps_altered`
-14. `used_offset_model()`: Returns the value of `_use_offset_model`
-15. `is_save_to_disk()`: Returns the value of `_save_data`
-16. `enable_save_to_disk(new_dir: Optional[str] = None)`: Use this function to enable saving data to disk at the directory given.
-    If you call this function without giving a name, it uses the current directory.
-17. `disable_save_to_disk()`: Sets `_save_data` to False
-18. `gaps()`: Returns the list of gaps
-19. `errors()`: Returns the error object
+2. `type`: SensorType; enumerated type of sensor
+3. `data_df`: dataframe of the sensor data; always has timestamps as the first column, the other columns are the data fields
+4. `sample_rate_hz`: float; sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+5. `sample_interval_s`: float; mean duration in seconds between samples, default np.nan, usually 1/sample_rate
+6. `sample_interval_std_s`: float; standard deviation in seconds between samples, default np.nan
+7. `is_sample_rate_fixed`: boolean; True if sample rate is constant, default False
+8. `timestamps_altered`: boolean; True if timestamps in the sensor have been altered from their original values, default False
+9. `errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the sensor.  This is set by the SDK.
 
 _[Table of Contents](#table-of-contents)_
 
 ### Sensor Data Functions
 
-These functions return specific details from the Sensor's properties:
+These are the functions of the SensorData class:
 
-1. `data_channels()`: Returns a list of the valid channel names (columns of the data table)
-2. `get_data_channel(channel_name: str)`: Returns a numpy.array or a list of strings of the column with the
-   channel_name, or nothing if channel_name does not exist.  If channel_name does not exist, an error
-   is added to `_errors` property.
-3. `get_valid_data_channel_values(self, channel_name: str)`: Returns a numpy.array of all non-nan values of the channel_name.
-   If channel_name does not exist, an error is added to `_errors` property.
-3. `num_samples()`: Returns the number of data points (rows in the table) in the sensor
-4. `data_timestamps()`: Returns a numpy.array of the timestamps of the data
-5. `first_data_timestamp()`: Returns the first timestamp of the data
-6. `last_data_timestamp()`: Returns the last timestamp of the data
+1. `data_channels()`: Returns a list of the valid channel names (columns of the dataframe)
+2. `get_data_channel(channel_name)`: Returns a numpy.array or a list of strings of the dataframe column with the
+   channel_name, or an error and a list of valid channel names if channel_name does not exist.
+3. `num_samples()`: Returns the number of data points (rows in the dataframe) in the sensor
+4. `data_timestamps()`: Returns a numpy.array of the timestamps in the dataframe
+5. `first_data_timestamp()`: Returns the first timestamp in the dataframe
+6. `last_data_timestamp()`: Returns the last timestamp in the dataframe
 7. `unaltered_data_timestamps()`: Returns a numpy.array of the raw timestamps as recorded by the sensor.  These values 
    are never updated, adjusted or otherwise changed from what the sensor reported.
-8. `samples()`: Returns a numpy.ndarray of all non-timestamp values in the data**
-9. `print_errors()`: Print the errors encountered in the SensorData
+8. `samples()`: Returns a numpy.ndarray of all non-timestamp values in the dataframe**
+9. `print_errors()`: Print the errors encountered when creating the SensorData
 
 ** Reading enumerated types from this function requires additional imports.  Refer to 
 [the footnote on enumerated types](#a-note-on-enumerated-types) for more information
 
 _[Table of Contents](#table-of-contents)_
 
-### Sensor Data Access
+### Sensor Data DataFrame Access
 
 The table below shows which columns can be accessed by each sensor
 
-|Sensor name            |Table columns                   |
+|Sensor name            |Dataframe columns               |
 |-----------------------|--------------------------------|
 |all                    |timestamps, unaltered_timestamps|
 |audio                  |microphone                      |
@@ -521,7 +380,7 @@ The table below lists the sensors and their data's units
 |                        |wifi_wake_lock          |enumeration of WifiWakeLock|
 |                        |screen_state            |enumeration of ScreenState|
 
-If Column Name is blank, then all non-timestamp columns in the table have the unit specified.
+If Column Name is blank, then all non-timestamp columns in the dataframe have the unit specified.
 Refer to the previous table for specific column names for each sensor.
 It is intentional that location and best location sensors share the same column names.
 
@@ -535,21 +394,6 @@ from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvid
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 ```
-
-_[Table of Contents](#table-of-contents)_
-
-### Sensor Subclasses
-
-The SensorData class works well for generic applications, but not all sensors share the same types of data.  An Audio
-Sensor has a microphone channel but no gyroscope channels.  A Gyroscope Sensor has gyroscope_x, y and z channels, but 
-no microphone channel.  We have utilized subclasses of SensorData to provide ease of discoverability and access
-to Sensor specific channels.
-
-This paradigm has been applied to the Station class.  Notice that station.audio_sensor() returns an AudioSensorData 
-object instead of just a SensorData.  The AudioSensorData class has access to all functions and properties of SensorData,
-with the addition of functions specifically tuned for Audio data, such as get_microphone().
-
-#`Coming Soon`
 
 _[Table of Contents](#table-of-contents)_
 
@@ -570,23 +414,14 @@ _Examples:_
 
 ```python
 # get audio data and timestamps:
-mic_data = station.audio_sensor().get_microphone()
+mic_data = station.audio_sensor().get_data_channel("microphone")
 timestamps = station.audio_sensor().data_timestamps()
 
 # get accelerometer x channel data, sample rate in hz, and sample interval in seconds
-accel_data = station.accelerometer_sensor().get_accelerometer_x()
-accel_sample_rate = station.accelerometer_sensor().sample_rate()
-accel_sample_interval_s = station.accelerometer_sensor().sample_interval_s()
+accel_data = station.accelerometer_sensor().get_data_channel("accelerometer_x")
+accel_sample_rate = station.accelerometer_sensor().sample_rate
+accel_sample_interval_s = station.accelerometer_sensor().sample_interval_s
 ```
 
 _[Table of Contents](#table-of-contents)_
 
-## General notes on property naming conventions
-
-* anything that can be freely edited without consequence has no underscore.
-
-* anything that would affect object key has underscore
-
-* anything that requires additional housekeeping has underscore
-
-Generally things that require interaction with other properties require a function.

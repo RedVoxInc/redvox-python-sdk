@@ -1927,7 +1927,7 @@ class BestLocationSensor(SensorData):
 
 class StationHealthSensor(SensorData):
     """
-    Station-health specific functions
+    Station Health specific functions
     """
     def __init__(self, sensor_name: str,
                  sensor_data: Optional[pa.Table] = None,

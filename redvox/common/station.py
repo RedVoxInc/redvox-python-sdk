@@ -115,7 +115,7 @@ class Station:
         """
         return self._data
 
-    def sensors(self) -> List[str]:
+    def get_sensors(self) -> List[str]:
         """
         :return: the names of sensors of the station as a list
         """
@@ -145,6 +145,19 @@ class Station:
             st = Station("LoadError")
             st.append_error("File to load Station not found.")
         return self.from_json_file(in_dir)
+
+    def save(self, file_name: Optional[str] = None) -> Optional[Path]:
+        """
+        saves the Station to disk.  Does nothing if saving is not enabled.
+
+        :param file_name: the optional base file name.  Do not include a file extension.
+                            If None, a default file name is created using this format:
+                            [station_id]_[start_date].json
+        :return: Path to the saved file or None if not saved
+        """
+        if self.is_save_to_disk():
+            return self.to_json_file(file_name)
+        return None
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
@@ -240,7 +253,7 @@ class Station:
         """
         self._packet_metadata.sort(key=lambda t: t.packet_start_mach_timestamp)
 
-    def update_start_and_end_timestamps(self):
+    def update_first_and_last_data_timestamps(self):
         """
         uses the audio data to get the first and last timestamp of the station
         """
@@ -334,7 +347,7 @@ class Station:
             self.append_station_data(new_station._data)
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
-            self.update_start_and_end_timestamps()
+            self.update_first_and_last_data_timestamps()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
 
     def append_station_data(self, new_station_data: List[sd.SensorData]):
@@ -1094,13 +1107,13 @@ class Station:
     def set_gaps(self, gaps: List[Tuple[float, float]]):
         """
         set the audio gaps of the station
+
         :param gaps: list pairs of timestamps of the data points on the edge of gaps
         """
         self._gaps = gaps
 
     def gaps(self) -> List[Tuple[float, float]]:
         """
-        get the audio gaps of the stations
         :return: list pairs of timestamps of the data points on the edge of gaps
         """
         return self._gaps
@@ -1116,6 +1129,7 @@ class Station:
     def _set_pyarrow_sensors(self, sensor_summaries: ptp.AggregateSummary):
         """
         create pyarrow tables that will become sensors (and in audio's case, just make it a sensor)
+
         :param sensor_summaries: summaries of sensor data that can be used to create sensors
         """
         self._gaps = sensor_summaries.audio_gaps
@@ -1134,7 +1148,7 @@ class Station:
             #                                       audo.srate_hz, 1/audo.srate_hz, 0., True))
             self._data.append(sd.AudioSensor(audo.name, audo.data(), audo.srate_hz, 1 / audo.srate_hz, 0., True,
                                              base_dir=audo.fdir, save_data=self._fs_writer.save_to_disk))
-            self.update_start_and_end_timestamps()
+            self.update_first_and_last_data_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
                 # avoid converting packets into parquets for now; just load the data into memory and process
@@ -1180,6 +1194,7 @@ class Station:
     def set_metadata(self, metadata: st_utils.StationMetadata):
         """
         set the station's metadata
+
         :param metadata: metadata to set
         """
         self._metadata = metadata
@@ -1270,7 +1285,7 @@ class Station:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
-            self.update_start_and_end_timestamps()
+            self.update_first_and_last_data_timestamps()
             if self._fs_writer.file_name != self._get_id_key():
                 old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
                 self._fs_writer.file_name = self._get_id_key()

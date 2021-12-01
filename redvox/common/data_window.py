@@ -674,7 +674,7 @@ class DataWindow:
             self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
                                 station.audio_sensor().last_data_timestamp())
         # recalculate metadata
-        station.update_start_and_end_timestamps()
+        station.update_first_and_last_data_timestamps()
         station.packet_metadata = [meta for meta in station.packet_metadata()
                                    if meta.packet_start_mach_timestamp < station.last_data_timestamp() and
                                    meta.packet_end_mach_timestamp >= station.first_data_timestamp()]
