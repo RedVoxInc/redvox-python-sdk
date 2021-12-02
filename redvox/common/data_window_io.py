@@ -25,7 +25,7 @@ from redvox.common.date_time_utils import (
 
 if TYPE_CHECKING:
     from redvox.common.data_window import DataWindow
-    from redvox.common.data_window_wpa import DataWindowArrow
+    from redvox.common.data_window_old import DataWindow as DwOld
 
 
 class DataWindowOutputType(enum.Enum):
@@ -93,8 +93,8 @@ class DataWindowSerializationResult:
     compressed_bytes: int
 
 
-def serialize_data_window(
-        data_window: "DataWindow",
+def serialize_data_window_old(
+        data_window: "DwOld",
         base_dir: str = ".",
         file_name: Optional[str] = None,
         compression_factor: int = 4,
@@ -129,7 +129,7 @@ def serialize_data_window(
         return file_path.resolve(False)
 
 
-def deserialize_data_window(path: str) -> "DataWindow":
+def deserialize_data_window_old(path: str) -> "DwOld":
     """
     Decompresses and deserializes a DataWindow written to disk.
 
@@ -140,7 +140,7 @@ def deserialize_data_window(path: str) -> "DataWindow":
         return pickle.load(compressed_in)
 
 
-def json_file_to_data_window(base_dir: str, file_name: str) -> Dict:
+def json_file_to_data_window_old(base_dir: str, file_name: str) -> Dict:
     """
     load a data window from json written to disk
 
@@ -152,8 +152,8 @@ def json_file_to_data_window(base_dir: str, file_name: str) -> Dict:
         return json_to_dict(r_f.read())
 
 
-def data_window_to_json(
-        data_win: "DataWindow",
+def data_window_to_json_old(
+        data_win: "DwOld",
         base_dir: str = ".",
         file_name: Optional[str] = None,
         compression_format: str = "lz4",
@@ -181,7 +181,7 @@ def data_window_to_json(
         os.makedirs(base_dir)
     if compression_format == "lz4":
         _ = str(
-            serialize_data_window(
+            serialize_data_window_old(
                 data_win, base_dir, _file_name + ".pkl.lz4"
             ).resolve()
         )
@@ -201,8 +201,8 @@ def data_window_to_json(
     return json.dumps(data_win_dict)
 
 
-def data_window_to_json_file(
-        data_window: "DataWindow",
+def data_window_to_json_file_old(
+        data_window: "DwOld",
         base_dir: str = ".",
         file_name: Optional[str] = None,
         compression_format: str = "lz4",
@@ -228,7 +228,7 @@ def data_window_to_json_file(
     file_path: Path = Path(base_dir).joinpath(f"{_file_name}.json")
     with open(file_path, "w") as f_p:
         f_p.write(
-            data_window_to_json(
+            data_window_to_json_old(
                 data_window, base_dir, file_name, compression_format
             )
         )
@@ -236,7 +236,7 @@ def data_window_to_json_file(
 
 
 def data_window_as_json(
-        data_window: "DataWindowArrow"
+        data_window: "DataWindow"
 ) -> str:
     """
     Converts the DataWindow's metadata into a JSON dictionary
@@ -247,8 +247,8 @@ def data_window_as_json(
     return json.dumps(data_window.as_dict())
 
 
-def data_window_to_json_wpa(
-        data_window: "DataWindowArrow",
+def data_window_to_json(
+        data_window: "DataWindow",
         base_dir: str = ".",
         file_name: Optional[str] = None,
 ) -> Path:
@@ -271,7 +271,7 @@ def data_window_to_json_wpa(
         return file_path.resolve(False)
 
 
-def json_file_to_data_window_wpa(file_path: str) -> Dict:
+def json_file_to_data_window(file_path: str) -> Dict:
     """
     load a specifically named DataWindow as a dictionary from a directory
 
@@ -282,8 +282,8 @@ def json_file_to_data_window_wpa(file_path: str) -> Dict:
         return json_to_dict(f_p.read())
 
 
-def serialize_data_window_wpa(
-        data_window: "DataWindowArrow",
+def serialize_data_window(
+        data_window: "DataWindow",
         base_dir: str = ".",
         file_name: Optional[str] = None,
         compression_factor: int = 4,
@@ -323,7 +323,7 @@ def serialize_data_window_wpa(
         return file_path.resolve(False)
 
 
-def deserialize_data_window_wpa(path: str) -> "DataWindowArrow":
+def deserialize_data_window(path: str) -> "DataWindow":
     """
     Decompresses and deserializes a DataWindow written to disk.
 

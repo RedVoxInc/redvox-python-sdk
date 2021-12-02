@@ -241,7 +241,7 @@ class DataWindow:
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The path to the written file
         """
-        return dw_io.data_window_to_json_file(self, base_dir, file_name, compression_format)
+        return dw_io.data_window_to_json_file_old(self, base_dir, file_name, compression_format)
 
     def to_json(self, compressed_file_base_dir: str = ".", compressed_file_name: Optional[str] = None,
                 compression_format: str = "lz4") -> str:
@@ -255,7 +255,7 @@ class DataWindow:
         :param compression_format: the type of compression to use on the data window object.  default lz4
         :return: The json string
         """
-        return dw_io.data_window_to_json(self, compressed_file_base_dir, compressed_file_name, compression_format)
+        return dw_io.data_window_to_json_old(self, compressed_file_base_dir, compressed_file_name, compression_format)
 
     @staticmethod
     def from_json_file(base_dir: str, file_name: str,
@@ -281,7 +281,7 @@ class DataWindow:
             dw_base_dir = Path(base_dir).joinpath("dw")
         file_name += ".json"
         return DataWindow.from_json_dict(
-            dw_io.json_file_to_data_window(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
+            dw_io.json_file_to_data_window_old(base_dir, file_name), dw_base_dir, start_dt, end_dt, station_ids)
 
     @staticmethod
     def from_json(json_str: str, dw_base_dir: str,

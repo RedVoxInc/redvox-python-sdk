@@ -330,7 +330,7 @@ class DataWindow:
         :param path: Path to the serialized and compressed data window.
         :return: An instance of a DataWindow.
         """
-        return dw_io.deserialize_data_window_wpa(path)
+        return dw_io.deserialize_data_window(path)
 
     def serialize(self, compression_factor: int = 4) -> Path:
         """
@@ -340,7 +340,7 @@ class DataWindow:
         longer. (default=4).
         :return: The path to the written file.
         """
-        return dw_io.serialize_data_window_wpa(self, self.save_dir(), f"{self.event_name}.pkl.lz4", compression_factor)
+        return dw_io.serialize_data_window(self, self.save_dir(), f"{self.event_name}.pkl.lz4", compression_factor)
 
     def _to_json_file(self) -> Path:
         """
@@ -348,7 +348,7 @@ class DataWindow:
 
         :return: The path to the written file
         """
-        return dw_io.data_window_to_json_wpa(self, self.save_dir())
+        return dw_io.data_window_to_json(self, self.save_dir())
 
     def to_json(self) -> str:
         """
@@ -423,7 +423,7 @@ class DataWindow:
         :return: datawindow from json metadata
         """
         os.chdir(os.path.dirname(file_path))
-        return DataWindow.from_json_dict(dw_io.json_file_to_data_window_wpa(file_path))
+        return DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
 
     def sdk_version(self) -> str:
         """

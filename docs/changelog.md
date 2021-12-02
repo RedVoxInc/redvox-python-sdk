@@ -1,8 +1,13 @@
 ## Changelog
 
+### 3.1.0rc2 (2021-12-1)
+
+* Added missing notes for 3.1.0rc1 release
+* Updated functions used by old data window module
+
 ### 3.1.0rc1 (2021-12-1)
 
-* 
+* Prepare for release
 
 ### 3.0.10rc13 (2021-11-30)
 
