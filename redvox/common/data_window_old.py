@@ -214,7 +214,7 @@ class DataWindow:
         :param path: Path to the serialized and compressed data window.
         :return: An instance of a DataWindow.
         """
-        return dw_io.deserialize_data_window(path)
+        return dw_io.deserialize_data_window_old(path)
 
     def serialize(self, base_dir: str = ".", file_name: Optional[str] = None, compression_factor: int = 4) -> Path:
         """
@@ -227,7 +227,7 @@ class DataWindow:
         longer. (default=4).
         :return: The path to the written file.
         """
-        return dw_io.serialize_data_window(self, base_dir, file_name, compression_factor)
+        return dw_io.serialize_data_window_old(self, base_dir, file_name, compression_factor)
 
     def to_json_file(self, base_dir: str = ".", file_name: Optional[str] = None,
                      compression_format: str = "lz4") -> Path:
