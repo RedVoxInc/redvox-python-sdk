@@ -288,7 +288,7 @@ DataWindows can be created by invoking the initializer function of the class.
 We will also need to set up a few of the parameters to the initializer function.
 
 ```python
-from redvox.common.data_window_wpa import DataWindowArrow, DataWindowConfigWpa, EventOrigin
+from redvox.common.data_window import DataWindow, DataWindowConfig, EventOrigin
 source = EventOrigin(
     provider="UNKNOWN",
     lat=latitude_in_degrees,
@@ -299,7 +299,7 @@ source = EventOrigin(
     alt_std=altitude_stdev,
     event_radius_m=radius_in_meters
 )
-config = DataWindowConfigWpa(
+config = DataWindowConfig(
     input_dir=input_dir_str,
     structured_layout=True_or_False,
     start_datetime=requested_start_datetime,
@@ -314,7 +314,7 @@ config = DataWindowConfigWpa(
     use_model_correction=True_or_False,
     copy_edge_points=edge_point_creation_mode
 )
-datawindow = DataWindowArrow(
+datawindow = DataWindow(
     event_name=my_event_name,
     event_origin=source,
     config=config,
@@ -328,17 +328,17 @@ You may prefer a simpler version of the code above that uses the defaults for mo
 
 ```python
 # note that the source location will be undefined
-from redvox.common.data_window_wpa import DataWindowArrow, DataWindowConfigWpa
-config = DataWindowConfigWpa(input_dir=input_dir_str,
-                             structured_layout=True_or_False,
-                             start_datetime=requested_start_datetime,
-                             end_datetime=requested_end_datetime,
-                             station_ids=list_or_set_of_station_ids,
-                             apply_correction=True_or_False)
-datawindow = DataWindowArrow(event_name=my_event_name,
-                             config=config,
-                             out_dir=output_dir_str,
-                             out_type=type_str)
+from redvox.common.data_window import DataWindow, DataWindowConfig
+config = DataWindowConfig(input_dir=input_dir_str,
+                          structured_layout=True_or_False,
+                          start_datetime=requested_start_datetime,
+                          end_datetime=requested_end_datetime,
+                          station_ids=list_or_set_of_station_ids,
+                          apply_correction=True_or_False)
+datawindow = DataWindow(event_name=my_event_name,
+                        config=config,
+                        out_dir=output_dir_str,
+                        out_type=type_str)
 ```
 
 The second is via a config file.
@@ -714,7 +714,7 @@ Using the initializer function to display a specific station:
 ```python
 import matplotlib.pyplot as plt
 
-from redvox.common.data_window_wpa import DataWindowConfigWpa, DataWindowArrow
+from redvox.common.data_window import DataWindowConfig, DataWindow
 import redvox.common.date_time_utils as dt
 
 
@@ -747,7 +747,7 @@ config = DataWindowConfig(input_dir=input_dir,
                           station_ids=station_ids,
                           apply_correction=apply_correction)
 
-datawindow = DataWindowArrow(config=config)
+datawindow = DataWindow(config=config)
 
 station = datawindow.first_station(target_station)
 
@@ -780,7 +780,7 @@ _Remember to update your config file to match your environment before running th
 ```python
 import matplotlib.pyplot as plt
 
-from redvox.common.data_window_wpa import DataWindowConfigWpa, DataWindowArrow
+from redvox.common.data_window import DataWindowConfig, DataWindow
 
 
 # Variables
@@ -790,7 +790,7 @@ config_dir: str = "path/to/config.file.toml"
 target_station = "id_from_config"
 # End Variables
 
-datawindow = DataWindowArrow.from_config_file(config_dir)
+datawindow = DataWindow.from_config_file(config_dir)
 
 station = datawindow.first_station(target_station)
 

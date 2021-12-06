@@ -211,7 +211,7 @@ def __stats_for_sensor_per_packet_per_second(num_packets: int,
     return sample_rate, sample_interval, sample_interval_std
 
 
-def get_empty_sensor_data(
+def get_empty_sensor(
         name: str, sensor_type: SensorType = SensorType.UNKNOWN_SENSOR
 ) -> SensorData:
     """

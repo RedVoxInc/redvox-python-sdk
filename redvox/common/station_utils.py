@@ -10,8 +10,8 @@ import numpy as np
 from redvox.common.offset_model import OffsetModel
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+from redvox.api1000.wrapped_redvox_packet.timing_information import TimingScoreMethod
 from redvox.common.errors import RedVoxExceptions
-
 # from redvox.api1000.wrapped_redvox_packet import event_streams as es
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
@@ -342,6 +342,8 @@ class StationPacketMetadata:
 
         timing_info_score: float, quality of timing information
 
+        timing_score_method: TimingScoreMethod, method used to determine timing score
+
         other_metadata: dict, str: str of other metadata from the packet
     """
 
@@ -367,6 +369,7 @@ class StationPacketMetadata:
             )
             self.server_packet_receive_timestamp = packet.timing_information.server_acquisition_arrival_timestamp
             self.timing_info_score = packet.timing_information.score
+            self.timing_score_method = packet.timing_information.score_method
         else:
             self.packet_start_mach_timestamp = np.nan
             self.packet_end_mach_timestamp = np.nan
@@ -374,6 +377,7 @@ class StationPacketMetadata:
             self.packet_end_os_timestamp = np.nan
             self.server_packet_receive_timestamp = np.nan
             self.timing_info_score = np.nan
+            self.timing_score_method = TimingScoreMethod["UNKNOWN"]
 
     def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """
@@ -387,6 +391,21 @@ class StationPacketMetadata:
         self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
         self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
         self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)
+
+    def as_dict(self) -> dict:
+        """
+        :return: dictionary representation of the packet metadata
+        """
+        return {
+            "packet_start_mach_timestamp": self.packet_start_mach_timestamp,
+            "packet_end_mach_timestamp": self.packet_end_mach_timestamp,
+            "packet_start_os_timestamp": self.packet_start_os_timestamp,
+            "packet_end_os_timestamp": self.packet_end_os_timestamp,
+            "server_packet_receive_timestamp": self.server_packet_receive_timestamp,
+            "timing_info_score": self.timing_info_score,
+            "timing_score_method": self.timing_score_method.name,
+            "other_metadata": self.other_metadata
+        }
 
     @staticmethod
     def from_dict(pmd_dict: dict) -> "StationPacketMetadata":
@@ -402,6 +421,7 @@ class StationPacketMetadata:
         result.packet_end_os_timestamp = pmd_dict["packet_end_os_timestamp"]
         result.server_packet_receive_timestamp = pmd_dict["server_packet_receive_timestamp"]
         result.timing_info_score = pmd_dict["timing_info_score"]
+        result.timing_score_method = TimingScoreMethod(pmd_dict["timing_score_method"])
         return result
 
 
@@ -414,6 +434,7 @@ class StationPacketMetadataWrapped:
         packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
         packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
         timing_info_score: float, quality of timing information
+        timing_score_method: TimingScoreMethod, method used to determine timing score
         other_metadata: dict, str: str of other metadata from the packet
     """
 
@@ -438,12 +459,14 @@ class StationPacketMetadataWrapped:
                 packet.get_timing_information().get_packet_end_os_timestamp()
             )
             self.timing_info_score = packet.get_timing_information().get_score()
+            self.timing_score_method = packet.get_timing_information().get_score_method()
         else:
             self.packet_start_mach_timestamp = np.nan
             self.packet_end_mach_timestamp = np.nan
             self.packet_start_os_timestamp = np.nan
             self.packet_end_os_timestamp = np.nan
             self.timing_info_score = np.nan
+            self.timing_score_method = TimingScoreMethod["UNKNOWN"]
 
     def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """

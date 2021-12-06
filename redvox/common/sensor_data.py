@@ -14,7 +14,7 @@ import pyarrow.compute as pc
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 
-import redvox.common.sensor_data_io as io
+import redvox.common.sensor_io as io
 import redvox.common.date_time_utils as dtu
 from redvox.common.io import FileSystemWriter as Fsw
 from redvox.common import offset_model as om
@@ -126,7 +126,7 @@ class SensorType(enum.Enum):
 
 class SensorData:
     """
-    Generic SensorData class for API-independent analysis
+    Generic RedvoxSensor class for API-independent analysis
 
     Properties:
         name: string, name of sensor.  REQUIRED
@@ -259,7 +259,7 @@ class SensorData:
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
-        :return: SensorData object
+        :return: RedvoxSensor object
         """
         result = SensorData(sensor_name,
                             ds.dataset(data_path, format="parquet", exclude_invalid_files=True).to_table(),
@@ -304,11 +304,35 @@ class SensorData:
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
         :param arrow_dir: directory to save pyarrow table, default "" (current dir).  default temporary dir if not
                             saving data
-        :return: SensorData object
+        :return: RedvoxSensor object
         """
         return SensorData(sensor_name, pa.Table.from_pydict(sensor_data), sensor_type, sample_rate_hz,
                           sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
                           calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)
+
+    def save(self, file_name: Optional[str] = None) -> Optional[Path]:
+        """
+        Saves the RedvoxSensor to disk.  Does nothing if saving is not enabled
+
+        :param file_name: Optional file name to save RedvoxSensor as.  Do not include a file extension.  Default None
+                            If None, a default file name is created using this format:
+                            [sensor_type]_[first_timestamp].json
+        :return: The path to the saved file or None if unable to save.
+        """
+        if self._fs_writer.save_to_disk:
+            return self.to_json_file(file_name)
+        return None
+
+    def load(self, in_dir: str) -> "SensorData":
+        """
+        :param in_dir: structured directory with json metadata file to load
+        :return: RedvoxSensor using data from files
+        """
+        file = io.get_json_file(in_dir)
+        if file is None:
+            st = SensorData("LoadError")
+            st.append_error("File to load Sensor not found.")
+        return self.from_json_file(in_dir)
 
     def is_save_to_disk(self) -> bool:
         """
@@ -493,7 +517,7 @@ class SensorData:
         """
         sorts the data by timestamps, then if the sample rate is not fixed, recalculates the sample rate, interval,
             and interval std dev.  If there is only one value, sets the sample rate, interval, and interval std dev
-            to np.nan.  Updates the SensorData object with the new values
+            to np.nan.  Updates the RedvoxSensor object with the new values
 
         :param ptable: pyarrow table to update
         :return: updated version of self
@@ -522,12 +546,12 @@ class SensorData:
     def append_sensor(self, new_sensor: "SensorData", recalculate_stats: bool = False) -> "SensorData":
         """
         append the new data to the sensor, update the sensor's stats on demand if it doesn't have a fixed
-            sample rate, then return the updated SensorData object
+            sample rate, then return the updated RedvoxSensor object
 
         :param new_sensor: sensor containing data to add to the calling sensor
         :param recalculate_stats: if True and the sensor does not have a fixed sample rate, sort the timestamps,
                                     recalculate the sample rate, interval, and interval std dev, default False
-        :return: the updated SensorData object
+        :return: the updated RedvoxSensor object
         """
         _arrow: pa.Table = pa.concat_tables([self.pyarrow_table(), new_sensor.pyarrow_table()])
         if recalculate_stats and not self._is_sample_rate_fixed:
@@ -541,12 +565,12 @@ class SensorData:
     ) -> "SensorData":
         """
         append the new data to the dataframe, update the sensor's stats on demand if it doesn't have a fixed
-            sample rate, then return the updated SensorData object
+            sample rate, then return the updated RedvoxSensor object
 
         :param new_data: list of arrays containing data to add to the sensor's dataframe
         :param recalculate_stats: if True and the sensor does not have a fixed sample rate, sort the timestamps,
                                     recalculate the sample rate, interval, and interval std dev, default False
-        :return: the updated SensorData object
+        :return: the updated RedvoxSensor object
         """
         _arrow = pa.concat_tables([self.pyarrow_table(),
                                    pa.Table.from_arrays(arrays=[pa.array(s) for s in new_data],
@@ -699,7 +723,7 @@ class SensorData:
 
     def extend_errors(self, errors: RedVoxExceptions):
         """
-        add errors to the SensorData's errors
+        add errors to the Sensor's errors
 
         :param errors: errors to add
         """
@@ -738,13 +762,14 @@ class SensorData:
     def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
                     copy: bool = True) -> pa.Table:
         """
-        interpolates two points at the intercept value.  the two points must be consecutive in the dataframe.
+        interpolates two points at the intercept value.  the two points must be consecutive in the data.
         data channels that can't be interpolated are set to np.nan.
 
         :param interpolate_timestamp: timestamp to interpolate other values
         :param first_point: index of first point
         :param second_point: delta to second point, default 0 (same as first point)
-        :param copy: if True, copies the values of the first point, default True
+        :param copy: if True, copies the values of the first point, otherwise uses the interpolated value.
+                        Default True
         :return: pyarrow Table of interpolated points
         """
         start_point = self.pyarrow_table().slice(first_point, 1).to_pydict()
@@ -813,11 +838,11 @@ class SensorData:
     @staticmethod
     def from_json_file(file_dir: str, file_name: Optional[str] = None) -> "SensorData":
         """
-        convert contents of json file to SensorData
+        convert contents of json file to Sensor
 
         :param file_dir: full path to containing directory for the file
         :param file_name: optional name of file and extension to load data from; if not specified, finds the first one
-        :return: SensorData object
+        :return: RedvoxSensor object
         """
         if file_name is None:
             file_name = io.get_json_file(file_dir)

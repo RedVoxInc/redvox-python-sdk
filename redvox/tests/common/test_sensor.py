@@ -6,8 +6,7 @@ import unittest
 import numpy as np
 
 from redvox.common import date_time_utils as dtu
-from redvox.common.sensor_data import SensorData
-from redvox.common.sensor_data import SensorType
+from redvox.common.sensor_data import SensorData, SensorType
 
 
 class SensorDataTest(unittest.TestCase):

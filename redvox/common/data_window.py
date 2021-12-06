@@ -217,10 +217,10 @@ class DataWindow:
     Properties:
         event_name: str, name of the data window.  defaults to "dw"
 
-        event_origin: Optional DataWindowOrigin which describes the physical location and radius of the
-        origin event.  Default empty DataWindowOrigin (no valid data)
+        event_origin: Optional EventOrigin which describes the physical location and radius of the
+        origin event.  Default empty EventOrigin (no valid data)
 
-        config: optional DataWindowConfigWpa with information on how to construct data window from
+        config: optional DataWindowConfig with information on how to construct data window from
         Redvox (.rdvx*) files.  Default None
 
         sdk_version: str, the version of the Redvox SDK used to create the data window
@@ -250,7 +250,7 @@ class DataWindow:
         :param event_name: name of the data window.  defaults to "dw"
         :param event_origin: Optional EventOrigin which describes the physical location and radius of the
                                 origin event.  Default empty EventOrigin (no valid data)
-        :param config: Optional DataWindowConfigWpa which describes how to extract data from Redvox files.
+        :param config: Optional DataWindowConfig which describes how to extract data from Redvox files.
                         Default None
         :param out_dir: output directory for saving files.  Default "." (current directory)
         :param out_type: type of file to save the data window as.  Default "NONE" (no saving)

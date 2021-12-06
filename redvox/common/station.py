@@ -134,23 +134,11 @@ class Station:
         """
         return os.path.join(self._fs_writer.save_dir(), self._get_id_key())
 
-    def load(self, in_dir: str = "") -> "Station":
-        """
-        :param in_dir: structured directory with json metadata file to load
-
-        :return: station using data from files
-        """
-        file = io.get_json_file(in_dir)
-        if file is None:
-            st = Station("LoadError")
-            st.append_error("File to load Station not found.")
-        return self.from_json_file(in_dir)
-
     def save(self, file_name: Optional[str] = None) -> Optional[Path]:
         """
         saves the Station to disk.  Does nothing if saving is not enabled.
 
-        :param file_name: the optional base file name.  Do not include a file extension.
+        :param file_name: the optional base file name.  Do not include a file extension.  Default None.
                             If None, a default file name is created using this format:
                             [station_id]_[start_date].json
         :return: Path to the saved file or None if not saved
@@ -158,6 +146,17 @@ class Station:
         if self.is_save_to_disk():
             return self.to_json_file(file_name)
         return None
+
+    def load(self, in_dir: str = "") -> "Station":
+        """
+        :param in_dir: structured directory with json metadata file to load
+        :return: Station using data from files
+        """
+        file = io.get_json_file(in_dir)
+        if file is None:
+            st = Station("LoadError")
+            st.append_error("File to load Station not found.")
+        return self.from_json_file(in_dir)
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
@@ -1205,6 +1204,14 @@ class Station:
         """
         return self._packet_metadata
 
+    def set_packet_metadata(self, packet_metadata: List[st_utils.StationPacketMetadata]):
+        """
+        set the station's packet metadata
+
+        :param packet_metadata: packet metadata to set
+        """
+        self._packet_metadata = packet_metadata
+
     def first_data_timestamp(self) -> float:
         """
         :return: first data timestamp of station
@@ -1229,11 +1236,27 @@ class Station:
         """
         return self._is_timestamps_updated
 
+    def set_timestamps_updated(self, is_updated: bool):
+        """
+        set if timestamps in station are already updated
+
+        :param is_updated: is station timestamps updated
+        """
+        self._is_timestamps_updated = is_updated
+
     def timesync_data(self) -> TimeSync:
         """
         :return: the timesync data
         """
         return self._timesync_data
+
+    def set_timesync_data(self, timesync: TimeSync):
+        """
+        set the timesync data for the station
+
+        :param timesync: timesync data
+        """
+        self._timesync_data = timesync
 
     def errors(self) -> RedVoxExceptions:
         """
@@ -1241,17 +1264,48 @@ class Station:
         """
         return self._errors
 
+    def set_errors(self, errors: RedVoxExceptions):
+        """
+        set the errors of the station
+
+        :param errors: errors to set
+        """
+        self._errors = errors
+
+    def append_error(self, error: str):
+        """
+        add an error to the station
+        :param error: error to add
+        """
+        self._errors.append(error)
+
     def audio_sample_rate_nominal_hz(self) -> float:
         """
         :return: expected audio sample rate of station in hz
         """
         return self._audio_sample_rate_nominal_hz
 
+    def set_audio_sample_rate_hz(self, sample_rate: float):
+        """
+        set nominal sample rate of audio sensor
+
+        :param sample_rate: rate in hz
+        """
+        self._audio_sample_rate_nominal_hz = sample_rate
+
     def is_audio_scrambled(self) -> float:
         """
         :return: if station's audio sensor data is scrambled
         """
         return self._is_audio_scrambled
+
+    def set_audio_scrambled(self, is_scrambled: bool):
+        """
+        set if the audio is scrambled
+
+        :param is_scrambled: is station audio scrambled
+        """
+        self._is_audio_scrambled = is_scrambled
 
     def is_save_to_disk(self) -> bool:
         """
@@ -1293,13 +1347,6 @@ class Station:
             self._is_timestamps_updated = True
         return self
 
-    def append_error(self, error: str):
-        """
-        add an error to the station
-        :param error: error to add
-        """
-        self._errors.append(error)
-
     def as_dict(self) -> dict:
         """
         :return: station as dictionary
@@ -1316,7 +1363,7 @@ class Station:
             "first_data_timestamp": self._first_data_timestamp,
             "last_data_timestamp": self._last_data_timestamp,
             "metadata": self._metadata.as_dict(),
-            "packet_metadata": [p.__dict__ for p in self._packet_metadata],
+            "packet_metadata": [p.as_dict() for p in self._packet_metadata],
             "gaps": self._gaps,
             "errors": self._errors.as_dict(),
             "sensors": [s.type().name for s in self._data]
@@ -1324,7 +1371,8 @@ class Station:
 
     def default_station_json_file_name(self) -> str:
         """
-        :return: default station json file name (id_startdate), with startdate as integer
+        :return: default station json file name (id_startdate), with startdate as integer of microseconds
+                    since epoch UTC
         """
         return f"{self._id}_{int(self._start_date)}"
 
@@ -1359,21 +1407,20 @@ class Station:
         if "id" in json_data.keys() and "start_date" in json_data.keys():
             result = Station(json_data["id"], json_data["uuid"], json_data["start_date"],
                              use_model_correction=json_data["use_model_correction"])
-            result._is_audio_scrambled = json_data["is_audio_scrambled"]
-            result._is_timestamps_updated = json_data["is_timestamps_updated"]
-            result._audio_sample_rate_nominal_hz = json_data["audio_sample_rate_nominal_hz"]
-            result._first_data_timestamp = json_data["first_data_timestamp"]
-            result._last_data_timestamp = json_data["last_data_timestamp"]
-            result._metadata = st_utils.StationMetadata.from_dict(json_data["metadata"])
-            result._packet_metadata = \
-                [st_utils.StationPacketMetadata.from_dict(p) for p in json_data["packet_metadata"]]
+            result.set_audio_scrambled(json_data["is_audio_scrambled"])
+            result.set_timestamps_updated(json_data["is_timestamps_updated"])
+            result.set_audio_sample_rate_hz(json_data["audio_sample_rate_nominal_hz"])
+            result.update_first_and_last_data_timestamps()
+            result.set_metadata(st_utils.StationMetadata.from_dict(json_data["metadata"]))
+            result.set_packet_metadata(
+                [st_utils.StationPacketMetadata.from_dict(p) for p in json_data["packet_metadata"]])
             result.set_gaps(json_data["gaps"])
-            result._errors = RedVoxExceptions.from_dict(json_data["errors"])
+            result.set_errors(RedVoxExceptions.from_dict(json_data["errors"]))
 
             for s in json_data["sensors"]:
                 result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
             ts_file_name = io.get_json_file(os.path.join(file_dir, "timesync"))
-            result._timesync_data = TimeSync.from_json_file(os.path.join(file_dir, "timesync", ts_file_name))
+            result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, "timesync", ts_file_name)))
         else:
             result = Station()
             result.append_error(f"Missing id and start date to identify station in {file_name}")

@@ -13,7 +13,7 @@ from redvox.common.io import get_json_file, json_file_to_dict, json_to_dict
 
 
 if TYPE_CHECKING:
-    from redvox.common.station_wpa import StationPa
+    from redvox.common.station import StationPa
 
 
 def to_json(station: "StationPa",) -> str:

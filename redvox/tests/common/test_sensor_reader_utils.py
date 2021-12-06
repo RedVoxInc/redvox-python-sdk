@@ -12,7 +12,7 @@ from redvox.common import sensor_reader_utils as sdru
 
 class EmptySensorTest(unittest.TestCase):
     def test_empty_sensor(self):
-        empty_sensor = sdru.get_empty_sensor_data("empty")
+        empty_sensor = sdru.get_empty_sensor("empty")
         self.assertEqual(empty_sensor.num_samples(), 0)
         self.assertTrue(np.isnan(empty_sensor.sample_rate_hz()))
         self.assertEqual(empty_sensor.type().value, SensorType.UNKNOWN_SENSOR.value)

@@ -21,7 +21,7 @@ __SENSOR_NAME_TO_SENSOR_FN: Dict[
     Optional[
         Callable[
             [RedvoxPacketM],
-            srupa.Sensor,
+            srupa.SensorData,
         ]
     ],
 ] = {
@@ -419,7 +419,7 @@ def load_single(
 ) -> Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.Sensor]
+        Callable[[RedvoxPacketM], srupa.SensorData]
     ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
@@ -494,7 +494,7 @@ def load_xyz(
 ) -> Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.Sensor]
+        Callable[[RedvoxPacketM], srupa.SensorData]
     ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)

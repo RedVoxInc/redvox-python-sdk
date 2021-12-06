@@ -11,7 +11,7 @@ from redvox.common import api_reader_dw
 from redvox.common.io import ReadFilter
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType
-from redvox.common.sensor_reader_utils import get_empty_sensor_data
+from redvox.common.sensor_reader_utils import get_empty_sensor
 
 
 class StationTest(unittest.TestCase):
@@ -118,7 +118,7 @@ class StationTest(unittest.TestCase):
         self.assertFalse(empty_apim_station.has_audio_sensor())
         self.assertIsNone(empty_apim_station.audio_sensor())
         empty_apim_station.set_audio_sensor(
-            get_empty_sensor_data("empty mic", SensorType.AUDIO).class_from_type()
+            get_empty_sensor("empty mic", SensorType.AUDIO).class_from_type()
         )
         self.assertTrue(empty_apim_station.has_audio_sensor())
         self.assertFalse(empty_apim_station.has_audio_data())
