@@ -369,7 +369,7 @@ class StationPacketMetadata:
             )
             self.server_packet_receive_timestamp = packet.timing_information.server_acquisition_arrival_timestamp
             self.timing_info_score = packet.timing_information.score
-            self.timing_score_method = packet.timing_information.score_method
+            self.timing_score_method = TimingScoreMethod(packet.timing_information.score_method)
         else:
             self.packet_start_mach_timestamp = np.nan
             self.packet_end_mach_timestamp = np.nan
@@ -403,7 +403,7 @@ class StationPacketMetadata:
             "packet_end_os_timestamp": self.packet_end_os_timestamp,
             "server_packet_receive_timestamp": self.server_packet_receive_timestamp,
             "timing_info_score": self.timing_info_score,
-            "timing_score_method": self.timing_score_method.name,
+            "timing_score_method": self.timing_score_method,
             "other_metadata": self.other_metadata
         }
 
@@ -459,7 +459,7 @@ class StationPacketMetadataWrapped:
                 packet.get_timing_information().get_packet_end_os_timestamp()
             )
             self.timing_info_score = packet.get_timing_information().get_score()
-            self.timing_score_method = packet.get_timing_information().get_score_method()
+            self.timing_score_method = TimingScoreMethod(packet.get_timing_information().get_score_method())
         else:
             self.packet_start_mach_timestamp = np.nan
             self.packet_end_mach_timestamp = np.nan

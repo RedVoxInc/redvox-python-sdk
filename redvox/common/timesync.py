@@ -298,7 +298,7 @@ class TimeSync:
 
     def get_best_latency_timestamp(self) -> float:
         """
-        :return: timestamp of best latency, or start of the packet if no best latency.
+        :return: timestamp of best latency, or np.nan if no best latency.
         """
         if self._best_msg_array_index == 1:
             return self._time_sync_exchanges_list[3][self._best_latency_index]

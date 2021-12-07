@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.1.0rc4 (2021-12-7)
+
+* Added missing functions for Station and SensorData property access
+* Documentation updated for new functions
+
 ### 3.1.0rc3 (2021-12-1)
 
 * Updated more functions used by old data window module

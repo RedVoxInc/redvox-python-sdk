@@ -635,11 +635,11 @@ Once the data is retrieved, it must be aggregated and prepared for the user.
    be written to a directory on the file system.  The directory is specified by the DataWindow parameters if saving is
    enabled, otherwise it is a temporary directory.
 
-3. The data files are organized into Station objects.  Files are put into a station if and only if each of these values 
+2. The data files are organized into Station objects.  Files are put into a station if and only if each of these values 
    are equal across each file: station id, station uuid, station start timestamp and station metadata.
    * Any change in the station's information will create a new Station object to represent that change.
 
-4. Station objects attempt to fill any recognizable gaps in their sensors.
+3. Station objects attempt to fill any recognizable gaps in their sensors.
 
 * Any errors encountered while creating the Station object will be recorded and can be displayed to the user.
 
@@ -647,7 +647,8 @@ Once the data is retrieved, it must be aggregated and prepared for the user.
 
 The data is now organized by Station.  This process will be performed on all Stations in the DataWindow.
 
-1. If apply_correction is True, update all timestamps in the Station using the offset model.  This is the final timestamp update before the user gets the data.
+1. If apply_correction is True, update all timestamps in the Station using the offset model.  This is the final 
+   timestamp update before the user gets the data.
 
 2. Remove any Audio data points outside the request window.
 
@@ -659,7 +660,8 @@ The data is now organized by Station.  This process will be performed on all Sta
 5. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
    * The copy_edge_points parameter determines which data values of these fabricated points will contain.
     
-6. Update the Station metadata.
+6. Update the Station metadata.  This does not include the Station's timesync data.
+   * Note that the Timesync data for a Station is unaltered from the data gathered during operation.
    
 7. Update the Data Window metadata to match the data.
 
