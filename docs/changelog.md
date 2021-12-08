@@ -1,6 +1,6 @@
 ## Changelog
 
-### 3.0.0 (2021-12-7)
+### 3.1.0 (2021-12-8)
 
 * Official release 3.1.0
 * Summary of changes:
