@@ -229,7 +229,7 @@ class DataWindow:
 
     Protected:
         _fs_writer: FileSystemWriter; includes event_name, output directory (Default "."),
-        and output type (Default NONE)
+        and output type (options: "PARQUET", "LZ4", "NONE".  Default NONE)
 
         _stations: List of Stations that belong to the DataWindow
 
@@ -253,7 +253,8 @@ class DataWindow:
         :param config: Optional DataWindowConfig which describes how to extract data from Redvox files.
                         Default None
         :param out_dir: output directory for saving files.  Default "." (current directory)
-        :param out_type: type of file to save the data window as.  Default "NONE" (no saving)
+        :param out_type: type of file to save the data window as.  Options: "PARQUET", "LZ4", "NONE".
+                            Default "NONE" (no saving)
         :param debug: if True, outputs additional information during initialization. Default False
         """
         self.event_name: str = event_name

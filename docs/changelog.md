@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.1.0rc5 (2021-12-7)
+
+* Requirements for numpy reduced to >=1.19.5
+* Added values for DataWindow saving methods in function description
+
 ### 3.1.0rc4 (2021-12-7)
 
 * Added missing functions for Station and SensorData property access
