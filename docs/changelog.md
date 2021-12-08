@@ -3,8 +3,12 @@
 ### 3.0.0 (2021-12-7)
 
 * Official release 3.1.0
-* Pyarrow implemented for DataWindow, Station, SensorData and underlying classes
-* Properties of the above classes have been updated into functions for more secure access
+* Summary of changes:
+  * Pyarrow backend implemented for DataWindow, Station, SensorData and underlying classes
+  * Properties of the above classes have been updated into functions for more secure access
+* Please note DataWindows created in versions 3.0.x cannot be loaded in 3.1.0
+  * Use the latest 3.0.10 to continue to load 3.0.x DataWindows
+  * OR recreate the DataWindows using 3.1.0
 
 ### 3.1.0rc5 (2021-12-7)
 
