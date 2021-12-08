@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.0.0 (2021-12-7)
+
+* Official release 3.1.0
+* Pyarrow implemented for DataWindow, Station, SensorData and underlying classes
+* Properties of the above classes have been updated into functions for more secure access
+
 ### 3.1.0rc5 (2021-12-7)
 
 * Requirements for numpy reduced to >=1.19.5
