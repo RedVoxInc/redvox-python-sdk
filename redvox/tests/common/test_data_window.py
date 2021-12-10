@@ -2,7 +2,6 @@
 tests for data window objects
 """
 import unittest
-import contextlib
 
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt
@@ -68,7 +67,7 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(audio_sensor.num_samples(), 480000)
         loc_sensor = dw_with_start_end.get_station("0000000001")[0].location_sensor()
         self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.num_samples(), 3)
+        self.assertEqual(loc_sensor.num_samples(), 4)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(
@@ -87,3 +86,10 @@ class DataWindowTest(unittest.TestCase):
         )
         first_station = dw_test.first_station()
         self.assertEqual("1637650010", first_station.id())
+
+
+# doesn't work with test module, but works on its own.
+# class DataWindowConfigFileTest(unittest.TestCase):
+#     def test_load(self):
+#         dw_test = dw.DataWindow.from_config_file(f"{tests.TEST_DATA_DIR}/dw_test.config.toml")
+#         self.assertEqual(len(dw_test.stations()), 2)

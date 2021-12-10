@@ -332,7 +332,9 @@ class SensorData:
         if file is None:
             st = SensorData("LoadError")
             st.append_error("File to load Sensor not found.")
-        return self.from_json_file(in_dir)
+            return self
+        else:
+            return self.from_json_file(in_dir, file)
 
     def is_save_to_disk(self) -> bool:
         """
@@ -355,14 +357,6 @@ class SensorData:
         """
         self._fs_writer.file_name = new_file if new_file else f"{self._type.name}_{int(self.first_data_timestamp())}"
 
-    def set_base_dir(self, new_dir: Optional[str] = None):
-        """
-        set the pyarrow directory or use the default: "." (current directory)
-
-        :param new_dir: the directory to change to; default None (use current directory)
-        """
-        self._fs_writer.base_dir = new_dir if new_dir else "."
-
     def full_file_name(self) -> str:
         """
         :return: full name of parquet file containing the data
@@ -375,7 +369,15 @@ class SensorData:
         """
         return self._fs_writer.file_name
 
-    def base_dir(self) -> str:
+    def set_save_dir(self, new_dir: Optional[str] = None):
+        """
+        set the pyarrow directory or use the default: "." (current directory)
+
+        :param new_dir: the directory to change to; default None (use current directory)
+        """
+        self._fs_writer.base_dir = new_dir if new_dir else "."
+
+    def save_dir(self) -> str:
         """
         :return: directory containing parquet files for the sensor
         """
@@ -399,7 +401,7 @@ class SensorData:
         :return: the dataset stored in base_dir
         """
         if base_dir is None:
-            base_dir = self.base_dir()
+            base_dir = self.save_dir()
         return ds.dataset(base_dir, format="parquet", exclude_invalid_files=True)
 
     def pyarrow_table(self) -> pa.Table:

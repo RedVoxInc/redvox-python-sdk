@@ -156,7 +156,9 @@ class Station:
         if file is None:
             st = Station("LoadError")
             st.append_error("File to load Station not found.")
-        return self.from_json_file(in_dir)
+            return self
+        else:
+            return self.from_json_file(in_dir, file)
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
@@ -191,7 +193,7 @@ class Station:
                                         best offset (intercept value) otherwise.  Default True
         :param base_out_dir: directory to save parquet files, default "" (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
-        :return: StationPa without any sensor or timing
+        :return: Station without any sensor or timing
         """
         station = Station(use_model_correction=use_model_correction, base_dir=base_out_dir,
                           save_data=save_output)
@@ -1410,17 +1412,16 @@ class Station:
             result.set_audio_scrambled(json_data["is_audio_scrambled"])
             result.set_timestamps_updated(json_data["is_timestamps_updated"])
             result.set_audio_sample_rate_hz(json_data["audio_sample_rate_nominal_hz"])
-            result.update_first_and_last_data_timestamps()
             result.set_metadata(st_utils.StationMetadata.from_dict(json_data["metadata"]))
             result.set_packet_metadata(
                 [st_utils.StationPacketMetadata.from_dict(p) for p in json_data["packet_metadata"]])
             result.set_gaps(json_data["gaps"])
             result.set_errors(RedVoxExceptions.from_dict(json_data["errors"]))
-
             for s in json_data["sensors"]:
                 result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
             ts_file_name = io.get_json_file(os.path.join(file_dir, "timesync"))
             result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, "timesync", ts_file_name)))
+            result.update_first_and_last_data_timestamps()
         else:
             result = Station()
             result.append_error(f"Missing id and start date to identify station in {file_name}")

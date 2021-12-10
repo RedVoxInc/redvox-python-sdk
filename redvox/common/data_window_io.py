@@ -17,7 +17,7 @@ from typing import (
 
 import lz4.frame
 
-from redvox.common.io import FileSystemWriter, json_file_to_dict, json_to_dict, get_json_file
+from redvox.common.io import FileSystemWriter, json_to_dict
 from redvox.common.date_time_utils import (
     datetime_to_epoch_microseconds_utc as us_dt,
 )
@@ -71,19 +71,21 @@ class DataWindowFileSystemWriter(FileSystemWriter):
     This class holds the FileSystemWriter info for DataWindows
     """
 
-    def __init__(self, file_name: str, file_ext: str = "none", base_dir: str = "."):
+    def __init__(self, file_name: str, file_ext: str = "none", base_dir: str = ".", make_run_me: bool = False):
         """
         initialize FileSystemWriter
 
         :param file_name: name of file
         :param file_ext: extension of file, default "none"
         :param base_dir: directory to save file to, default "." (current dir)
+        :param make_run_me: if True, add a runme.py file to the saved files.  Default False
         """
         if not os.path.exists(base_dir):
             os.makedirs(base_dir, exist_ok=True)
         os.chdir(base_dir)
         super().__init__(file_name, file_ext, ".",
                          False if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.NONE else True)
+        self.make_run_me = make_run_me
 
 
 @dataclass

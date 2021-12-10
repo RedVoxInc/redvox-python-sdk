@@ -13,17 +13,17 @@ from redvox.common.io import get_json_file, json_file_to_dict, json_to_dict
 
 
 if TYPE_CHECKING:
-    from redvox.common.station import StationPa
+    from redvox.common.station import Station
 
 
-def to_json(station: "StationPa",) -> str:
+def to_json(station: "Station",) -> str:
     """
     :return: station as json string
     """
     return json.dumps(station.as_dict())
 
 
-def to_json_file(station: "StationPa",
+def to_json_file(station: "Station",
                  file_name: Optional[str] = None) -> Path:
     """
     saves the station as json and data in the same directory.

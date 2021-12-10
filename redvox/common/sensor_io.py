@@ -11,17 +11,17 @@ from typing import (
 from redvox.common.io import json_to_dict, json_file_to_dict, get_json_file
 
 if TYPE_CHECKING:
-    from redvox.common.sensor_data_with_pyarrow import SensorDataPa
+    from redvox.common.sensor_data import SensorData
 
 
-def to_json(sensor: "SensorDataPa",) -> str:
+def to_json(sensor: "SensorData",) -> str:
     """
     :return: sensor as json string
     """
     return json.dumps(sensor.as_dict())
 
 
-def to_json_file(sensor: "SensorDataPa",
+def to_json_file(sensor: "SensorData",
                  file_name: Optional[str] = None) -> Path:
     """
     saves the sensor as json and data in the same directory.

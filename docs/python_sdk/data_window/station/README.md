@@ -469,7 +469,7 @@ Use one of these functions to create a SensorData object:
              are_timestamps_altered: bool = False,
              calculate_stats: bool = False,
              use_offset_model_for_correction: bool = False,
-             save_data: bool = False) -> "SensorDataPa":
+             save_data: bool = False) -> "SensorData":
    ```
    Return a SensorData object using a directory as the data source.
 
@@ -486,7 +486,7 @@ Use one of these functions to create a SensorData object:
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
             save_data: bool = False,
-            arrow_dir: str = "") -> "SensorDataPa":
+            arrow_dir: str = "") -> "SensorData":
    ```
    Return a SensorData object using a dictionary as the data source.
 

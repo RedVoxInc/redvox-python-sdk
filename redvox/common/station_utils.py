@@ -421,7 +421,9 @@ class StationPacketMetadata:
         result.packet_end_os_timestamp = pmd_dict["packet_end_os_timestamp"]
         result.server_packet_receive_timestamp = pmd_dict["server_packet_receive_timestamp"]
         result.timing_info_score = pmd_dict["timing_info_score"]
-        result.timing_score_method = TimingScoreMethod(pmd_dict["timing_score_method"])
+        result.timing_score_method = TimingScoreMethod[pmd_dict["timing_score_method"]
+                                                       if "timing_score_method" in pmd_dict.keys()
+                                                       else "UNKNOWN"]
         return result
 
 

@@ -1,5 +1,13 @@
 ## Changelog
 
+### 3.1.1 (20121-12-10)
+
+* Added option to enable runme.py file creation when saving DataWindows (default is no creation)
+* Added DataWindow saving options to tooltips
+* Added DataWindowConfigFile to allow DataWindow creation from a .toml file
+* Renamed base_dir in SensorData to save_dir to be in line with other modules
+* Fixed bug when creating DataWindows that caused the last timestamp of sensors to be incorrect
+
 ### 3.1.0 (2021-12-8)
 
 * Official release 3.1.0

@@ -320,6 +320,7 @@ datawindow = DataWindow(
     config=config,
     out_dir=output_dir_str,
     out_type=type_str,
+    make_runme=True_or_False,
     debug=True_or_False
 )
 ```

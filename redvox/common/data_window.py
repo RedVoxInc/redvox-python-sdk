@@ -23,6 +23,7 @@ from redvox.common.date_time_utils import (
 )
 from redvox.common import io
 from redvox.common import data_window_io as dw_io
+from redvox.common.data_window_configuration import DataWindowConfigFile
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType, SensorData
@@ -42,7 +43,7 @@ class EventOrigin:
     the location data and the radius of the event
 
     Properties:
-        provider: string, source of the location data (i.e. GPS or NETWORK), default UNKNOWN
+        provider: str, source of the location data (i.e. "GPS" or "NETWORK"), default "UNKNOWN"
 
         latitude: float, best estimate of latitude in degrees, default np.nan
 
@@ -215,25 +216,26 @@ class DataWindow:
     Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
 
     Properties:
-        event_name: str, name of the data window.  defaults to "dw"
+        event_name: str, name of the DataWindow.  defaults to "dw"
 
         event_origin: Optional EventOrigin which describes the physical location and radius of the
         origin event.  Default empty EventOrigin (no valid data)
 
-        config: optional DataWindowConfig with information on how to construct data window from
+        config: optional DataWindowConfig with information on how to construct DataWindow from
         Redvox (.rdvx*) files.  Default None
 
-        sdk_version: str, the version of the Redvox SDK used to create the data window
+        sdk_version: str, the version of the Redvox SDK used to create the DataWindow
 
         debug: bool, if True, outputs additional information during initialization. Default False
 
     Protected:
-        _fs_writer: FileSystemWriter; includes event_name, output directory (Default "."),
-        and output type (options: "PARQUET", "LZ4", "NONE".  Default NONE)
+        _fs_writer: DataWindowFileSystemWriter; includes event_name, output directory (Default "."),
+        output type (options: "PARQUET", "LZ4", "NONE".  Default NONE), and option to make a
+        runme.py example file (Default False)
 
         _stations: List of Stations that belong to the DataWindow
 
-        _errors: RedVoxExceptions; contains a list of all errors encountered by the data window
+        _errors: RedVoxExceptions; contains a list of all errors encountered by the DataWindow
     """
     def __init__(
             self,
@@ -242,27 +244,29 @@ class DataWindow:
             config: Optional[DataWindowConfig] = None,
             out_dir: str = ".",
             out_type: str = "NONE",
+            make_runme: bool = False,
             debug: bool = False,
     ):
         """
         Initialize the DataWindow
 
-        :param event_name: name of the data window.  defaults to "dw"
+        :param event_name: name of the DataWindow.  defaults to "dw"
         :param event_origin: Optional EventOrigin which describes the physical location and radius of the
                                 origin event.  Default empty EventOrigin (no valid data)
         :param config: Optional DataWindowConfig which describes how to extract data from Redvox files.
                         Default None
         :param out_dir: output directory for saving files.  Default "." (current directory)
-        :param out_type: type of file to save the data window as.  Options: "PARQUET", "LZ4", "NONE".
+        :param out_type: type of file to save the DataWindow as.  Options: "PARQUET", "LZ4", "NONE".
                             Default "NONE" (no saving)
-        :param debug: if True, outputs additional information during initialization. Default False
+        :param make_runme: if True, saves an example runme.py file with the data.  Default False
+        :param debug: if True, outputs additional information during initialization.  Default False
         """
         self.event_name: str = event_name
         if event_origin:
             self.event_origin: EventOrigin = event_origin
         else:
             self.event_origin = EventOrigin()
-        self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, out_dir)
+        self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, out_dir, make_runme)
         self.debug: bool = debug
         self._sdk_version: str = redvox.VERSION
         self._errors = RedVoxExceptions("DataWindow")
@@ -285,23 +289,47 @@ class DataWindow:
             return self._fs_writer.save_dir()
         return ""
 
+    def set_save_dir(self, new_save_dir: Optional[str] = "."):
+        """
+        :param new_save_dir: directory to save data to; default current directory, or "."
+        """
+        self._fs_writer.base_dir = new_save_dir
+
+    def is_make_runme(self) -> bool:
+        """
+        :return: if DataWindow will be saved with a runme file
+        """
+        return self._fs_writer.make_run_me
+
+    def set_make_runme(self, make_runme: bool = False):
+        """
+        :param make_runme: if True, DataWindow will create a runme file when saved.  Default False
+        """
+        self._fs_writer.make_run_me = make_runme
+
     def fs_writer(self) -> io.FileSystemWriter:
         """
         :return: FileSystemWriter for DataWindow
         """
         return self._fs_writer
 
+    def out_type(self) -> str:
+        """
+        :return: string of the output type of the DataWindow
+        """
+        return self._fs_writer.file_extension
+
     def set_out_type(self, new_out_type: str):
         """
-        set the output type of the data window.  options are "NONE", "PARQUET" and "LZ4"
+        set the output type of the DataWindow.  options are "NONE", "PARQUET" and "LZ4"
 
-        :param new_out_type: new output type of the data window
+        :param new_out_type: new output type of the DataWindow
         """
         self._fs_writer.file_extension = new_out_type
 
     def as_dict(self) -> Dict:
         """
-        :return: data window properties as dictionary
+        :return: DataWindow properties as dictionary
         """
         return {"event_name": self.event_name,
                 "event_origin": self.event_origin.as_dict(),
@@ -313,22 +341,52 @@ class DataWindow:
                 "debug": self.debug,
                 "errors": self._errors.as_dict(),
                 "sdk_version": self._sdk_version,
-                "out_type": self._fs_writer.file_extension
+                "out_type": self._fs_writer.file_extension,
+                "make_runme": self._fs_writer.make_run_me
                 }
 
     def pretty(self) -> str:
         """
-        :return: data window as dictionary, but easier to read
+        :return: DataWindow as dictionary, but easier to read
         """
         # noinspection Mypy
         return pprint.pformat(self.as_dict())
+
+    @staticmethod
+    def from_config(config: DataWindowConfigFile) -> "DataWindow":
+        """
+        Use a config file to create a DataWindow
+
+        :param config: DataWindowConfigFile to load from
+        :return: DataWindow
+        """
+        event_origin = EventOrigin(config.origin_provider, config.origin_latitude, config.origin_latitude_std,
+                                   config.origin_longitude, config.origin_longitude_std, config.origin_altitude,
+                                   config.origin_altitude_std, config.origin_event_radius_m)
+        dw_config = DataWindowConfig(config.input_directory, config.structured_layout, config.start_dt(),
+                                     config.end_dt(), config.start_buffer_td(), config.end_buffer_td(),
+                                     config.drop_time_seconds, config.station_ids, config.extensions,
+                                     config.api_versions, config.apply_correction, config.use_model_correction,
+                                     config.copy_edge_points())
+        return DataWindow(config.event_name, event_origin, dw_config, config.output_dir, config.output_type,
+                          config.make_runme, config.debug)
+
+    @staticmethod
+    def from_config_file(file: str) -> "DataWindow":
+        """
+        Loads a configuration file to create the DataWindow
+
+        :param file: full path to config file
+        :return: DataWindow
+        """
+        return DataWindow.from_config(DataWindowConfigFile.from_path(file))
 
     @staticmethod
     def deserialize(path: str) -> "DataWindow":
         """
         Decompresses and deserializes a DataWindow written to disk.
 
-        :param path: Path to the serialized and compressed data window.
+        :param path: Path to the serialized and compressed DataWindow.
         :return: An instance of a DataWindow.
         """
         return dw_io.deserialize_data_window(path)
@@ -345,7 +403,7 @@ class DataWindow:
 
     def _to_json_file(self) -> Path:
         """
-        Converts the data window metadata into a JSON file and compresses the data window and writes it to disk.
+        Converts the DataWindow metadata into a JSON file and compresses the DataWindow and writes it to disk.
 
         :return: The path to the written file
         """
@@ -353,7 +411,7 @@ class DataWindow:
 
     def to_json(self) -> str:
         """
-        :return: The data window metadata into a JSON string.
+        :return: The DataWindow metadata into a JSON string.
         """
         return dw_io.data_window_as_json(self)
 
@@ -385,11 +443,11 @@ class DataWindow:
             out_type = dw_io.DataWindowOutputType.str_to_type(json_dict["out_type"])
             if out_type == dw_io.DataWindowOutputType.PARQUET:
                 dwin = DataWindow(json_dict["event_name"], EventOrigin.from_dict(json_dict["event_origin"]),
-                                  None, json_dict["base_dir"], json_dict["out_type"],
+                                  None, json_dict["base_dir"], json_dict["out_type"], json_dict["make_runme"],
                                   json_dict["debug"])
                 dwin.config = DataWindowConfig.from_dict(json_dict["config"])
                 dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
-                dwin._sdk_version = json_dict["sdk_version"]
+                dwin.set_sdk_version(json_dict["sdk_version"])
                 for st in json_dict["stations"]:
                     dwin.add_station(Station.from_json_file(os.path.join(json_dict["base_dir"], st), f"{st}.json"))
             elif out_type == dw_io.DataWindowOutputType.LZ4:
@@ -401,12 +459,13 @@ class DataWindow:
 
     def save(self) -> Path:
         """
-        save the data window
+        save the DataWindow
         :return: the path to where the files exist
         """
         if self._fs_writer.save_to_disk:
-            shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
-                            os.path.join(self._fs_writer.save_dir(), "RUNME.py"))
+            if self._fs_writer.make_run_me:
+                shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
+                                os.path.join(self._fs_writer.save_dir(), "runme.py"))
             if self._fs_writer.file_extension == "parquet":
                 return self._to_json_file()
             elif self._fs_writer.file_extension == "lz4":
@@ -421,9 +480,8 @@ class DataWindow:
         load from json metadata and lz4 compressed file or directory of files
 
         :param file_path: full path of file to load
-        :return: datawindow from json metadata
+        :return: DataWindow from json metadata
         """
-        os.chdir(os.path.dirname(file_path))
         return DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
 
     def sdk_version(self) -> str:
@@ -431,6 +489,12 @@ class DataWindow:
         :return: sdk version used to create the DataWindow
         """
         return self._sdk_version
+
+    def set_sdk_version(self, version: str):
+        """
+        :param version: the sdk version to set
+        """
+        self._sdk_version = version
 
     def start_date(self) -> float:
         """
@@ -450,26 +514,26 @@ class DataWindow:
 
     def stations(self) -> List[Station]:
         """
-        :return: list of stations in the data window
+        :return: list of stations in the DataWindow
         """
         return self._stations
 
     def station_ids(self) -> List[str]:
         """
-        :return: ids of stations in the data window
+        :return: ids of stations in the DataWindow
         """
         return [s.id() for s in self._stations]
 
     def add_station(self, station: Station):
         """
-        add a station to the data window
+        add a station to the DataWindow
         :param station: Station to add
         """
         self._stations.append(station)
 
     def remove_station(self, station_id: Optional[str] = None, start_date: Optional[float] = None):
         """
-        remove the first station from the data window, or a specific station if given the id and/or start date
+        remove the first station from the DataWindow, or a specific station if given the id and/or start date
         if an id is given, the first station with that id will be removed
         if a start date is given, the removed station will start at or after the start date
         start date is in microseconds since epoch UTC
@@ -523,7 +587,7 @@ class DataWindow:
     def get_station(self, station_id: str, station_uuid: Optional[str] = None,
                     start_timestamp: Optional[float] = None) -> Optional[List[Station]]:
         """
-        Get stations from the data window.  Must give at least the station's id.  Other parameters may be None,
+        Get stations from the DataWindow.  Must give at least the station's id.  Other parameters may be None,
         which means the value will be ignored when searching.  Results will match all non-None parameters given.
 
         :param station_id: station id
@@ -546,7 +610,7 @@ class DataWindow:
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         """
-        updates the data window to contain only the data within the window parameters
+        updates the DataWindow to contain only the data within the window parameters
         stations without audio or any data outside the window are removed
         """
         # Let's create and manage a single pool of workers that we can utilize throughout
@@ -619,7 +683,7 @@ class DataWindow:
 
     def _check_for_audio(self):
         """
-        removes any station without audio data from the data window
+        removes any station without audio data from the DataWindow
         """
         remove = []
         for s in self._stations:
@@ -684,12 +748,12 @@ class DataWindow:
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
         """
-        process a non audio sensor to fit within the data window.  Updates sensor in place, returns nothing.
+        process a non audio sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
 
         :param sensor: sensor to process
         :param station_id: station id
-        :param start_date_timestamp: start of data window
-        :param end_date_timestamp: end of data window
+        :param start_date_timestamp: start of DataWindow
+        :param end_date_timestamp: end of DataWindow
         """
         if sensor.num_samples() > 0:
             # get only the timestamps between the start and end timestamps
@@ -740,27 +804,29 @@ class DataWindow:
                 else:
                     new_point_mode = self.config.copy_edge_points
                 # add in the data points at the edges of the window if there are defined start and/or end times
+                slice_start = _arrow["timestamps"].to_numpy()[0]
+                slice_end = _arrow["timestamps"].to_numpy()[-1]
                 if not is_audio:
-                    end_sample_interval = end_date_timestamp - sensor.last_data_timestamp()
+                    end_sample_interval = end_date_timestamp - slice_end
                     end_samples_to_add = 1
-                    start_sample_interval = start_date_timestamp - sensor.first_data_timestamp()
+                    start_sample_interval = start_date_timestamp - slice_start
                     start_samples_to_add = 1
                 else:
                     end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s())
                     start_sample_interval = -end_sample_interval
                     if self.config.end_datetime:
                         end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.config.end_datetime)
-                                                  - sensor.last_data_timestamp()) / end_sample_interval)
+                                                  - slice_end) / end_sample_interval)
                     else:
                         end_samples_to_add = 0
                     if self.config.start_datetime:
-                        start_samples_to_add = int((sensor.first_data_timestamp() -
+                        start_samples_to_add = int((slice_start -
                                                     dtu.datetime_to_epoch_microseconds_utc(self.config.start_datetime))
                                                    / end_sample_interval)
                     else:
                         start_samples_to_add = 0
                 # add to end
-                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=sensor.num_samples() - 1,
+                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=_arrow.num_rows - 1,
                                                     sample_interval_micros=end_sample_interval,
                                                     num_samples_to_add=end_samples_to_add,
                                                     point_creation_mode=new_point_mode))

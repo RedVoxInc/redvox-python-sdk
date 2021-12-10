@@ -1,16 +1,15 @@
-from glob import glob
-
 import matplotlib.pyplot as plt
 import redvox.common.data_window as dwa
+from redvox.common.io import get_json_file
 
 
 def main():
-    files = glob("./*.json")
-    if len(files) < 1:
+    files = get_json_file(".")
+    if files is None:
         raise KeyError("Missing .json file to load!")
-    dw = dwa.DataWindow.load(files[0])
+    dw = dwa.DataWindow.load(files)
 
-    print("Stations in Data Window:", dw.stations())
+    print("Stations by ID in Data Window:", [sttn.id() for sttn in dw.stations()])
     st = dw.first_station()
 
     print(f"Sensors in Station {st.id()}:", st.get_sensors())
