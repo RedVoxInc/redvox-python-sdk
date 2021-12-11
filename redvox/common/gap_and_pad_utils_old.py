@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional
 import enum
 from math import modf
 from dataclasses import dataclass, field
@@ -6,11 +6,9 @@ from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 import pandas as pd
 import numpy as np
-import pyarrow as pa
-import pyarrow.compute as pc
 
 from redvox.common import date_time_utils as dtu
-from redvox.common.errors import RedVoxExceptions
+from redvox.common.errors import RedVoxExceptions, RedVoxError
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
@@ -52,7 +50,7 @@ class GapPadResult:
     """
     The result of filling gaps or padding a time series
     """
-    result: Optional[pa.Table] = None
+    result_df: Optional[pd.DataFrame] = None
     gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
     errors: RedVoxExceptions = field(default_factory=lambda: RedVoxExceptions("GapPadResult"))
 
@@ -161,24 +159,25 @@ def pad_data(
 
 
 def fill_gaps(
-        arrow_df: pa.Table,
+        data_df: pd.DataFrame,
         gaps: List[Tuple[float, float]],
         sample_interval_micros: float,
         copy: bool = False
-) -> Tuple[pa.Table, List[Tuple[float, float]]]:
+) -> pd.DataFrame:
     """
     fills gaps in the dataframe with np.nan or interpolated values by interpolating timestamps based on the
     calculated sample interval
 
-    :param arrow_df: pyarrow table with data.  first column is "timestamps"
+    :param data_df: dataframe with timestamps as column "timestamps"
     :param gaps: list of tuples of known non-inclusive start and end timestamps of the gaps
     :param sample_interval_micros: known sample interval of the data points
     :param copy: if True, copy the data points, otherwise interpolate from edges, default False
     :return: dataframe without gaps
     """
     # extract the necessary information to compute gap size and gap timestamps
-    data_time_stamps = arrow_df["timestamps"].to_numpy()
+    data_time_stamps = data_df["timestamps"].to_numpy()
     if len(data_time_stamps) > 1:
+        result_df = data_df.copy()
         data_duration = data_time_stamps[-1] - data_time_stamps[0]
         expected_samples = (np.floor(data_duration / sample_interval_micros)
                             + (1 if data_duration % sample_interval_micros >=
@@ -209,18 +208,17 @@ def fill_gaps(
                     after_end = None
                 num_new_points = int((gap[1] - gap[0]) / sample_interval_micros) - 1
                 if before_start is not None:
-                    arrow_df = add_data_points_to_df(arrow_df, before_start, sample_interval_micros,
-                                                     num_new_points, pcm)
-                if after_end is not None:
-                    arrow_df = add_data_points_to_df(arrow_df, after_end, -sample_interval_micros,
-                                                     num_new_points, pcm)
-        indic = pc.sort_indices(arrow_df, sort_keys=[("timestamps", "ascending")])
-        return arrow_df.take(indic), gaps
-    return arrow_df, gaps
+                    result_df = add_data_points_to_df(result_df, before_start, sample_interval_micros,
+                                                      num_new_points, pcm)
+                elif after_end is not None:
+                    result_df = add_data_points_to_df(result_df, after_end, -sample_interval_micros,
+                                                      num_new_points, pcm)
+        return result_df.sort_values("timestamps", ignore_index=True)
+    return data_df
 
 
 def fill_audio_gaps(
-        packet_data: List[Tuple[float, pa.Table]],
+        packet_data: List[Tuple[float, np.array]],
         sample_interval_micros: float,
         gap_upper_limit: float = DEFAULT_GAP_UPPER_LIMIT,
         gap_lower_limit: float = DEFAULT_GAP_LOWER_LIMIT
@@ -233,7 +231,7 @@ def fill_audio_gaps(
 
     :param packet_data: list of tuples, each tuple containing two pieces of packet information:
         * packet_start_timestamps: float of packet start timestamp in microseconds
-        * audio_data: pa.Table of data points
+        * audio_data: array of data points
     :param sample_interval_micros: sample interval in microseconds
     :param gap_upper_limit: percentage of packet length required to confirm gap is at least 1 packet,
                             default DEFAULT_GAP_UPPER_LIMIT
@@ -243,9 +241,8 @@ def fill_audio_gaps(
     result_array = [[], [], []]
     last_data_timestamp: Optional[float] = None
     gaps = []
-    result = GapPadResult()
     for packet in packet_data:
-        samples_in_packet = packet[1].num_rows
+        samples_in_packet = len(packet[1])
         start_ts = packet[0]
         packet_length = sample_interval_micros * samples_in_packet
         if last_data_timestamp:
@@ -267,40 +264,38 @@ def fill_audio_gaps(
                 result_array[1].extend(gap_array[0])
                 result_array[2].extend(gap_array[1])
             elif last_timestamp_diff < -gap_lower_limit * packet_length:
+                result = GapPadResult()
                 result.add_error(f"Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} "
                                  f"is before last timestamp of previous "
                                  f"packet: {dtu.microseconds_to_seconds(last_data_timestamp)}")
-                # return result
+                return result
         estimated_ts = calc_evenly_sampled_timestamps(start_ts, samples_in_packet, sample_interval_micros)
         last_data_timestamp = estimated_ts[-1]
         result_array[0].extend(estimated_ts)
         result_array[1].extend(estimated_ts)
-        result_array[2].extend(packet[1]["microphone"].to_numpy())
-    result.result = pa.Table.from_pydict(dict(zip(AUDIO_DF_COLUMNS, result_array)))
-    result.gaps = gaps
-    return result
+        result_array[2].extend(packet[1])
+    return GapPadResult(pd.DataFrame(np.transpose(result_array), columns=AUDIO_DF_COLUMNS), gaps)
 
 
-def add_data_points_to_df(dataframe: pa.Table,
+def add_data_points_to_df(dataframe: pd.DataFrame,
                           start_index: int,
                           sample_interval_micros: float,
                           num_samples_to_add: int = 1,
                           point_creation_mode: DataPointCreationMode = DataPointCreationMode.COPY,
-                          ) -> pa.Table:
+                          ) -> pd.DataFrame:
     """
     adds data points to the end of the dataframe, starting from the index specified.
         Note:
             * dataframe must not be empty
             * start_index must be non-negative and less than the length of dataframe
             * num_samples_to_add must be greater than 0
-            * sample_interval_micros cannot be 0
             * points are added onto the end and the result is not sorted
         Options for point_creation_mode are:
             * NAN: default values and nans
             * COPY: copies of the start data point
             * INTERPOLATE: interpolated values between start data point and adjacent point
 
-    :param dataframe: pyarrow table to add dataless timestamps to
+    :param dataframe: dataframe to add dataless timestamps to
     :param start_index: index of the dataframe to use as starting point for creating new values
     :param sample_interval_micros: sample interval in microseconds of the timestamps; use negative values to
                                     add points before the start_index
@@ -308,66 +303,54 @@ def add_data_points_to_df(dataframe: pa.Table,
     :param point_creation_mode: the mode of point creation to use
     :return: updated dataframe with synthetic data points
     """
-    if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0 and sample_interval_micros != 0.:
-        start_timestamp = dataframe["timestamps"][start_index].as_py()
-        # create timestamps for every point that needs to be added
-        new_timestamps = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+    if len(dataframe) > start_index and len(dataframe) > 0 and num_samples_to_add > 0:
+        start_timestamp = dataframe["timestamps"].iloc[start_index]
+        t = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+        # interpolate mode only uses the first created timestamp
         if point_creation_mode == DataPointCreationMode.COPY:
-            # copy the start point
-            copy_row = dataframe.slice(start_index, 1).to_pydict()
-            for t in new_timestamps:
-                copy_row["timestamps"] = [t]
-                # for k in copy_row.keys():
-                #     new_dict[k].append(copy_row[k])
-            empty_df = pa.Table.from_pydict(copy_row)
+            empty_df = dataframe.iloc[start_index].copy()
+            for column_index in dataframe.columns:
+                if column_index in NON_INTERPOLATED_COLUMNS:
+                    empty_df[column_index] = np.nan
+            empty_df["timestamps"] = t[0]
         elif point_creation_mode == DataPointCreationMode.INTERPOLATE:
-            # use the start point and the next point as the edges for interpolation
-            start_point = dataframe.slice(start_index, 1).to_pydict()
-            numeric_start = start_point[[col for col in dataframe.schema.names
+            start_point = dataframe.iloc[start_index]
+            numeric_start = start_point[[col for col in dataframe.columns
                                          if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
-            non_numeric_start = start_point[[col for col in dataframe.schema.names if col in NON_NUMERIC_COLUMNS]]
-            end_point = dataframe.slice(start_index + (1 if sample_interval_micros > 0 else -1), 1).to_pydict()
-            numeric_end = end_point[[col for col in dataframe.schema.names
+            non_numeric_start = start_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
+            end_point = dataframe.iloc[start_index + (1 if sample_interval_micros > 0 else -1)]
+            numeric_end = end_point[[col for col in dataframe.columns
                                      if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
-            non_numeric_end = end_point[[col for col in dataframe.schema.names if col in NON_NUMERIC_COLUMNS]]
-            if np.abs(start_point["timestamps"] - new_timestamps[0]) \
-                    <= np.abs(end_point["timestamps"] - new_timestamps[0]):
+            non_numeric_end = end_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
+            if np.abs(start_point["timestamps"] - t[0]) <= np.abs(end_point["timestamps"] - t[0]):
                 non_numeric_diff = non_numeric_start
             else:
                 non_numeric_diff = non_numeric_end
             numeric_diff = numeric_end - numeric_start
             numeric_diff = \
                 (numeric_diff / numeric_diff["timestamps"]) * \
-                (new_timestamps - numeric_start) + numeric_start
-            # merge dicts (python 3.5 to 3.8)
-            empty_df = pa.Table.from_pydict({**numeric_diff, **non_numeric_diff})
-            # merge dicts (python 3.9):
-            # empty_df = pa.Table.from_pydict(numeric_diff | non_numeric_diff)
+                (t - numeric_start) + numeric_start
+            empty_df = pd.concat([numeric_diff, non_numeric_diff])
         else:
-            # add nans and defaults
-            empty_dict: Dict[str, List] = {}
-            for k in dataframe.schema.names:
-                empty_dict[k] = []
-            for column_index in dataframe.schema.names:
+            empty_df = pd.DataFrame(np.full([num_samples_to_add, len(dataframe.columns)], np.nan),
+                                    columns=dataframe.columns)
+            for column_index in dataframe.columns:
                 if column_index == "timestamps":
-                    empty_dict[column_index] = new_timestamps
+                    empty_df[column_index] = t
                 elif column_index == "location_provider":
-                    empty_dict[column_index] = [LocationProvider["UNKNOWN"].value for i in range(num_samples_to_add)]
+                    empty_df[column_index] = [LocationProvider["UNKNOWN"].value for i in range(num_samples_to_add)]
                 elif column_index == "image_codec":
-                    empty_dict[column_index] = [ImageCodec["UNKNOWN"].value for i in range(num_samples_to_add)]
+                    empty_df[column_index] = [ImageCodec["UNKNOWN"].value for i in range(num_samples_to_add)]
                 elif column_index == "audio_codec":
-                    empty_dict[column_index] = [AudioCodec["UNKNOWN"].value for i in range(num_samples_to_add)]
+                    empty_df[column_index] = [AudioCodec["UNKNOWN"].value for i in range(num_samples_to_add)]
                 elif column_index == "network_type":
-                    empty_dict[column_index] = [NetworkType["UNKNOWN_NETWORK"].value for i in range(num_samples_to_add)]
+                    empty_df[column_index] = [NetworkType["UNKNOWN_NETWORK"].value for i in range(num_samples_to_add)]
                 elif column_index == "power_state":
-                    empty_dict[column_index] = [PowerState["UNKNOWN_POWER_STATE"].value
-                                                for i in range(num_samples_to_add)]
+                    empty_df[column_index] = [PowerState["UNKNOWN_POWER_STATE"].value
+                                              for i in range(num_samples_to_add)]
                 elif column_index == "cell_service":
-                    empty_dict[column_index] = [CellServiceState["UNKNOWN"].value for i in range(num_samples_to_add)]
-                else:
-                    empty_dict[column_index] = np.full(num_samples_to_add, np.nan).tolist()
-            empty_df = pa.Table.from_pydict(empty_dict)
-        dataframe = pa.concat_tables([dataframe, empty_df])
+                    empty_df[column_index] = [CellServiceState["UNKNOWN"].value for i in range(num_samples_to_add)]
+        dataframe = dataframe.append(empty_df, ignore_index=True)
 
     return dataframe
 

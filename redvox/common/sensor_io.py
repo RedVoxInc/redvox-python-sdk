@@ -4,24 +4,24 @@ This module provides IO primitives for working with sensor data.
 from pathlib import Path
 import json
 from typing import (
-    Dict,
     Optional,
     TYPE_CHECKING,
 )
 
+from redvox.common.io import json_to_dict, json_file_to_dict, get_json_file
 
 if TYPE_CHECKING:
-    from redvox.common.sensor_data_with_pyarrow import SensorDataPa
+    from redvox.common.sensor_data import SensorData
 
 
-def to_json(sensor: "SensorDataPa",) -> str:
+def to_json(sensor: "SensorData",) -> str:
     """
     :return: sensor as json string
     """
     return json.dumps(sensor.as_dict())
 
 
-def to_json_file(sensor: "SensorDataPa",
+def to_json_file(sensor: "SensorData",
                  file_name: Optional[str] = None) -> Path:
     """
     saves the sensor as json and data in the same directory.
@@ -41,14 +41,3 @@ def to_json_file(sensor: "SensorDataPa",
     with open(file_path, "w") as f_p:
         f_p.write(to_json(sensor))
         return file_path.resolve(False)
-
-
-def from_json(file_path: str) -> Dict:
-    """
-    convert contents of json file to SensorData
-
-    :param file_path: full path of file to load data from.
-    :return: Dictionary of SensorData
-    """
-    with open(file_path, "r") as f_p:
-        return json.loads(f_p.read())

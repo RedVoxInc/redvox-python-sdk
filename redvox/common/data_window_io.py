@@ -17,7 +17,7 @@ from typing import (
 
 import lz4.frame
 
-from redvox.common.io import FileSystemWriter
+from redvox.common.io import FileSystemWriter, json_to_dict
 from redvox.common.date_time_utils import (
     datetime_to_epoch_microseconds_utc as us_dt,
 )
@@ -25,7 +25,7 @@ from redvox.common.date_time_utils import (
 
 if TYPE_CHECKING:
     from redvox.common.data_window import DataWindow
-    from redvox.common.data_window_wpa import DataWindowArrow
+    from redvox.common.data_window_old import DataWindow as DwOld
 
 
 class DataWindowOutputType(enum.Enum):
@@ -71,26 +71,21 @@ class DataWindowFileSystemWriter(FileSystemWriter):
     This class holds the FileSystemWriter info for DataWindows
     """
 
-    def __init__(self, file_name: str, file_ext: str = "none", base_dir: str = "."):
+    def __init__(self, file_name: str, file_ext: str = "none", base_dir: str = ".", make_run_me: bool = False):
         """
         initialize FileSystemWriter
 
         :param file_name: name of file
         :param file_ext: extension of file, default "none"
         :param base_dir: directory to save file to, default "." (current dir)
+        :param make_run_me: if True, add a runme.py file to the saved files.  Default False
         """
-        super().__init__(file_name, file_ext, base_dir,
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir, exist_ok=True)
+        os.chdir(base_dir)
+        super().__init__(file_name, file_ext, ".",
                          False if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.NONE else True)
-
-
-def json_to_data_window(json_str: str) -> Dict:
-    """
-    load a data window from json string
-
-    :param json_str: json string to read
-    :return: a dictionary of a data window
-    """
-    return json.loads(json_str)
+        self.make_run_me = make_run_me
 
 
 @dataclass
@@ -100,8 +95,8 @@ class DataWindowSerializationResult:
     compressed_bytes: int
 
 
-def serialize_data_window(
-        data_window: "DataWindow",
+def serialize_data_window_old(
+        data_window: "DwOld",
         base_dir: str = ".",
         file_name: Optional[str] = None,
         compression_factor: int = 4,
@@ -136,7 +131,7 @@ def serialize_data_window(
         return file_path.resolve(False)
 
 
-def deserialize_data_window(path: str) -> "DataWindow":
+def deserialize_data_window_old(path: str) -> "DwOld":
     """
     Decompresses and deserializes a DataWindow written to disk.
 
@@ -147,7 +142,7 @@ def deserialize_data_window(path: str) -> "DataWindow":
         return pickle.load(compressed_in)
 
 
-def json_file_to_data_window(base_dir: str, file_name: str) -> Dict:
+def json_file_to_data_window_old(base_dir: str, file_name: str) -> Dict:
     """
     load a data window from json written to disk
 
@@ -156,11 +151,11 @@ def json_file_to_data_window(base_dir: str, file_name: str) -> Dict:
     :return: a dictionary representing a json-ified data window
     """
     with open(Path(base_dir).joinpath(file_name), "r") as r_f:
-        return json_to_data_window(r_f.read())
+        return json_to_dict(r_f.read())
 
 
-def data_window_to_json(
-        data_win: "DataWindow",
+def data_window_to_json_old(
+        data_win: "DwOld",
         base_dir: str = ".",
         file_name: Optional[str] = None,
         compression_format: str = "lz4",
@@ -188,7 +183,7 @@ def data_window_to_json(
         os.makedirs(base_dir)
     if compression_format == "lz4":
         _ = str(
-            serialize_data_window(
+            serialize_data_window_old(
                 data_win, base_dir, _file_name + ".pkl.lz4"
             ).resolve()
         )
@@ -208,8 +203,8 @@ def data_window_to_json(
     return json.dumps(data_win_dict)
 
 
-def data_window_to_json_file(
-        data_window: "DataWindow",
+def data_window_to_json_file_old(
+        data_window: "DwOld",
         base_dir: str = ".",
         file_name: Optional[str] = None,
         compression_format: str = "lz4",
@@ -235,7 +230,7 @@ def data_window_to_json_file(
     file_path: Path = Path(base_dir).joinpath(f"{_file_name}.json")
     with open(file_path, "w") as f_p:
         f_p.write(
-            data_window_to_json(
+            data_window_to_json_old(
                 data_window, base_dir, file_name, compression_format
             )
         )
@@ -243,7 +238,7 @@ def data_window_to_json_file(
 
 
 def data_window_as_json(
-        data_window: "DataWindowArrow"
+        data_window: "DataWindow"
 ) -> str:
     """
     Converts the DataWindow's metadata into a JSON dictionary
@@ -254,8 +249,8 @@ def data_window_as_json(
     return json.dumps(data_window.as_dict())
 
 
-def data_window_to_json_wpa(
-        data_window: "DataWindowArrow",
+def data_window_to_json(
+        data_window: "DataWindow",
         base_dir: str = ".",
         file_name: Optional[str] = None,
 ) -> Path:
@@ -278,7 +273,7 @@ def data_window_to_json_wpa(
         return file_path.resolve(False)
 
 
-def json_file_to_data_window_wpa(file_path: str) -> Dict:
+def json_file_to_data_window(file_path: str) -> Dict:
     """
     load a specifically named DataWindow as a dictionary from a directory
 
@@ -286,11 +281,11 @@ def json_file_to_data_window_wpa(file_path: str) -> Dict:
     :return: the dictionary of the DataWindow if it exists, or None otherwise
     """
     with open(file_path, "r") as f_p:
-        return json_to_data_window(f_p.read())
+        return json_to_dict(f_p.read())
 
 
-def serialize_data_window_wpa(
-        data_window: "DataWindowArrow",
+def serialize_data_window(
+        data_window: "DataWindow",
         base_dir: str = ".",
         file_name: Optional[str] = None,
         compression_factor: int = 4,
@@ -310,8 +305,8 @@ def serialize_data_window_wpa(
     _file_name: str = (
         file_name
         if file_name is not None
-        else f"{int(data_window.get_start_date())}"
-             f"_{int(data_window.get_end_date())}"
+        else f"{int(data_window.start_date())}"
+             f"_{int(data_window.end_date())}"
              f"_{len(data_window.event_name)}.pkl.lz4"
     )
 
@@ -330,7 +325,7 @@ def serialize_data_window_wpa(
         return file_path.resolve(False)
 
 
-def deserialize_data_window_wpa(path: str) -> "DataWindowArrow":
+def deserialize_data_window(path: str) -> "DataWindow":
     """
     Decompresses and deserializes a DataWindow written to disk.
 

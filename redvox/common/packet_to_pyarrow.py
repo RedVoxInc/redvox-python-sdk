@@ -1,5 +1,6 @@
 from typing import Optional, Dict, Callable, List
 import os
+from pathlib import Path
 from itertools import repeat
 from glob import glob
 
@@ -8,8 +9,8 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
-from redvox.common import sensor_reader_utils_wpa as srupa
-from redvox.common import gap_and_pad_utils_wpa as gpu
+from redvox.common import sensor_reader_utils as srupa
+from redvox.common import gap_and_pad_utils as gpu
 from redvox.common import date_time_utils as dtu
 from redvox.common.errors import RedVoxExceptions
 
@@ -20,7 +21,7 @@ __SENSOR_NAME_TO_SENSOR_FN: Dict[
     Optional[
         Callable[
             [RedvoxPacketM],
-            srupa.Sensor,
+            srupa.SensorData,
         ]
     ],
 ] = {
@@ -93,7 +94,16 @@ class PyarrowSummary:
         self._data = data
 
     def file_name(self) -> str:
+        """
+        :return: full file name of where the file should exist
+        """
         return os.path.join(self.fdir, f"{self.stype.name}_{int(self.start)}.parquet")
+
+    def fdir_stem(self) -> str:
+        """
+        :return: the name of the parent directory of the file
+        """
+        return Path(self.fdir).stem
 
     def clean_fdir(self):
         """
@@ -409,7 +419,7 @@ def load_single(
 ) -> Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.Sensor]
+        Callable[[RedvoxPacketM], srupa.SensorData]
     ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
@@ -484,7 +494,7 @@ def load_xyz(
 ) -> Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.Sensor]
+        Callable[[RedvoxPacketM], srupa.SensorData]
     ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)

@@ -5,6 +5,7 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
+import json
 import os.path
 import multiprocessing
 import multiprocessing.pool
@@ -140,6 +141,36 @@ class FileSystemWriter:
             "base_dir": self.base_dir,
             "save_to_disk": self.save_to_disk
         }
+
+
+def json_to_dict(json_str: str) -> Dict:
+    """
+    :param json_str: string of json to convert to dictionary
+    :return: json string as a dictionary
+    """
+    return json.loads(json_str)
+
+
+def json_file_to_dict(file_path: str) -> Dict:
+    """
+    :param file_path: full path of file to load data from.
+    :return: json file as python dictionary
+    """
+    with open(file_path, "r") as f_p:
+        return json_to_dict(f_p.read())
+
+
+def get_json_file(file_dir: str) -> Optional[str]:
+    """
+    Finds the first json file in the file_dir specified or None if there is no file
+
+    :param file_dir: directory to find json file in
+    :return: full name of first json file in the directory or None if no files found
+    """
+    file_names = glob(os.path.join(file_dir, "*.json"))
+    if len(file_names) < 1:
+        return None
+    return Path(file_names[0]).name
 
 
 def _is_int(value: str) -> Optional[int]:

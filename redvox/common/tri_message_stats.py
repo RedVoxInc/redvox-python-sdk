@@ -24,8 +24,9 @@ class TriMessageStats:
         offset3: offsets measured by timestamps 2 and 3
         best_latency: minimum latency that meets all criteria
         best_offset: best offset that meets all criteria
-        best_latency_array_index: number of latency array with best latency
-        best_latency_index: index in latency array of best latency
+        best_latency_array_index: index in latency array with best latency
+        best_latency_index: index of which latency array has the best latency
+        best_latency_per_exchange_index_array: the index of which latency array has the best latency, per each exchange
         num_messages: number of tri-message exchanges
     """
 
@@ -69,6 +70,7 @@ class TriMessageStats:
 
         self.find_best_latency()
         self.find_best_offset()
+        self.best_latency_per_exchange_index_array: List[int] = self.find_best_exchange_latencies_index()
 
     def find_best_latency(self) -> None:
         """
@@ -107,6 +109,12 @@ class TriMessageStats:
             self.best_offset = self.offset3[self.best_latency_index]
         else:
             self.best_offset = 0.0
+
+    def find_best_exchange_latencies_index(self) -> List[int]:
+        """
+        :return: A list of the best latency index per exchange
+        """
+        return [0 if self.latency1[n] < self.latency3[n] else 1 for n in range(self.num_messages)]
 
     def set_latency(
         self,

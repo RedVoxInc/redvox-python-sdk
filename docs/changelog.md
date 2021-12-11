@@ -1,5 +1,65 @@
 ## Changelog
 
+### 3.1.1 (20121-12-10)
+
+* Added option to enable runme.py file creation when saving DataWindows (default is no creation)
+* Added DataWindow saving options to tooltips
+* Added DataWindowConfigFile to allow DataWindow creation from a .toml file
+* Renamed base_dir in SensorData to save_dir to be in line with other modules
+* Fixed bug when creating DataWindows that caused the last timestamp of sensors to be incorrect
+
+### 3.1.0 (2021-12-8)
+
+* Official release 3.1.0
+* Summary of changes:
+  * Pyarrow backend implemented for DataWindow, Station, SensorData and underlying classes
+  * Properties of the above classes have been updated into functions for more secure access
+* Please note DataWindows created in versions 3.0.x cannot be loaded in 3.1.0
+  * Use the latest 3.0.10 to continue to load 3.0.x DataWindows
+  * OR recreate the DataWindows using 3.1.0
+
+### 3.1.0rc5 (2021-12-7)
+
+* Requirements for numpy reduced to >=1.19.5
+* Added values for DataWindow saving methods in function description
+
+### 3.1.0rc4 (2021-12-7)
+
+* Added missing functions for Station and SensorData property access
+* Documentation updated for new functions
+
+### 3.1.0rc3 (2021-12-1)
+
+* Updated more functions used by old data window module
+
+### 3.1.0rc2 (2021-12-1)
+
+* Added missing notes for 3.1.0rc1 release
+* Updated functions used by old data window module
+
+### 3.1.0rc1 (2021-12-1)
+
+* Prepare for release
+
+### 3.0.10rc13 (2021-11-30)
+
+* Added functions to TimeSync to display individual values per exchange
+* updated installation requirements
+
+### 3.0.10rc12 (2021-11-29)
+
+* Update SensorData, Station, DataWindow and related classes to use Pyarrow implementations
+* Shifted previous versions of the above to *_old files while updated classes in testing
+
+### 3.0.10rc11 (2021-11-16)
+
+* Added missing file used to read data windows written to disk
+
+### 3.0.10rc8 (2021-11-16)
+
+* Updated filesystem writing functions
+* Added subclasses to SensorData objects (pyarrow and regular versions)
+
 ### 3.0.10rc7 (2021-10-19)
 
 * Shifted DataWindowArrow, StationPa and SensorDataPa to use filesystem to store data
