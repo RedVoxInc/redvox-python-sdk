@@ -14,6 +14,7 @@ import pyarrow as pa
 import os
 import numpy as np
 from time import time
+import psutil
 
 
 import redvox.settings as settings
@@ -140,6 +141,9 @@ class ApiReader:
                 f"num_bytes: {bytes_per_station / 1000} KB"
             )
             index.extend(checked_index)
+        print(f"\nExpected DataWindow size: {total_bytes_loading / 166.6:.2f} KB")
+        print("avail: ", psutil.virtual_memory().available)
+        print(f"total overhead: {overhead}")
         # print(f"Total memory loading: {total_bytes_loading / 1000} KB")
         # print(f"Overhead for calculating the file size: {overhead}")
 
