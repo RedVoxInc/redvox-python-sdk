@@ -642,9 +642,6 @@ class DataWindow:
                           save_files=self._fs_writer.save_to_disk,
                           debug=self.debug, pool=_pool)
 
-        if self.debug and a_r.errors.get_num_errors() > 0:
-            print("Errors found while loading station data.  DataWindow may not complete properly.")
-            a_r.errors.print()
         self._errors.extend_error(a_r.errors)
 
         # Parallel update
@@ -847,5 +844,5 @@ class DataWindow:
         prints errors to screen
         """
         self._errors.print()
-        for s in self._stations:
-            s.errors().print()
+        for stn in self._stations:
+            stn.print_errors()

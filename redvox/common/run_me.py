@@ -16,7 +16,7 @@ def main():
     print(f"Audio Sensor {audio.name} Data: ", audio.get_microphone_data())
 
     # use your choice of plotting library to plot the data
-    # example using matplolib:
+    # example using matplotlib:
 
     # import matplotlib.pyplot as plt
     # print("Plotting data")
