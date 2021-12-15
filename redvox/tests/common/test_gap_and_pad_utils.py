@@ -9,7 +9,7 @@ import redvox.common.gap_and_pad_utils as gpu
 
 class CalcTimestampsTest(unittest.TestCase):
     def test_calc_timestamps(self):
-        timestamps = gpu.calc_evenly_sampled_timestamps(1000, 100, 1000)
+        timestamps = gpu.calc_evenly_sampled_timestamps(1000., 100, 1000)
         self.assertEqual(len(timestamps), 100)
         self.assertEqual(timestamps[0], 1000)
         self.assertEqual(timestamps[1], 2000)
@@ -18,39 +18,39 @@ class CalcTimestampsTest(unittest.TestCase):
 
 class InterpolateGapsTest(unittest.TestCase):
     def test_create_simple_df(self):
-        my_df = pa.Table.from_pydict({"timestamps": [1000, 8000, 9000, 15000], "data": [50., 400., 450., 750.]})
-        gaps = [(1000, 8000), (9000, 15000)]
-        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
+        my_df = pa.Table.from_pydict({"timestamps": [1000., 8000., 9000., 15000.], "data": [50., 400., 450., 750.]})
+        gaps = [(1000., 8000.), (9000., 15000.)]
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000.)
         self.assertEqual(len(filled_df[0]["timestamps"].to_numpy()), 15)
 
     def test_create_gap_after_end(self):
-        my_df = pa.Table.from_pydict({"timestamps": [1000, 8000, 9000, 15000], "data": [50., 400., 450., 750.]})
-        gaps = [(1000, 8000), (9000, 19000)]
-        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
+        my_df = pa.Table.from_pydict({"timestamps": [1000., 8000., 9000., 15000.], "data": [50., 400., 450., 750.]})
+        gaps = [(1000., 8000.), (9000., 19000.)]
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000.)
         self.assertEqual(len(filled_df[0]["timestamps"].to_numpy()), 15)
 
     def test_create_gap_before_begin(self):
-        my_df = pa.Table.from_pydict({"timestamps": [11000, 18000, 19000, 25000], "data": [50., 400., 450., 750.]})
-        gaps = [(1000, 18000), (19000, 29000)]
-        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
+        my_df = pa.Table.from_pydict({"timestamps": [11000., 18000., 19000., 25000.], "data": [50., 400., 450., 750.]})
+        gaps = [(1000., 18000.), (19000., 29000.)]
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000.)
         self.assertEqual(len(filled_df[0]["timestamps"].to_numpy()), 15)
 
     def test_create_gap_intersect_end(self):
-        my_df = pa.Table.from_pydict({"timestamps": [1000, 8000, 9000, 15000], "data": [50., 400., 450., 750.]})
-        gaps = [(1000, 7000), (6000, 8000), (9000, 15000)]
-        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
+        my_df = pa.Table.from_pydict({"timestamps": [1000., 8000., 9000., 15000.], "data": [50., 400., 450., 750.]})
+        gaps = [(1000., 7000.), (6000., 8000.), (9000., 15000.)]
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000.)
         self.assertEqual(len(filled_df[0]["timestamps"].to_numpy()), 15)
 
     def test_create_gap_intersect_begin(self):
-        my_df = pa.Table.from_pydict({"timestamps": [1000, 8000, 9000, 15000], "data": [50., 400., 450., 750.]})
-        gaps = [(5000, 8000), (1000, 7000), (9000, 15000)]
-        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
+        my_df = pa.Table.from_pydict({"timestamps": [1000., 8000., 9000., 15000.], "data": [50., 400., 450., 750.]})
+        gaps = [(5000., 8000.), (1000., 7000.), (9000., 15000.)]
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000.)
         self.assertEqual(len(filled_df[0]["timestamps"].to_numpy()), 15)
 
     def test_create_gap_overlap(self):
-        my_df = pa.Table.from_pydict({"timestamps": [1000, 8000, 9000, 15000], "data": [50., 400., 450., 750.]})
-        gaps = [(4000, 6000), (1000, 8000), (9000, 15000)]
-        filled_df = gpu.fill_gaps(my_df, gaps, 1000)
+        my_df = pa.Table.from_pydict({"timestamps": [1000., 8000., 9000., 15000.], "data": [50., 400., 450., 750.]})
+        gaps = [(4000., 6000.), (1000., 8000.), (9000., 15000.)]
+        filled_df = gpu.fill_gaps(my_df, gaps, 1000.)
         self.assertEqual(len(filled_df[0]["timestamps"].to_numpy()), 15)
 
 
