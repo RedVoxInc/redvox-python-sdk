@@ -604,7 +604,6 @@ class DataWindow:
         return None
 
     def _add_sensor_to_window(self, station: Station):
-        self._errors.extend_error(station.errors())
         # set the window start and end if they were specified, otherwise use the bounds of the data
         self.create_window_in_sensors(station, self.config.start_datetime, self.config.end_datetime)
 
@@ -643,6 +642,9 @@ class DataWindow:
                           save_files=self._fs_writer.save_to_disk,
                           debug=self.debug, pool=_pool)
 
+        if self.debug and a_r.errors.get_num_errors() > 0:
+            print("Errors found while loading station data.  DataWindow may not complete properly.")
+            a_r.errors.print()
         self._errors.extend_error(a_r.errors)
 
         # Parallel update
@@ -845,3 +847,5 @@ class DataWindow:
         prints errors to screen
         """
         self._errors.print()
+        for s in self._stations:
+            s.errors().print()

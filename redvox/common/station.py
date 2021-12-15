@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 
 import numpy as np
-import pyarrow as pa
+import pyarrow.dataset as ds
 
 from redvox.common import station_io as io
 from redvox.common.io import FileSystemWriter as Fsw
@@ -221,8 +221,7 @@ class Station:
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
             file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
             self._timesync_data.arrow_file = f"timesync_{file_date}"
-            self._set_pyarrow_sensors(
-                ptp.stream_to_pyarrow(packets, self.save_dir() if self._fs_writer.save_to_disk else None))
+            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.save_dir()))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -1139,29 +1138,29 @@ class Station:
         if audo:
             # avoid converting packets into parquets for now; just load the data into memory and process
             # if self.save_output:
-            #     self._data.append(sd.SensorDataPa.from_dir(
-            #         sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
-            #         sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
-            #         sample_interval_std_s=0., is_sample_rate_fixed=True)
-            #     )
+            self._data.append(sd.AudioSensor.from_dir(
+                sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
+                sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
+                sample_interval_std_s=0., is_sample_rate_fixed=True, save_data=self._fs_writer.save_to_disk)
+            )
             # else:
             #     self._data.append(sd.SensorDataPa(audo.name, audo.data(), audo.stype,
             #                                       audo.srate_hz, 1/audo.srate_hz, 0., True))
-            self._data.append(sd.AudioSensor(audo.name, audo.data(), audo.srate_hz, 1 / audo.srate_hz, 0., True,
-                                             base_dir=audo.fdir, save_data=self._fs_writer.save_to_disk))
+            # self._data.append(sd.AudioSensor(audo.name, audo.data(), audo.srate_hz, 1 / audo.srate_hz, 0., True,
+            #                                  base_dir=audo.fdir, save_data=self._fs_writer.save_to_disk))
             self.update_first_and_last_data_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
                 # avoid converting packets into parquets for now; just load the data into memory and process
                 # if self.save_output:
-                #     data_table = ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table()
+                data_table = ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table()
                 # else:
                 #     data_table = sdata[0].data()
                 #     for i in range(1, len(sdata)):
                 #         data_table = pa.concat_tables([data_table, sdata[i].data()])
-                data_table = sdata[0].data()
-                for i in range(1, len(sdata)):
-                    data_table = pa.concat_tables([data_table, sdata[i].data()])
+                # data_table = sdata[0].data()
+                # for i in range(1, len(sdata)):
+                #     data_table = pa.concat_tables([data_table, sdata[i].data()])
                 if np.isnan(sdata[0].srate_hz):
                     for sds in sdata:
                         stats.add(sds.smint_s, sds.sstd_s, sds.scount)
@@ -1376,7 +1375,7 @@ class Station:
         :return: default station json file name (id_startdate), with startdate as integer of microseconds
                     since epoch UTC
         """
-        return f"{self._id}_{int(self._start_date)}"
+        return f"{self._id}_{0 if np.isnan(self._start_date) else int(self._start_date)}"
 
     def to_json_file(self, file_name: Optional[str] = None) -> Path:
         """

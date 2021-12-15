@@ -424,9 +424,9 @@ class SensorData:
 
         :param table: the table to write
         """
-        self._data = table
-        # self._fs_writer.create_dir()
-        # pq.write_table(table, self.full_path())
+        # self._data = table
+        self._fs_writer.create_dir()
+        pq.write_table(table, self.full_path())
 
     def _actual_file_write_table(self):
         """
