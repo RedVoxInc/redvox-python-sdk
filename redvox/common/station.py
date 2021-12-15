@@ -386,7 +386,6 @@ class Station:
             self.get_sensor_by_type(sensor_data.type()).append_sensor(sensor_data)
         else:
             self._add_sensor(sensor_data.type(), sensor_data)
-        self._errors.extend_error(sensor_data.errors())
 
     def _delete_sensor(self, sensor_type: sd.SensorType):
         """
@@ -1281,6 +1280,14 @@ class Station:
         """
         self._errors.append(error)
 
+    def print_errors(self):
+        """
+        prints all errors in Station
+        """
+        self._errors.print()
+        for sen in self._data:
+            sen.print_errors()
+
     def audio_sample_rate_nominal_hz(self) -> float:
         """
         :return: expected audio sample rate of station in hz
@@ -1376,7 +1383,7 @@ class Station:
         :return: default station json file name (id_startdate), with startdate as integer of microseconds
                     since epoch UTC
         """
-        return f"{self._id}_{int(self._start_date)}"
+        return f"{self._id}_{0 if np.isnan(self._start_date) else int(self._start_date)}"
 
     def to_json_file(self, file_name: Optional[str] = None) -> Path:
         """

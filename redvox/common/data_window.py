@@ -604,7 +604,6 @@ class DataWindow:
         return None
 
     def _add_sensor_to_window(self, station: Station):
-        self._errors.extend_error(station.errors())
         # set the window start and end if they were specified, otherwise use the bounds of the data
         self.create_window_in_sensors(station, self.config.start_datetime, self.config.end_datetime)
 
@@ -845,3 +844,5 @@ class DataWindow:
         prints errors to screen
         """
         self._errors.print()
+        for stn in self._stations:
+            stn.print_errors()

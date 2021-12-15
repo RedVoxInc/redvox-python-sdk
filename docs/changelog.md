@@ -1,6 +1,13 @@
 ## Changelog
 
-### 3.1.1 (20121-12-10)
+### 3.1.2 (2021-12-15)
+
+* Fixed missing start date in Station preventing saving to disk
+* Fixed timing_score_method name not being written in .json
+* Updated error reporting methods
+* runme.py file updated to make plotting data optional
+
+### 3.1.1 (2021-12-10)
 
 * Added option to enable runme.py file creation when saving DataWindows (default is no creation)
 * Added DataWindow saving options to tooltips

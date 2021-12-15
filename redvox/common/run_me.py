@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import redvox.common.data_window as dwa
 from redvox.common.io import get_json_file
 
@@ -16,13 +15,17 @@ def main():
     audio = st.audio_sensor()
     print(f"Audio Sensor {audio.name} Data: ", audio.get_microphone_data())
 
-    print("Plotting data")
-    plt.figure(figsize=(8, 6))
-    plt.plot(audio.data_timestamps() - audio.first_data_timestamp(), audio.get_microphone_data())
-    plt.ylabel("Audio")
-    plt.xlabel("Time")
-    plt.title("Audio Data")
-    plt.show()
+    # use your choice of plotting library to plot the data
+    # example using matplotlib:
+
+    # import matplotlib.pyplot as plt
+    # print("Plotting data")
+    # plt.figure(figsize=(8, 6))
+    # plt.plot(audio.data_timestamps() - audio.first_data_timestamp(), audio.get_microphone_data())
+    # plt.ylabel("Audio")
+    # plt.xlabel("Time")
+    # plt.title("Audio Data")
+    # plt.show()
 
 
 if __name__ == "__main__":
