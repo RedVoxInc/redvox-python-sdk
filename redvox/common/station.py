@@ -385,7 +385,6 @@ class Station:
             self.get_sensor_by_type(sensor_data.type()).append_sensor(sensor_data)
         else:
             self._add_sensor(sensor_data.type(), sensor_data)
-        self._errors.extend_error(sensor_data.errors())
 
     def _delete_sensor(self, sensor_type: sd.SensorType):
         """
@@ -1279,6 +1278,14 @@ class Station:
         :param error: error to add
         """
         self._errors.append(error)
+
+    def print_errors(self):
+        """
+        prints all errors in Station
+        """
+        self._errors.print()
+        for sen in self._data:
+            sen.print_errors()
 
     def audio_sample_rate_nominal_hz(self) -> float:
         """

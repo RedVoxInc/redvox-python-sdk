@@ -403,7 +403,7 @@ class StationPacketMetadata:
             "packet_end_os_timestamp": self.packet_end_os_timestamp,
             "server_packet_receive_timestamp": self.server_packet_receive_timestamp,
             "timing_info_score": self.timing_info_score,
-            "timing_score_method": self.timing_score_method,
+            "timing_score_method": self.timing_score_method.name,
             "other_metadata": self.other_metadata
         }
 
