@@ -2,19 +2,13 @@
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 """
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
-from itertools import repeat
-from multiprocessing import cpu_count, Manager, Process, Queue
-import queue
 
 import pyarrow as pa
-import os
-import numpy as np
 from time import time
-import psutil
 
 
 import redvox.settings as settings
@@ -132,7 +126,7 @@ class ApiReader:
             id_index = all_index.get_index_for_station_id(station_id)
             checked_index = self._check_station_stats(id_index, pool=_pool)
             start = time()
-            bytes_per_station = np.sum([os.stat(entry.full_path).st_size for entry in id_index.entries])
+            bytes_per_station = id_index.files_size()
             end = time()
             total_bytes_loading += bytes_per_station
             overhead += end - start
@@ -142,8 +136,7 @@ class ApiReader:
             )
             index.extend(checked_index)
         print(f"\nExpected DataWindow size: {total_bytes_loading / 166.6:.2f} KB")
-        print("avail: ", psutil.virtual_memory().available)
-        print(f"total overhead: {overhead}")
+        # print(f"total overhead: {overhead}")
         # print(f"Total memory loading: {total_bytes_loading / 1000} KB")
         # print(f"Overhead for calculating the file size: {overhead}")
 

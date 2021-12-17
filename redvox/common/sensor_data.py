@@ -395,6 +395,12 @@ class SensorData:
         """
         return self._fs_writer
 
+    def set_use_temp_dir(self, use_temp_dir: bool = False):
+        """
+        :param use_temp_dir: if True, use temp dir to save data.  default False
+        """
+        self._fs_writer.use_temp_dir = use_temp_dir
+
     def pyarrow_ds(self, base_dir: Optional[str] = None) -> ds.Dataset:
         """
         :param base_dir: optional directory to use when loading the dataset.  if None, use self.base_dir()
@@ -424,9 +430,12 @@ class SensorData:
 
         :param table: the table to write
         """
-        # self._data = table
-        self._fs_writer.create_dir()
-        pq.write_table(table, self.full_path())
+        if self._fs_writer.save_to_disk:
+            self._fs_writer.create_dir()
+            pq.write_table(table, self.full_path())
+            self._data = None
+        else:
+            self._data = table
 
     def _actual_file_write_table(self):
         """

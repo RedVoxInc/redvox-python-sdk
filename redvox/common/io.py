@@ -1,10 +1,12 @@
 """
 This module provides IO primitives for working with cross-API RedVox data.
 """
+import enum
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
+import numpy as np
 import json
 import os.path
 import multiprocessing
@@ -45,6 +47,28 @@ if TYPE_CHECKING:
     from redvox.api900.lib.api900_pb2 import RedvoxPacket
 
 
+class FileSystemSaveMode(enum.Enum):
+    """
+    Enumeration of saving methodology
+    """
+    MEM = 0   # save using memory
+    TEMP = 1  # save using temporary directory
+    DISK = 2  # save using path on disk
+
+    @staticmethod
+    def get_save_mode(use_temp: bool, use_disk: bool) -> "FileSystemSaveMode":
+        """
+        :param use_temp: use temporary directory
+        :param use_disk: use path on disk
+        :return: the mode used to save
+        """
+        if use_temp:
+            return FileSystemSaveMode.TEMP  # use_temp takes priority
+        elif use_disk:
+            return FileSystemSaveMode.DISK  # if here, use_temp is always false
+        return FileSystemSaveMode.MEM
+
+
 class FileSystemWriter:
     """
     This class holds basic information about writing and reading objects from a file system
@@ -55,32 +79,50 @@ class FileSystemWriter:
         file_ext: str, the extension used by the file (do not include the .).  Default "NONE"
         base_dir: str, the directory to save the file to.  Default "." (current dir)
         save_to_disk: bool, if True, save data to disk.  Default False
+        use_temp_dir: bool, if True, use temporary directory to reduce load on system memory.  Default False
 
     Protected:
         _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
+        _save_mode: FileSystemSaveMode, determines how files get saved
     """
 
     def __init__(self, file_name: str, file_ext: str = "none",
-                 base_dir: str = ".", save_enabled: bool = False):
+                 base_dir: str = ".", save_enabled: bool = False, save_temp_dir: bool = False):
         """
         initialize FileSystemWriter
 
         :param file_name: name of file
         :param file_ext: extension of file, default "none"
         :param base_dir: directory to save file to, default "." (current dir)
-        :param save_enabled: if True, save to the file specified by, default False
+        :param save_enabled: if True, save to the file specified by other params, default False
+        :param save_temp_dir: if True, save files to temporary directory to reduce effect
+                                on system RAM, default False
         """
         self.file_name: str = file_name
         self.file_extension: str = file_ext.lower()
         self.save_to_disk: bool = save_enabled
         self.base_dir: str = base_dir
+        self.use_temp_dir: bool = save_temp_dir
+        self._save_mode: FileSystemSaveMode = FileSystemSaveMode.get_save_mode(self.use_temp_dir, self.save_to_disk)
         self._temp_dir = tempfile.TemporaryDirectory()
+
+    def _use_temp(self) -> bool:
+        """
+        :return: if mode uses temp dir
+        """
+        return self._save_mode == FileSystemSaveMode.TEMP
+
+    def _use_disk(self) -> bool:
+        """
+        :return: if mode uses path on disk
+        """
+        return self._save_mode == FileSystemSaveMode.DISK
 
     def save_dir(self) -> str:
         """
         :return: directory where file would be saved based on current value of self.save_to_disk
         """
-        return self.base_dir if self.save_to_disk else self._temp_dir.name
+        return self.base_dir if self._use_disk() else self._temp_dir.name
 
     def full_name(self) -> str:
         """
@@ -120,7 +162,7 @@ class FileSystemWriter:
         if saving to disk, otherwise remove any files in the directory,
         then create the directory if it doesn't exist
         """
-        if self.save_to_disk:
+        if self._use_disk():
             if os.path.exists(self.save_dir()):
                 rmtree(self.save_dir())
             os.makedirs(self.save_dir(), exist_ok=True)
@@ -777,6 +819,12 @@ class Index:
         :return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         """
         return list(self.stream(read_filter))
+
+    def files_size(self) -> float:
+        """
+        :return: sum of file size in bytes of index
+        """
+        return np.sum([os.stat(entry.full_path).st_size for entry in self.entries])
 
 
 # The following constants are used for identifying valid RedVox API 900 and API 1000 structured directory layouts.

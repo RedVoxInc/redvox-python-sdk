@@ -4,6 +4,7 @@ Data files can be either API 900 or API 1000 data formats
 """
 from typing import List, Optional
 import multiprocessing.pool
+import numpy as np
 
 import redvox.settings as settings
 from redvox.common import io
@@ -44,6 +45,7 @@ class ApiReaderDw(ApiReader):
         self.dw_base_dir = dw_base_dir
         self.save_files = save_files
         self._stations = self._read_stations()
+        self.all_files_size = np.sum([idx.files_size() for idx in self.files_index])
 
     def _stations_by_index(self, findex: io.Index) -> Station:
         """

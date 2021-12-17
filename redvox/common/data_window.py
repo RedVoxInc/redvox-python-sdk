@@ -15,6 +15,7 @@ import multiprocessing
 import multiprocessing.pool
 import numpy as np
 import pyarrow as pa
+import psutil
 
 import redvox
 from redvox.common import date_time_utils as dtu
@@ -604,6 +605,7 @@ class DataWindow:
         return None
 
     def _add_sensor_to_window(self, station: Station):
+        station.set_use_temp_dir(self._fs_writer.use_temp_dir)
         # set the window start and end if they were specified, otherwise use the bounds of the data
         self.create_window_in_sensors(station, self.config.start_datetime, self.config.end_datetime)
 
@@ -643,6 +645,9 @@ class DataWindow:
                           debug=self.debug, pool=_pool)
 
         self._errors.extend_error(a_r.errors)
+
+        if a_r.all_files_size * 10. > psutil.virtual_memory().available:
+            self._fs_writer.use_temp_dir = True
 
         # Parallel update
         # Apply timing correction in parallel by station
