@@ -343,7 +343,7 @@ def apim_image_to_pyarrow(image_sensor: api_m.RedvoxPacketM.Sensors.Image) -> pa
     )
 
 
-def apim_best_location_to_pyarrow(best_loc: api_m.RedvoxPacketM.Sensors.Location,
+def apim_best_location_to_pyarrow(best_loc: api_m.RedvoxPacketM.Sensors.Location.BestLocation,
                                   packet_start_timestamp: float) -> pa.Table:
     """
     :param best_loc: best location to convert to pyarrow table
@@ -434,14 +434,19 @@ def apim_health_to_pyarrow(metrics: api_m.RedvoxPacketM.StationInformation.Stati
         data_for_df[2].append(np.nan if len(bat_samples) < i + 1 else bat_samples[i])
         data_for_df[3].append(np.nan if len(bat_cur_samples) < i + 1 else bat_cur_samples[i])
         data_for_df[4].append(np.nan if len(temp_samples) < i + 1 else temp_samples[i])
-        data_for_df[5].append(np.nan if len(net_samples) < i + 1 else net_samples[i])
+        data_for_df[5].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.NetworkType.UNKNOWN_NETWORK
+                              if len(net_samples) < i + 1 else net_samples[i])
         data_for_df[6].append(np.nan if len(net_str_samples) < i + 1 else net_str_samples[i])
-        data_for_df[7].append(np.nan if len(pow_samples) < i + 1 else pow_samples[i])
+        data_for_df[7].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.PowerState.UNKNOWN_POWER_STATE
+                              if len(pow_samples) < i + 1 else pow_samples[i])
         data_for_df[8].append(np.nan if len(avail_ram_samples) < i + 1 else avail_ram_samples[i])
         data_for_df[9].append(np.nan if len(avail_disk_samples) < i + 1 else avail_disk_samples[i])
-        data_for_df[10].append(np.nan if len(cell_samples) < i + 1 else cell_samples[i])
+        data_for_df[10].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState.UNKNOWN
+                               if len(cell_samples) < i + 1 else cell_samples[i])
         data_for_df[11].append(np.nan if len(cpu_util_samples) < i + 1 else cpu_util_samples[i])
-        data_for_df[12].append(np.nan if len(wake_lock_samples) < i + 1 else wake_lock_samples[i])
-        data_for_df[13].append(np.nan if len(screen_state_samples) < i + 1 else screen_state_samples[i])
+        data_for_df[12].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.NONE
+                               if len(wake_lock_samples) < i + 1 else wake_lock_samples[i])
+        data_for_df[13].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.ScreenState.UNKNOWN_SCREEN_STATE
+                               if len(screen_state_samples) < i + 1 else screen_state_samples[i])
         data_for_df[14].append(np.nan if len(screen_bright_samples) < i + 1 else screen_bright_samples[i])
     return pa.Table.from_pydict(dict(zip(STATION_HEALTH_COLUMNS, data_for_df)))

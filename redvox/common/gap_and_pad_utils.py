@@ -13,7 +13,8 @@ from redvox.common.errors import RedVoxExceptions
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
-from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
+from redvox.api1000.wrapped_redvox_packet.station_information import \
+    NetworkType, PowerState, CellServiceState, WifiWakeLock, ScreenState
 
 # default maximum number of points required to brute force calculating gap timestamps
 DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
@@ -26,8 +27,8 @@ AUDIO_DF_COLUMNS = ["timestamps", "unaltered_timestamps", "microphone"]
 # columns that cannot be interpolated
 NON_INTERPOLATED_COLUMNS = ["compressed_audio", "image"]
 # columns that are not numeric but can be interpolated
-NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec",
-                       "network_type", "power_state", "cell_service"]
+NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec", "network_type",
+                       "power_state", "cell_service", "wifi_wake_lock", "screen_state"]
 
 
 # noinspection Mypy,DuplicatedCode
@@ -316,6 +317,11 @@ def add_data_points_to_df(data_table: pa.Table,
                                                 for i in range(num_samples_to_add)]
                 elif column_index == "cell_service":
                     empty_dict[column_index] = [CellServiceState["UNKNOWN"].value for i in range(num_samples_to_add)]
+                elif column_index == "wifi_wake_lock":
+                    empty_dict[column_index] = [WifiWakeLock["NONE"].value for i in range(num_samples_to_add)]
+                elif column_index == "screen_state":
+                    empty_dict[column_index] = [ScreenState["UNKNOWN_SCREEN_STATE"].value
+                                                for i in range(num_samples_to_add)]
                 else:
                     empty_dict[column_index] = np.full(num_samples_to_add, np.nan).tolist()
             empty_df = pa.Table.from_pydict(empty_dict)

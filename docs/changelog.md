@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.1.3 (2021-12-16)
+
+* Fixed missing values when loading Health Sensor data
+
 ### 3.1.2 (2021-12-15)
 
 * Fixed missing start date in Station preventing saving to disk
