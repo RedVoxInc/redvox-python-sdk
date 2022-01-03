@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>redvox.tests.common.test_timesync API documentation</title>
 <meta name="description" content="tests for timesync" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -32,7 +32,6 @@ tests for timesync
 &#34;&#34;&#34;
 import unittest
 import contextlib
-import numpy as np
 import redvox.tests as tests
 from redvox.common import timesync as ts
 from redvox.common import api_reader
@@ -45,98 +44,52 @@ class TimesyncTest(unittest.TestCase):
         with contextlib.redirect_stdout(None):
             result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
                                           read_filter=ReadFilter(station_ids={&#34;1637680001&#34;}))
-            cls.time_sync_analysis = ts.TimeSyncAnalysis().from_raw_packets(result.read_files_by_id(&#34;1637680001&#34;))
+            cls.timesync = ts.TimeSync().from_raw_packets(result.read_files_by_id(&#34;1637680001&#34;))
 
-    def test_validate_sensors(self):
-        test_ts = ts.TimeSyncData()
-        test_ts.station_id = &#34;test&#34;
-        test_ts.sample_rate_hz = 80.0
-        test_ts.station_start_timestamp = 1
-        other_ts = ts.TimeSyncData()
-        other_ts.station_id = &#34;test&#34;
-        other_ts.sample_rate_hz = 80.0
-        tsa_test = ts.TimeSyncAnalysis()
-        tsa_test.station_id = &#34;test&#34;
-        tsa_test.timesync_data = [test_ts, other_ts]
-        tsa_test.sample_rate_hz = 80.0
-        tsa_test.station_start_timestamp = 1
-        self.assertFalse(ts.validate_sensors(tsa_test))
+    def test_num_tri_messages(self):
+        self.assertEqual(self.timesync.num_tri_messages(), 14)
 
-    def test_compute_tri_message_stats(self):
-        self.assertEqual(self.time_sync_analysis.get_latencies()[0], 69664.0)
-        self.assertEqual(self.time_sync_analysis.get_offsets()[0], -22906528.0)
+    def test_latencies(self):
+        self.assertEqual(len(self.timesync.latencies()[0]), 14)
+        self.assertEqual(self.timesync.latencies()[0][0], 74559.5)
 
-    def test_find_bad_packets(self):
-        self.assertEqual(len(self.time_sync_analysis.get_bad_packets()), 0)
+    def test_offsets(self):
+        self.assertEqual(len(self.timesync.offsets()[0]), 14)
+        self.assertEqual(self.timesync.offsets()[0][0], -22907018.5)
 
-    def test_time_sync_analysis_data_load(self):
-        self.assertEqual(len(self.time_sync_analysis.get_latencies()), 3)
-        self.assertEqual(len(self.time_sync_analysis.get_offsets()), 3)
-        self.assertEqual(self.time_sync_analysis.get_best_latency(), 69664.0)
-        self.assertEqual(self.time_sync_analysis.best_latency_index, 0)
+    def test_best_latencies_per_exchange(self):
+        ltncs = self.timesync.best_latency_per_exchange()
+        self.assertEqual(len(ltncs), 14)
+        self.assertEqual(ltncs[0], 74559.5)
+        self.assertEqual(self.timesync.best_latency(), ltncs[2])
 
-    def test_get_latency_mean(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_mean_latency(), 116253.55, 2)
+    def test_best_offsets_per_exchange(self):
+        ofsts = self.timesync.best_offset_per_exchange()
+        self.assertEqual(len(ofsts), 14)
+        self.assertEqual(ofsts[0], -22907018.5)
+        self.assertEqual(self.timesync.best_offset(), ofsts[2])
 
-    def test_get_latency_std_dev(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_latency_stdev(), 82599.05, 2)
+    def test_best_latency(self):
+        self.assertEqual(self.timesync.best_latency(), 69664.0)
+        self.assertEqual(self.timesync.best_latency_index(), 2)
 
-    def test_get_offset_mean(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_mean_offset(), -22904378.43, 2)
+    def test_best_offset(self):
+        self.assertEqual(self.timesync.best_offset(), -22906528.0)
 
-    def test_get_offset_std_dev(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_offset_stdev(), 89482.83, 2)
+    def test_latency_mean(self):
+        self.assertAlmostEqual(self.timesync.mean_latency(), 118049.66, 2)
 
-    def test_get_best_start_time(self):
-        self.assertEqual(self.time_sync_analysis.get_best_start_time(), 1532459197088257)
+    def test_latency_std_dev(self):
+        self.assertAlmostEqual(self.timesync.latency_std(), 84458.71, 2)
 
-    def test_update_time_array(self):
-        times = np.array([1532459197, 1532460197, 1532461197])
-        times = ts.update_time_array(self.time_sync_analysis.timesync_data[0], times)
-        self.assertAlmostEqual(1532459174.09, times[0], 2)
+    def test_offset_mean(self):
+        self.assertAlmostEqual(self.timesync.mean_offset(), -22903096.02, 2)
 
-    def test_correct_time_array(self):
-        &#34;&#34;&#34;
-        Example: A sample is taken every 0.5 seconds, and a file has 5 seconds (10 samples). Let&#39;s say we sampled
-        for a total of 20 seconds (4 files, 40 samples). At the beginning of each file (every 10th sample, or every
-        5 seconds), there is a start mach time and a start epoch time. Rebuild the time array
-        with the packet with the lowest latency being the best start time. In this case, the best latency is 1,
-        which occurs in file 2, which starts at 4 seconds.  In the end we should get 40 timestamps,
-        starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (idx 10) = 4 seconds.
-        &#34;&#34;&#34;
-        # the revised start times are in microseconds, but the corrected time is in seconds
-        tsd_one = ts.TimeSyncData()
-        tsd_one.packet_start_timestamp = 1000000
-        tsd_one.best_latency = 2
-        tsd_one.sample_rate_hz = 2
-        tsd_one.station_start_timestamp = 0
-        tsd_two = ts.TimeSyncData()
-        tsd_two.packet_start_timestamp = 4000000
-        tsd_two.best_latency = 1
-        tsd_two.sample_rate_hz = 2
-        tsd_two.station_start_timestamp = 0
-        tsd_thr = ts.TimeSyncData()
-        tsd_thr.packet_start_timestamp = 8000000
-        tsd_thr.best_latency = 2
-        tsd_thr.sample_rate_hz = 2
-        tsd_thr.station_start_timestamp = 0
-        tsd_for = ts.TimeSyncData()
-        tsd_for.packet_start_timestamp = 13000000
-        tsd_for.best_latency = 2
-        tsd_for.sample_rate_hz = 2
-        tsd_for.station_start_timestamp = 0
-        tsa_one = ts.TimeSyncAnalysis()
-        tsa_one.station_id = &#34;test_station&#34;
-        tsa_one.timesync_data = [tsd_one, tsd_two, tsd_thr, tsd_for]
-        tsa_one.best_latency_index = 1
-        tsa_one.sample_rate_hz = 2
-        tsa_one.station_start_timestamp = 0
-        file_samples = 10  # 10 samples per file
-        correct_time_array_sec = ts.update_evenly_sampled_time_array(tsa_one, file_samples)
+    def test_offset_std_dev(self):
+        self.assertAlmostEqual(self.timesync.offset_std(), 91847.39, 2)
 
-        self.assertTrue(np.array_equal(np.arange(-1.0, 19.0, 0.5), correct_time_array_sec))
-        self.assertEqual(4.0, correct_time_array_sec[10])
-        self.assertTrue(isinstance(correct_time_array_sec, np.ndarray))</code></pre>
+    def test_best_latency_timestamp(self):
+        self.assertEqual(self.timesync.get_best_latency_timestamp(), 1532459236518989.)</code></pre>
 </details>
 </section>
 <section>
@@ -191,98 +144,52 @@ not have a method with the specified name.</p></div>
         with contextlib.redirect_stdout(None):
             result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
                                           read_filter=ReadFilter(station_ids={&#34;1637680001&#34;}))
-            cls.time_sync_analysis = ts.TimeSyncAnalysis().from_raw_packets(result.read_files_by_id(&#34;1637680001&#34;))
+            cls.timesync = ts.TimeSync().from_raw_packets(result.read_files_by_id(&#34;1637680001&#34;))
 
-    def test_validate_sensors(self):
-        test_ts = ts.TimeSyncData()
-        test_ts.station_id = &#34;test&#34;
-        test_ts.sample_rate_hz = 80.0
-        test_ts.station_start_timestamp = 1
-        other_ts = ts.TimeSyncData()
-        other_ts.station_id = &#34;test&#34;
-        other_ts.sample_rate_hz = 80.0
-        tsa_test = ts.TimeSyncAnalysis()
-        tsa_test.station_id = &#34;test&#34;
-        tsa_test.timesync_data = [test_ts, other_ts]
-        tsa_test.sample_rate_hz = 80.0
-        tsa_test.station_start_timestamp = 1
-        self.assertFalse(ts.validate_sensors(tsa_test))
+    def test_num_tri_messages(self):
+        self.assertEqual(self.timesync.num_tri_messages(), 14)
 
-    def test_compute_tri_message_stats(self):
-        self.assertEqual(self.time_sync_analysis.get_latencies()[0], 69664.0)
-        self.assertEqual(self.time_sync_analysis.get_offsets()[0], -22906528.0)
+    def test_latencies(self):
+        self.assertEqual(len(self.timesync.latencies()[0]), 14)
+        self.assertEqual(self.timesync.latencies()[0][0], 74559.5)
 
-    def test_find_bad_packets(self):
-        self.assertEqual(len(self.time_sync_analysis.get_bad_packets()), 0)
+    def test_offsets(self):
+        self.assertEqual(len(self.timesync.offsets()[0]), 14)
+        self.assertEqual(self.timesync.offsets()[0][0], -22907018.5)
 
-    def test_time_sync_analysis_data_load(self):
-        self.assertEqual(len(self.time_sync_analysis.get_latencies()), 3)
-        self.assertEqual(len(self.time_sync_analysis.get_offsets()), 3)
-        self.assertEqual(self.time_sync_analysis.get_best_latency(), 69664.0)
-        self.assertEqual(self.time_sync_analysis.best_latency_index, 0)
+    def test_best_latencies_per_exchange(self):
+        ltncs = self.timesync.best_latency_per_exchange()
+        self.assertEqual(len(ltncs), 14)
+        self.assertEqual(ltncs[0], 74559.5)
+        self.assertEqual(self.timesync.best_latency(), ltncs[2])
 
-    def test_get_latency_mean(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_mean_latency(), 116253.55, 2)
+    def test_best_offsets_per_exchange(self):
+        ofsts = self.timesync.best_offset_per_exchange()
+        self.assertEqual(len(ofsts), 14)
+        self.assertEqual(ofsts[0], -22907018.5)
+        self.assertEqual(self.timesync.best_offset(), ofsts[2])
 
-    def test_get_latency_std_dev(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_latency_stdev(), 82599.05, 2)
+    def test_best_latency(self):
+        self.assertEqual(self.timesync.best_latency(), 69664.0)
+        self.assertEqual(self.timesync.best_latency_index(), 2)
 
-    def test_get_offset_mean(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_mean_offset(), -22904378.43, 2)
+    def test_best_offset(self):
+        self.assertEqual(self.timesync.best_offset(), -22906528.0)
 
-    def test_get_offset_std_dev(self):
-        self.assertAlmostEqual(self.time_sync_analysis.get_offset_stdev(), 89482.83, 2)
+    def test_latency_mean(self):
+        self.assertAlmostEqual(self.timesync.mean_latency(), 118049.66, 2)
 
-    def test_get_best_start_time(self):
-        self.assertEqual(self.time_sync_analysis.get_best_start_time(), 1532459197088257)
+    def test_latency_std_dev(self):
+        self.assertAlmostEqual(self.timesync.latency_std(), 84458.71, 2)
 
-    def test_update_time_array(self):
-        times = np.array([1532459197, 1532460197, 1532461197])
-        times = ts.update_time_array(self.time_sync_analysis.timesync_data[0], times)
-        self.assertAlmostEqual(1532459174.09, times[0], 2)
+    def test_offset_mean(self):
+        self.assertAlmostEqual(self.timesync.mean_offset(), -22903096.02, 2)
 
-    def test_correct_time_array(self):
-        &#34;&#34;&#34;
-        Example: A sample is taken every 0.5 seconds, and a file has 5 seconds (10 samples). Let&#39;s say we sampled
-        for a total of 20 seconds (4 files, 40 samples). At the beginning of each file (every 10th sample, or every
-        5 seconds), there is a start mach time and a start epoch time. Rebuild the time array
-        with the packet with the lowest latency being the best start time. In this case, the best latency is 1,
-        which occurs in file 2, which starts at 4 seconds.  In the end we should get 40 timestamps,
-        starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (idx 10) = 4 seconds.
-        &#34;&#34;&#34;
-        # the revised start times are in microseconds, but the corrected time is in seconds
-        tsd_one = ts.TimeSyncData()
-        tsd_one.packet_start_timestamp = 1000000
-        tsd_one.best_latency = 2
-        tsd_one.sample_rate_hz = 2
-        tsd_one.station_start_timestamp = 0
-        tsd_two = ts.TimeSyncData()
-        tsd_two.packet_start_timestamp = 4000000
-        tsd_two.best_latency = 1
-        tsd_two.sample_rate_hz = 2
-        tsd_two.station_start_timestamp = 0
-        tsd_thr = ts.TimeSyncData()
-        tsd_thr.packet_start_timestamp = 8000000
-        tsd_thr.best_latency = 2
-        tsd_thr.sample_rate_hz = 2
-        tsd_thr.station_start_timestamp = 0
-        tsd_for = ts.TimeSyncData()
-        tsd_for.packet_start_timestamp = 13000000
-        tsd_for.best_latency = 2
-        tsd_for.sample_rate_hz = 2
-        tsd_for.station_start_timestamp = 0
-        tsa_one = ts.TimeSyncAnalysis()
-        tsa_one.station_id = &#34;test_station&#34;
-        tsa_one.timesync_data = [tsd_one, tsd_two, tsd_thr, tsd_for]
-        tsa_one.best_latency_index = 1
-        tsa_one.sample_rate_hz = 2
-        tsa_one.station_start_timestamp = 0
-        file_samples = 10  # 10 samples per file
-        correct_time_array_sec = ts.update_evenly_sampled_time_array(tsa_one, file_samples)
+    def test_offset_std_dev(self):
+        self.assertAlmostEqual(self.timesync.offset_std(), 91847.39, 2)
 
-        self.assertTrue(np.array_equal(np.arange(-1.0, 19.0, 0.5), correct_time_array_sec))
-        self.assertEqual(4.0, correct_time_array_sec[10])
-        self.assertTrue(isinstance(correct_time_array_sec, np.ndarray))</code></pre>
+    def test_best_latency_timestamp(self):
+        self.assertEqual(self.timesync.get_best_latency_timestamp(), 1532459236518989.)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -291,7 +198,7 @@ not have a method with the specified name.</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.tests.common.test_timesync.TimesyncTest.setUpClass"><code class="name flex">
-<span>def <span class="ident">setUpClass</span></span>(<span>) ‑> NoneType</span>
+<span>def <span class="ident">setUpClass</span></span>(<span>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Hook method for setting up class fixture before running tests in the class.</p></div>
@@ -304,14 +211,14 @@ def setUpClass(cls) -&gt; None:
     with contextlib.redirect_stdout(None):
         result = api_reader.ApiReader(tests.TEST_DATA_DIR, structured_dir=False,
                                       read_filter=ReadFilter(station_ids={&#34;1637680001&#34;}))
-        cls.time_sync_analysis = ts.TimeSyncAnalysis().from_raw_packets(result.read_files_by_id(&#34;1637680001&#34;))</code></pre>
+        cls.timesync = ts.TimeSync().from_raw_packets(result.read_files_by_id(&#34;1637680001&#34;))</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_compute_tri_message_stats"><code class="name flex">
-<span>def <span class="ident">test_compute_tri_message_stats</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_best_latencies_per_exchange"><code class="name flex">
+<span>def <span class="ident">test_best_latencies_per_exchange</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -319,72 +226,15 @@ def setUpClass(cls) -&gt; None:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_compute_tri_message_stats(self):
-    self.assertEqual(self.time_sync_analysis.get_latencies()[0], 69664.0)
-    self.assertEqual(self.time_sync_analysis.get_offsets()[0], -22906528.0)</code></pre>
+<pre><code class="python">def test_best_latencies_per_exchange(self):
+    ltncs = self.timesync.best_latency_per_exchange()
+    self.assertEqual(len(ltncs), 14)
+    self.assertEqual(ltncs[0], 74559.5)
+    self.assertEqual(self.timesync.best_latency(), ltncs[2])</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_correct_time_array"><code class="name flex">
-<span>def <span class="ident">test_correct_time_array</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Example: A sample is taken every 0.5 seconds, and a file has 5 seconds (10 samples). Let's say we sampled
-for a total of 20 seconds (4 files, 40 samples). At the beginning of each file (every 10th sample, or every
-5 seconds), there is a start mach time and a start epoch time. Rebuild the time array
-with the packet with the lowest latency being the best start time. In this case, the best latency is 1,
-which occurs in file 2, which starts at 4 seconds.
-In the end we should get 40 timestamps,
-starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (idx 10) = 4 seconds.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_correct_time_array(self):
-    &#34;&#34;&#34;
-    Example: A sample is taken every 0.5 seconds, and a file has 5 seconds (10 samples). Let&#39;s say we sampled
-    for a total of 20 seconds (4 files, 40 samples). At the beginning of each file (every 10th sample, or every
-    5 seconds), there is a start mach time and a start epoch time. Rebuild the time array
-    with the packet with the lowest latency being the best start time. In this case, the best latency is 1,
-    which occurs in file 2, which starts at 4 seconds.  In the end we should get 40 timestamps,
-    starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (idx 10) = 4 seconds.
-    &#34;&#34;&#34;
-    # the revised start times are in microseconds, but the corrected time is in seconds
-    tsd_one = ts.TimeSyncData()
-    tsd_one.packet_start_timestamp = 1000000
-    tsd_one.best_latency = 2
-    tsd_one.sample_rate_hz = 2
-    tsd_one.station_start_timestamp = 0
-    tsd_two = ts.TimeSyncData()
-    tsd_two.packet_start_timestamp = 4000000
-    tsd_two.best_latency = 1
-    tsd_two.sample_rate_hz = 2
-    tsd_two.station_start_timestamp = 0
-    tsd_thr = ts.TimeSyncData()
-    tsd_thr.packet_start_timestamp = 8000000
-    tsd_thr.best_latency = 2
-    tsd_thr.sample_rate_hz = 2
-    tsd_thr.station_start_timestamp = 0
-    tsd_for = ts.TimeSyncData()
-    tsd_for.packet_start_timestamp = 13000000
-    tsd_for.best_latency = 2
-    tsd_for.sample_rate_hz = 2
-    tsd_for.station_start_timestamp = 0
-    tsa_one = ts.TimeSyncAnalysis()
-    tsa_one.station_id = &#34;test_station&#34;
-    tsa_one.timesync_data = [tsd_one, tsd_two, tsd_thr, tsd_for]
-    tsa_one.best_latency_index = 1
-    tsa_one.sample_rate_hz = 2
-    tsa_one.station_start_timestamp = 0
-    file_samples = 10  # 10 samples per file
-    correct_time_array_sec = ts.update_evenly_sampled_time_array(tsa_one, file_samples)
-
-    self.assertTrue(np.array_equal(np.arange(-1.0, 19.0, 0.5), correct_time_array_sec))
-    self.assertEqual(4.0, correct_time_array_sec[10])
-    self.assertTrue(isinstance(correct_time_array_sec, np.ndarray))</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_find_bad_packets"><code class="name flex">
-<span>def <span class="ident">test_find_bad_packets</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_best_latency"><code class="name flex">
+<span>def <span class="ident">test_best_latency</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -392,12 +242,13 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_find_bad_packets(self):
-    self.assertEqual(len(self.time_sync_analysis.get_bad_packets()), 0)</code></pre>
+<pre><code class="python">def test_best_latency(self):
+    self.assertEqual(self.timesync.best_latency(), 69664.0)
+    self.assertEqual(self.timesync.best_latency_index(), 2)</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_get_best_start_time"><code class="name flex">
-<span>def <span class="ident">test_get_best_start_time</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_best_latency_timestamp"><code class="name flex">
+<span>def <span class="ident">test_best_latency_timestamp</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -405,12 +256,12 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_get_best_start_time(self):
-    self.assertEqual(self.time_sync_analysis.get_best_start_time(), 1532459197088257)</code></pre>
+<pre><code class="python">def test_best_latency_timestamp(self):
+    self.assertEqual(self.timesync.get_best_latency_timestamp(), 1532459236518989.)</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_get_latency_mean"><code class="name flex">
-<span>def <span class="ident">test_get_latency_mean</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_best_offset"><code class="name flex">
+<span>def <span class="ident">test_best_offset</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -418,12 +269,12 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_get_latency_mean(self):
-    self.assertAlmostEqual(self.time_sync_analysis.get_mean_latency(), 116253.55, 2)</code></pre>
+<pre><code class="python">def test_best_offset(self):
+    self.assertEqual(self.timesync.best_offset(), -22906528.0)</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_get_latency_std_dev"><code class="name flex">
-<span>def <span class="ident">test_get_latency_std_dev</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_best_offsets_per_exchange"><code class="name flex">
+<span>def <span class="ident">test_best_offsets_per_exchange</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -431,12 +282,15 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_get_latency_std_dev(self):
-    self.assertAlmostEqual(self.time_sync_analysis.get_latency_stdev(), 82599.05, 2)</code></pre>
+<pre><code class="python">def test_best_offsets_per_exchange(self):
+    ofsts = self.timesync.best_offset_per_exchange()
+    self.assertEqual(len(ofsts), 14)
+    self.assertEqual(ofsts[0], -22907018.5)
+    self.assertEqual(self.timesync.best_offset(), ofsts[2])</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_get_offset_mean"><code class="name flex">
-<span>def <span class="ident">test_get_offset_mean</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_latencies"><code class="name flex">
+<span>def <span class="ident">test_latencies</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -444,12 +298,13 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_get_offset_mean(self):
-    self.assertAlmostEqual(self.time_sync_analysis.get_mean_offset(), -22904378.43, 2)</code></pre>
+<pre><code class="python">def test_latencies(self):
+    self.assertEqual(len(self.timesync.latencies()[0]), 14)
+    self.assertEqual(self.timesync.latencies()[0][0], 74559.5)</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_get_offset_std_dev"><code class="name flex">
-<span>def <span class="ident">test_get_offset_std_dev</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_latency_mean"><code class="name flex">
+<span>def <span class="ident">test_latency_mean</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -457,12 +312,12 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_get_offset_std_dev(self):
-    self.assertAlmostEqual(self.time_sync_analysis.get_offset_stdev(), 89482.83, 2)</code></pre>
+<pre><code class="python">def test_latency_mean(self):
+    self.assertAlmostEqual(self.timesync.mean_latency(), 118049.66, 2)</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_time_sync_analysis_data_load"><code class="name flex">
-<span>def <span class="ident">test_time_sync_analysis_data_load</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_latency_std_dev"><code class="name flex">
+<span>def <span class="ident">test_latency_std_dev</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -470,15 +325,12 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_time_sync_analysis_data_load(self):
-    self.assertEqual(len(self.time_sync_analysis.get_latencies()), 3)
-    self.assertEqual(len(self.time_sync_analysis.get_offsets()), 3)
-    self.assertEqual(self.time_sync_analysis.get_best_latency(), 69664.0)
-    self.assertEqual(self.time_sync_analysis.best_latency_index, 0)</code></pre>
+<pre><code class="python">def test_latency_std_dev(self):
+    self.assertAlmostEqual(self.timesync.latency_std(), 84458.71, 2)</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_update_time_array"><code class="name flex">
-<span>def <span class="ident">test_update_time_array</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_num_tri_messages"><code class="name flex">
+<span>def <span class="ident">test_num_tri_messages</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -486,14 +338,12 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_update_time_array(self):
-    times = np.array([1532459197, 1532460197, 1532461197])
-    times = ts.update_time_array(self.time_sync_analysis.timesync_data[0], times)
-    self.assertAlmostEqual(1532459174.09, times[0], 2)</code></pre>
+<pre><code class="python">def test_num_tri_messages(self):
+    self.assertEqual(self.timesync.num_tri_messages(), 14)</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_validate_sensors"><code class="name flex">
-<span>def <span class="ident">test_validate_sensors</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_offset_mean"><code class="name flex">
+<span>def <span class="ident">test_offset_mean</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -501,20 +351,35 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_validate_sensors(self):
-    test_ts = ts.TimeSyncData()
-    test_ts.station_id = &#34;test&#34;
-    test_ts.sample_rate_hz = 80.0
-    test_ts.station_start_timestamp = 1
-    other_ts = ts.TimeSyncData()
-    other_ts.station_id = &#34;test&#34;
-    other_ts.sample_rate_hz = 80.0
-    tsa_test = ts.TimeSyncAnalysis()
-    tsa_test.station_id = &#34;test&#34;
-    tsa_test.timesync_data = [test_ts, other_ts]
-    tsa_test.sample_rate_hz = 80.0
-    tsa_test.station_start_timestamp = 1
-    self.assertFalse(ts.validate_sensors(tsa_test))</code></pre>
+<pre><code class="python">def test_offset_mean(self):
+    self.assertAlmostEqual(self.timesync.mean_offset(), -22903096.02, 2)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_offset_std_dev"><code class="name flex">
+<span>def <span class="ident">test_offset_std_dev</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_offset_std_dev(self):
+    self.assertAlmostEqual(self.timesync.offset_std(), 91847.39, 2)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_timesync.TimesyncTest.test_offsets"><code class="name flex">
+<span>def <span class="ident">test_offsets</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_offsets(self):
+    self.assertEqual(len(self.timesync.offsets()[0]), 14)
+    self.assertEqual(self.timesync.offsets()[0][0], -22907018.5)</code></pre>
 </details>
 </dd>
 </dl>
@@ -539,17 +404,18 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 <h4><code><a title="redvox.tests.common.test_timesync.TimesyncTest" href="#redvox.tests.common.test_timesync.TimesyncTest">TimesyncTest</a></code></h4>
 <ul class="">
 <li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.setUpClass" href="#redvox.tests.common.test_timesync.TimesyncTest.setUpClass">setUpClass</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_compute_tri_message_stats" href="#redvox.tests.common.test_timesync.TimesyncTest.test_compute_tri_message_stats">test_compute_tri_message_stats</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_correct_time_array" href="#redvox.tests.common.test_timesync.TimesyncTest.test_correct_time_array">test_correct_time_array</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_find_bad_packets" href="#redvox.tests.common.test_timesync.TimesyncTest.test_find_bad_packets">test_find_bad_packets</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_get_best_start_time" href="#redvox.tests.common.test_timesync.TimesyncTest.test_get_best_start_time">test_get_best_start_time</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_get_latency_mean" href="#redvox.tests.common.test_timesync.TimesyncTest.test_get_latency_mean">test_get_latency_mean</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_get_latency_std_dev" href="#redvox.tests.common.test_timesync.TimesyncTest.test_get_latency_std_dev">test_get_latency_std_dev</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_get_offset_mean" href="#redvox.tests.common.test_timesync.TimesyncTest.test_get_offset_mean">test_get_offset_mean</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_get_offset_std_dev" href="#redvox.tests.common.test_timesync.TimesyncTest.test_get_offset_std_dev">test_get_offset_std_dev</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_time_sync_analysis_data_load" href="#redvox.tests.common.test_timesync.TimesyncTest.test_time_sync_analysis_data_load">test_time_sync_analysis_data_load</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_update_time_array" href="#redvox.tests.common.test_timesync.TimesyncTest.test_update_time_array">test_update_time_array</a></code></li>
-<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_validate_sensors" href="#redvox.tests.common.test_timesync.TimesyncTest.test_validate_sensors">test_validate_sensors</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_best_latencies_per_exchange" href="#redvox.tests.common.test_timesync.TimesyncTest.test_best_latencies_per_exchange">test_best_latencies_per_exchange</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_best_latency" href="#redvox.tests.common.test_timesync.TimesyncTest.test_best_latency">test_best_latency</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_best_latency_timestamp" href="#redvox.tests.common.test_timesync.TimesyncTest.test_best_latency_timestamp">test_best_latency_timestamp</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_best_offset" href="#redvox.tests.common.test_timesync.TimesyncTest.test_best_offset">test_best_offset</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_best_offsets_per_exchange" href="#redvox.tests.common.test_timesync.TimesyncTest.test_best_offsets_per_exchange">test_best_offsets_per_exchange</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_latencies" href="#redvox.tests.common.test_timesync.TimesyncTest.test_latencies">test_latencies</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_latency_mean" href="#redvox.tests.common.test_timesync.TimesyncTest.test_latency_mean">test_latency_mean</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_latency_std_dev" href="#redvox.tests.common.test_timesync.TimesyncTest.test_latency_std_dev">test_latency_std_dev</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_num_tri_messages" href="#redvox.tests.common.test_timesync.TimesyncTest.test_num_tri_messages">test_num_tri_messages</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_offset_mean" href="#redvox.tests.common.test_timesync.TimesyncTest.test_offset_mean">test_offset_mean</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_offset_std_dev" href="#redvox.tests.common.test_timesync.TimesyncTest.test_offset_std_dev">test_offset_std_dev</a></code></li>
+<li><code><a title="redvox.tests.common.test_timesync.TimesyncTest.test_offsets" href="#redvox.tests.common.test_timesync.TimesyncTest.test_offsets">test_offsets</a></code></li>
 </ul>
 </li>
 </ul>
@@ -558,7 +424,7 @@ starting at -1.0 and increasing at a rate of 0.5 seconds, and the 11th sample (i
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

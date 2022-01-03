@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>redvox.tests.common.test_data_window API documentation</title>
 <meta name="description" content="tests for data window objects" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -31,10 +31,6 @@
 tests for data window objects
 &#34;&#34;&#34;
 import unittest
-import contextlib
-import tempfile
-
-import numpy as np
 
 import redvox.tests as tests
 import redvox.common.date_time_utils as dt
@@ -47,162 +43,85 @@ class DataWindowTest(unittest.TestCase):
         cls.input_dir = tests.TEST_DATA_DIR
 
     def test_data_window_simple(self):
-        with contextlib.redirect_stdout(None):
-            datawindow = dw.DataWindow(
-                input_dir=self.input_dir,
-                structured_layout=False
-            )
-            self.assertEqual(len(datawindow.stations), 3)
-            self.assertEqual(len(datawindow.station_ids), 3)
-            self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
-            self.assertEqual(len(datawindow.extensions), 2)
-            self.assertEqual(len(datawindow.api_versions), 2)
+        # with contextlib.redirect_stdout(None):
+        datawindow = dw.DataWindow(
+            config=dw.DataWindowConfig(
+                input_dir=self.input_dir, structured_layout=False)
+        )
+        self.assertEqual(len(datawindow.stations()), 3)
+        self.assertEqual(len(datawindow.station_ids()), 3)
+        self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids())
+        self.assertEqual(len(datawindow.config.extensions), 2)
+        self.assertEqual(len(datawindow.config.api_versions), 2)
 
     def test_data_window(self):
-        with contextlib.redirect_stdout(None):
-            datawindow = dw.DataWindow(
+        # with contextlib.redirect_stdout(None):
+        datawindow = dw.DataWindow(
+            config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
                 structured_layout=False,
-                station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+                station_ids={&#34;1637650010&#34;, &#34;0000000001&#34;},
             )
-            self.assertEqual(len(datawindow.stations), 2)
-            test_station = datawindow.get_station(&#34;1637650010&#34;)[0]
-            self.assertTrue(test_station.is_timestamps_updated)
-            self.assertNotEqual(test_station.first_data_timestamp,
-                                test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-            self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;)[0].audio_sensor())
-            test_sensor = datawindow.get_station(&#34;1637650010&#34;)[0].accelerometer_sensor()
-            self.assertEqual(test_sensor.num_samples(), 642)
-            self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
-            test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].audio_sensor()
-            self.assertIsNotNone(test_sensor)
-            self.assertEqual(test_sensor.num_samples(), 720000)
-            test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].location_sensor()
-            self.assertIsNotNone(test_sensor)
-            self.assertEqual(test_sensor.num_samples(), 5)
+        )
+        self.assertEqual(len(datawindow.stations()), 2)
+        test_station = datawindow.get_station(&#34;1637650010&#34;)[0]
+        self.assertTrue(test_station.is_timestamps_updated)
+        self.assertNotEqual(test_station.first_data_timestamp,
+                            test_station.audio_sensor().unaltered_data_timestamps()[0])
+        self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;)[0].audio_sensor())
+        test_sensor = datawindow.get_station(&#34;1637650010&#34;)[0].accelerometer_sensor()
+        self.assertEqual(test_sensor.num_samples(), 643)
+        self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
+        test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].audio_sensor()
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 720000)
+        test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].location_sensor()
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 4)
 
     def test_dw_with_start_end(self):
-        with contextlib.redirect_stdout(None):
-            dw_with_start_end = dw.DataWindow(
+        # with contextlib.redirect_stdout(None):
+        dw_with_start_end = dw.DataWindow(
+            config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
-                station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+                station_ids={&#34;1637650010&#34;, &#34;0000000001&#34;},
                 start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
                 end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
                 structured_layout=False,
             )
-            self.assertEqual(len(dw_with_start_end.stations), 1)
-            audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].audio_sensor()
-            self.assertIsNotNone(audio_sensor)
-            self.assertEqual(audio_sensor.num_samples(), 480000)
-            loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
-            self.assertIsNotNone(loc_sensor)
-            self.assertEqual(loc_sensor.num_samples(), 4)
+        )
+        self.assertEqual(len(dw_with_start_end.stations()), 1)
+        audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].audio_sensor()
+        self.assertIsNotNone(audio_sensor)
+        self.assertEqual(audio_sensor.num_samples(), 480000)
+        loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
+        self.assertIsNotNone(loc_sensor)
+        self.assertEqual(loc_sensor.num_samples(), 4)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(
-            input_dir=self.input_dir,
-            station_ids=[&#34;does_not_exist&#34;],
-            structured_layout=False,
+            config=dw.DataWindowConfig(
+                input_dir=self.input_dir,
+                station_ids={&#34;does_not_exist&#34;},
+                structured_layout=False,
+            )
         )
         self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))
 
-    def test_dw_insert_audio_before_data(self):
-        dw_audio = dw.DataWindow(
-            input_dir=self.input_dir,
-            station_ids=[&#34;0000000001&#34;],
-            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189452),
-            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189453),
-            structured_layout=False,
+    def test_dw_first_station(self):
+        dw_test = dw.DataWindow(
+            config=dw.DataWindowConfig(
+                input_dir=self.input_dir, structured_layout=False, station_ids=[&#34;1637650010&#34;])
         )
-        x = dw_audio.stations[0]
-        self.assertEqual(x.audio_sensor().num_samples(), 48000)
-        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 45572)
-
-    def test_dw_insert_audio_after_data(self):
-        dw_audio = dw.DataWindow(
-            input_dir=self.input_dir,
-            station_ids=[&#34;0000000001&#34;],
-            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189467),
-            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189468),
-            structured_layout=False,
-        )
-        x = dw_audio.stations[0]
-        self.assertEqual(x.audio_sensor().num_samples(), 48000)
-        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 2428)
+        first_station = dw_test.first_station()
+        self.assertEqual(&#34;1637650010&#34;, first_station.id())
 
 
-class DataWindowJsonTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -&gt; None:
-        cls.temp_dir = tempfile.TemporaryDirectory()
-        cls.temp_dir_path = cls.temp_dir.name
-
-    def test_dw_json_pkl_compression(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;pkl&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;)
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        json_str = d_w.to_json(self.temp_dir_path, &#34;d_w&#34;, &#34;pkl&#34;)
-        unjsonified = dw.DataWindow.from_json(json_str, self.temp_dir_path + &#34;/dw&#34;)
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-
-    def test_dw_json_lz4_compression(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;)
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        json_str = d_w.to_json(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json(json_str, self.temp_dir_path + &#34;/dw&#34;)
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-
-    def test_dw_json_start_dt(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189455))
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189300))
-        self.assertIsNone(unjsonified)
-
-    def test_dw_json_end_dt(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189465))
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189495))
-        self.assertIsNone(unjsonified)
-
-    def test_dw_json_station_ids(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;, station_ids=[&#34;0000000001&#34;])
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;, station_ids=[&#34;0000000002&#34;])
-        self.assertIsNone(unjsonified)
-
-    def test_empty_dw_json(self):
-        d_w = dw.DataWindow(&#34;.&#34;)
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;pkl&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;)
-        self.assertEqual(len(unjsonified.station_ids), 0)
-        json_str = d_w.to_json(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json(json_str, self.temp_dir_path + &#34;/dw&#34;)
-        self.assertEqual(len(unjsonified.station_ids), 0)
-
-    # noinspection PyUnresolvedReferences
-    @classmethod
-    def tearDownClass(cls) -&gt; None:
-        cls.temp_dir.cleanup()</code></pre>
+# doesn&#39;t work with test module, but works on its own.
+# class DataWindowConfigFileTest(unittest.TestCase):
+#     def test_load(self):
+#         dw_test = dw.DataWindow.from_config_file(f&#34;{tests.TEST_DATA_DIR}/dw_test.config.toml&#34;)
+#         self.assertEqual(len(dw_test.stations()), 2)</code></pre>
 </details>
 </section>
 <section>
@@ -214,278 +133,6 @@ class DataWindowJsonTest(unittest.TestCase):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest"><code class="flex name class">
-<span>class <span class="ident">DataWindowJsonTest</span></span>
-<span>(</span><span>methodName='runTest')</span>
-</code></dt>
-<dd>
-<div class="desc"><p>A class whose instances are single test cases.</p>
-<p>By default, the test code itself should be placed in a method named
-'runTest'.</p>
-<p>If the fixture may be used for many test cases, create as
-many test methods as are needed. When instantiating such a TestCase
-subclass, specify in the constructor arguments the name of the test method
-that the instance is to execute.</p>
-<p>Test authors should subclass TestCase for their own tests. Construction
-and deconstruction of the test's environment ('fixture') can be
-implemented by overriding the 'setUp' and 'tearDown' methods respectively.</p>
-<p>If it is necessary to override the <strong>init</strong> method, the base class
-<strong>init</strong> method must always be called. It is important that subclasses
-should not change the signature of their <strong>init</strong> method, since instances
-of the classes are instantiated automatically by parts of the framework
-in order to be run.</p>
-<p>When subclassing TestCase, you can set these attributes:
-* failureException: determines which exception will be raised when
-the instance's assertion methods fail; test methods raising this
-exception will be deemed to have 'failed' rather than 'errored'.
-* longMessage: determines whether long messages (including repr of
-objects used in assert methods) will be printed on failure in <em>addition</em>
-to any explicit message passed.
-* maxDiff: sets the maximum length of a diff in failure messages
-by assert methods using difflib. It is looked up as an instance
-attribute so can be configured by individual tests if required.</p>
-<p>Create an instance of the class that will use the named test
-method when executed. Raises a ValueError if the instance does
-not have a method with the specified name.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DataWindowJsonTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -&gt; None:
-        cls.temp_dir = tempfile.TemporaryDirectory()
-        cls.temp_dir_path = cls.temp_dir.name
-
-    def test_dw_json_pkl_compression(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;pkl&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;)
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        json_str = d_w.to_json(self.temp_dir_path, &#34;d_w&#34;, &#34;pkl&#34;)
-        unjsonified = dw.DataWindow.from_json(json_str, self.temp_dir_path + &#34;/dw&#34;)
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-
-    def test_dw_json_lz4_compression(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;)
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        json_str = d_w.to_json(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json(json_str, self.temp_dir_path + &#34;/dw&#34;)
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-
-    def test_dw_json_start_dt(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189455))
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                                   start_dt=dt.datetime_from_epoch_seconds_utc(1597189300))
-        self.assertIsNone(unjsonified)
-
-    def test_dw_json_end_dt(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189465))
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                                   end_dt=dt.datetime_from_epoch_seconds_utc(1597189495))
-        self.assertIsNone(unjsonified)
-
-    def test_dw_json_station_ids(self):
-        d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;, station_ids=[&#34;0000000001&#34;])
-        self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-        self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;, station_ids=[&#34;0000000002&#34;])
-        self.assertIsNone(unjsonified)
-
-    def test_empty_dw_json(self):
-        d_w = dw.DataWindow(&#34;.&#34;)
-        json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;pkl&#34;)
-        unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;)
-        self.assertEqual(len(unjsonified.station_ids), 0)
-        json_str = d_w.to_json(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-        unjsonified = dw.DataWindow.from_json(json_str, self.temp_dir_path + &#34;/dw&#34;)
-        self.assertEqual(len(unjsonified.station_ids), 0)
-
-    # noinspection PyUnresolvedReferences
-    @classmethod
-    def tearDownClass(cls) -&gt; None:
-        cls.temp_dir.cleanup()</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>unittest.case.TestCase</li>
-</ul>
-<h3>Static methods</h3>
-<dl>
-<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.setUpClass"><code class="name flex">
-<span>def <span class="ident">setUpClass</span></span>(<span>) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Hook method for setting up class fixture before running tests in the class.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def setUpClass(cls) -&gt; None:
-    cls.temp_dir = tempfile.TemporaryDirectory()
-    cls.temp_dir_path = cls.temp_dir.name</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.tearDownClass"><code class="name flex">
-<span>def <span class="ident">tearDownClass</span></span>(<span>) ‑> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Hook method for deconstructing the class fixture after running all tests in the class.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def tearDownClass(cls) -&gt; None:
-    cls.temp_dir.cleanup()</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_end_dt"><code class="name flex">
-<span>def <span class="ident">test_dw_json_end_dt</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_dw_json_end_dt(self):
-    d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-    json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-    unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                               end_dt=dt.datetime_from_epoch_seconds_utc(1597189465))
-    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-    unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                               end_dt=dt.datetime_from_epoch_seconds_utc(1597189495))
-    self.assertIsNone(unjsonified)</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_lz4_compression"><code class="name flex">
-<span>def <span class="ident">test_dw_json_lz4_compression</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_dw_json_lz4_compression(self):
-    d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-    json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-    unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;)
-    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-    json_str = d_w.to_json(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-    unjsonified = dw.DataWindow.from_json(json_str, self.temp_dir_path + &#34;/dw&#34;)
-    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_pkl_compression"><code class="name flex">
-<span>def <span class="ident">test_dw_json_pkl_compression</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_dw_json_pkl_compression(self):
-    d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-    json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;pkl&#34;)
-    unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;)
-    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-    json_str = d_w.to_json(self.temp_dir_path, &#34;d_w&#34;, &#34;pkl&#34;)
-    unjsonified = dw.DataWindow.from_json(json_str, self.temp_dir_path + &#34;/dw&#34;)
-    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_start_dt"><code class="name flex">
-<span>def <span class="ident">test_dw_json_start_dt</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_dw_json_start_dt(self):
-    d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-    json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-    unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                               start_dt=dt.datetime_from_epoch_seconds_utc(1597189455))
-    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-    unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;,
-                                               start_dt=dt.datetime_from_epoch_seconds_utc(1597189300))
-    self.assertIsNone(unjsonified)</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_station_ids"><code class="name flex">
-<span>def <span class="ident">test_dw_json_station_ids</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_dw_json_station_ids(self):
-    d_w = dw.DataWindow(tests.TEST_DATA_DIR, False, station_ids={&#34;0000000001&#34;})
-    json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-    unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;, station_ids=[&#34;0000000001&#34;])
-    self.assertTrue(&#34;0000000001&#34; in unjsonified.station_ids)
-    self.assertTrue(unjsonified.get_station(&#34;0000000001&#34;)[0].has_audio_data())
-    unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;, station_ids=[&#34;0000000002&#34;])
-    self.assertIsNone(unjsonified)</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.DataWindowJsonTest.test_empty_dw_json"><code class="name flex">
-<span>def <span class="ident">test_empty_dw_json</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_empty_dw_json(self):
-    d_w = dw.DataWindow(&#34;.&#34;)
-    json_str = d_w.to_json_file(self.temp_dir_path, &#34;d_w&#34;, &#34;pkl&#34;)
-    unjsonified = dw.DataWindow.from_json_file(self.temp_dir_path, &#34;d_w&#34;)
-    self.assertEqual(len(unjsonified.station_ids), 0)
-    json_str = d_w.to_json(self.temp_dir_path, &#34;d_w&#34;, &#34;lz4&#34;)
-    unjsonified = dw.DataWindow.from_json(json_str, self.temp_dir_path + &#34;/dw&#34;)
-    self.assertEqual(len(unjsonified.station_ids), 0)</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest"><code class="flex name class">
 <span>class <span class="ident">DataWindowTest</span></span>
 <span>(</span><span>methodName='runTest')</span>
@@ -529,88 +176,78 @@ not have a method with the specified name.</p></div>
         cls.input_dir = tests.TEST_DATA_DIR
 
     def test_data_window_simple(self):
-        with contextlib.redirect_stdout(None):
-            datawindow = dw.DataWindow(
-                input_dir=self.input_dir,
-                structured_layout=False
-            )
-            self.assertEqual(len(datawindow.stations), 3)
-            self.assertEqual(len(datawindow.station_ids), 3)
-            self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
-            self.assertEqual(len(datawindow.extensions), 2)
-            self.assertEqual(len(datawindow.api_versions), 2)
+        # with contextlib.redirect_stdout(None):
+        datawindow = dw.DataWindow(
+            config=dw.DataWindowConfig(
+                input_dir=self.input_dir, structured_layout=False)
+        )
+        self.assertEqual(len(datawindow.stations()), 3)
+        self.assertEqual(len(datawindow.station_ids()), 3)
+        self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids())
+        self.assertEqual(len(datawindow.config.extensions), 2)
+        self.assertEqual(len(datawindow.config.api_versions), 2)
 
     def test_data_window(self):
-        with contextlib.redirect_stdout(None):
-            datawindow = dw.DataWindow(
+        # with contextlib.redirect_stdout(None):
+        datawindow = dw.DataWindow(
+            config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
                 structured_layout=False,
-                station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+                station_ids={&#34;1637650010&#34;, &#34;0000000001&#34;},
             )
-            self.assertEqual(len(datawindow.stations), 2)
-            test_station = datawindow.get_station(&#34;1637650010&#34;)[0]
-            self.assertTrue(test_station.is_timestamps_updated)
-            self.assertNotEqual(test_station.first_data_timestamp,
-                                test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-            self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;)[0].audio_sensor())
-            test_sensor = datawindow.get_station(&#34;1637650010&#34;)[0].accelerometer_sensor()
-            self.assertEqual(test_sensor.num_samples(), 642)
-            self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
-            test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].audio_sensor()
-            self.assertIsNotNone(test_sensor)
-            self.assertEqual(test_sensor.num_samples(), 720000)
-            test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].location_sensor()
-            self.assertIsNotNone(test_sensor)
-            self.assertEqual(test_sensor.num_samples(), 5)
+        )
+        self.assertEqual(len(datawindow.stations()), 2)
+        test_station = datawindow.get_station(&#34;1637650010&#34;)[0]
+        self.assertTrue(test_station.is_timestamps_updated)
+        self.assertNotEqual(test_station.first_data_timestamp,
+                            test_station.audio_sensor().unaltered_data_timestamps()[0])
+        self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;)[0].audio_sensor())
+        test_sensor = datawindow.get_station(&#34;1637650010&#34;)[0].accelerometer_sensor()
+        self.assertEqual(test_sensor.num_samples(), 643)
+        self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
+        test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].audio_sensor()
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 720000)
+        test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].location_sensor()
+        self.assertIsNotNone(test_sensor)
+        self.assertEqual(test_sensor.num_samples(), 4)
 
     def test_dw_with_start_end(self):
-        with contextlib.redirect_stdout(None):
-            dw_with_start_end = dw.DataWindow(
+        # with contextlib.redirect_stdout(None):
+        dw_with_start_end = dw.DataWindow(
+            config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
-                station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+                station_ids={&#34;1637650010&#34;, &#34;0000000001&#34;},
                 start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
                 end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
                 structured_layout=False,
             )
-            self.assertEqual(len(dw_with_start_end.stations), 1)
-            audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].audio_sensor()
-            self.assertIsNotNone(audio_sensor)
-            self.assertEqual(audio_sensor.num_samples(), 480000)
-            loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
-            self.assertIsNotNone(loc_sensor)
-            self.assertEqual(loc_sensor.num_samples(), 4)
+        )
+        self.assertEqual(len(dw_with_start_end.stations()), 1)
+        audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].audio_sensor()
+        self.assertIsNotNone(audio_sensor)
+        self.assertEqual(audio_sensor.num_samples(), 480000)
+        loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
+        self.assertIsNotNone(loc_sensor)
+        self.assertEqual(loc_sensor.num_samples(), 4)
 
     def test_dw_invalid(self):
         dw_invalid = dw.DataWindow(
-            input_dir=self.input_dir,
-            station_ids=[&#34;does_not_exist&#34;],
-            structured_layout=False,
+            config=dw.DataWindowConfig(
+                input_dir=self.input_dir,
+                station_ids={&#34;does_not_exist&#34;},
+                structured_layout=False,
+            )
         )
         self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))
 
-    def test_dw_insert_audio_before_data(self):
-        dw_audio = dw.DataWindow(
-            input_dir=self.input_dir,
-            station_ids=[&#34;0000000001&#34;],
-            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189452),
-            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189453),
-            structured_layout=False,
+    def test_dw_first_station(self):
+        dw_test = dw.DataWindow(
+            config=dw.DataWindowConfig(
+                input_dir=self.input_dir, structured_layout=False, station_ids=[&#34;1637650010&#34;])
         )
-        x = dw_audio.stations[0]
-        self.assertEqual(x.audio_sensor().num_samples(), 48000)
-        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 45572)
-
-    def test_dw_insert_audio_after_data(self):
-        dw_audio = dw.DataWindow(
-            input_dir=self.input_dir,
-            station_ids=[&#34;0000000001&#34;],
-            start_datetime=dt.datetime_from_epoch_seconds_utc(1597189467),
-            end_datetime=dt.datetime_from_epoch_seconds_utc(1597189468),
-            structured_layout=False,
-        )
-        x = dw_audio.stations[0]
-        self.assertEqual(x.audio_sensor().num_samples(), 48000)
-        self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 2428)</code></pre>
+        first_station = dw_test.first_station()
+        self.assertEqual(&#34;1637650010&#34;, first_station.id())</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -619,7 +256,7 @@ not have a method with the specified name.</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.setUpClass"><code class="name flex">
-<span>def <span class="ident">setUpClass</span></span>(<span>) ‑> NoneType</span>
+<span>def <span class="ident">setUpClass</span></span>(<span>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Hook method for setting up class fixture before running tests in the class.</p></div>
@@ -645,27 +282,29 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_data_window(self):
-    with contextlib.redirect_stdout(None):
-        datawindow = dw.DataWindow(
+    # with contextlib.redirect_stdout(None):
+    datawindow = dw.DataWindow(
+        config=dw.DataWindowConfig(
             input_dir=self.input_dir,
             structured_layout=False,
-            station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+            station_ids={&#34;1637650010&#34;, &#34;0000000001&#34;},
         )
-        self.assertEqual(len(datawindow.stations), 2)
-        test_station = datawindow.get_station(&#34;1637650010&#34;)[0]
-        self.assertTrue(test_station.is_timestamps_updated)
-        self.assertNotEqual(test_station.first_data_timestamp,
-                            test_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-        self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;)[0].audio_sensor())
-        test_sensor = datawindow.get_station(&#34;1637650010&#34;)[0].accelerometer_sensor()
-        self.assertEqual(test_sensor.num_samples(), 642)
-        self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
-        test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].audio_sensor()
-        self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 720000)
-        test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].location_sensor()
-        self.assertIsNotNone(test_sensor)
-        self.assertEqual(test_sensor.num_samples(), 5)</code></pre>
+    )
+    self.assertEqual(len(datawindow.stations()), 2)
+    test_station = datawindow.get_station(&#34;1637650010&#34;)[0]
+    self.assertTrue(test_station.is_timestamps_updated)
+    self.assertNotEqual(test_station.first_data_timestamp,
+                        test_station.audio_sensor().unaltered_data_timestamps()[0])
+    self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;)[0].audio_sensor())
+    test_sensor = datawindow.get_station(&#34;1637650010&#34;)[0].accelerometer_sensor()
+    self.assertEqual(test_sensor.num_samples(), 643)
+    self.assertEqual(test_sensor.first_data_timestamp(), test_station.audio_sensor().first_data_timestamp())
+    test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].audio_sensor()
+    self.assertIsNotNone(test_sensor)
+    self.assertEqual(test_sensor.num_samples(), 720000)
+    test_sensor = datawindow.get_station(&#34;0000000001&#34;)[0].location_sensor()
+    self.assertIsNotNone(test_sensor)
+    self.assertEqual(test_sensor.num_samples(), 4)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple"><code class="name flex">
@@ -678,20 +317,20 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_data_window_simple(self):
-    with contextlib.redirect_stdout(None):
-        datawindow = dw.DataWindow(
-            input_dir=self.input_dir,
-            structured_layout=False
-        )
-        self.assertEqual(len(datawindow.stations), 3)
-        self.assertEqual(len(datawindow.station_ids), 3)
-        self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids)
-        self.assertEqual(len(datawindow.extensions), 2)
-        self.assertEqual(len(datawindow.api_versions), 2)</code></pre>
+    # with contextlib.redirect_stdout(None):
+    datawindow = dw.DataWindow(
+        config=dw.DataWindowConfig(
+            input_dir=self.input_dir, structured_layout=False)
+    )
+    self.assertEqual(len(datawindow.stations()), 3)
+    self.assertEqual(len(datawindow.station_ids()), 3)
+    self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids())
+    self.assertEqual(len(datawindow.config.extensions), 2)
+    self.assertEqual(len(datawindow.config.api_versions), 2)</code></pre>
 </details>
 </dd>
-<dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_after_data"><code class="name flex">
-<span>def <span class="ident">test_dw_insert_audio_after_data</span></span>(<span>self)</span>
+<dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_first_station"><code class="name flex">
+<span>def <span class="ident">test_dw_first_station</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -699,39 +338,13 @@ def setUpClass(cls) -&gt; None:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def test_dw_insert_audio_after_data(self):
-    dw_audio = dw.DataWindow(
-        input_dir=self.input_dir,
-        station_ids=[&#34;0000000001&#34;],
-        start_datetime=dt.datetime_from_epoch_seconds_utc(1597189467),
-        end_datetime=dt.datetime_from_epoch_seconds_utc(1597189468),
-        structured_layout=False,
+<pre><code class="python">def test_dw_first_station(self):
+    dw_test = dw.DataWindow(
+        config=dw.DataWindowConfig(
+            input_dir=self.input_dir, structured_layout=False, station_ids=[&#34;1637650010&#34;])
     )
-    x = dw_audio.stations[0]
-    self.assertEqual(x.audio_sensor().num_samples(), 48000)
-    self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 2428)</code></pre>
-</details>
-</dd>
-<dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_before_data"><code class="name flex">
-<span>def <span class="ident">test_dw_insert_audio_before_data</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_dw_insert_audio_before_data(self):
-    dw_audio = dw.DataWindow(
-        input_dir=self.input_dir,
-        station_ids=[&#34;0000000001&#34;],
-        start_datetime=dt.datetime_from_epoch_seconds_utc(1597189452),
-        end_datetime=dt.datetime_from_epoch_seconds_utc(1597189453),
-        structured_layout=False,
-    )
-    x = dw_audio.stations[0]
-    self.assertEqual(x.audio_sensor().num_samples(), 48000)
-    self.assertEqual(np.count_nonzero(np.isnan(x.audio_sensor().get_data_channel(&#34;microphone&#34;))), 45572)</code></pre>
+    first_station = dw_test.first_station()
+    self.assertEqual(&#34;1637650010&#34;, first_station.id())</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid"><code class="name flex">
@@ -745,9 +358,11 @@ def setUpClass(cls) -&gt; None:
 </summary>
 <pre><code class="python">def test_dw_invalid(self):
     dw_invalid = dw.DataWindow(
-        input_dir=self.input_dir,
-        station_ids=[&#34;does_not_exist&#34;],
-        structured_layout=False,
+        config=dw.DataWindowConfig(
+            input_dir=self.input_dir,
+            station_ids={&#34;does_not_exist&#34;},
+            structured_layout=False,
+        )
     )
     self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))</code></pre>
 </details>
@@ -762,21 +377,23 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_dw_with_start_end(self):
-    with contextlib.redirect_stdout(None):
-        dw_with_start_end = dw.DataWindow(
+    # with contextlib.redirect_stdout(None):
+    dw_with_start_end = dw.DataWindow(
+        config=dw.DataWindowConfig(
             input_dir=self.input_dir,
-            station_ids=[&#34;1637650010&#34;, &#34;0000000001&#34;],
+            station_ids={&#34;1637650010&#34;, &#34;0000000001&#34;},
             start_datetime=dt.datetime_from_epoch_seconds_utc(1597189455),
             end_datetime=dt.datetime_from_epoch_seconds_utc(1597189465),
             structured_layout=False,
         )
-        self.assertEqual(len(dw_with_start_end.stations), 1)
-        audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].audio_sensor()
-        self.assertIsNotNone(audio_sensor)
-        self.assertEqual(audio_sensor.num_samples(), 480000)
-        loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
-        self.assertIsNotNone(loc_sensor)
-        self.assertEqual(loc_sensor.num_samples(), 4)</code></pre>
+    )
+    self.assertEqual(len(dw_with_start_end.stations()), 1)
+    audio_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].audio_sensor()
+    self.assertIsNotNone(audio_sensor)
+    self.assertEqual(audio_sensor.num_samples(), 480000)
+    loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
+    self.assertIsNotNone(loc_sensor)
+    self.assertEqual(loc_sensor.num_samples(), 4)</code></pre>
 </details>
 </dd>
 </dl>
@@ -798,26 +415,12 @@ def setUpClass(cls) -&gt; None:
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest" href="#redvox.tests.common.test_data_window.DataWindowJsonTest">DataWindowJsonTest</a></code></h4>
-<ul class="">
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.setUpClass" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.setUpClass">setUpClass</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.tearDownClass" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.tearDownClass">tearDownClass</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_end_dt" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_end_dt">test_dw_json_end_dt</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_lz4_compression" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_lz4_compression">test_dw_json_lz4_compression</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_pkl_compression" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_pkl_compression">test_dw_json_pkl_compression</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_start_dt" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_start_dt">test_dw_json_start_dt</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_station_ids" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_dw_json_station_ids">test_dw_json_station_ids</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowJsonTest.test_empty_dw_json" href="#redvox.tests.common.test_data_window.DataWindowJsonTest.test_empty_dw_json">test_empty_dw_json</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="redvox.tests.common.test_data_window.DataWindowTest" href="#redvox.tests.common.test_data_window.DataWindowTest">DataWindowTest</a></code></h4>
 <ul class="">
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.setUpClass" href="#redvox.tests.common.test_data_window.DataWindowTest.setUpClass">setUpClass</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_data_window" href="#redvox.tests.common.test_data_window.DataWindowTest.test_data_window">test_data_window</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple" href="#redvox.tests.common.test_data_window.DataWindowTest.test_data_window_simple">test_data_window_simple</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_after_data" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_after_data">test_dw_insert_audio_after_data</a></code></li>
-<li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_before_data" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_insert_audio_before_data">test_dw_insert_audio_before_data</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_first_station" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_first_station">test_dw_first_station</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid">test_dw_invalid</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end">test_dw_with_start_end</a></code></li>
 </ul>
@@ -828,7 +431,7 @@ def setUpClass(cls) -&gt; None:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

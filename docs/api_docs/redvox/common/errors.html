@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>redvox.common.errors API documentation</title>
 <meta name="description" content="This module contains custom error definitions used within this SDK." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -108,7 +108,35 @@ class RedVoxExceptions:
         if self._num_errors &gt; 0:
             print(f&#34;Errors encountered while creating {self._obj_class}:&#34;)
             for error in self._errors:
-                print(error)</code></pre>
+                print(error)
+
+    def as_dict(self) -&gt; dict:
+        &#34;&#34;&#34;
+        :return: self as dict
+        &#34;&#34;&#34;
+        if self._num_errors &gt; 0:
+            return {
+                &#34;obj_class&#34;: self._obj_class,
+                &#34;num_errors&#34;: self._num_errors,
+                &#34;errors&#34;: [str(e) for e in self._errors]
+            }
+        return {&#34;obj_class&#34;: self._obj_class}
+
+    @staticmethod
+    def from_dict(errors_dict: dict) -&gt; &#34;RedVoxExceptions&#34;:
+        &#34;&#34;&#34;
+        :param errors_dict: dictionary representing a RedvoxExceptions object
+        :return: RedvoxExceptions object
+        &#34;&#34;&#34;
+        if &#34;obj_class&#34; not in errors_dict.keys():
+            result = RedVoxExceptions(&#34;ExceptionsLoadFailure&#34;)
+            result.append(&#34;Failed to load errors due to missing obj_class&#34;)
+        else:
+            result = RedVoxExceptions(errors_dict[&#34;obj_class&#34;])
+            if &#34;errors&#34; in errors_dict.keys():
+                for er in errors_dict[&#34;errors&#34;]:
+                    result.append(er)
+        return result</code></pre>
 </details>
 </section>
 <section>
@@ -219,8 +247,66 @@ class RedVoxExceptions:
         if self._num_errors &gt; 0:
             print(f&#34;Errors encountered while creating {self._obj_class}:&#34;)
             for error in self._errors:
-                print(error)</code></pre>
+                print(error)
+
+    def as_dict(self) -&gt; dict:
+        &#34;&#34;&#34;
+        :return: self as dict
+        &#34;&#34;&#34;
+        if self._num_errors &gt; 0:
+            return {
+                &#34;obj_class&#34;: self._obj_class,
+                &#34;num_errors&#34;: self._num_errors,
+                &#34;errors&#34;: [str(e) for e in self._errors]
+            }
+        return {&#34;obj_class&#34;: self._obj_class}
+
+    @staticmethod
+    def from_dict(errors_dict: dict) -&gt; &#34;RedVoxExceptions&#34;:
+        &#34;&#34;&#34;
+        :param errors_dict: dictionary representing a RedvoxExceptions object
+        :return: RedvoxExceptions object
+        &#34;&#34;&#34;
+        if &#34;obj_class&#34; not in errors_dict.keys():
+            result = RedVoxExceptions(&#34;ExceptionsLoadFailure&#34;)
+            result.append(&#34;Failed to load errors due to missing obj_class&#34;)
+        else:
+            result = RedVoxExceptions(errors_dict[&#34;obj_class&#34;])
+            if &#34;errors&#34; in errors_dict.keys():
+                for er in errors_dict[&#34;errors&#34;]:
+                    result.append(er)
+        return result</code></pre>
 </details>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.errors.RedVoxExceptions.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>errors_dict: dict) ‑> <a title="redvox.common.errors.RedVoxExceptions" href="#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param errors_dict: dictionary representing a RedvoxExceptions object
+:return: RedvoxExceptions object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_dict(errors_dict: dict) -&gt; &#34;RedVoxExceptions&#34;:
+    &#34;&#34;&#34;
+    :param errors_dict: dictionary representing a RedvoxExceptions object
+    :return: RedvoxExceptions object
+    &#34;&#34;&#34;
+    if &#34;obj_class&#34; not in errors_dict.keys():
+        result = RedVoxExceptions(&#34;ExceptionsLoadFailure&#34;)
+        result.append(&#34;Failed to load errors due to missing obj_class&#34;)
+    else:
+        result = RedVoxExceptions(errors_dict[&#34;obj_class&#34;])
+        if &#34;errors&#34; in errors_dict.keys():
+            for er in errors_dict[&#34;errors&#34;]:
+                result.append(er)
+    return result</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.errors.RedVoxExceptions.append"><code class="name flex">
@@ -261,6 +347,28 @@ class RedVoxExceptions:
     &#34;&#34;&#34;
     self._errors.append(error)
     self._num_errors += 1</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.errors.RedVoxExceptions.as_dict"><code class="name flex">
+<span>def <span class="ident">as_dict</span></span>(<span>self) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: self as dict</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_dict(self) -&gt; dict:
+    &#34;&#34;&#34;
+    :return: self as dict
+    &#34;&#34;&#34;
+    if self._num_errors &gt; 0:
+        return {
+            &#34;obj_class&#34;: self._obj_class,
+            &#34;num_errors&#34;: self._num_errors,
+            &#34;errors&#34;: [str(e) for e in self._errors]
+        }
+    return {&#34;obj_class&#34;: self._obj_class}</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.errors.RedVoxExceptions.extend"><code class="name flex">
@@ -380,8 +488,10 @@ class RedVoxExceptions:
 <ul class="two-column">
 <li><code><a title="redvox.common.errors.RedVoxExceptions.append" href="#redvox.common.errors.RedVoxExceptions.append">append</a></code></li>
 <li><code><a title="redvox.common.errors.RedVoxExceptions.append_error" href="#redvox.common.errors.RedVoxExceptions.append_error">append_error</a></code></li>
+<li><code><a title="redvox.common.errors.RedVoxExceptions.as_dict" href="#redvox.common.errors.RedVoxExceptions.as_dict">as_dict</a></code></li>
 <li><code><a title="redvox.common.errors.RedVoxExceptions.extend" href="#redvox.common.errors.RedVoxExceptions.extend">extend</a></code></li>
 <li><code><a title="redvox.common.errors.RedVoxExceptions.extend_error" href="#redvox.common.errors.RedVoxExceptions.extend_error">extend_error</a></code></li>
+<li><code><a title="redvox.common.errors.RedVoxExceptions.from_dict" href="#redvox.common.errors.RedVoxExceptions.from_dict">from_dict</a></code></li>
 <li><code><a title="redvox.common.errors.RedVoxExceptions.get" href="#redvox.common.errors.RedVoxExceptions.get">get</a></code></li>
 <li><code><a title="redvox.common.errors.RedVoxExceptions.get_num_errors" href="#redvox.common.errors.RedVoxExceptions.get_num_errors">get_num_errors</a></code></li>
 <li><code><a title="redvox.common.errors.RedVoxExceptions.print" href="#redvox.common.errors.RedVoxExceptions.print">print</a></code></li>
@@ -393,7 +503,7 @@ class RedVoxExceptions:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

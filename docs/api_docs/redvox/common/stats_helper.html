@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>redvox.common.stats_helper API documentation</title>
 <meta name="description" content="Support for computing statistics
 Requires numpy" />
@@ -45,6 +45,7 @@ class StatsContainer:
     Stores the mean, std dev, number of data points (count), and best value per set object
     Calculates mean of means, mean of variance, variance of means, total variance,
     and total std dev for the set of objects
+
     Properties:
         mean_array: the mean of each object in the set
         std_dev_array: the std_dev of each object in the set
@@ -55,7 +56,8 @@ class StatsContainer:
 
     def __init__(self, container_id: str) -&gt; None:
         &#34;&#34;&#34;
-        Initialize arrays:
+        Initialize the StatsContainer
+
         :param container_id: a string describing the container
         &#34;&#34;&#34;
         self.mean_array: List[Union[float, int]] = []
@@ -66,7 +68,6 @@ class StatsContainer:
 
     def mean_of_means(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute the mean of means
         :return: mean of all means
         &#34;&#34;&#34;
         # convert non-numbers to 0s
@@ -82,8 +83,7 @@ class StatsContainer:
 
     def mean_of_variance(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute mean of variances
-        :return: mean of variances
+        :return: mean of the variances
         &#34;&#34;&#34;
         # convert non-numbers to 0s
         counts: np.ndarray = np.nan_to_num(self.count_array)
@@ -97,8 +97,7 @@ class StatsContainer:
 
     def variance_of_means(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute the variance of means
-        :return: variance of means
+        :return: variance of the means
         &#34;&#34;&#34;
         counts: np.ndarray = np.nan_to_num(self.count_array)
         if np.sum(counts) == 0:
@@ -114,15 +113,13 @@ class StatsContainer:
 
     def total_variance(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute the variation of all elements
-        :return: variation of all elements
+        :return: total variance of all elements
         &#34;&#34;&#34;
         # mean of variances + variance of means = total variance
         return self.mean_of_variance() + self.variance_of_means()
 
     def total_std_dev(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute the std dev of all elements
         :return: std dev of all elements (sqrt of total variance)
         &#34;&#34;&#34;
         return np.sqrt(self.total_variance())  # std dev is square root of variance
@@ -135,6 +132,7 @@ class StatsContainer:
     ) -&gt; None:
         &#34;&#34;&#34;
         Put an element into the arrays
+
         :param mean: a mean
         :param std_dev: the std dev for the mean
         :param count: how many values were used to calculate the mean
@@ -168,8 +166,8 @@ std_dev_array: the std_dev of each object in the set
 count_array: the number of elements in each object in the set
 best_value: the best value to represent the set
 container_id: a string that identifies the StatsContainer</p>
-<p>Initialize arrays:
-:param container_id: a string describing the container</p></div>
+<p>Initialize the StatsContainer</p>
+<p>:param container_id: a string describing the container</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -180,6 +178,7 @@ container_id: a string that identifies the StatsContainer</p>
     Stores the mean, std dev, number of data points (count), and best value per set object
     Calculates mean of means, mean of variance, variance of means, total variance,
     and total std dev for the set of objects
+
     Properties:
         mean_array: the mean of each object in the set
         std_dev_array: the std_dev of each object in the set
@@ -190,7 +189,8 @@ container_id: a string that identifies the StatsContainer</p>
 
     def __init__(self, container_id: str) -&gt; None:
         &#34;&#34;&#34;
-        Initialize arrays:
+        Initialize the StatsContainer
+
         :param container_id: a string describing the container
         &#34;&#34;&#34;
         self.mean_array: List[Union[float, int]] = []
@@ -201,7 +201,6 @@ container_id: a string that identifies the StatsContainer</p>
 
     def mean_of_means(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute the mean of means
         :return: mean of all means
         &#34;&#34;&#34;
         # convert non-numbers to 0s
@@ -217,8 +216,7 @@ container_id: a string that identifies the StatsContainer</p>
 
     def mean_of_variance(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute mean of variances
-        :return: mean of variances
+        :return: mean of the variances
         &#34;&#34;&#34;
         # convert non-numbers to 0s
         counts: np.ndarray = np.nan_to_num(self.count_array)
@@ -232,8 +230,7 @@ container_id: a string that identifies the StatsContainer</p>
 
     def variance_of_means(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute the variance of means
-        :return: variance of means
+        :return: variance of the means
         &#34;&#34;&#34;
         counts: np.ndarray = np.nan_to_num(self.count_array)
         if np.sum(counts) == 0:
@@ -249,15 +246,13 @@ container_id: a string that identifies the StatsContainer</p>
 
     def total_variance(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute the variation of all elements
-        :return: variation of all elements
+        :return: total variance of all elements
         &#34;&#34;&#34;
         # mean of variances + variance of means = total variance
         return self.mean_of_variance() + self.variance_of_means()
 
     def total_std_dev(self) -&gt; float:
         &#34;&#34;&#34;
-        Compute the std dev of all elements
         :return: std dev of all elements (sqrt of total variance)
         &#34;&#34;&#34;
         return np.sqrt(self.total_variance())  # std dev is square root of variance
@@ -270,6 +265,7 @@ container_id: a string that identifies the StatsContainer</p>
     ) -&gt; None:
         &#34;&#34;&#34;
         Put an element into the arrays
+
         :param mean: a mean
         :param std_dev: the std dev for the mean
         :param count: how many values were used to calculate the mean
@@ -281,11 +277,11 @@ container_id: a string that identifies the StatsContainer</p>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.stats_helper.StatsContainer.add"><code class="name flex">
-<span>def <span class="ident">add</span></span>(<span>self, mean: Union[float, int], std_dev: Union[float, int], count: Union[float, int]) ‑> NoneType</span>
+<span>def <span class="ident">add</span></span>(<span>self, mean: Union[float, int], std_dev: Union[float, int], count: Union[float, int]) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Put an element into the arrays
-:param mean: a mean
+<div class="desc"><p>Put an element into the arrays</p>
+<p>:param mean: a mean
 :param std_dev: the std dev for the mean
 :param count: how many values were used to calculate the mean</p></div>
 <details class="source">
@@ -300,6 +296,7 @@ container_id: a string that identifies the StatsContainer</p>
 ) -&gt; None:
     &#34;&#34;&#34;
     Put an element into the arrays
+
     :param mean: a mean
     :param std_dev: the std dev for the mean
     :param count: how many values were used to calculate the mean
@@ -313,15 +310,13 @@ container_id: a string that identifies the StatsContainer</p>
 <span>def <span class="ident">mean_of_means</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute the mean of means
-:return: mean of all means</p></div>
+<div class="desc"><p>:return: mean of all means</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def mean_of_means(self) -&gt; float:
     &#34;&#34;&#34;
-    Compute the mean of means
     :return: mean of all means
     &#34;&#34;&#34;
     # convert non-numbers to 0s
@@ -340,16 +335,14 @@ container_id: a string that identifies the StatsContainer</p>
 <span>def <span class="ident">mean_of_variance</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute mean of variances
-:return: mean of variances</p></div>
+<div class="desc"><p>:return: mean of the variances</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def mean_of_variance(self) -&gt; float:
     &#34;&#34;&#34;
-    Compute mean of variances
-    :return: mean of variances
+    :return: mean of the variances
     &#34;&#34;&#34;
     # convert non-numbers to 0s
     counts: np.ndarray = np.nan_to_num(self.count_array)
@@ -366,15 +359,13 @@ container_id: a string that identifies the StatsContainer</p>
 <span>def <span class="ident">total_std_dev</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute the std dev of all elements
-:return: std dev of all elements (sqrt of total variance)</p></div>
+<div class="desc"><p>:return: std dev of all elements (sqrt of total variance)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def total_std_dev(self) -&gt; float:
     &#34;&#34;&#34;
-    Compute the std dev of all elements
     :return: std dev of all elements (sqrt of total variance)
     &#34;&#34;&#34;
     return np.sqrt(self.total_variance())  # std dev is square root of variance</code></pre>
@@ -384,16 +375,14 @@ container_id: a string that identifies the StatsContainer</p>
 <span>def <span class="ident">total_variance</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute the variation of all elements
-:return: variation of all elements</p></div>
+<div class="desc"><p>:return: total variance of all elements</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def total_variance(self) -&gt; float:
     &#34;&#34;&#34;
-    Compute the variation of all elements
-    :return: variation of all elements
+    :return: total variance of all elements
     &#34;&#34;&#34;
     # mean of variances + variance of means = total variance
     return self.mean_of_variance() + self.variance_of_means()</code></pre>
@@ -403,16 +392,14 @@ container_id: a string that identifies the StatsContainer</p>
 <span>def <span class="ident">variance_of_means</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Compute the variance of means
-:return: variance of means</p></div>
+<div class="desc"><p>:return: variance of the means</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def variance_of_means(self) -&gt; float:
     &#34;&#34;&#34;
-    Compute the variance of means
-    :return: variance of means
+    :return: variance of the means
     &#34;&#34;&#34;
     counts: np.ndarray = np.nan_to_num(self.count_array)
     if np.sum(counts) == 0:
@@ -462,7 +449,7 @@ container_id: a string that identifies the StatsContainer</p>
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

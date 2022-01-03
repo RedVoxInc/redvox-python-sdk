@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>redvox.common.api_reader API documentation</title>
 <meta name="description" content="Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats" />
@@ -33,19 +33,35 @@ Data files can be either API 900 or API 1000 data formats</p>
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 &#34;&#34;&#34;
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
+from itertools import repeat
+from multiprocessing import cpu_count, Manager, Process, Queue
+import queue
 
+import pyarrow as pa
+
+import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import offset_model
 from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
+from redvox.common.station_old import Station as StationOld
 from redvox.common.station import Station
 from redvox.common.errors import RedVoxExceptions
+
+
+id_py_stct = pa.struct([(&#34;id&#34;, pa.string()), (&#34;uuid&#34;, pa.string()), (&#34;start_time&#34;, pa.float64()),
+                        ])
+meta_py_stct = pa.struct([(&#34;api&#34;, pa.float64()), (&#34;sub_api&#34;, pa.float64()), (&#34;make&#34;, pa.string()),
+                          (&#34;model&#34;, pa.string()), (&#34;os&#34;, pa.int64()), (&#34;os_version&#34;, pa.string()),
+                          (&#34;app&#34;, pa.string()), (&#34;app_version&#34;, pa.string()), (&#34;is_private&#34;, pa.bool_()),
+                          (&#34;packet_duration_s&#34;, pa.float64()), (&#34;station_description&#34;, pa.string()),
+                          ])
 
 
 class ApiReader:
@@ -78,7 +94,7 @@ class ApiReader:
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
         :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
-        :param debug: if True, output additional statements during function execution.  Default False.
+        :param debug: if True, output program warnings/errors during function execution.  Default False.
         &#34;&#34;&#34;
         _pool: multiprocessing.pool.Pool = (
             multiprocessing.Pool() if pool is None else pool
@@ -307,14 +323,14 @@ class ApiReader:
 
         return result
 
-    def _stations_by_index(self, findex: io.Index) -&gt; Station:
+    def _stations_by_index(self, findex: io.Index) -&gt; StationOld:
         &#34;&#34;&#34;
         :param findex: index with files to build a station with
         :return: Station built from files in findex
         &#34;&#34;&#34;
-        return Station(self.read_files_in_index(findex))
+        return StationOld(self.read_files_in_index(findex))
 
-    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[Station]:
+    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[StationOld]:
         &#34;&#34;&#34;
         :param pool: optional multiprocessing pool
         :return: List of all stations in the ApiReader
@@ -326,7 +342,7 @@ class ApiReader:
                                        )
                     )
 
-    def get_station_by_id(self, get_id: str) -&gt; Optional[List[Station]]:
+    def get_station_by_id(self, get_id: str) -&gt; Optional[List[StationOld]]:
         &#34;&#34;&#34;
         :param get_id: the id to filter on
         :return: list of all stations with the requested id or None if id can&#39;t be found
@@ -373,7 +389,7 @@ If False, base_dir only has the data files.
 Default False.
 :param read_filter: ReadFilter for the data files, if None, get everything.
 Default None
-:param debug: if True, output additional statements during function execution.
+:param debug: if True, output program warnings/errors during function execution.
 Default False.</p></div>
 <details class="source">
 <summary>
@@ -409,7 +425,7 @@ Default False.</p></div>
         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
                                 api formats.  If False, base_dir only has the data files.  Default False.
         :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
-        :param debug: if True, output additional statements during function execution.  Default False.
+        :param debug: if True, output program warnings/errors during function execution.  Default False.
         &#34;&#34;&#34;
         _pool: multiprocessing.pool.Pool = (
             multiprocessing.Pool() if pool is None else pool
@@ -638,14 +654,14 @@ Default False.</p></div>
 
         return result
 
-    def _stations_by_index(self, findex: io.Index) -&gt; Station:
+    def _stations_by_index(self, findex: io.Index) -&gt; StationOld:
         &#34;&#34;&#34;
         :param findex: index with files to build a station with
         :return: Station built from files in findex
         &#34;&#34;&#34;
-        return Station(self.read_files_in_index(findex))
+        return StationOld(self.read_files_in_index(findex))
 
-    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[Station]:
+    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[StationOld]:
         &#34;&#34;&#34;
         :param pool: optional multiprocessing pool
         :return: List of all stations in the ApiReader
@@ -657,7 +673,7 @@ Default False.</p></div>
                                        )
                     )
 
-    def get_station_by_id(self, get_id: str) -&gt; Optional[List[Station]]:
+    def get_station_by_id(self, get_id: str) -&gt; Optional[List[StationOld]]:
         &#34;&#34;&#34;
         :param get_id: the id to filter on
         :return: list of all stations with the requested id or None if id can&#39;t be found
@@ -667,6 +683,10 @@ Default False.</p></div>
             return None
         return result</code></pre>
 </details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="redvox.common.api_reader_dw.ApiReaderDw" href="api_reader_dw.html#redvox.common.api_reader_dw.ApiReaderDw">ApiReaderDw</a></li>
+</ul>
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.common.api_reader.ApiReader.read_files_in_index"><code class="name flex">
@@ -714,7 +734,7 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.api_reader.ApiReader.get_station_by_id"><code class="name flex">
-<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> Optional[List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]]</span>
+<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> Optional[List[<a title="redvox.common.station_old.Station" href="station_old.html#redvox.common.station_old.Station">Station</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param get_id: the id to filter on
@@ -723,7 +743,7 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_station_by_id(self, get_id: str) -&gt; Optional[List[Station]]:
+<pre><code class="python">def get_station_by_id(self, get_id: str) -&gt; Optional[List[StationOld]]:
     &#34;&#34;&#34;
     :param get_id: the id to filter on
     :return: list of all stations with the requested id or None if id can&#39;t be found
@@ -735,7 +755,7 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.get_stations"><code class="name flex">
-<span>def <span class="ident">get_stations</span></span>(<span>self, pool: Optional[multiprocessing.pool.Pool] = None) ‑> List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
+<span>def <span class="ident">get_stations</span></span>(<span>self, pool: Optional[multiprocessing.pool.Pool] = None) ‑> List[<a title="redvox.common.station_old.Station" href="station_old.html#redvox.common.station_old.Station">Station</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param pool: optional multiprocessing pool
@@ -744,7 +764,7 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[Station]:
+<pre><code class="python">def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[StationOld]:
     &#34;&#34;&#34;
     :param pool: optional multiprocessing pool
     :return: List of all stations in the ApiReader
@@ -833,7 +853,7 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>
