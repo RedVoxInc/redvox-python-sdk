@@ -47,6 +47,22 @@ if TYPE_CHECKING:
     from redvox.api900.lib.api900_pb2 import RedvoxPacket
 
 
+def remove_dir_contents(dir_path: Path):
+    """
+    removes all contents of the directory specified by dir_path
+
+    :param dir_path: path to directory to remove files from
+    """
+    if dir_path.is_dir():
+        for entry in os.scandir(dir_path):
+            if entry.is_dir(follow_symlinks=False):
+                rmtree(entry)
+            else:
+                os.remove(entry)
+    else:
+        print(f"{dir_path} is not a directory; cannot remove contents!")
+
+
 class FileSystemSaveMode(enum.Enum):
     """
     Enumeration of saving methodology
@@ -78,51 +94,86 @@ class FileSystemWriter:
         file_name: str, the name of the file (do not include extension)
         file_ext: str, the extension used by the file (do not include the .).  Default "NONE"
         base_dir: str, the directory to save the file to.  Default "." (current dir)
-        save_to_disk: bool, if True, save data to disk.  Default False
-        use_temp_dir: bool, if True, use temporary directory to reduce load on system memory.  Default False
 
     Protected:
-        _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
         _save_mode: FileSystemSaveMode, determines how files get saved
+        _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
     """
 
-    def __init__(self, file_name: str, file_ext: str = "none",
-                 base_dir: str = ".", save_enabled: bool = False, save_temp_dir: bool = False):
+    def __init__(self, file_name: str, file_ext: str = "none", base_dir: str = ".",
+                 save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM):
         """
         initialize FileSystemWriter
 
         :param file_name: name of file
         :param file_ext: extension of file, default "none"
         :param base_dir: directory to save file to, default "." (current dir)
-        :param save_enabled: if True, save to the file specified by other params, default False
-        :param save_temp_dir: if True, save files to temporary directory to reduce effect
-                                on system RAM, default False
+        :param save_mode: determines how to save files to system, default MEM (no save, use RAM)
         """
         self.file_name: str = file_name
         self.file_extension: str = file_ext.lower()
-        self.save_to_disk: bool = save_enabled
         self.base_dir: str = base_dir
-        self.use_temp_dir: bool = save_temp_dir
-        self._save_mode: FileSystemSaveMode = FileSystemSaveMode.get_save_mode(self.use_temp_dir, self.save_to_disk)
+        self._save_mode: FileSystemSaveMode = save_mode
         self._temp_dir = tempfile.TemporaryDirectory()
 
-    def _use_temp(self) -> bool:
+    def is_use_temp(self) -> bool:
         """
         :return: if mode uses temp dir
         """
         return self._save_mode == FileSystemSaveMode.TEMP
 
-    def _use_disk(self) -> bool:
+    def set_use_temp(self, use_temp: bool):
+        """
+        :param use_temp: if true, sets mode to use temp dir, otherwise no change
+        """
+        if use_temp:
+            self._save_mode = FileSystemSaveMode.TEMP
+
+    def is_use_disk(self) -> bool:
         """
         :return: if mode uses path on disk
         """
         return self._save_mode == FileSystemSaveMode.DISK
 
+    def set_use_disk(self, use_disk: bool):
+        """
+        :param use_disk: if true, sets mode to use the disk, otherwise no change
+        """
+        if use_disk:
+            self._save_mode = FileSystemSaveMode.DISK
+
+    def is_save_mem(self) -> bool:
+        """
+        :return: if writing data to memory
+        """
+        return self._save_mode == FileSystemSaveMode.MEM
+
+    def set_use_mem(self, use_mem: bool):
+        """
+        :param use_mem: if true, sets mode to use the system's RAM, otherwise no change
+        """
+        if use_mem:
+            self._save_mode = FileSystemSaveMode.MEM
+
+    def is_save_disk(self) -> bool:
+        """
+        :return: if writing data to disk instead of using memory
+        """
+        return self._save_mode != FileSystemSaveMode.MEM
+
     def save_dir(self) -> str:
         """
         :return: directory where file would be saved based on current value of self.save_to_disk
         """
-        return self.base_dir if self._use_disk() else self._temp_dir.name
+        return self.base_dir if self.is_use_disk() else self._temp_dir.name
+
+    def set_save_mode(self, save_mode: FileSystemSaveMode):
+        """
+        set the save mode
+
+        :param save_mode: updated save mode
+        """
+        self._save_mode = save_mode
 
     def full_name(self) -> str:
         """
@@ -162,10 +213,11 @@ class FileSystemWriter:
         if saving to disk, otherwise remove any files in the directory,
         then create the directory if it doesn't exist
         """
-        if self._use_disk():
+        if self.is_use_disk():
             if os.path.exists(self.save_dir()):
-                rmtree(self.save_dir())
-            os.makedirs(self.save_dir(), exist_ok=True)
+                remove_dir_contents(Path(self.save_dir()))
+        elif self.is_use_temp():
+            remove_dir_contents(self._temp_dir.name)
 
     def __del__(self):
         """
@@ -181,8 +233,17 @@ class FileSystemWriter:
             "file_name": self.file_name,
             "file_extension": self.file_extension,
             "base_dir": self.base_dir,
-            "save_to_disk": self.save_to_disk
+            "save_mode": self._save_mode.name
         }
+
+    @staticmethod
+    def from_dict(data_dict: Dict) -> "FileSystemWriter":
+        """
+        :param data_dict: dictionary to convert to FileSystemWriter
+        :return: FileSystemWriter from dict
+        """
+        return FileSystemWriter(data_dict["file_name"], data_dict["file_extension"], data_dict["base_dir"],
+                                FileSystemSaveMode[data_dict["save_mode"]])
 
 
 def json_to_dict(json_str: str) -> Dict:

@@ -5,6 +5,7 @@ Data files can be either API 900 or API 1000 data formats
 from typing import List, Optional
 import multiprocessing.pool
 import numpy as np
+import psutil
 
 import redvox.settings as settings
 from redvox.common import io
@@ -20,8 +21,7 @@ class ApiReaderDw(ApiReader):
                  read_filter: io.ReadFilter = None,
                  correct_timestamps: bool = False,
                  use_model_correction: bool = True,
-                 dw_base_dir: str = ".",
-                 save_files: bool = False,
+                 fsw: io.FileSystemWriter = None,
                  debug: bool = False,
                  pool: Optional[multiprocessing.pool.Pool] = None):
         """
@@ -34,18 +34,19 @@ class ApiReaderDw(ApiReader):
         :param correct_timestamps: if True, correct the timestamps of the data.  Default False
         :param use_model_correction: if True, use the offset model of the station to correct the timestamps.
                                         if correct_timestamps is False, this value doesn't matter.  Default True
-        :param dw_base_dir: the directory to save DataWindow files to.  if save_files is False, this value doesn't
-                            matter.  default "." (current directory)
-        :param save_files: if True, save the data.  Default False
+        :param fsw: FileSystemWriter for writing files to disk or memory.  Default Empty FileSystemWriter
         :param debug: if True, output program warnings/errors during function execution.  Default False.
         """
         super().__init__(base_dir, structured_dir, read_filter, debug, pool)
         self.correct_timestamps = correct_timestamps
         self.use_model_correction = use_model_correction
-        self.dw_base_dir = dw_base_dir
-        self.save_files = save_files
-        self._stations = self._read_stations()
+        if fsw is None:
+            self.fsw = io.FileSystemWriter("default")
+        else:
+            self.fsw = fsw
         self.all_files_size = np.sum([idx.files_size() for idx in self.files_index])
+        self._use_temp_dir = self.all_files_size * 10. > psutil.virtual_memory().available
+        self._stations = self._read_stations()
 
     def _stations_by_index(self, findex: io.Index) -> Station:
         """

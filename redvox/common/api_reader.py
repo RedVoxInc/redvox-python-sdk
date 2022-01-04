@@ -125,17 +125,17 @@ class ApiReader:
         for station_id in all_index.summarize().station_ids():
             id_index = all_index.get_index_for_station_id(station_id)
             checked_index = self._check_station_stats(id_index, pool=_pool)
-            start = time()
-            bytes_per_station = id_index.files_size()
-            end = time()
-            total_bytes_loading += bytes_per_station
-            overhead += end - start
-            print(
-                f"station_id: {station_id}, " +
-                f"num_bytes: {bytes_per_station / 1000} KB"
-            )
             index.extend(checked_index)
-        print(f"\nExpected DataWindow size: {total_bytes_loading / 166.6:.2f} KB")
+            # start = time()
+            # bytes_per_station = id_index.files_size()
+            # end = time()
+            # total_bytes_loading += bytes_per_station
+            # overhead += end - start
+            # print(
+            #     f"station_id: {station_id}, " +
+            #     f"num_bytes: {bytes_per_station / 1000} KB"
+            # )
+        # print(f"\nExpected DataWindow size: {total_bytes_loading / 166.6:.2f} KB")
         # print(f"total overhead: {overhead}")
         # print(f"Total memory loading: {total_bytes_loading / 1000} KB")
         # print(f"Overhead for calculating the file size: {overhead}")

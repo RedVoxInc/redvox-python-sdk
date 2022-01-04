@@ -77,7 +77,8 @@ class Station:
             correct_timestamps: bool = False,
             use_model_correction: bool = True,
             base_dir: str = "",
-            save_data: bool = False
+            save_data: bool = False,
+            use_temp_dir: bool = False
     ):
         """
         initialize Station
@@ -90,6 +91,7 @@ class Station:
                                         best offset (intercept value) otherwise.  Default True
         :param base_dir: directory to save parquet files, default "" (current directory)
         :param save_data: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         """
         self._id = station_id
         self._uuid = uuid
@@ -105,7 +107,7 @@ class Station:
         self._is_audio_scrambled = False
         self._timesync_data = TimeSync()
         self._is_timestamps_updated = False
-        self._fs_writer = Fsw("", "", base_dir, save_data)
+        self._fs_writer = Fsw("", "", base_dir, save_data, use_temp_dir)
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
@@ -166,7 +168,8 @@ class Station:
                             correct_timestamps: bool = False,
                             use_model_correction: bool = True,
                             base_out_dir: str = "",
-                            save_output: bool = False) -> "Station":
+                            save_output: bool = False,
+                            use_temp_dir: bool = False) -> "Station":
         """
         :param packets: API M redvox packets with data to load
         :param correct_timestamps: if True, correct timestamps as soon as possible.  Default False
@@ -174,10 +177,11 @@ class Station:
                                         best offset (intercept value) otherwise.  Default True
         :param base_out_dir: directory to save parquet files, default "" (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         :return: station using data from redvox packets.
         """
         station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
-                          base_dir=base_out_dir, save_data=save_output)
+                          base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
         station.load_data_from_packets(packets)
         return station
 
@@ -185,7 +189,8 @@ class Station:
     def create_from_metadata(packet: api_m.RedvoxPacketM,
                              use_model_correction: bool = True,
                              base_out_dir: str = "",
-                             save_output: bool = False) -> "Station":
+                             save_output: bool = False,
+                             use_temp_dir: bool = False) -> "Station":
         """
         create a station using metadata from a packet.  There will be no sensor or timing data added.
 
@@ -194,10 +199,11 @@ class Station:
                                         best offset (intercept value) otherwise.  Default True
         :param base_out_dir: directory to save parquet files, default "" (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         :return: Station without any sensor or timing
         """
         station = Station(use_model_correction=use_model_correction, base_dir=base_out_dir,
-                          save_data=save_output)
+                          save_data=save_output, use_temp_dir=use_temp_dir)
         station._load_metadata_from_packet(packet)
         return station
 
@@ -1335,7 +1341,7 @@ class Station:
         """
         :param use_temp_dir: if True, use temp dir to save data.  default False
         """
-        self._fs_writer.use_temp_dir = use_temp_dir
+        self._fs_writer.set_save_mode(use_temp_dir)
         for snr in self._data:
             snr.set_use_temp_dir(use_temp_dir)
 

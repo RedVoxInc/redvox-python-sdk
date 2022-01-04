@@ -17,7 +17,7 @@ from typing import (
 
 import lz4.frame
 
-from redvox.common.io import FileSystemWriter, json_to_dict
+from redvox.common.io import FileSystemWriter, FileSystemSaveMode, json_to_dict
 from redvox.common.date_time_utils import (
     datetime_to_epoch_microseconds_utc as us_dt,
 )
@@ -84,7 +84,9 @@ class DataWindowFileSystemWriter(FileSystemWriter):
             os.makedirs(base_dir, exist_ok=True)
         os.chdir(base_dir)
         super().__init__(file_name, file_ext, ".",
-                         False if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.NONE else True)
+                         FileSystemSaveMode.MEM if DataWindowOutputType.str_to_type(file_ext) ==
+                                                   DataWindowOutputType.NONE
+                         elif FileSystemSaveMode.)
         self.make_run_me = make_run_me
 
 

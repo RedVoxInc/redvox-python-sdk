@@ -16,7 +16,7 @@ import pyarrow.parquet as pq
 
 import redvox.common.sensor_io as io
 import redvox.common.date_time_utils as dtu
-from redvox.common.io import FileSystemWriter as Fsw
+from redvox.common.io import FileSystemSaveMode, FileSystemWriter as Fsw
 from redvox.common import offset_model as om
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.gap_and_pad_utils import calc_evenly_sampled_timestamps
@@ -169,8 +169,7 @@ class SensorData:
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
-            save_data: bool = False,
-            base_dir: str = ".",
+            fswriter: Optional[Fsw] = None,
             gaps: Optional[List[Tuple[float, float]]] = None,
             show_errors: bool = False
     ):
@@ -193,9 +192,8 @@ class SensorData:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
-        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
-        :param base_dir: directory to save pyarrow table, default "." (current dir).  internally uses a temporary
-                            dir if not saving data
+        :param fswriter: Optional FileSystemWriter which determines how files are written to disk or memory.
+                            default None (writes to memory)
         :param gaps: Optional list of timestamp pairs of data points on the edge of gaps in the data.  anything between
                         the pairs of points exists to maintain sample rate and are not considered valid points.
                         Default None
@@ -210,7 +208,7 @@ class SensorData:
         self._is_sample_rate_fixed: bool = is_sample_rate_fixed
         self._timestamps_altered: bool = are_timestamps_altered
         self._use_offset_model: bool = use_offset_model_for_correction
-        self._fs_writer = Fsw("", "parquet", base_dir, save_data)
+        self._fs_writer = Fsw(f"{self._type.name}", "parquet") if fswriter is None else fswriter
         self._gaps: List[Tuple] = gaps if gaps else []
         self._data: Optional[pa.Table()] = None
         if sensor_data:
@@ -241,7 +239,7 @@ class SensorData:
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
-            save_data: bool = False) -> "SensorData":
+            fswriter: Optional[Fsw] = None) -> "SensorData":
         """
         init but with a path to directory containing parquet file(s) instead of a table of data
 
@@ -258,14 +256,15 @@ class SensorData:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
-        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param fswriter: Optional FileSystemWriter which determines how files are written to disk or memory.
+                            default None (writes to memory)
         :return: RedvoxSensor object
         """
         result = SensorData(sensor_name,
                             ds.dataset(data_path, format="parquet", exclude_invalid_files=True).to_table(),
                             sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s,
                             is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
-                            use_offset_model_for_correction, save_data, data_path)
+                            use_offset_model_for_correction, fswriter)
         result.set_file_name()
         return result
 
@@ -281,8 +280,7 @@ class SensorData:
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
-            save_data: bool = False,
-            arrow_dir: str = "",
+            fswriter: Optional[Fsw] = None
     ) -> "SensorData":
         """
         init but with a dictionary
@@ -301,14 +299,13 @@ class SensorData:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
-        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
-        :param arrow_dir: directory to save pyarrow table, default "" (current dir).  default temporary dir if not
-                            saving data
+        :param fswriter: Optional FileSystemWriter which determines how files are written to disk or memory.
+                            default None (writes to memory)
         :return: RedvoxSensor object
         """
         return SensorData(sensor_name, pa.Table.from_pydict(sensor_data), sensor_type, sample_rate_hz,
                           sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
-                          calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)
+                          calculate_stats, use_offset_model_for_correction, fswriter)
 
     def save(self, file_name: Optional[str] = None) -> Optional[Path]:
         """
@@ -319,7 +316,7 @@ class SensorData:
                             [sensor_type]_[first_timestamp].json
         :return: The path to the saved file or None if unable to save.
         """
-        if self._fs_writer.save_to_disk:
+        if self._fs_writer.is_save_disk():
             return self.to_json_file(file_name)
         return None
 
@@ -340,13 +337,13 @@ class SensorData:
         """
         :return: True if sensor will be saved to disk
         """
-        return self._fs_writer.save_to_disk
+        return self._fs_writer.is_use_disk()
 
     def set_save_to_disk(self, save: bool):
         """
         :param save: If True, save to disk
         """
-        self._fs_writer.save_to_disk = save
+        self._fs_writer.set_use_disk(save)
 
     def set_file_name(self, new_file: Optional[str] = None):
         """
@@ -399,7 +396,7 @@ class SensorData:
         """
         :param use_temp_dir: if True, use temp dir to save data.  default False
         """
-        self._fs_writer.use_temp_dir = use_temp_dir
+        self._fs_writer.set_use_temp(use_temp_dir)
 
     def pyarrow_ds(self, base_dir: Optional[str] = None) -> ds.Dataset:
         """
@@ -422,28 +419,22 @@ class SensorData:
         """
         return self.pyarrow_table().to_pandas()
 
-    def write_pyarrow_table(self, table: pa.Table):
+    def write_pyarrow_table(self, table: Optional[pa.Table] = None):
         """
         * saves the pyarrow table to disk or to memory.
         * if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
         * creates the directory if it doesn't exist and removes any existing parquet files
 
-        :param table: the table to write
+        :param table: the table to write, default None (write existing data)
         """
-        if self._fs_writer.save_to_disk:
+        if self._fs_writer.is_save_disk():
             self._fs_writer.create_dir()
+            if table is None:
+                table = self._data
             pq.write_table(table, self.full_path())
             self._data = None
-        else:
+        elif table is not None:
             self._data = table
-
-    def _actual_file_write_table(self):
-        """
-        file writing function; use when file system writing is dependable.
-        """
-        self._fs_writer.create_dir()
-        pq.write_table(self._data, self.full_path())
-        self._data = None
 
     def errors(self) -> RedVoxExceptions:
         """
@@ -842,8 +833,6 @@ class SensorData:
                             [sensor_type]_[first_timestamp].json
         :return: path to json file
         """
-        if self._fs_writer.file_extension == "parquet":
-            self._actual_file_write_table()
         return io.to_json_file(self, file_name)
 
     @staticmethod

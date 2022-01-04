@@ -286,7 +286,7 @@ class DataWindow:
         """
         :return: directory data is saved to
         """
-        if self._fs_writer.save_to_disk:
+        if self._fs_writer.is_save_disk():
             return self._fs_writer.save_dir()
         return ""
 
@@ -395,6 +395,7 @@ class DataWindow:
     def serialize(self, compression_factor: int = 4) -> Path:
         """
         Serializes and compresses this DataWindow to a file.
+        Uses the event_name and out_dir to name the file.
 
         :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take
         longer. (default=4).
@@ -463,7 +464,7 @@ class DataWindow:
         save the DataWindow
         :return: the path to where the files exist
         """
-        if self._fs_writer.save_to_disk:
+        if self._fs_writer.is_save_disk():
             if self._fs_writer.make_run_me:
                 shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
                                 os.path.join(self._fs_writer.save_dir(), "runme.py"))
@@ -646,7 +647,10 @@ class DataWindow:
 
         self._errors.extend_error(a_r.errors)
 
+        print("checking size of data")
         if a_r.all_files_size * 10. > psutil.virtual_memory().available:
+            print("Estimated size of files exceeds available memory.")
+            print("Automatically using temporary directory to store data.")
             self._fs_writer.use_temp_dir = True
 
         # Parallel update
