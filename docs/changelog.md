@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.1.4 (2022-1-5)
+
+* Docs updated
+* Config property of DataWindow changed to function
+
 ### 3.1.3 (2021-12-16)
 
 * Fixed missing values when loading Health Sensor data

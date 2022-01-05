@@ -85,9 +85,10 @@ Using the default will create an empty EventOrigin.  See the section on [EventOr
 `config`: Optional DataWindowConfig object that describes the parameters of the DataWindow.  Default is `None`.  If there is no
 DataWindowConfig, no data will be collected.  See the section on [DataWindowConfig](#data-window-config) for more details.
 
-`out_dir`: a string that identifies the directory to save the DataWindow to.  Default `"."`, or current directory.
+`output_dir`: a string that identifies the directory to save the DataWindow to.  Default `"."`, or current directory.
 
-`out_type`: a string that identifies the method to save the DataWindow.  Default is `"NONE"` (no saving).
+`out_type`: a string that identifies the method to save the DataWindow.  Options: `"PARQUET", "LZ4", "NONE"`. 
+Default is `"NONE"` (no saving).
 
 #### Optional Data Window Parameters
 This parameter does not have to be set when creating a DataWindow.
@@ -318,7 +319,7 @@ datawindow = DataWindow(
     event_name=my_event_name,
     event_origin=source,
     config=config,
-    out_dir=output_dir_str,
+    output_dir=output_dir_str,
     out_type=type_str,
     make_runme=True_or_False,
     debug=True_or_False
@@ -338,7 +339,7 @@ config = DataWindowConfig(input_dir=input_dir_str,
                           apply_correction=True_or_False)
 datawindow = DataWindow(event_name=my_event_name,
                         config=config,
-                        out_dir=output_dir_str,
+                        output_dir=output_dir_str,
                         out_type=type_str)
 ```
 
@@ -416,7 +417,7 @@ We can even save our DataWindow and load it later. We currently support two form
 Both formats produce a JSON file that contains metadata about the DataWindow.  The JSON file is critical when loading 
 DataWindow. Please note that loading DataWindows is much faster than going through the entire creation process.
 
-The format is determined by the DataWindow parameter `out_type`, and the save directory is determined by `out_dir`.
+The format is determined by the DataWindow parameter `out_type`, and the save directory is determined by `output_dir`.
 ```python
 # save the DataWindow based on its parameters
 path_to_file = datawindow.save()
@@ -439,8 +440,6 @@ applicable.  All timestamps are in UTC.
   names will be updated to `dw_[start_date]_[num_stations]`, where `[start_date]` is the first timestamp of 
   the data and `[num_stations]` is the number of stations in the DataWindow
 * `event_origin`: EventOrigin, class containing position data for the event source.  Default empty EventOrigin
-* `config`: DataWindowConfig, class containing Data Window configuration parameters.   Default `None`.  If there is no
-  DataWindowConfig, no data will be collected.
 * `debug`: boolean, if True, outputs additional information during run time.  Default `False`
 
 This is the list of properties that are set by the SDK during creation of the DataWindow:
@@ -451,7 +450,9 @@ This is the list of properties that are set by the SDK during creation of the Da
 
 This property is set via the initialization parameters and cannot be changed without using specific functions:
 
-* `_fs_writer`: DataWindowFileSystemWriter, uses the event_name, out_type and out_dir parameters to define how and 
+* `_config`: DataWindowConfig, class containing Data Window configuration parameters.   Default `None`.  If there is no
+  DataWindowConfig, no data will be collected.
+* `_fs_writer`: DataWindowFileSystemWriter, uses the event_name, out_type and output_dir parameters to define how and 
   where to save the DataWindow.
 
 ### Event Origin Properties
@@ -510,7 +511,7 @@ not_station = datawindow.get_station("not_a_real_station")
 assertIsNone(not_station)
 ```
 
-2. `first_station(station_id: Optional[str] = None) -> Optional[StationPa]`
+3. `first_station(station_id: Optional[str] = None) -> Optional[StationPa]`
 
 Returns the first Station with ID == station_id if given or just the first Station in the list of stations.
 If a station_id is given and no station matches, returns `None`.
@@ -523,35 +524,39 @@ assertIsNone(not_station)
 first_station = datawindow.first_station()
 ```
 
-3. `station_ids() -> List[str]`
+4. `station_ids() -> List[str]`
 
 Returns a list of all Station ids in the DataWindow.
 
-4. `start_date() -> float`
+5. `start_date() -> float`
 
 Returns the earliest data timestamp in the DataWindow or `np.nan` if there are no stations.
 
-5. `end_date() -> float`
+6. `end_date() -> float`
 
 Returns the latest data timestamp in the DataWindow or `np.nan` if there are no stations.
 
-6. `sdk_version() -> str`
+7. `sdk_version() -> str`
 
 Returns the SDK version used to create the DataWindow.
 
-7. `save_dir() -> str`
+8. `save_dir() -> str`
 
 Returns the directory used to save the DataWindow.
 
-8. `fs_writer() -> FileSystemWriter`
+9. `fs_writer() -> FileSystemWriter`
 
 Returns the FileSystemWriter object that stores the information about saving to the file system.
 
-9. `set_out_type(new_out_type: str)`
+10. `config() -> DataWindowConfig`
+
+Returns the DataWindowConfig object that stores the information about loading the data from the file system.
+
+11. `set_out_type(new_out_type: str)`
 
 Sets the output type of the DataWindow to the parameter new_out_type.  Accepted values are: "NONE", "PARQUET", "LZ4"
 
-10. `print_errors()`
+12. `print_errors()`
 
 Prints the errors encountered while creating a DataWindow.
 
