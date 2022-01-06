@@ -51,8 +51,8 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(datawindow.stations()), 3)
         self.assertEqual(len(datawindow.station_ids()), 3)
         self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids())
-        self.assertEqual(len(datawindow.config.extensions), 2)
-        self.assertEqual(len(datawindow.config.api_versions), 2)
+        self.assertEqual(len(datawindow.config().extensions), 2)
+        self.assertEqual(len(datawindow.config().api_versions), 2)
 
     def test_data_window(self):
         # with contextlib.redirect_stdout(None):
@@ -184,8 +184,8 @@ not have a method with the specified name.</p></div>
         self.assertEqual(len(datawindow.stations()), 3)
         self.assertEqual(len(datawindow.station_ids()), 3)
         self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids())
-        self.assertEqual(len(datawindow.config.extensions), 2)
-        self.assertEqual(len(datawindow.config.api_versions), 2)
+        self.assertEqual(len(datawindow.config().extensions), 2)
+        self.assertEqual(len(datawindow.config().api_versions), 2)
 
     def test_data_window(self):
         # with contextlib.redirect_stdout(None):
@@ -325,8 +325,8 @@ def setUpClass(cls) -&gt; None:
     self.assertEqual(len(datawindow.stations()), 3)
     self.assertEqual(len(datawindow.station_ids()), 3)
     self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids())
-    self.assertEqual(len(datawindow.config.extensions), 2)
-    self.assertEqual(len(datawindow.config.api_versions), 2)</code></pre>
+    self.assertEqual(len(datawindow.config().extensions), 2)
+    self.assertEqual(len(datawindow.config().api_versions), 2)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_first_station"><code class="name flex">

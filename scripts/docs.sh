@@ -21,7 +21,7 @@ rm -rf docs/api_docs
 mkdir -p docs/api_docs
 
 # Generate the API docs
-pdoc3 redvox --overwrite --html --html-dir docs/api_docs -c show_type_annotations=True
+pdoc3 redvox --force --html --output-dir docs/api_docs -c show_type_annotations=True
 
 # Publish to github.io
 TMP_DIR="/tmp/redvox_docs"

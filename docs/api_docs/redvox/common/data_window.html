@@ -273,7 +273,7 @@ class DataWindow:
             event_name: str = &#34;dw&#34;,
             event_origin: Optional[EventOrigin] = None,
             config: Optional[DataWindowConfig] = None,
-            out_dir: str = &#34;.&#34;,
+            output_dir: str = &#34;.&#34;,
             out_type: str = &#34;NONE&#34;,
             make_runme: bool = False,
             debug: bool = False,
@@ -286,7 +286,7 @@ class DataWindow:
                                 origin event.  Default empty EventOrigin (no valid data)
         :param config: Optional DataWindowConfig which describes how to extract data from Redvox files.
                         Default None
-        :param out_dir: output directory for saving files.  Default &#34;.&#34; (current directory)
+        :param output_dir: output directory for saving files.  Default &#34;.&#34; (current directory)
         :param out_type: type of file to save the DataWindow as.  Options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;NONE&#34;.
                             Default &#34;NONE&#34; (no saving)
         :param make_runme: if True, saves an example runme.py file with the data.  Default False
@@ -297,12 +297,12 @@ class DataWindow:
             self.event_origin: EventOrigin = event_origin
         else:
             self.event_origin = EventOrigin()
-        self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, out_dir, make_runme)
+        self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, output_dir, make_runme)
         self.debug: bool = debug
         self._sdk_version: str = redvox.VERSION
         self._errors = RedVoxExceptions(&#34;DataWindow&#34;)
         self._stations: List[Station] = []
-        self.config = config
+        self._config = config
         if config:
             if config.start_datetime and config.end_datetime and (config.end_datetime &lt;= config.start_datetime):
                 self._errors.append(&#34;DataWindow will not work when end datetime is before or equal to start datetime.\n&#34;
@@ -368,7 +368,7 @@ class DataWindow:
                 &#34;end_time&#34;: self.end_date(),
                 &#34;base_dir&#34;: self.save_dir(),
                 &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
-                &#34;config&#34;: self.config.as_dict(),
+                &#34;config&#34;: self._config.as_dict(),
                 &#34;debug&#34;: self.debug,
                 &#34;errors&#34;: self._errors.as_dict(),
                 &#34;sdk_version&#34;: self._sdk_version,
@@ -476,7 +476,7 @@ class DataWindow:
                 dwin = DataWindow(json_dict[&#34;event_name&#34;], EventOrigin.from_dict(json_dict[&#34;event_origin&#34;]),
                                   None, json_dict[&#34;base_dir&#34;], json_dict[&#34;out_type&#34;], json_dict[&#34;make_runme&#34;],
                                   json_dict[&#34;debug&#34;])
-                dwin.config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
+                dwin._config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
                 dwin.errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
                 dwin.set_sdk_version(json_dict[&#34;sdk_version&#34;])
                 for st in json_dict[&#34;stations&#34;]:
@@ -514,6 +514,12 @@ class DataWindow:
         :return: DataWindow from json metadata
         &#34;&#34;&#34;
         return DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
+
+    def config(self) -&gt; DataWindowConfig:
+        &#34;&#34;&#34;
+        :return: settings used to create the DataWindow
+        &#34;&#34;&#34;
+        return self._config
 
     def sdk_version(self) -&gt; str:
         &#34;&#34;&#34;
@@ -636,7 +642,7 @@ class DataWindow:
 
     def _add_sensor_to_window(self, station: Station):
         # set the window start and end if they were specified, otherwise use the bounds of the data
-        self.create_window_in_sensors(station, self.config.start_datetime, self.config.end_datetime)
+        self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         &#34;&#34;&#34;
@@ -648,27 +654,27 @@ class DataWindow:
         _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
         r_f = io.ReadFilter()
-        if self.config.start_datetime:
-            r_f.with_start_dt(self.config.start_datetime)
-        if self.config.end_datetime:
-            r_f.with_end_dt(self.config.end_datetime)
-        if self.config.station_ids:
-            r_f.with_station_ids(self.config.station_ids)
-        if self.config.extensions:
-            r_f.with_extensions(self.config.extensions)
+        if self._config.start_datetime:
+            r_f.with_start_dt(self._config.start_datetime)
+        if self._config.end_datetime:
+            r_f.with_end_dt(self._config.end_datetime)
+        if self._config.station_ids:
+            r_f.with_station_ids(self._config.station_ids)
+        if self._config.extensions:
+            r_f.with_extensions(self._config.extensions)
         else:
-            self.config.extensions = r_f.extensions
-        if self.config.api_versions:
-            r_f.with_api_versions(self.config.api_versions)
+            self._config.extensions = r_f.extensions
+        if self._config.api_versions:
+            r_f.with_api_versions(self._config.api_versions)
         else:
-            self.config.api_versions = r_f.api_versions
-        r_f.with_start_dt_buf(self.config.start_buffer_td)
-        r_f.with_end_dt_buf(self.config.end_buffer_td)
+            self._config.api_versions = r_f.api_versions
+        r_f.with_start_dt_buf(self._config.start_buffer_td)
+        r_f.with_end_dt_buf(self._config.end_buffer_td)
 
         # get the data to convert into a window
-        a_r = ApiReaderDw(self.config.input_dir, self.config.structured_layout, r_f,
-                          correct_timestamps=self.config.apply_correction,
-                          use_model_correction=self.config.use_model_correction,
+        a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
+                          correct_timestamps=self._config.apply_correction,
+                          use_model_correction=self._config.use_model_correction,
                           dw_base_dir=self.save_dir(),
                           save_files=self._fs_writer.save_to_disk,
                           debug=self.debug, pool=_pool)
@@ -680,7 +686,7 @@ class DataWindow:
         sts = a_r.get_stations()
         if self.debug:
             print(&#34;num stations loaded: &#34;, len(sts))
-        if self.config.apply_correction:
+        if self._config.apply_correction:
             for st in maybe_parallel_map(_pool, Station.update_timestamps,
                                          iter(sts), chunk_size=1):
                 self._add_sensor_to_window(st)
@@ -699,12 +705,12 @@ class DataWindow:
 
         # must update the start and end in order for the data to be saved
         # update remaining data window values if they&#39;re still default
-        if not self.config.start_datetime and len(self._stations) &gt; 0:
-            self.config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
+        if not self._config.start_datetime and len(self._stations) &gt; 0:
+            self._config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
                 np.min([t.first_data_timestamp() for t in self._stations]))
         # end_datetime is non-inclusive, so it must be greater than our latest timestamp
-        if not self.config.end_datetime and len(self._stations) &gt; 0:
-            self.config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
+        if not self._config.end_datetime and len(self._stations) &gt; 0:
+            self._config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
                 np.max([t.last_data_timestamp() for t in self._stations]) + 1)
 
         # If the pool was created by this function, then it needs to managed by this function.
@@ -729,14 +735,14 @@ class DataWindow:
         if there are no stations, creates a single error message declaring no data found
         &#34;&#34;&#34;
         if len(self._stations) &lt; 1:
-            if len(self.config.station_ids) &gt; 1:
-                add_ids = f&#34;for all stations {self.config.station_ids} &#34;
+            if len(self._config.station_ids) &gt; 1:
+                add_ids = f&#34;for all stations {self._config.station_ids} &#34;
             else:
                 add_ids = &#34;&#34;
-            self._errors.append(f&#34;No data matching criteria {add_ids}in {self.config.input_dir}&#34;
+            self._errors.append(f&#34;No data matching criteria {add_ids}in {self._config.input_dir}&#34;
                                 f&#34;\nPlease adjust parameters of DataWindow&#34;)
-        elif len(self.station_ids()) &gt; 0 and self.config.station_ids:
-            for ids in self.config.station_ids:
+        elif len(self.station_ids()) &gt; 0 and self._config.station_ids:
+            for ids in self._config.station_ids:
                 if ids.zfill(10) not in [i.id() for i in self._stations]:
                     self._errors.append(
                         f&#34;Requested {ids} but there is no data to read for that station&#34;
@@ -820,7 +826,7 @@ class DataWindow:
                 elif last_before_start is not None and first_after_end is not None:
                     sensor.write_pyarrow_table(
                         sensor.interpolate(start_date_timestamp, last_before_start, 1,
-                                           self.config.copy_edge_points == gpu.DataPointCreationMode.COPY))
+                                           self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
                 else:
                     self._errors.append(
                         f&#34;Data window for {station_id} {sensor.type().name} &#34;
@@ -832,7 +838,7 @@ class DataWindow:
                 if sensor.type() in [SensorType.LOCATION, SensorType.AUDIO]:
                     new_point_mode = gpu.DataPointCreationMode.NAN
                 else:
-                    new_point_mode = self.config.copy_edge_points
+                    new_point_mode = self._config.copy_edge_points
                 # add in the data points at the edges of the window if there are defined start and/or end times
                 slice_start = _arrow[&#34;timestamps&#34;].to_numpy()[0]
                 slice_end = _arrow[&#34;timestamps&#34;].to_numpy()[-1]
@@ -844,14 +850,14 @@ class DataWindow:
                 else:
                     end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s())
                     start_sample_interval = -end_sample_interval
-                    if self.config.end_datetime:
-                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.config.end_datetime)
+                    if self._config.end_datetime:
+                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime)
                                                   - slice_end) / end_sample_interval)
                     else:
                         end_samples_to_add = 0
-                    if self.config.start_datetime:
+                    if self._config.start_datetime:
                         start_samples_to_add = int((slice_start -
-                                                    dtu.datetime_to_epoch_microseconds_utc(self.config.start_datetime))
+                                                    dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
                                                    / end_sample_interval)
                     else:
                         start_samples_to_add = 0
@@ -890,7 +896,7 @@ class DataWindow:
 <dl>
 <dt id="redvox.common.data_window.DataWindow"><code class="flex name class">
 <span>class <span class="ident">DataWindow</span></span>
-<span>(</span><span>event_name: str = 'dw', event_origin: Optional[<a title="redvox.common.data_window.EventOrigin" href="#redvox.common.data_window.EventOrigin">EventOrigin</a>] = None, config: Optional[<a title="redvox.common.data_window.DataWindowConfig" href="#redvox.common.data_window.DataWindowConfig">DataWindowConfig</a>] = None, out_dir: str = '.', out_type: str = 'NONE', make_runme: bool = False, debug: bool = False)</span>
+<span>(</span><span>event_name: str = 'dw', event_origin: Optional[<a title="redvox.common.data_window.EventOrigin" href="#redvox.common.data_window.EventOrigin">EventOrigin</a>] = None, config: Optional[<a title="redvox.common.data_window.DataWindowConfig" href="#redvox.common.data_window.DataWindowConfig">DataWindowConfig</a>] = None, output_dir: str = '.', out_type: str = 'NONE', make_runme: bool = False, debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values</p>
@@ -920,7 +926,7 @@ origin event.
 Default empty EventOrigin (no valid data)
 :param config: Optional DataWindowConfig which describes how to extract data from Redvox files.
 Default None
-:param out_dir: output directory for saving files.
+:param output_dir: output directory for saving files.
 Default "." (current directory)
 :param out_type: type of file to save the DataWindow as.
 Options: "PARQUET", "LZ4", "NONE".
@@ -964,7 +970,7 @@ Default False</p></div>
             event_name: str = &#34;dw&#34;,
             event_origin: Optional[EventOrigin] = None,
             config: Optional[DataWindowConfig] = None,
-            out_dir: str = &#34;.&#34;,
+            output_dir: str = &#34;.&#34;,
             out_type: str = &#34;NONE&#34;,
             make_runme: bool = False,
             debug: bool = False,
@@ -977,7 +983,7 @@ Default False</p></div>
                                 origin event.  Default empty EventOrigin (no valid data)
         :param config: Optional DataWindowConfig which describes how to extract data from Redvox files.
                         Default None
-        :param out_dir: output directory for saving files.  Default &#34;.&#34; (current directory)
+        :param output_dir: output directory for saving files.  Default &#34;.&#34; (current directory)
         :param out_type: type of file to save the DataWindow as.  Options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;NONE&#34;.
                             Default &#34;NONE&#34; (no saving)
         :param make_runme: if True, saves an example runme.py file with the data.  Default False
@@ -988,12 +994,12 @@ Default False</p></div>
             self.event_origin: EventOrigin = event_origin
         else:
             self.event_origin = EventOrigin()
-        self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, out_dir, make_runme)
+        self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, output_dir, make_runme)
         self.debug: bool = debug
         self._sdk_version: str = redvox.VERSION
         self._errors = RedVoxExceptions(&#34;DataWindow&#34;)
         self._stations: List[Station] = []
-        self.config = config
+        self._config = config
         if config:
             if config.start_datetime and config.end_datetime and (config.end_datetime &lt;= config.start_datetime):
                 self._errors.append(&#34;DataWindow will not work when end datetime is before or equal to start datetime.\n&#34;
@@ -1059,7 +1065,7 @@ Default False</p></div>
                 &#34;end_time&#34;: self.end_date(),
                 &#34;base_dir&#34;: self.save_dir(),
                 &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
-                &#34;config&#34;: self.config.as_dict(),
+                &#34;config&#34;: self._config.as_dict(),
                 &#34;debug&#34;: self.debug,
                 &#34;errors&#34;: self._errors.as_dict(),
                 &#34;sdk_version&#34;: self._sdk_version,
@@ -1167,7 +1173,7 @@ Default False</p></div>
                 dwin = DataWindow(json_dict[&#34;event_name&#34;], EventOrigin.from_dict(json_dict[&#34;event_origin&#34;]),
                                   None, json_dict[&#34;base_dir&#34;], json_dict[&#34;out_type&#34;], json_dict[&#34;make_runme&#34;],
                                   json_dict[&#34;debug&#34;])
-                dwin.config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
+                dwin._config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
                 dwin.errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
                 dwin.set_sdk_version(json_dict[&#34;sdk_version&#34;])
                 for st in json_dict[&#34;stations&#34;]:
@@ -1205,6 +1211,12 @@ Default False</p></div>
         :return: DataWindow from json metadata
         &#34;&#34;&#34;
         return DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
+
+    def config(self) -&gt; DataWindowConfig:
+        &#34;&#34;&#34;
+        :return: settings used to create the DataWindow
+        &#34;&#34;&#34;
+        return self._config
 
     def sdk_version(self) -&gt; str:
         &#34;&#34;&#34;
@@ -1327,7 +1339,7 @@ Default False</p></div>
 
     def _add_sensor_to_window(self, station: Station):
         # set the window start and end if they were specified, otherwise use the bounds of the data
-        self.create_window_in_sensors(station, self.config.start_datetime, self.config.end_datetime)
+        self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         &#34;&#34;&#34;
@@ -1339,27 +1351,27 @@ Default False</p></div>
         _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
         r_f = io.ReadFilter()
-        if self.config.start_datetime:
-            r_f.with_start_dt(self.config.start_datetime)
-        if self.config.end_datetime:
-            r_f.with_end_dt(self.config.end_datetime)
-        if self.config.station_ids:
-            r_f.with_station_ids(self.config.station_ids)
-        if self.config.extensions:
-            r_f.with_extensions(self.config.extensions)
+        if self._config.start_datetime:
+            r_f.with_start_dt(self._config.start_datetime)
+        if self._config.end_datetime:
+            r_f.with_end_dt(self._config.end_datetime)
+        if self._config.station_ids:
+            r_f.with_station_ids(self._config.station_ids)
+        if self._config.extensions:
+            r_f.with_extensions(self._config.extensions)
         else:
-            self.config.extensions = r_f.extensions
-        if self.config.api_versions:
-            r_f.with_api_versions(self.config.api_versions)
+            self._config.extensions = r_f.extensions
+        if self._config.api_versions:
+            r_f.with_api_versions(self._config.api_versions)
         else:
-            self.config.api_versions = r_f.api_versions
-        r_f.with_start_dt_buf(self.config.start_buffer_td)
-        r_f.with_end_dt_buf(self.config.end_buffer_td)
+            self._config.api_versions = r_f.api_versions
+        r_f.with_start_dt_buf(self._config.start_buffer_td)
+        r_f.with_end_dt_buf(self._config.end_buffer_td)
 
         # get the data to convert into a window
-        a_r = ApiReaderDw(self.config.input_dir, self.config.structured_layout, r_f,
-                          correct_timestamps=self.config.apply_correction,
-                          use_model_correction=self.config.use_model_correction,
+        a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
+                          correct_timestamps=self._config.apply_correction,
+                          use_model_correction=self._config.use_model_correction,
                           dw_base_dir=self.save_dir(),
                           save_files=self._fs_writer.save_to_disk,
                           debug=self.debug, pool=_pool)
@@ -1371,7 +1383,7 @@ Default False</p></div>
         sts = a_r.get_stations()
         if self.debug:
             print(&#34;num stations loaded: &#34;, len(sts))
-        if self.config.apply_correction:
+        if self._config.apply_correction:
             for st in maybe_parallel_map(_pool, Station.update_timestamps,
                                          iter(sts), chunk_size=1):
                 self._add_sensor_to_window(st)
@@ -1390,12 +1402,12 @@ Default False</p></div>
 
         # must update the start and end in order for the data to be saved
         # update remaining data window values if they&#39;re still default
-        if not self.config.start_datetime and len(self._stations) &gt; 0:
-            self.config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
+        if not self._config.start_datetime and len(self._stations) &gt; 0:
+            self._config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
                 np.min([t.first_data_timestamp() for t in self._stations]))
         # end_datetime is non-inclusive, so it must be greater than our latest timestamp
-        if not self.config.end_datetime and len(self._stations) &gt; 0:
-            self.config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
+        if not self._config.end_datetime and len(self._stations) &gt; 0:
+            self._config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
                 np.max([t.last_data_timestamp() for t in self._stations]) + 1)
 
         # If the pool was created by this function, then it needs to managed by this function.
@@ -1420,14 +1432,14 @@ Default False</p></div>
         if there are no stations, creates a single error message declaring no data found
         &#34;&#34;&#34;
         if len(self._stations) &lt; 1:
-            if len(self.config.station_ids) &gt; 1:
-                add_ids = f&#34;for all stations {self.config.station_ids} &#34;
+            if len(self._config.station_ids) &gt; 1:
+                add_ids = f&#34;for all stations {self._config.station_ids} &#34;
             else:
                 add_ids = &#34;&#34;
-            self._errors.append(f&#34;No data matching criteria {add_ids}in {self.config.input_dir}&#34;
+            self._errors.append(f&#34;No data matching criteria {add_ids}in {self._config.input_dir}&#34;
                                 f&#34;\nPlease adjust parameters of DataWindow&#34;)
-        elif len(self.station_ids()) &gt; 0 and self.config.station_ids:
-            for ids in self.config.station_ids:
+        elif len(self.station_ids()) &gt; 0 and self._config.station_ids:
+            for ids in self._config.station_ids:
                 if ids.zfill(10) not in [i.id() for i in self._stations]:
                     self._errors.append(
                         f&#34;Requested {ids} but there is no data to read for that station&#34;
@@ -1511,7 +1523,7 @@ Default False</p></div>
                 elif last_before_start is not None and first_after_end is not None:
                     sensor.write_pyarrow_table(
                         sensor.interpolate(start_date_timestamp, last_before_start, 1,
-                                           self.config.copy_edge_points == gpu.DataPointCreationMode.COPY))
+                                           self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
                 else:
                     self._errors.append(
                         f&#34;Data window for {station_id} {sensor.type().name} &#34;
@@ -1523,7 +1535,7 @@ Default False</p></div>
                 if sensor.type() in [SensorType.LOCATION, SensorType.AUDIO]:
                     new_point_mode = gpu.DataPointCreationMode.NAN
                 else:
-                    new_point_mode = self.config.copy_edge_points
+                    new_point_mode = self._config.copy_edge_points
                 # add in the data points at the edges of the window if there are defined start and/or end times
                 slice_start = _arrow[&#34;timestamps&#34;].to_numpy()[0]
                 slice_end = _arrow[&#34;timestamps&#34;].to_numpy()[-1]
@@ -1535,14 +1547,14 @@ Default False</p></div>
                 else:
                     end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s())
                     start_sample_interval = -end_sample_interval
-                    if self.config.end_datetime:
-                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.config.end_datetime)
+                    if self._config.end_datetime:
+                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime)
                                                   - slice_end) / end_sample_interval)
                     else:
                         end_samples_to_add = 0
-                    if self.config.start_datetime:
+                    if self._config.start_datetime:
                         start_samples_to_add = int((slice_start -
-                                                    dtu.datetime_to_epoch_microseconds_utc(self.config.start_datetime))
+                                                    dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
                                                    / end_sample_interval)
                     else:
                         start_samples_to_add = 0
@@ -1701,7 +1713,7 @@ def from_json_dict(json_dict: Dict) -&gt; &#34;DataWindow&#34;:
             dwin = DataWindow(json_dict[&#34;event_name&#34;], EventOrigin.from_dict(json_dict[&#34;event_origin&#34;]),
                               None, json_dict[&#34;base_dir&#34;], json_dict[&#34;out_type&#34;], json_dict[&#34;make_runme&#34;],
                               json_dict[&#34;debug&#34;])
-            dwin.config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
+            dwin._config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
             dwin.errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
             dwin.set_sdk_version(json_dict[&#34;sdk_version&#34;])
             for st in json_dict[&#34;stations&#34;]:
@@ -1776,13 +1788,29 @@ def load(file_path: str) -&gt; &#34;DataWindow&#34;:
             &#34;end_time&#34;: self.end_date(),
             &#34;base_dir&#34;: self.save_dir(),
             &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
-            &#34;config&#34;: self.config.as_dict(),
+            &#34;config&#34;: self._config.as_dict(),
             &#34;debug&#34;: self.debug,
             &#34;errors&#34;: self._errors.as_dict(),
             &#34;sdk_version&#34;: self._sdk_version,
             &#34;out_type&#34;: self._fs_writer.file_extension,
             &#34;make_runme&#34;: self._fs_writer.make_run_me
             }</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.DataWindow.config"><code class="name flex">
+<span>def <span class="ident">config</span></span>(<span>self) ‑> <a title="redvox.common.data_window.DataWindowConfig" href="#redvox.common.data_window.DataWindowConfig">DataWindowConfig</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: settings used to create the DataWindow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def config(self) -&gt; DataWindowConfig:
+    &#34;&#34;&#34;
+    :return: settings used to create the DataWindow
+    &#34;&#34;&#34;
+    return self._config</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.create_data_window"><code class="name flex">
@@ -1805,27 +1833,27 @@ stations without audio or any data outside the window are removed</p></div>
     _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
     r_f = io.ReadFilter()
-    if self.config.start_datetime:
-        r_f.with_start_dt(self.config.start_datetime)
-    if self.config.end_datetime:
-        r_f.with_end_dt(self.config.end_datetime)
-    if self.config.station_ids:
-        r_f.with_station_ids(self.config.station_ids)
-    if self.config.extensions:
-        r_f.with_extensions(self.config.extensions)
+    if self._config.start_datetime:
+        r_f.with_start_dt(self._config.start_datetime)
+    if self._config.end_datetime:
+        r_f.with_end_dt(self._config.end_datetime)
+    if self._config.station_ids:
+        r_f.with_station_ids(self._config.station_ids)
+    if self._config.extensions:
+        r_f.with_extensions(self._config.extensions)
     else:
-        self.config.extensions = r_f.extensions
-    if self.config.api_versions:
-        r_f.with_api_versions(self.config.api_versions)
+        self._config.extensions = r_f.extensions
+    if self._config.api_versions:
+        r_f.with_api_versions(self._config.api_versions)
     else:
-        self.config.api_versions = r_f.api_versions
-    r_f.with_start_dt_buf(self.config.start_buffer_td)
-    r_f.with_end_dt_buf(self.config.end_buffer_td)
+        self._config.api_versions = r_f.api_versions
+    r_f.with_start_dt_buf(self._config.start_buffer_td)
+    r_f.with_end_dt_buf(self._config.end_buffer_td)
 
     # get the data to convert into a window
-    a_r = ApiReaderDw(self.config.input_dir, self.config.structured_layout, r_f,
-                      correct_timestamps=self.config.apply_correction,
-                      use_model_correction=self.config.use_model_correction,
+    a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
+                      correct_timestamps=self._config.apply_correction,
+                      use_model_correction=self._config.use_model_correction,
                       dw_base_dir=self.save_dir(),
                       save_files=self._fs_writer.save_to_disk,
                       debug=self.debug, pool=_pool)
@@ -1837,7 +1865,7 @@ stations without audio or any data outside the window are removed</p></div>
     sts = a_r.get_stations()
     if self.debug:
         print(&#34;num stations loaded: &#34;, len(sts))
-    if self.config.apply_correction:
+    if self._config.apply_correction:
         for st in maybe_parallel_map(_pool, Station.update_timestamps,
                                      iter(sts), chunk_size=1):
             self._add_sensor_to_window(st)
@@ -1856,12 +1884,12 @@ stations without audio or any data outside the window are removed</p></div>
 
     # must update the start and end in order for the data to be saved
     # update remaining data window values if they&#39;re still default
-    if not self.config.start_datetime and len(self._stations) &gt; 0:
-        self.config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
+    if not self._config.start_datetime and len(self._stations) &gt; 0:
+        self._config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
             np.min([t.first_data_timestamp() for t in self._stations]))
     # end_datetime is non-inclusive, so it must be greater than our latest timestamp
-    if not self.config.end_datetime and len(self._stations) &gt; 0:
-        self.config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
+    if not self._config.end_datetime and len(self._stations) &gt; 0:
+        self._config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
             np.max([t.last_data_timestamp() for t in self._stations]) + 1)
 
     # If the pool was created by this function, then it needs to managed by this function.
@@ -2144,7 +2172,7 @@ Updates sensor in place, returns nothing.</p>
             elif last_before_start is not None and first_after_end is not None:
                 sensor.write_pyarrow_table(
                     sensor.interpolate(start_date_timestamp, last_before_start, 1,
-                                       self.config.copy_edge_points == gpu.DataPointCreationMode.COPY))
+                                       self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
             else:
                 self._errors.append(
                     f&#34;Data window for {station_id} {sensor.type().name} &#34;
@@ -2156,7 +2184,7 @@ Updates sensor in place, returns nothing.</p>
             if sensor.type() in [SensorType.LOCATION, SensorType.AUDIO]:
                 new_point_mode = gpu.DataPointCreationMode.NAN
             else:
-                new_point_mode = self.config.copy_edge_points
+                new_point_mode = self._config.copy_edge_points
             # add in the data points at the edges of the window if there are defined start and/or end times
             slice_start = _arrow[&#34;timestamps&#34;].to_numpy()[0]
             slice_end = _arrow[&#34;timestamps&#34;].to_numpy()[-1]
@@ -2168,14 +2196,14 @@ Updates sensor in place, returns nothing.</p>
             else:
                 end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s())
                 start_sample_interval = -end_sample_interval
-                if self.config.end_datetime:
-                    end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self.config.end_datetime)
+                if self._config.end_datetime:
+                    end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime)
                                               - slice_end) / end_sample_interval)
                 else:
                     end_samples_to_add = 0
-                if self.config.start_datetime:
+                if self._config.start_datetime:
                     start_samples_to_add = int((slice_start -
-                                                dtu.datetime_to_epoch_microseconds_utc(self.config.start_datetime))
+                                                dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
                                                / end_sample_interval)
                 else:
                     start_samples_to_add = 0
@@ -2841,6 +2869,7 @@ def from_dict(data_dict: Dict) -&gt; &#34;EventOrigin&#34;:
 <ul class="">
 <li><code><a title="redvox.common.data_window.DataWindow.add_station" href="#redvox.common.data_window.DataWindow.add_station">add_station</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.as_dict" href="#redvox.common.data_window.DataWindow.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindow.config" href="#redvox.common.data_window.DataWindow.config">config</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.create_data_window" href="#redvox.common.data_window.DataWindow.create_data_window">create_data_window</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.create_window_in_sensors" href="#redvox.common.data_window.DataWindow.create_window_in_sensors">create_window_in_sensors</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindow.deserialize" href="#redvox.common.data_window.DataWindow.deserialize">deserialize</a></code></li>
