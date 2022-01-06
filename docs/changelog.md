@@ -4,6 +4,7 @@
 
 * Docs updated
 * Config property of DataWindow changed to function
+* out_dir parameter of DataWindow changed to output_dir
 
 ### 3.1.3 (2021-12-16)
 
