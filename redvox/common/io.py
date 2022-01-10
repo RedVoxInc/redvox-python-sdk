@@ -117,13 +117,25 @@ class FileSystemWriter:
 
     def create_dir(self):
         """
-        if saving to disk, otherwise remove any files in the directory,
-        then create the directory if it doesn't exist
+        if saving to disk, remove the directory if it exists,
+        then create an empty directory to save things into
+        if saving to temp dir, remove any files in the temp dir
         """
         if self.save_to_disk:
             if os.path.exists(self.save_dir()):
                 rmtree(self.save_dir())
             os.makedirs(self.save_dir(), exist_ok=True)
+        else:
+            for m in os.listdir(self.save_dir()):
+                rmv_path = os.path.join(self.save_dir(), m)
+                if os.path.isfile(rmv_path) or os.path.islink(rmv_path):
+                    os.remove(rmv_path)
+                elif os.path.isdir(rmv_path):
+                    rmtree(rmv_path)
+                else:
+                    print("Cannot remove something that is not a file or a directory.  "
+                          "Report this error to developers.")
+                    raise SystemError("Unknown object cannot be removed; is not file or directory")
 
     def __del__(self):
         """
