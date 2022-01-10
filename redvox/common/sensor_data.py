@@ -212,7 +212,6 @@ class SensorData:
         self._use_offset_model: bool = use_offset_model_for_correction
         self._fs_writer = Fsw("", "parquet", base_dir, save_data)
         self._gaps: List[Tuple] = gaps if gaps else []
-        self._data: Optional[pa.Table()] = None
         if sensor_data:
             if "timestamps" not in sensor_data.schema.names:
                 self._errors.append('must have a column titled "timestamps"')
@@ -397,7 +396,7 @@ class SensorData:
 
     def pyarrow_ds(self, base_dir: Optional[str] = None) -> ds.Dataset:
         """
-        :param base_dir: optional directory to use when loading the dataset.  if None, use self.base_dir()
+        :param base_dir: optional directory to use when loading the dataset.  if None, use self.save_dir()
         :return: the dataset stored in base_dir
         """
         if base_dir is None:
@@ -408,7 +407,7 @@ class SensorData:
         """
         :return: the table defined by the dataset stored in self
         """
-        return self._data if self._data else self.pyarrow_ds().to_table()
+        return self.pyarrow_ds().to_table()
 
     def data_df(self) -> pd.DataFrame:
         """
@@ -427,15 +426,15 @@ class SensorData:
         # self._data = table
         self._fs_writer.create_dir()
         pq.write_table(table, self.full_path())
-        self._data = None
 
-    def _actual_file_write_table(self):
-        """
-        file writing function; use when file system writing is dependable.
-        """
-        self._fs_writer.create_dir()
-        pq.write_table(self._data, self.full_path())
-        self._data = None
+    # implemented in 3.1.5
+    # def _actual_file_write_table(self):
+    #     """
+    #     file writing function; use when file system writing is dependable.
+    #     """
+    #     self._fs_writer.create_dir()
+    #     pq.write_table(self._data, self.full_path())
+    #     self._data = None
 
     def errors(self) -> RedVoxExceptions:
         """
