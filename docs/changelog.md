@@ -1,6 +1,6 @@
 ## Changelog
 
-### 3.1.5 (2022-1-10)
+### 3.1.5rc1 (2022-1-10)
 
 * Write SensorData to disk instead of saving in memory
 
