@@ -285,9 +285,7 @@ class DataWindow:
         """
         :return: directory data is saved to
         """
-        if self._fs_writer.save_to_disk:
-            return self._fs_writer.save_dir()
-        return ""
+        return self._fs_writer.save_dir()
 
     def set_save_dir(self, new_save_dir: Optional[str] = "."):
         """
@@ -459,8 +457,10 @@ class DataWindow:
 
     def save(self) -> Path:
         """
-        save the DataWindow
-        :return: the path to where the files exist
+        save the DataWindow to disk if saving is enabled
+        if saving is not enabled, adds an error to the DataWindow and returns an empty path.
+
+        :return: the path to where the files exist; an empty path means no files were saved
         """
         if self._fs_writer.save_to_disk:
             if self._fs_writer.make_run_me:
@@ -473,6 +473,7 @@ class DataWindow:
         else:
             self._errors.append("Saving not enabled.")
             print("WARNING: Cannot save data window without knowing extension.")
+            return Path()
 
     @staticmethod
     def load(file_path: str) -> "DataWindow":
