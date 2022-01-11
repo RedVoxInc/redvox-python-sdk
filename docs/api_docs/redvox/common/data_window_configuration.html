@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.9.2" />
+<meta name="generator" content="pdoc 0.10.0" />
 <title>redvox.common.data_window_configuration API documentation</title>
 <meta name="description" content="This module provide type-safe data window configuration" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
@@ -37,6 +37,10 @@ from typing import Optional, List, MutableMapping
 
 import pprint
 import toml
+import numpy as np
+
+import redvox.common.date_time_utils as dtu
+from redvox.common.gap_and_pad_utils import DataPointCreationMode
 
 
 # defaults for configuration
@@ -47,45 +51,105 @@ DEFAULT_END_PADDING_S: float = 120.0  # time to add after end time when searchin
 
 @dataclass_json()
 @dataclass
-class DataWindowConfig:
+class DataWindowConfigFile:
     &#34;&#34;&#34;
     Properties:
-        input_directory: string, directory that contains the files to read data from.  REQUIRED
+        event_name: str, name of the data window.  Default &#34;dw&#34;
+
+        origin_provider: string, source of the location data (i.e. GPS or NETWORK), default UNKNOWN
+
+        origin_latitude: float, best estimate of latitude in degrees, default np.nan
+
+        origin_latitude_std: float, standard deviation of best estimate of latitude, default np.nan
+
+        origin_longitude: float, best estimate of longitude in degrees, default np.nan
+
+        origin_longitude_std: float, standard deviation of best estimate of longitude, default np.nan
+
+        origin_altitude: float, best estimate of altitude in meters, default np.nan
+
+        origin_altitude_std: float, standard deviation of best estimate of altitude, default np.nan
+
+        origin_event_radius_m: float, radius of event in meters, default 0.0
+
+        output_dir: str, directory to output the data to.  Default &#34;.&#34; (current directory)
+
+        output_type: str, type of file to output the data as.  Options are: &#34;NONE&#34;, &#34;PARQUET&#34;, &#34;LZ4&#34;
+        Default &#34;NONE&#34; (no saving).
+
+        make_runme: bool, if True, save a runme.py example file along with the data.  Default False
+
+        input_directory: str, directory that contains the files to read data from.  REQUIRED
+
         structured_layout: bool, if True, the input_directory contains specially named and organized
-                            directories of data.  Default True
+        directories of data.  Default True
+
         station_ids: optional list of strings, list of station ids to filter on.
-                        If empty or None, get any ids found in the input directory.  Default None
+        If empty or None, get any ids found in the input directory.  Default None
+
         extensions: optional list of strings, representing file extensions to filter on.
-                        If None, gets as much data as it can in the input directory.  Default None
+        If None, gets as much data as it can in the input directory.  Default None
+
         api_versions: optional list of ApiVersions, representing api versions to filter on.
-                        If None, get as much data as it can in the input directory.  Default None
+        If None, get as much data as it can in the input directory.  Default None
+
         start_year: optional int representing the year of the data window start time.  Default None
+
         start_month: optional int representing the month of the data window start time.  Default None
+
         start_day: optional int representing the day of the data window start time.  Default None
+
         start_hour: optional int representing the hour of the data window start time.  Default None
+
         start_minute: optional int representing the minute of the data window start time.  Default None
+
         start_second: optional int representing the second of the data window start time.  Default None
+
         end_year: optional int representing the year of the data window end time.  Default None
+
         end_month: optional int representing the month of the data window end time.  Default None
+
         end_day: optional int representing the day of the data window end time.  Default None
+
         end_hour: optional int representing the hour of the data window end time.  Default None
+
         end_minute: optional int representing the minute of the data window end time.  Default None
+
         end_second: optional int representing the second of the data window end time.  Default None
+
         start_padding_seconds: float representing the amount of seconds to include before the start datetime
-                                when filtering data.  Default DEFAULT_START_PADDING_S
+        when filtering data.  Default DEFAULT_START_PADDING_S (120 seconds)
+
         end_padding_seconds: float representing the amount of seconds to include after the end datetime
-                                when filtering data.  Default DEFAULT_END_PADDING_S
+        when filtering data.  Default DEFAULT_END_PADDING_S (120 seconds)
+
         drop_time_seconds: float representing the minimum amount of seconds between data packets that would indicate
-                            a gap.  Default DEFAULT_DROP_TIME_S
+        a gap.  Default DEFAULT_DROP_TIME_S (0.2 seconds)
+
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
-        edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.  Determines behavior when creating points on the edge
-                            of the data window.  default COPY
+
+        edge_points_mode: str, one of &#34;NAN&#34;, &#34;COPY&#34;, or &#34;INTERPOLATE&#34;.  Determines behavior when creating points on
+        the edge of the data window.  default &#34;COPY&#34;
+
         use_model_correction: bool, if True, use the offset model&#39;s correction functions, otherwise use the best
-                                offset.  Default True
+        offset.  Default True
+
         debug: bool, if True, output additional information when processing data window.  Default False
     &#34;&#34;&#34;
 
     input_directory: str
+    event_name: str = &#34;dw&#34;
+    origin_provider: str = &#34;UNKNOWN&#34;
+    origin_latitude: float = np.nan
+    origin_latitude_std: float = np.nan
+    origin_longitude: float = np.nan
+    origin_longitude_std: float = np.nan
+    origin_altitude: float = np.nan
+    origin_altitude_std: float = np.nan
+    origin_event_radius_m: float = 0.0
+    output_dir: str = &#34;.&#34;
+    output_type: str = &#34;NONE&#34;
+    make_runme: bool = False
     structured_layout: bool = True
     station_ids: Optional[List[str]] = None
     extensions: Optional[List[str]] = None
@@ -106,24 +170,61 @@ class DataWindowConfig:
     end_padding_seconds: float = DEFAULT_END_PADDING_S
     drop_time_seconds: float = DEFAULT_DROP_TIME_S
     apply_correction: bool = True
-    edge_points_mode: str = &#34;COPY&#34;
     use_model_correction: bool = True
+    edge_points_mode: str = &#34;COPY&#34;
     debug: bool = False
 
     @staticmethod
-    def from_path(config_path: str) -&gt; &#34;DataWindowConfig&#34;:
+    def from_path(config_path: str) -&gt; &#34;DataWindowConfigFile&#34;:
         try:
             with open(config_path, &#34;r&#34;) as config_in:
                 config_dict: MutableMapping = toml.load(config_in)
                 # noinspection Mypy
-                return DataWindowConfig.from_dict(config_dict)
+                return DataWindowConfigFile.from_dict(config_dict)
         except Exception as e:
             print(f&#34;Error loading configuration at: {config_path}&#34;)
             raise e
 
     def pretty(self) -&gt; str:
         # noinspection Mypy
-        return pprint.pformat(self.to_dict())</code></pre>
+        return pprint.pformat(self.to_dict())
+
+    def start_dt(self) -&gt; Optional[dtu.datetime]:
+        if self.start_year is not None:
+            return dtu.datetime(self.start_year, self.start_month, self.start_day,
+                                self.start_hour, self.start_minute, self.start_second)
+        return None
+
+    def set_start_dt(self, start_dt: dtu.datetime):
+        self.start_year = start_dt.year
+        self.start_month = start_dt.month
+        self.start_day = start_dt.day
+        self.start_hour = start_dt.hour
+        self.start_minute = start_dt.minute
+        self.start_second = start_dt.second
+
+    def end_dt(self) -&gt; Optional[dtu.datetime]:
+        if self.end_year is not None:
+            return dtu.datetime(self.end_year, self.end_month, self.end_day,
+                                self.end_hour, self.end_minute, self.end_second)
+        return None
+
+    def set_end_dt(self, end_dt: dtu.datetime):
+        self.end_year = end_dt.year
+        self.end_month = end_dt.month
+        self.end_day = end_dt.day
+        self.end_hour = end_dt.hour
+        self.end_minute = end_dt.minute
+        self.end_second = end_dt.second
+
+    def start_buffer_td(self) -&gt; dtu.timedelta:
+        return dtu.timedelta(seconds=self.start_padding_seconds)
+
+    def end_buffer_td(self) -&gt; dtu.timedelta:
+        return dtu.timedelta(seconds=self.end_padding_seconds)
+
+    def copy_edge_points(self) -&gt; DataPointCreationMode:
+        return DataPointCreationMode[self.edge_points_mode]</code></pre>
 </details>
 </section>
 <section>
@@ -135,69 +236,86 @@ class DataWindowConfig:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig"><code class="flex name class">
-<span>class <span class="ident">DataWindowConfig</span></span>
-<span>(</span><span>input_directory: str, structured_layout: bool = True, station_ids: Optional[List[str]] = None, extensions: Optional[List[str]] = None, api_versions: Optional[List[str]] = None, start_year: Optional[int] = None, start_month: Optional[int] = None, start_day: Optional[int] = None, start_hour: Optional[int] = None, start_minute: Optional[int] = None, start_second: Optional[int] = None, end_year: Optional[int] = None, end_month: Optional[int] = None, end_day: Optional[int] = None, end_hour: Optional[int] = None, end_minute: Optional[int] = None, end_second: Optional[int] = None, start_padding_seconds: float = 120.0, end_padding_seconds: float = 120.0, drop_time_seconds: float = 0.2, apply_correction: bool = True, edge_points_mode: str = 'COPY', use_model_correction: bool = True, debug: bool = False)</span>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile"><code class="flex name class">
+<span>class <span class="ident">DataWindowConfigFile</span></span>
+<span>(</span><span>input_directory: str, event_name: str = 'dw', origin_provider: str = 'UNKNOWN', origin_latitude: float = nan, origin_latitude_std: float = nan, origin_longitude: float = nan, origin_longitude_std: float = nan, origin_altitude: float = nan, origin_altitude_std: float = nan, origin_event_radius_m: float = 0.0, output_dir: str = '.', output_type: str = 'NONE', make_runme: bool = False, structured_layout: bool = True, station_ids: Optional[List[str]] = None, extensions: Optional[List[str]] = None, api_versions: Optional[List[str]] = None, start_year: Optional[int] = None, start_month: Optional[int] = None, start_day: Optional[int] = None, start_hour: Optional[int] = None, start_minute: Optional[int] = None, start_second: Optional[int] = None, end_year: Optional[int] = None, end_month: Optional[int] = None, end_day: Optional[int] = None, end_hour: Optional[int] = None, end_minute: Optional[int] = None, end_second: Optional[int] = None, start_padding_seconds: float = 120.0, end_padding_seconds: float = 120.0, drop_time_seconds: float = 0.2, apply_correction: bool = True, use_model_correction: bool = True, edge_points_mode: str = 'COPY', debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="properties">Properties</h2>
-<p>input_directory: string, directory that contains the files to read data from.
-REQUIRED
-structured_layout: bool, if True, the input_directory contains specially named and organized
+<p>event_name: str, name of the data window.
+Default "dw"</p>
+<p>origin_provider: string, source of the location data (i.e. GPS or NETWORK), default UNKNOWN</p>
+<p>origin_latitude: float, best estimate of latitude in degrees, default np.nan</p>
+<p>origin_latitude_std: float, standard deviation of best estimate of latitude, default np.nan</p>
+<p>origin_longitude: float, best estimate of longitude in degrees, default np.nan</p>
+<p>origin_longitude_std: float, standard deviation of best estimate of longitude, default np.nan</p>
+<p>origin_altitude: float, best estimate of altitude in meters, default np.nan</p>
+<p>origin_altitude_std: float, standard deviation of best estimate of altitude, default np.nan</p>
+<p>origin_event_radius_m: float, radius of event in meters, default 0.0</p>
+<p>output_dir: str, directory to output the data to.
+Default "." (current directory)</p>
+<p>output_type: str, type of file to output the data as.
+Options are: "NONE", "PARQUET", "LZ4"
+Default "NONE" (no saving).</p>
+<p>make_runme: bool, if True, save a runme.py example file along with the data.
+Default False</p>
+<p>input_directory: str, directory that contains the files to read data from.
+REQUIRED</p>
+<p>structured_layout: bool, if True, the input_directory contains specially named and organized
 directories of data.
-Default True
-station_ids: optional list of strings, list of station ids to filter on.
+Default True</p>
+<p>station_ids: optional list of strings, list of station ids to filter on.
 If empty or None, get any ids found in the input directory.
-Default None
-extensions: optional list of strings, representing file extensions to filter on.
+Default None</p>
+<p>extensions: optional list of strings, representing file extensions to filter on.
 If None, gets as much data as it can in the input directory.
-Default None
-api_versions: optional list of ApiVersions, representing api versions to filter on.
+Default None</p>
+<p>api_versions: optional list of ApiVersions, representing api versions to filter on.
 If None, get as much data as it can in the input directory.
-Default None
-start_year: optional int representing the year of the data window start time.
-Default None
-start_month: optional int representing the month of the data window start time.
-Default None
-start_day: optional int representing the day of the data window start time.
-Default None
-start_hour: optional int representing the hour of the data window start time.
-Default None
-start_minute: optional int representing the minute of the data window start time.
-Default None
-start_second: optional int representing the second of the data window start time.
-Default None
-end_year: optional int representing the year of the data window end time.
-Default None
-end_month: optional int representing the month of the data window end time.
-Default None
-end_day: optional int representing the day of the data window end time.
-Default None
-end_hour: optional int representing the hour of the data window end time.
-Default None
-end_minute: optional int representing the minute of the data window end time.
-Default None
-end_second: optional int representing the second of the data window end time.
-Default None
-start_padding_seconds: float representing the amount of seconds to include before the start datetime
+Default None</p>
+<p>start_year: optional int representing the year of the data window start time.
+Default None</p>
+<p>start_month: optional int representing the month of the data window start time.
+Default None</p>
+<p>start_day: optional int representing the day of the data window start time.
+Default None</p>
+<p>start_hour: optional int representing the hour of the data window start time.
+Default None</p>
+<p>start_minute: optional int representing the minute of the data window start time.
+Default None</p>
+<p>start_second: optional int representing the second of the data window start time.
+Default None</p>
+<p>end_year: optional int representing the year of the data window end time.
+Default None</p>
+<p>end_month: optional int representing the month of the data window end time.
+Default None</p>
+<p>end_day: optional int representing the day of the data window end time.
+Default None</p>
+<p>end_hour: optional int representing the hour of the data window end time.
+Default None</p>
+<p>end_minute: optional int representing the minute of the data window end time.
+Default None</p>
+<p>end_second: optional int representing the second of the data window end time.
+Default None</p>
+<p>start_padding_seconds: float representing the amount of seconds to include before the start datetime
 when filtering data.
-Default DEFAULT_START_PADDING_S
-end_padding_seconds: float representing the amount of seconds to include after the end datetime
+Default DEFAULT_START_PADDING_S (120 seconds)</p>
+<p>end_padding_seconds: float representing the amount of seconds to include after the end datetime
 when filtering data.
-Default DEFAULT_END_PADDING_S
-drop_time_seconds: float representing the minimum amount of seconds between data packets that would indicate
+Default DEFAULT_END_PADDING_S (120 seconds)</p>
+<p>drop_time_seconds: float representing the minimum amount of seconds between data packets that would indicate
 a gap.
-Default DEFAULT_DROP_TIME_S
-apply_correction: bool, if True, update the timestamps in the data based on best station offset.
-Default True
-edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.
-Determines behavior when creating points on the edge
-of the data window.
-default COPY
-use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
+Default DEFAULT_DROP_TIME_S (0.2 seconds)</p>
+<p>apply_correction: bool, if True, update the timestamps in the data based on best station offset.
+Default True</p>
+<p>edge_points_mode: str, one of "NAN", "COPY", or "INTERPOLATE".
+Determines behavior when creating points on
+the edge of the data window.
+default "COPY"</p>
+<p>use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
 offset.
-Default True
-debug: bool, if True, output additional information when processing data window.
+Default True</p>
+<p>debug: bool, if True, output additional information when processing data window.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -205,45 +323,105 @@ Default False</p></div>
 </summary>
 <pre><code class="python">@dataclass_json()
 @dataclass
-class DataWindowConfig:
+class DataWindowConfigFile:
     &#34;&#34;&#34;
     Properties:
-        input_directory: string, directory that contains the files to read data from.  REQUIRED
+        event_name: str, name of the data window.  Default &#34;dw&#34;
+
+        origin_provider: string, source of the location data (i.e. GPS or NETWORK), default UNKNOWN
+
+        origin_latitude: float, best estimate of latitude in degrees, default np.nan
+
+        origin_latitude_std: float, standard deviation of best estimate of latitude, default np.nan
+
+        origin_longitude: float, best estimate of longitude in degrees, default np.nan
+
+        origin_longitude_std: float, standard deviation of best estimate of longitude, default np.nan
+
+        origin_altitude: float, best estimate of altitude in meters, default np.nan
+
+        origin_altitude_std: float, standard deviation of best estimate of altitude, default np.nan
+
+        origin_event_radius_m: float, radius of event in meters, default 0.0
+
+        output_dir: str, directory to output the data to.  Default &#34;.&#34; (current directory)
+
+        output_type: str, type of file to output the data as.  Options are: &#34;NONE&#34;, &#34;PARQUET&#34;, &#34;LZ4&#34;
+        Default &#34;NONE&#34; (no saving).
+
+        make_runme: bool, if True, save a runme.py example file along with the data.  Default False
+
+        input_directory: str, directory that contains the files to read data from.  REQUIRED
+
         structured_layout: bool, if True, the input_directory contains specially named and organized
-                            directories of data.  Default True
+        directories of data.  Default True
+
         station_ids: optional list of strings, list of station ids to filter on.
-                        If empty or None, get any ids found in the input directory.  Default None
+        If empty or None, get any ids found in the input directory.  Default None
+
         extensions: optional list of strings, representing file extensions to filter on.
-                        If None, gets as much data as it can in the input directory.  Default None
+        If None, gets as much data as it can in the input directory.  Default None
+
         api_versions: optional list of ApiVersions, representing api versions to filter on.
-                        If None, get as much data as it can in the input directory.  Default None
+        If None, get as much data as it can in the input directory.  Default None
+
         start_year: optional int representing the year of the data window start time.  Default None
+
         start_month: optional int representing the month of the data window start time.  Default None
+
         start_day: optional int representing the day of the data window start time.  Default None
+
         start_hour: optional int representing the hour of the data window start time.  Default None
+
         start_minute: optional int representing the minute of the data window start time.  Default None
+
         start_second: optional int representing the second of the data window start time.  Default None
+
         end_year: optional int representing the year of the data window end time.  Default None
+
         end_month: optional int representing the month of the data window end time.  Default None
+
         end_day: optional int representing the day of the data window end time.  Default None
+
         end_hour: optional int representing the hour of the data window end time.  Default None
+
         end_minute: optional int representing the minute of the data window end time.  Default None
+
         end_second: optional int representing the second of the data window end time.  Default None
+
         start_padding_seconds: float representing the amount of seconds to include before the start datetime
-                                when filtering data.  Default DEFAULT_START_PADDING_S
+        when filtering data.  Default DEFAULT_START_PADDING_S (120 seconds)
+
         end_padding_seconds: float representing the amount of seconds to include after the end datetime
-                                when filtering data.  Default DEFAULT_END_PADDING_S
+        when filtering data.  Default DEFAULT_END_PADDING_S (120 seconds)
+
         drop_time_seconds: float representing the minimum amount of seconds between data packets that would indicate
-                            a gap.  Default DEFAULT_DROP_TIME_S
+        a gap.  Default DEFAULT_DROP_TIME_S (0.2 seconds)
+
         apply_correction: bool, if True, update the timestamps in the data based on best station offset.  Default True
-        edge_points_mode: str, one of NAN, COPY, or INTERPOLATE.  Determines behavior when creating points on the edge
-                            of the data window.  default COPY
+
+        edge_points_mode: str, one of &#34;NAN&#34;, &#34;COPY&#34;, or &#34;INTERPOLATE&#34;.  Determines behavior when creating points on
+        the edge of the data window.  default &#34;COPY&#34;
+
         use_model_correction: bool, if True, use the offset model&#39;s correction functions, otherwise use the best
-                                offset.  Default True
+        offset.  Default True
+
         debug: bool, if True, output additional information when processing data window.  Default False
     &#34;&#34;&#34;
 
     input_directory: str
+    event_name: str = &#34;dw&#34;
+    origin_provider: str = &#34;UNKNOWN&#34;
+    origin_latitude: float = np.nan
+    origin_latitude_std: float = np.nan
+    origin_longitude: float = np.nan
+    origin_longitude_std: float = np.nan
+    origin_altitude: float = np.nan
+    origin_altitude_std: float = np.nan
+    origin_event_radius_m: float = 0.0
+    output_dir: str = &#34;.&#34;
+    output_type: str = &#34;NONE&#34;
+    make_runme: bool = False
     structured_layout: bool = True
     station_ids: Optional[List[str]] = None
     extensions: Optional[List[str]] = None
@@ -264,128 +442,213 @@ class DataWindowConfig:
     end_padding_seconds: float = DEFAULT_END_PADDING_S
     drop_time_seconds: float = DEFAULT_DROP_TIME_S
     apply_correction: bool = True
-    edge_points_mode: str = &#34;COPY&#34;
     use_model_correction: bool = True
+    edge_points_mode: str = &#34;COPY&#34;
     debug: bool = False
 
     @staticmethod
-    def from_path(config_path: str) -&gt; &#34;DataWindowConfig&#34;:
+    def from_path(config_path: str) -&gt; &#34;DataWindowConfigFile&#34;:
         try:
             with open(config_path, &#34;r&#34;) as config_in:
                 config_dict: MutableMapping = toml.load(config_in)
                 # noinspection Mypy
-                return DataWindowConfig.from_dict(config_dict)
+                return DataWindowConfigFile.from_dict(config_dict)
         except Exception as e:
             print(f&#34;Error loading configuration at: {config_path}&#34;)
             raise e
 
     def pretty(self) -&gt; str:
         # noinspection Mypy
-        return pprint.pformat(self.to_dict())</code></pre>
+        return pprint.pformat(self.to_dict())
+
+    def start_dt(self) -&gt; Optional[dtu.datetime]:
+        if self.start_year is not None:
+            return dtu.datetime(self.start_year, self.start_month, self.start_day,
+                                self.start_hour, self.start_minute, self.start_second)
+        return None
+
+    def set_start_dt(self, start_dt: dtu.datetime):
+        self.start_year = start_dt.year
+        self.start_month = start_dt.month
+        self.start_day = start_dt.day
+        self.start_hour = start_dt.hour
+        self.start_minute = start_dt.minute
+        self.start_second = start_dt.second
+
+    def end_dt(self) -&gt; Optional[dtu.datetime]:
+        if self.end_year is not None:
+            return dtu.datetime(self.end_year, self.end_month, self.end_day,
+                                self.end_hour, self.end_minute, self.end_second)
+        return None
+
+    def set_end_dt(self, end_dt: dtu.datetime):
+        self.end_year = end_dt.year
+        self.end_month = end_dt.month
+        self.end_day = end_dt.day
+        self.end_hour = end_dt.hour
+        self.end_minute = end_dt.minute
+        self.end_second = end_dt.second
+
+    def start_buffer_td(self) -&gt; dtu.timedelta:
+        return dtu.timedelta(seconds=self.start_padding_seconds)
+
+    def end_buffer_td(self) -&gt; dtu.timedelta:
+        return dtu.timedelta(seconds=self.end_padding_seconds)
+
+    def copy_edge_points(self) -&gt; DataPointCreationMode:
+        return DataPointCreationMode[self.edge_points_mode]</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.api_versions"><code class="name">var <span class="ident">api_versions</span> : Optional[List[str]]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.api_versions"><code class="name">var <span class="ident">api_versions</span> : Optional[List[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.apply_correction"><code class="name">var <span class="ident">apply_correction</span> : bool</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.apply_correction"><code class="name">var <span class="ident">apply_correction</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.debug"><code class="name">var <span class="ident">debug</span> : bool</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.debug"><code class="name">var <span class="ident">debug</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.drop_time_seconds"><code class="name">var <span class="ident">drop_time_seconds</span> : float</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.drop_time_seconds"><code class="name">var <span class="ident">drop_time_seconds</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.edge_points_mode"><code class="name">var <span class="ident">edge_points_mode</span> : str</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.edge_points_mode"><code class="name">var <span class="ident">edge_points_mode</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_day"><code class="name">var <span class="ident">end_day</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.end_day"><code class="name">var <span class="ident">end_day</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_hour"><code class="name">var <span class="ident">end_hour</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.end_hour"><code class="name">var <span class="ident">end_hour</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_minute"><code class="name">var <span class="ident">end_minute</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.end_minute"><code class="name">var <span class="ident">end_minute</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_month"><code class="name">var <span class="ident">end_month</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.end_month"><code class="name">var <span class="ident">end_month</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_padding_seconds"><code class="name">var <span class="ident">end_padding_seconds</span> : float</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.end_padding_seconds"><code class="name">var <span class="ident">end_padding_seconds</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_second"><code class="name">var <span class="ident">end_second</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.end_second"><code class="name">var <span class="ident">end_second</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.end_year"><code class="name">var <span class="ident">end_year</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.end_year"><code class="name">var <span class="ident">end_year</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.extensions"><code class="name">var <span class="ident">extensions</span> : Optional[List[str]]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.event_name"><code class="name">var <span class="ident">event_name</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.input_directory"><code class="name">var <span class="ident">input_directory</span> : str</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.extensions"><code class="name">var <span class="ident">extensions</span> : Optional[List[str]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_day"><code class="name">var <span class="ident">start_day</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.input_directory"><code class="name">var <span class="ident">input_directory</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_hour"><code class="name">var <span class="ident">start_hour</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.make_runme"><code class="name">var <span class="ident">make_runme</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_minute"><code class="name">var <span class="ident">start_minute</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.origin_altitude"><code class="name">var <span class="ident">origin_altitude</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_month"><code class="name">var <span class="ident">start_month</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.origin_altitude_std"><code class="name">var <span class="ident">origin_altitude_std</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_padding_seconds"><code class="name">var <span class="ident">start_padding_seconds</span> : float</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.origin_event_radius_m"><code class="name">var <span class="ident">origin_event_radius_m</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_second"><code class="name">var <span class="ident">start_second</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.origin_latitude"><code class="name">var <span class="ident">origin_latitude</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.start_year"><code class="name">var <span class="ident">start_year</span> : Optional[int]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.origin_latitude_std"><code class="name">var <span class="ident">origin_latitude_std</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.station_ids"><code class="name">var <span class="ident">station_ids</span> : Optional[List[str]]</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.origin_longitude"><code class="name">var <span class="ident">origin_longitude</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.structured_layout"><code class="name">var <span class="ident">structured_layout</span> : bool</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.origin_longitude_std"><code class="name">var <span class="ident">origin_longitude_std</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.use_model_correction"><code class="name">var <span class="ident">use_model_correction</span> : bool</code></dt>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.origin_provider"><code class="name">var <span class="ident">origin_provider</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.output_dir"><code class="name">var <span class="ident">output_dir</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.output_type"><code class="name">var <span class="ident">output_type</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.start_day"><code class="name">var <span class="ident">start_day</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.start_hour"><code class="name">var <span class="ident">start_hour</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.start_minute"><code class="name">var <span class="ident">start_minute</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.start_month"><code class="name">var <span class="ident">start_month</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.start_padding_seconds"><code class="name">var <span class="ident">start_padding_seconds</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.start_second"><code class="name">var <span class="ident">start_second</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.start_year"><code class="name">var <span class="ident">start_year</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.station_ids"><code class="name">var <span class="ident">station_ids</span> : Optional[List[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.structured_layout"><code class="name">var <span class="ident">structured_layout</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.use_model_correction"><code class="name">var <span class="ident">use_model_correction</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, NoneType], *, infer_missing=False) ‑> ~A</span>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, ForwardRef(None)], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -401,7 +664,7 @@ def from_dict(cls: Type[A],
     return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
 </details>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.from_json"><code class="name flex">
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.from_json"><code class="name flex">
 <span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
 </code></dt>
 <dd>
@@ -427,8 +690,8 @@ def from_json(cls: Type[A],
     return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
 </details>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.from_path"><code class="name flex">
-<span>def <span class="ident">from_path</span></span>(<span>config_path: str) ‑> <a title="redvox.common.data_window_configuration.DataWindowConfig" href="#redvox.common.data_window_configuration.DataWindowConfig">DataWindowConfig</a></span>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.from_path"><code class="name flex">
+<span>def <span class="ident">from_path</span></span>(<span>config_path: str) ‑> <a title="redvox.common.data_window_configuration.DataWindowConfigFile" href="#redvox.common.data_window_configuration.DataWindowConfigFile">DataWindowConfigFile</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -437,18 +700,18 @@ def from_json(cls: Type[A],
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def from_path(config_path: str) -&gt; &#34;DataWindowConfig&#34;:
+def from_path(config_path: str) -&gt; &#34;DataWindowConfigFile&#34;:
     try:
         with open(config_path, &#34;r&#34;) as config_in:
             config_dict: MutableMapping = toml.load(config_in)
             # noinspection Mypy
-            return DataWindowConfig.from_dict(config_dict)
+            return DataWindowConfigFile.from_dict(config_dict)
     except Exception as e:
         print(f&#34;Error loading configuration at: {config_path}&#34;)
         raise e</code></pre>
 </details>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.schema"><code class="name flex">
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.schema"><code class="name flex">
 <span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
 </code></dt>
 <dd>
@@ -490,7 +753,49 @@ def schema(cls: Type[A],
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.pretty"><code class="name flex">
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.copy_edge_points"><code class="name flex">
+<span>def <span class="ident">copy_edge_points</span></span>(<span>self) ‑> <a title="redvox.common.gap_and_pad_utils.DataPointCreationMode" href="gap_and_pad_utils.html#redvox.common.gap_and_pad_utils.DataPointCreationMode">DataPointCreationMode</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def copy_edge_points(self) -&gt; DataPointCreationMode:
+    return DataPointCreationMode[self.edge_points_mode]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.end_buffer_td"><code class="name flex">
+<span>def <span class="ident">end_buffer_td</span></span>(<span>self) ‑> datetime.timedelta</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def end_buffer_td(self) -&gt; dtu.timedelta:
+    return dtu.timedelta(seconds=self.end_padding_seconds)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.end_dt"><code class="name flex">
+<span>def <span class="ident">end_dt</span></span>(<span>self) ‑> Optional[datetime.datetime]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def end_dt(self) -&gt; Optional[dtu.datetime]:
+    if self.end_year is not None:
+        return dtu.datetime(self.end_year, self.end_month, self.end_day,
+                            self.end_hour, self.end_minute, self.end_second)
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.pretty"><code class="name flex">
 <span>def <span class="ident">pretty</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -504,8 +809,73 @@ def schema(cls: Type[A],
     return pprint.pformat(self.to_dict())</code></pre>
 </details>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, NoneType]]</span>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.set_end_dt"><code class="name flex">
+<span>def <span class="ident">set_end_dt</span></span>(<span>self, end_dt: datetime.datetime)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_end_dt(self, end_dt: dtu.datetime):
+    self.end_year = end_dt.year
+    self.end_month = end_dt.month
+    self.end_day = end_dt.day
+    self.end_hour = end_dt.hour
+    self.end_minute = end_dt.minute
+    self.end_second = end_dt.second</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.set_start_dt"><code class="name flex">
+<span>def <span class="ident">set_start_dt</span></span>(<span>self, start_dt: datetime.datetime)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_start_dt(self, start_dt: dtu.datetime):
+    self.start_year = start_dt.year
+    self.start_month = start_dt.month
+    self.start_day = start_dt.day
+    self.start_hour = start_dt.hour
+    self.start_minute = start_dt.minute
+    self.start_second = start_dt.second</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.start_buffer_td"><code class="name flex">
+<span>def <span class="ident">start_buffer_td</span></span>(<span>self) ‑> datetime.timedelta</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start_buffer_td(self) -&gt; dtu.timedelta:
+    return dtu.timedelta(seconds=self.start_padding_seconds)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.start_dt"><code class="name flex">
+<span>def <span class="ident">start_dt</span></span>(<span>self) ‑> Optional[datetime.datetime]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start_dt(self) -&gt; Optional[dtu.datetime]:
+    if self.start_year is not None:
+        return dtu.datetime(self.start_year, self.start_month, self.start_day,
+                            self.start_hour, self.start_minute, self.start_second)
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, ForwardRef(None)]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -517,8 +887,8 @@ def schema(cls: Type[A],
     return _asdict(self, encode_json=encode_json)</code></pre>
 </details>
 </dd>
-<dt id="redvox.common.data_window_configuration.DataWindowConfig.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, NoneType] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+<dt id="redvox.common.data_window_configuration.DataWindowConfigFile.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, ForwardRef(None)] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -569,39 +939,58 @@ def schema(cls: Type[A],
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="redvox.common.data_window_configuration.DataWindowConfig" href="#redvox.common.data_window_configuration.DataWindowConfig">DataWindowConfig</a></code></h4>
+<h4><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile" href="#redvox.common.data_window_configuration.DataWindowConfigFile">DataWindowConfigFile</a></code></h4>
 <ul class="">
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.api_versions" href="#redvox.common.data_window_configuration.DataWindowConfig.api_versions">api_versions</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.apply_correction" href="#redvox.common.data_window_configuration.DataWindowConfig.apply_correction">apply_correction</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.debug" href="#redvox.common.data_window_configuration.DataWindowConfig.debug">debug</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.drop_time_seconds" href="#redvox.common.data_window_configuration.DataWindowConfig.drop_time_seconds">drop_time_seconds</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.edge_points_mode" href="#redvox.common.data_window_configuration.DataWindowConfig.edge_points_mode">edge_points_mode</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_day" href="#redvox.common.data_window_configuration.DataWindowConfig.end_day">end_day</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_hour" href="#redvox.common.data_window_configuration.DataWindowConfig.end_hour">end_hour</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_minute" href="#redvox.common.data_window_configuration.DataWindowConfig.end_minute">end_minute</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_month" href="#redvox.common.data_window_configuration.DataWindowConfig.end_month">end_month</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_padding_seconds" href="#redvox.common.data_window_configuration.DataWindowConfig.end_padding_seconds">end_padding_seconds</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_second" href="#redvox.common.data_window_configuration.DataWindowConfig.end_second">end_second</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.end_year" href="#redvox.common.data_window_configuration.DataWindowConfig.end_year">end_year</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.extensions" href="#redvox.common.data_window_configuration.DataWindowConfig.extensions">extensions</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.from_dict" href="#redvox.common.data_window_configuration.DataWindowConfig.from_dict">from_dict</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.from_json" href="#redvox.common.data_window_configuration.DataWindowConfig.from_json">from_json</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.from_path" href="#redvox.common.data_window_configuration.DataWindowConfig.from_path">from_path</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.input_directory" href="#redvox.common.data_window_configuration.DataWindowConfig.input_directory">input_directory</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.pretty" href="#redvox.common.data_window_configuration.DataWindowConfig.pretty">pretty</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.schema" href="#redvox.common.data_window_configuration.DataWindowConfig.schema">schema</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.start_day" href="#redvox.common.data_window_configuration.DataWindowConfig.start_day">start_day</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.start_hour" href="#redvox.common.data_window_configuration.DataWindowConfig.start_hour">start_hour</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.start_minute" href="#redvox.common.data_window_configuration.DataWindowConfig.start_minute">start_minute</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.start_month" href="#redvox.common.data_window_configuration.DataWindowConfig.start_month">start_month</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.start_padding_seconds" href="#redvox.common.data_window_configuration.DataWindowConfig.start_padding_seconds">start_padding_seconds</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.start_second" href="#redvox.common.data_window_configuration.DataWindowConfig.start_second">start_second</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.start_year" href="#redvox.common.data_window_configuration.DataWindowConfig.start_year">start_year</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.station_ids" href="#redvox.common.data_window_configuration.DataWindowConfig.station_ids">station_ids</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.structured_layout" href="#redvox.common.data_window_configuration.DataWindowConfig.structured_layout">structured_layout</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.to_dict" href="#redvox.common.data_window_configuration.DataWindowConfig.to_dict">to_dict</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.to_json" href="#redvox.common.data_window_configuration.DataWindowConfig.to_json">to_json</a></code></li>
-<li><code><a title="redvox.common.data_window_configuration.DataWindowConfig.use_model_correction" href="#redvox.common.data_window_configuration.DataWindowConfig.use_model_correction">use_model_correction</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.api_versions" href="#redvox.common.data_window_configuration.DataWindowConfigFile.api_versions">api_versions</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.apply_correction" href="#redvox.common.data_window_configuration.DataWindowConfigFile.apply_correction">apply_correction</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.copy_edge_points" href="#redvox.common.data_window_configuration.DataWindowConfigFile.copy_edge_points">copy_edge_points</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.debug" href="#redvox.common.data_window_configuration.DataWindowConfigFile.debug">debug</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.drop_time_seconds" href="#redvox.common.data_window_configuration.DataWindowConfigFile.drop_time_seconds">drop_time_seconds</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.edge_points_mode" href="#redvox.common.data_window_configuration.DataWindowConfigFile.edge_points_mode">edge_points_mode</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.end_buffer_td" href="#redvox.common.data_window_configuration.DataWindowConfigFile.end_buffer_td">end_buffer_td</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.end_day" href="#redvox.common.data_window_configuration.DataWindowConfigFile.end_day">end_day</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.end_dt" href="#redvox.common.data_window_configuration.DataWindowConfigFile.end_dt">end_dt</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.end_hour" href="#redvox.common.data_window_configuration.DataWindowConfigFile.end_hour">end_hour</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.end_minute" href="#redvox.common.data_window_configuration.DataWindowConfigFile.end_minute">end_minute</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.end_month" href="#redvox.common.data_window_configuration.DataWindowConfigFile.end_month">end_month</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.end_padding_seconds" href="#redvox.common.data_window_configuration.DataWindowConfigFile.end_padding_seconds">end_padding_seconds</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.end_second" href="#redvox.common.data_window_configuration.DataWindowConfigFile.end_second">end_second</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.end_year" href="#redvox.common.data_window_configuration.DataWindowConfigFile.end_year">end_year</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.event_name" href="#redvox.common.data_window_configuration.DataWindowConfigFile.event_name">event_name</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.extensions" href="#redvox.common.data_window_configuration.DataWindowConfigFile.extensions">extensions</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.from_dict" href="#redvox.common.data_window_configuration.DataWindowConfigFile.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.from_json" href="#redvox.common.data_window_configuration.DataWindowConfigFile.from_json">from_json</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.from_path" href="#redvox.common.data_window_configuration.DataWindowConfigFile.from_path">from_path</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.input_directory" href="#redvox.common.data_window_configuration.DataWindowConfigFile.input_directory">input_directory</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.make_runme" href="#redvox.common.data_window_configuration.DataWindowConfigFile.make_runme">make_runme</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.origin_altitude" href="#redvox.common.data_window_configuration.DataWindowConfigFile.origin_altitude">origin_altitude</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.origin_altitude_std" href="#redvox.common.data_window_configuration.DataWindowConfigFile.origin_altitude_std">origin_altitude_std</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.origin_event_radius_m" href="#redvox.common.data_window_configuration.DataWindowConfigFile.origin_event_radius_m">origin_event_radius_m</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.origin_latitude" href="#redvox.common.data_window_configuration.DataWindowConfigFile.origin_latitude">origin_latitude</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.origin_latitude_std" href="#redvox.common.data_window_configuration.DataWindowConfigFile.origin_latitude_std">origin_latitude_std</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.origin_longitude" href="#redvox.common.data_window_configuration.DataWindowConfigFile.origin_longitude">origin_longitude</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.origin_longitude_std" href="#redvox.common.data_window_configuration.DataWindowConfigFile.origin_longitude_std">origin_longitude_std</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.origin_provider" href="#redvox.common.data_window_configuration.DataWindowConfigFile.origin_provider">origin_provider</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.output_dir" href="#redvox.common.data_window_configuration.DataWindowConfigFile.output_dir">output_dir</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.output_type" href="#redvox.common.data_window_configuration.DataWindowConfigFile.output_type">output_type</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.pretty" href="#redvox.common.data_window_configuration.DataWindowConfigFile.pretty">pretty</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.schema" href="#redvox.common.data_window_configuration.DataWindowConfigFile.schema">schema</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.set_end_dt" href="#redvox.common.data_window_configuration.DataWindowConfigFile.set_end_dt">set_end_dt</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.set_start_dt" href="#redvox.common.data_window_configuration.DataWindowConfigFile.set_start_dt">set_start_dt</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.start_buffer_td" href="#redvox.common.data_window_configuration.DataWindowConfigFile.start_buffer_td">start_buffer_td</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.start_day" href="#redvox.common.data_window_configuration.DataWindowConfigFile.start_day">start_day</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.start_dt" href="#redvox.common.data_window_configuration.DataWindowConfigFile.start_dt">start_dt</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.start_hour" href="#redvox.common.data_window_configuration.DataWindowConfigFile.start_hour">start_hour</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.start_minute" href="#redvox.common.data_window_configuration.DataWindowConfigFile.start_minute">start_minute</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.start_month" href="#redvox.common.data_window_configuration.DataWindowConfigFile.start_month">start_month</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.start_padding_seconds" href="#redvox.common.data_window_configuration.DataWindowConfigFile.start_padding_seconds">start_padding_seconds</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.start_second" href="#redvox.common.data_window_configuration.DataWindowConfigFile.start_second">start_second</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.start_year" href="#redvox.common.data_window_configuration.DataWindowConfigFile.start_year">start_year</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.station_ids" href="#redvox.common.data_window_configuration.DataWindowConfigFile.station_ids">station_ids</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.structured_layout" href="#redvox.common.data_window_configuration.DataWindowConfigFile.structured_layout">structured_layout</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.to_dict" href="#redvox.common.data_window_configuration.DataWindowConfigFile.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.to_json" href="#redvox.common.data_window_configuration.DataWindowConfigFile.to_json">to_json</a></code></li>
+<li><code><a title="redvox.common.data_window_configuration.DataWindowConfigFile.use_model_correction" href="#redvox.common.data_window_configuration.DataWindowConfigFile.use_model_correction">use_model_correction</a></code></li>
 </ul>
 </li>
 </ul>
@@ -610,7 +999,7 @@ def schema(cls: Type[A],
 </nav>
 </main>
 <footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
 </footer>
 </body>
 </html>

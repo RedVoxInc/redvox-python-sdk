@@ -230,6 +230,7 @@ class Station:
             self._timesync_data.arrow_file = f"timesync_{file_date}"
             self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets,
                                                             self.save_dir() if self._fs_writer.use_temp_dir else None))
+            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.save_dir()))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """

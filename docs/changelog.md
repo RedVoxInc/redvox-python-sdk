@@ -1,5 +1,19 @@
 ## Changelog
 
+### 3.1.5rc1 (2022-1-10)
+
+* Write SensorData to disk instead of saving in memory
+
+### 3.1.4 (2022-1-5)
+
+* Docs updated
+* Config property of DataWindow changed to function
+* out_dir parameter of DataWindow changed to output_dir
+
+### 3.1.3 (2021-12-16)
+
+* Fixed missing values when loading Health Sensor data
+
 ### 3.1.2 (2021-12-15)
 
 * Fixed missing start date in Station preventing saving to disk

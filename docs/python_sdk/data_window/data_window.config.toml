@@ -2,29 +2,42 @@
 # The only required field is input_directory.  Do not delete this field.
 # Remove any field if you are not setting a value for it
 
-input_directory = "/input_dir"      # input directory where all the files are.  Absolute paths recommended.  REQUIRED
-structured_layout = false           # if true, there are organized api900 and/or api1000 directories in input_directory
-apply_correction = false            # if true, timestamps will be adjusted before processing the data window
-# specific station ids to process; write ids as strings i.e. "1234567890"
-station_ids = ["1234567890", "9876543210"]
-start_year = 2020                   # year of start date
-start_month = 1                     # month of start year
-start_day = 1                       # day of start month
-start_hour = 0                      # hour of start day
-start_minute = 0                    # minute of start hour
-start_second = 0                    # second of start minute
-end_year = 2020                     # year of end date
-end_month = 1                       # month of end year
-end_day = 1                         # day of end month
-end_hour = 0                        # hour of end day
-end_minute = 0                      # minute of end hour
-end_second = 59                     # second of end minute
-start_padding_seconds = 120         # padding to include before start datetime when searching for data
-end_padding_seconds = 120           # padding to include after start datetime when searching for data
-drop_time_seconds = 0.2             # minimum number of seconds between data files that indicates a gap in data
-extensions = [".rdvxm", ".rdvxz"]   # specific file extensions to get; acceptable values: ".rdvxm", ".rdvxz"
+input_directory = "."           # input directory where all the data files are.  REQUIRED
+event_name = "dw"               # name of event
+origin_provider = "UNKNOWN"     # source for event origin location
+origin_latitude = nan           # event origin latitude
+origin_latitude_std = nan       # event origin latitude standard deviation
+origin_longitude = nan          # event origin longitude
+origin_longitude_std = nan      # event origin longitude standard deviation
+origin_altitude = nan           # event origin altitude
+origin_altitude_std = nan       # event origin altitude standard deviation
+origin_event_radius_m = 0.0     # event origin radius
+output_dir = "."                # output directory to save data to
+# type of file to output as ("NONE" means no output).  Acceptable values: "NONE", "PARQUET", "LZ4"
+output_type = "NONE"
+make_runme = false              # if true, include a runme.py example file when saving
+structured_layout = true        # if true, there are organized api900 and/or api1000 directories in input_directory
+station_ids = ["1234567890"]    # specific station ids to process; write ids as strings i.e. "1234567890"
+# specific file extensions to get; default values: ".rdvxm", ".rdvxz"; specify custom extensions as necessary.
+extensions = [".rdvxm", ".rdvxz"]
 # specific api versions to get; acceptable values: "API_900", "API_1000", "UNKNOWN"
 api_versions = ["API_900", "API_1000"]
-edge_points_mode = "COPY"           # acceptable values: "NAN", "COPY", "INTERPOLATE"
-debug = true                        # if true, output extra information when processing the data window
-use_model_correction = true         # if true, timestamps will be corrected using a model instead of a single best value
+start_year = 2021               # year of start date
+start_month = 1                 # month of start year
+start_day = 1                   # day of start month
+start_hour = 0                  # hour of start day
+start_minute = 0                # minute of start hour
+start_second = 0                # second of start minute
+end_year = 2021                 # year of end date
+end_month = 1                   # month of end year
+end_day = 1                     # day of end month
+end_hour = 0                    # hour of end day
+end_minute = 0                  # minute of end hour
+end_second = 0                  # second of end minute
+start_padding_seconds = 120     # seconds of padding to include before start datetime when searching for data
+end_padding_seconds = 120       # seconds of padding to include after start datetime when searching for data
+gap_time_seconds = 0.25         # minimum number of seconds between timestamps that indicates a gap in data
+apply_correction = true         # if true, timestamps will be adjusted before processing the data window
+use_model_correction = true     # if true, timestamps will be corrected using a model instead of a single best value
+edge_points_mode = "COPY"       # mode for adding edge points.  acceptable values are: "COPY", "NAN", "INTERPOLATE"
+debug = false                   # if true, output extra information when processing the data window

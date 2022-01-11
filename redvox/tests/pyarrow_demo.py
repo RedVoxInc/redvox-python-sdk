@@ -19,13 +19,13 @@ def demo():
     print("nosave", e-s)
 
     s = timeit.default_timer()
-    dwaz = dw.DataWindow("large_test_lz4", config=dw_config, out_dir=save_path10, out_type="LZ4")
+    dwaz = dw.DataWindow("large_test_lz4", config=dw_config, output_dir=save_path10, out_type="LZ4")
     e = timeit.default_timer()
     print("lz4", e-s)
     dwaz.save()
 
     s = timeit.default_timer()
-    drws = dw.DataWindow("large_test", config=dw_config, out_dir=save_path10, out_type="PARQUET")
+    drws = dw.DataWindow("large_test", config=dw_config, output_dir=save_path10, out_type="PARQUET")
     e = timeit.default_timer()
     print("parquet", e-s)
     drws.save()
