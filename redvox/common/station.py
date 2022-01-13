@@ -12,7 +12,7 @@ import pyarrow.dataset as ds
 import pyarrow as pa
 
 from redvox.common import station_io as io
-from redvox.common.io import FileSystemWriter as Fsw
+from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode
 from redvox.common import sensor_data as sd
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSync
@@ -107,7 +107,13 @@ class Station:
         self._is_audio_scrambled = False
         self._timesync_data = TimeSync()
         self._is_timestamps_updated = False
-        self._fs_writer = Fsw("", "", base_dir, save_data, use_temp_dir)
+        if save_data:
+            save_mode = FileSystemSaveMode.DISK
+        elif use_temp_dir:
+            save_mode = FileSystemSaveMode.TEMP
+        else:
+            save_mode = FileSystemSaveMode.MEM
+        self._fs_writer = Fsw("", "", base_dir, save_mode)
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
@@ -135,7 +141,9 @@ class Station:
         """
         :return: directory where files are being written to
         """
-        return os.path.join(self._fs_writer.save_dir(), self._get_id_key())
+        if self._fs_writer.is_save_disk():
+            return os.path.join(self._fs_writer.save_dir(), self._get_id_key())
+        return ""
 
     def save(self, file_name: Optional[str] = None) -> Optional[Path]:
         """
@@ -228,8 +236,6 @@ class Station:
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
             file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
             self._timesync_data.arrow_file = f"timesync_{file_date}"
-            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets,
-                                                            self.save_dir() if self._fs_writer.use_temp_dir else None))
             self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.save_dir()))
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
@@ -1144,29 +1150,20 @@ class Station:
         self._errors.extend_error(sensor_summaries.errors)
         audo = sensor_summaries.get_audio()[0]
         if audo:
-            # avoid converting packets into parquets for now; just load the data into memory and process
-            if self._fs_writer.use_temp_dir:
+            if self._fs_writer.is_save_disk():
                 self._data.append(sd.AudioSensor.from_dir(
                     sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
-                    sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
-                    sample_interval_std_s=0., is_sample_rate_fixed=True, save_data=self._fs_writer.save_to_disk)
+                    sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz, sample_interval_std_s=0.,
+                    is_sample_rate_fixed=True, save_data=self._fs_writer.is_save_disk())
                 )
-            # else:
-            #     self._data.append(sd.SensorDataPa(audo.name, audo.data(), audo.stype,
-            #                                       audo.srate_hz, 1/audo.srate_hz, 0., True))
             else:
                 self._data.append(sd.AudioSensor(audo.name, audo.data(), audo.srate_hz, 1 / audo.srate_hz, 0., True,
-                                                 base_dir=audo.fdir, save_data=self._fs_writer.save_to_disk))
+                                                 base_dir=audo.fdir, save_data=self._fs_writer.is_save_disk()))
             self.update_first_and_last_data_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
-                # avoid converting packets into parquets for now; just load the data into memory and process
-                if self._fs_writer.use_temp_dir:
+                if self._fs_writer.is_save_disk():
                     data_table = ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table()
-                # else:
-                #     data_table = sdata[0].data()
-                #     for i in range(1, len(sdata)):
-                #         data_table = pa.concat_tables([data_table, sdata[i].data()])
                 else:
                     data_table = sdata[0].data()
                     for i in range(1, len(sdata)):
@@ -1179,7 +1176,7 @@ class Station:
                         sensor_summaries.audio_gaps,
                         s_to_us(stats.mean_of_means()), True)
                     new_sensor = sd.SensorData(
-                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.save_to_disk,
+                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
                         base_dir=sdata[0].fdir)
                 else:
@@ -1188,7 +1185,7 @@ class Station:
                         sensor_summaries.audio_gaps,
                         s_to_us(sdata[0].smint_s), True)
                     new_sensor = sd.SensorData(
-                            sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.save_to_disk,
+                            sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
                             sample_interval_std_s=0., is_sample_rate_fixed=True, base_dir=sdata[0].fdir)
                 self._data.append(new_sensor.class_from_type())
@@ -1330,7 +1327,7 @@ class Station:
         """
         :return: if station is saving data to disk
         """
-        return self._fs_writer.save_to_disk
+        return self._fs_writer.is_save_disk()
 
     def fs_writer(self) -> Fsw:
         """
@@ -1342,7 +1339,7 @@ class Station:
         """
         :param use_temp_dir: if True, use temp dir to save data.  default False
         """
-        self._fs_writer.set_save_mode(use_temp_dir)
+        self._fs_writer.set_use_temp(use_temp_dir)
         for snr in self._data:
             snr.set_use_temp_dir(use_temp_dir)
 

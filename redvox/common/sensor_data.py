@@ -169,9 +169,11 @@ class SensorData:
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
-            fswriter: Optional[Fsw] = None,
+            save_data: bool = False,
+            base_dir: str = ".",
             gaps: Optional[List[Tuple[float, float]]] = None,
-            show_errors: bool = False
+            show_errors: bool = False,
+            use_temp_dir: bool = False
     ):
         """
         initialize the sensor data with params
@@ -192,12 +194,14 @@ class SensorData:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
-        :param fswriter: Optional FileSystemWriter which determines how files are written to disk or memory.
-                            default None (writes to memory)
+        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param base_dir: directory to save pyarrow table, default "." (current dir).  internally uses a temporary
+                            dir if not saving data
         :param gaps: Optional list of timestamp pairs of data points on the edge of gaps in the data.  anything between
                         the pairs of points exists to maintain sample rate and are not considered valid points.
                         Default None
         :param show_errors: if True, show any errors encountered.  Default False
+        :param use_temp_dir: if True, use a temp directory to save data.  Default False
         """
         self._errors: RedVoxExceptions = RedVoxExceptions("Sensor")
         self.name: str = sensor_name
@@ -208,9 +212,16 @@ class SensorData:
         self._is_sample_rate_fixed: bool = is_sample_rate_fixed
         self._timestamps_altered: bool = are_timestamps_altered
         self._use_offset_model: bool = use_offset_model_for_correction
-        self._fs_writer = Fsw(f"{self._type.name}", "parquet") if fswriter is None else fswriter
+        if save_data:
+            save_mode = FileSystemSaveMode.DISK
+        elif use_temp_dir:
+            save_mode = FileSystemSaveMode.TEMP
+        else:
+            save_mode = FileSystemSaveMode.MEM
+        self._fs_writer = Fsw("", "parquet", base_dir, save_mode)
         self._gaps: List[Tuple] = gaps if gaps else []
-        if sensor_data:
+        if sensor_data is not None:
+            self._data = sensor_data
             if "timestamps" not in sensor_data.schema.names:
                 self._errors.append('must have a column titled "timestamps"')
             elif sensor_data['timestamps'].length() > 0:
@@ -222,7 +233,7 @@ class SensorData:
                 else:
                     self.write_pyarrow_table(sensor_data)
         else:
-            self._errors.append('cannot be empty')
+            self._data = None
         if show_errors:
             self.print_errors()
 
@@ -238,7 +249,8 @@ class SensorData:
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
-            fswriter: Optional[Fsw] = None) -> "SensorData":
+            save_data: bool = False,
+            use_temp_dir: bool = False) -> "SensorData":
         """
         init but with a path to directory containing parquet file(s) instead of a table of data
 
@@ -255,15 +267,15 @@ class SensorData:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
-        :param fswriter: Optional FileSystemWriter which determines how files are written to disk or memory.
-                            default None (writes to memory)
+        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param use_temp_dir: if True, save the data using a temporary directory.  default False
         :return: RedvoxSensor object
         """
         result = SensorData(sensor_name,
                             ds.dataset(data_path, format="parquet", exclude_invalid_files=True).to_table(),
                             sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s,
                             is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
-                            use_offset_model_for_correction, fswriter)
+                            use_offset_model_for_correction, save_data, data_path, use_temp_dir=use_temp_dir)
         result.set_file_name()
         return result
 
@@ -279,7 +291,9 @@ class SensorData:
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
-            fswriter: Optional[Fsw] = None
+            save_data: bool = False,
+            arrow_dir: str = "",
+            use_temp_dir: bool = False
     ) -> "SensorData":
         """
         init but with a dictionary
@@ -298,13 +312,16 @@ class SensorData:
                                 default False
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
-        :param fswriter: Optional FileSystemWriter which determines how files are written to disk or memory.
-                            default None (writes to memory)
+        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param arrow_dir: directory to save pyarrow table, default "" (current dir).  default temporary dir if not
+                            saving data
+        :param use_temp_dir: If True, use a temporary directory to save the data.  default False
         :return: RedvoxSensor object
         """
         return SensorData(sensor_name, pa.Table.from_pydict(sensor_data), sensor_type, sample_rate_hz,
                           sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
-                          calculate_stats, use_offset_model_for_correction, fswriter)
+                          calculate_stats, use_offset_model_for_correction, save_data, arrow_dir,
+                          use_temp_dir=use_temp_dir)
 
     def save(self, file_name: Optional[str] = None) -> Optional[Path]:
         """
@@ -410,7 +427,9 @@ class SensorData:
         """
         :return: the table defined by the dataset stored in self
         """
-        return self.pyarrow_ds().to_table()
+        if self._fs_writer.is_save_disk():
+            return self.pyarrow_ds().to_table()
+        return self._data
 
     def data_df(self) -> pd.DataFrame:
         """
@@ -428,24 +447,10 @@ class SensorData:
         """
         if self._fs_writer.is_save_disk():
             self._fs_writer.create_dir()
-            if table is None:
-                table = self._data
             pq.write_table(table, self.full_path())
             self._data = None
-        elif table is not None:
+        else:
             self._data = table
-        # self._data = table
-        self._fs_writer.create_dir()
-        pq.write_table(table, self.full_path())
-
-    # implemented in 3.1.5
-    # def _actual_file_write_table(self):
-    #     """
-    #     file writing function; use when file system writing is dependable.
-    #     """
-    #     self._fs_writer.create_dir()
-    #     pq.write_table(self._data, self.full_path())
-    #     self._data = None
 
     def errors(self) -> RedVoxExceptions:
         """
@@ -650,7 +655,9 @@ class SensorData:
         """
         :return: a list of the names of the columns (data channels) of the dataframe
         """
-        return self.pyarrow_table().schema.names
+        if self.pyarrow_table():
+            return self.pyarrow_table().schema.names
+        return []
 
     def get_data_channel(self, channel_name: str) -> Union[np.array, List[str]]:
         """
@@ -659,6 +666,9 @@ class SensorData:
         :param channel_name: the name of the channel to get data for
         :return: the data values of the channel as a numpy array or list of strings for enumerated channels
         """
+        if not self.pyarrow_table():
+            self._errors.append(f"WARNING: There are no channels to access in this Sensor!")
+            return []
         _arrow = self.pyarrow_table()
         if channel_name not in _arrow.schema.names:
             self._errors.append(f"WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}")

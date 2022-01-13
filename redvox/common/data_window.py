@@ -5,6 +5,7 @@ combines the base data files into a single composite object based on the user pa
 from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
+import psutil
 import shutil
 import os
 import inspect
@@ -283,7 +284,7 @@ class DataWindow:
 
     def save_dir(self) -> str:
         """
-        :return: directory data is saved to
+        :return: directory data is saved to (empty string means saving to memory)
         """
         return self._fs_writer.save_dir()
 
@@ -612,7 +613,6 @@ class DataWindow:
         return None
 
     def _add_sensor_to_window(self, station: Station):
-        station.set_use_temp_dir(self._fs_writer.use_temp_dir)
         # set the window start and end if they were specified, otherwise use the bounds of the data
         self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
 
@@ -648,13 +648,14 @@ class DataWindow:
                           correct_timestamps=self._config.apply_correction,
                           use_model_correction=self._config.use_model_correction,
                           dw_base_dir=self.save_dir(),
-                          save_files=self._fs_writer.save_to_disk,
+                          save_files=False if self._fs_writer.is_use_mem() else True,
                           debug=self.debug, pool=_pool)
 
         self._errors.extend_error(a_r.errors)
 
-        print("checking size of data")
-        if a_r.all_files_size * 10. > psutil.virtual_memory().available:
+        if self.debug:
+            print("checking size of data")
+        if a_r.use_temp_dir() and self._fs_writer.is_use_mem():
             print("Estimated size of files exceeds available memory.")
             print("Automatically using temporary directory to store data.")
             self._fs_writer.use_temp_dir = True

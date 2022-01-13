@@ -21,7 +21,8 @@ class ApiReaderDw(ApiReader):
                  read_filter: io.ReadFilter = None,
                  correct_timestamps: bool = False,
                  use_model_correction: bool = True,
-                 fsw: io.FileSystemWriter = None,
+                 dw_base_dir: str = ".",
+                 save_files: bool = False,
                  debug: bool = False,
                  pool: Optional[multiprocessing.pool.Pool] = None):
         """
@@ -34,19 +35,25 @@ class ApiReaderDw(ApiReader):
         :param correct_timestamps: if True, correct the timestamps of the data.  Default False
         :param use_model_correction: if True, use the offset model of the station to correct the timestamps.
                                         if correct_timestamps is False, this value doesn't matter.  Default True
-        :param fsw: FileSystemWriter for writing files to disk or memory.  Default Empty FileSystemWriter
+        :param dw_base_dir: the directory to save DataWindow files to.  if save_files is False, this value doesn't
+                            matter.  default "." (current directory)
+        :param save_files: if True, save the data the disk.  Default False
         :param debug: if True, output program warnings/errors during function execution.  Default False.
         """
         super().__init__(base_dir, structured_dir, read_filter, debug, pool)
         self.correct_timestamps = correct_timestamps
         self.use_model_correction = use_model_correction
-        if fsw is None:
-            self.fsw = io.FileSystemWriter("default")
-        else:
-            self.fsw = fsw
+        self.dw_base_dir = dw_base_dir
+        self.save_mode = io.FileSystemSaveMode.DISK if save_files else io.FileSystemSaveMode.MEM
         self.all_files_size = np.sum([idx.files_size() for idx in self.files_index])
-        self._use_temp_dir = self.all_files_size * 10. > psutil.virtual_memory().available
         self._stations = self._read_stations()
+
+    def use_temp_dir(self) -> bool:
+        """
+        :return: True if temporary directory is needed to contain large files that can't be held in memory
+        """
+        return (self.all_files_size * 10. > psutil.virtual_memory().available
+                and self.save_mode == io.FileSystemSaveMode.MEM)
 
     def _stations_by_index(self, findex: io.Index) -> Station:
         """
@@ -54,7 +61,9 @@ class ApiReaderDw(ApiReader):
         :return: Station built from files in findex, without building the data from parquet
         """
         stpa = Station.create_from_packets(self.read_files_in_index(findex), self.correct_timestamps,
-                                           self.use_model_correction, self.dw_base_dir, self.save_files)
+                                           self.use_model_correction, self.dw_base_dir,
+                                           True if self.save_mode != io.FileSystemSaveMode.MEM else False,
+                                           )
         if self.debug:
             print(f"station {stpa.id()} files read: {len(findex.entries)}")
         return stpa

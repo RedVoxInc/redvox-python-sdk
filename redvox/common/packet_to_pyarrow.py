@@ -198,7 +198,6 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
     # fuse audio into a single result
     packet_info = []
     audio: PyarrowSummary = summary.get_audio()[0]
-    # avoid converting packets into parquets for now; just load the data into memory and process
     if out_dir:
         audio_files = glob(os.path.join(audio.fdir, "*.parquet"))
         audio_files.sort()
@@ -225,7 +224,6 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
     if audio:
         audio_data = PyarrowSummary(audio.name, srupa.SensorType.AUDIO, audio.start, audio.srate_hz, audio.fdir,
                                     gp_result.result.num_rows, data=gp_result.result)
-        # avoid converting packets into parquets for now; just load the data into memory and process
         if out_dir:
             audio_data.write_data(True)
         res_summary.add_summary(audio_data)

@@ -84,9 +84,9 @@ class DataWindowFileSystemWriter(FileSystemWriter):
             os.makedirs(base_dir, exist_ok=True)
         os.chdir(base_dir)
         super().__init__(file_name, file_ext, ".",
-                         FileSystemSaveMode.MEM if DataWindowOutputType.str_to_type(file_ext) ==
-                                                   DataWindowOutputType.NONE
-                         elif FileSystemSaveMode.)
+                         FileSystemSaveMode.TEMP
+                         if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.NONE
+                         else FileSystemSaveMode.DISK)
         self.make_run_me = make_run_me
 
 

@@ -44,6 +44,10 @@ class SensorDataTest(unittest.TestCase):
 
     def test_empty(self):
         self.empty_sensor = SensorData("empty")
+        self.assertEqual(self.empty_sensor.errors().get_num_errors(), 0)
+        self.assertEqual(self.empty_sensor.num_samples(), 0)
+        self.assertEqual(len(self.empty_sensor.data_channels()), 0)
+        self.assertEqual(len(self.empty_sensor.get_data_channel("failure")), 0)
         self.assertEqual(self.empty_sensor.errors().get_num_errors(), 1)
 
     def test_name(self):

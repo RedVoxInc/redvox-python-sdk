@@ -54,11 +54,12 @@ def remove_dir_contents(dir_path: Path):
     :param dir_path: path to directory to remove files from
     """
     if dir_path.is_dir():
-        for entry in os.scandir(dir_path):
-            if entry.is_dir(follow_symlinks=False):
-                rmtree(entry)
+        for entry in os.listdir(dir_path):
+            rmv_path = os.path.join(dir_path, entry)
+            if os.path.isdir(rmv_path):
+                rmtree(rmv_path)
             else:
-                os.remove(entry)
+                os.remove(rmv_path)
     else:
         print(f"{dir_path} is not a directory; cannot remove contents!")
 
@@ -76,7 +77,7 @@ class FileSystemSaveMode(enum.Enum):
         """
         :param use_temp: use temporary directory
         :param use_disk: use path on disk
-        :return: the mode used to save
+        :return: the mode used to save (use_temp is evaluated before use_disk)
         """
         if use_temp:
             return FileSystemSaveMode.TEMP  # use_temp takes priority
@@ -92,11 +93,14 @@ class FileSystemWriter:
 
     Properties:
         file_name: str, the name of the file (do not include extension)
-        file_ext: str, the extension used by the file (do not include the .).  Default "NONE"
+
+        file_ext: str, the extension used by the file (do not include the .)  Default "NONE"
+
         base_dir: str, the directory to save the file to.  Default "." (current dir)
 
     Protected:
         _save_mode: FileSystemSaveMode, determines how files get saved
+
         _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
     """
 
@@ -142,7 +146,7 @@ class FileSystemWriter:
         if use_disk:
             self._save_mode = FileSystemSaveMode.DISK
 
-    def is_save_mem(self) -> bool:
+    def is_use_mem(self) -> bool:
         """
         :return: if writing data to memory
         """
@@ -157,15 +161,19 @@ class FileSystemWriter:
 
     def is_save_disk(self) -> bool:
         """
-        :return: if writing data to disk instead of using memory
+        :return: if writing data to disk (temp dir or user defined path) instead of using memory
         """
         return self._save_mode != FileSystemSaveMode.MEM
 
     def save_dir(self) -> str:
         """
-        :return: directory where file would be saved based on current value of self.save_to_disk
+        :return: directory where file would be saved based on save mode; returns empty string if saving to memory
         """
-        return self.base_dir if self.is_use_disk() else self._temp_dir.name
+        if self.is_use_disk():
+            return self.base_dir
+        elif self.is_use_temp():
+            return self._temp_dir.name
+        return ""
 
     def set_save_mode(self, save_mode: FileSystemSaveMode):
         """
@@ -174,6 +182,12 @@ class FileSystemWriter:
         :param save_mode: updated save mode
         """
         self._save_mode = save_mode
+
+    def save_mode(self) -> FileSystemSaveMode:
+        """
+        :return: the save mode
+        """
+        return self._save_mode
 
     def full_name(self) -> str:
         """
@@ -219,19 +233,6 @@ class FileSystemWriter:
                 remove_dir_contents(Path(self.save_dir()))
         elif self.is_use_temp():
             remove_dir_contents(self._temp_dir.name)
-                rmtree(self.save_dir())
-            os.makedirs(self.save_dir(), exist_ok=True)
-        else:
-            for m in os.listdir(self.save_dir()):
-                rmv_path = os.path.join(self.save_dir(), m)
-                if os.path.isfile(rmv_path) or os.path.islink(rmv_path):
-                    os.remove(rmv_path)
-                elif os.path.isdir(rmv_path):
-                    rmtree(rmv_path)
-                else:
-                    print("Cannot remove something that is not a file or a directory.  "
-                          "Report this error to developers.")
-                    raise SystemError("Unknown object cannot be removed; is not file or directory")
 
     def __del__(self):
         """
