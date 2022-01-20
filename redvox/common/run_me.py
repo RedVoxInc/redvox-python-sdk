@@ -1,3 +1,10 @@
+"""
+This file is designed to show the usage of the redvox SDK when loading DataWindows from existing files
+This file is expected to be in the same directory as the JSON file being loaded,
+and there is only one JSON file to load.
+This file is expected to work with SDK version 3.1.4 and higher
+"""
+
 import redvox.common.data_window as dwa
 from redvox.common.io import get_json_file
 

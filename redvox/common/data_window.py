@@ -5,7 +5,6 @@ combines the base data files into a single composite object based on the user pa
 from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
-import psutil
 import shutil
 import os
 import inspect
@@ -465,7 +464,7 @@ class DataWindow:
         :return: the path to where the files exist; an empty path means no files were saved
         """
         if self._fs_writer.is_save_disk():
-            if self._fs_writer.make_run_me:
+            if self._fs_writer.is_use_disk() and self._fs_writer.make_run_me:
                 shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
                                 os.path.join(self._fs_writer.save_dir(), "runme.py"))
             if self._fs_writer.file_extension == "parquet":
@@ -650,6 +649,8 @@ class DataWindow:
                           dw_base_dir=self.save_dir(),
                           save_files=False if self._fs_writer.is_use_mem() else True,
                           debug=self.debug, pool=_pool)
+
+        exit(69)
 
         self._errors.extend_error(a_r.errors)
 

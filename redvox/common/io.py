@@ -29,6 +29,7 @@ from typing import (
 import lz4.frame
 
 from redvox.api900.reader import read_rdvxz_file, read_buffer
+from redvox.common import api_conversions as ac
 from redvox.api1000.common.common import check_type
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
@@ -122,7 +123,7 @@ class FileSystemWriter:
 
     def is_use_temp(self) -> bool:
         """
-        :return: if mode uses temp dir
+        :return: if writing to temp dir
         """
         return self._save_mode == FileSystemSaveMode.TEMP
 
@@ -135,7 +136,7 @@ class FileSystemWriter:
 
     def is_use_disk(self) -> bool:
         """
-        :return: if mode uses path on disk
+        :return: if writing to path on disk
         """
         return self._save_mode == FileSystemSaveMode.DISK
 
@@ -326,6 +327,7 @@ class IndexEntry:
     date_time: datetime
     extension: str
     api_version: ApiVersion
+    file_size_bytes: int
 
     @staticmethod
     def from_path(path_str: str, strict: bool = True) -> Optional["IndexEntry"]:
@@ -372,12 +374,14 @@ class IndexEntry:
         full_path: str
         try:
             full_path = str(path.resolve(strict=True))
+            file_size = os.path.getsize(full_path) * 8  # decompressed size estimate
         except FileNotFoundError:
             if strict:
                 return None
             full_path = path_str
+            file_size = 0
 
-        return IndexEntry(full_path, station_id, date_time, ext, api_version)
+        return IndexEntry(full_path, station_id, date_time, ext, api_version, file_size)
 
     @staticmethod
     def from_native(entry) -> "IndexEntry":
@@ -393,6 +397,7 @@ class IndexEntry:
             dt_us(entry.date_time),
             entry.extension,
             ApiVersion.from_str(entry.api_version),
+            os.path.getsize(entry.full_path),
         )
 
     def to_native(self):
@@ -900,7 +905,61 @@ class Index:
         """
         :return: sum of file size in bytes of index
         """
-        return np.sum([os.stat(entry.full_path).st_size for entry in self.entries])
+        return np.sum([entry.file_size_bytes for entry in self.entries])
+
+    def read_contents(self) -> List[RedvoxPacketM]:
+        """
+        read all the files in the index
+
+        :return: list of RedvoxPacketM, converted from API 900 if necessary
+        """
+        result: List[RedvoxPacketM] = []
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_900})
+        ):
+            # noinspection Mypy
+            result.append(
+                ac.convert_api_900_to_1000_raw(packet_900)
+            )
+
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_1000})
+        ):
+            # noinspection Mypy
+            result.append(packet)
+
+        return result
+
+    def read_first_packet(self) -> Optional[RedvoxPacketM]:
+        """
+        read the first packet of the index
+
+        :return: single RedvoxPacketM, converted from API 900 if necessary or None if no packet to read
+        """
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_1000})
+        ):
+            # noinspection Mypy
+            return packet
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_900})
+        ):
+            # noinspection Mypy
+            return ac.convert_api_900_to_1000_raw(packet_900)
+
+        return None
 
 
 # The following constants are used for identifying valid RedVox API 900 and API 1000 structured directory layouts.

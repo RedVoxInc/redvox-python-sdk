@@ -12,7 +12,7 @@ import pyarrow.dataset as ds
 import pyarrow as pa
 
 from redvox.common import station_io as io
-from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode
+from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode, IndexEntry, Index
 from redvox.common import sensor_data as sd
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSync
@@ -76,7 +76,7 @@ class Station:
             start_timestamp: float = np.nan,
             correct_timestamps: bool = False,
             use_model_correction: bool = True,
-            base_dir: str = "",
+            base_dir: str = ".",
             save_data: bool = False,
             use_temp_dir: bool = False
     ):
@@ -89,8 +89,8 @@ class Station:
         :param correct_timestamps: if True, correct all timestamps as soon as they can be, default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_dir: directory to save parquet files, default "" (current directory)
-        :param save_data: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :param base_dir: directory to save parquet files, default "." (current directory)
+        :param save_data: if True, save the parquet files to base_dir, otherwise delete them.  default False
         :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         """
         self._id = station_id
@@ -172,10 +172,59 @@ class Station:
             return self.from_json_file(in_dir, file)
 
     @staticmethod
+    def create_from_indexes(indexes: List[Index],
+                            correct_timestamps: bool = False,
+                            use_model_correction: bool = True,
+                            base_out_dir: str = ".",
+                            save_output: bool = False,
+                            use_temp_dir: bool = False) -> "Station":
+        """
+        Use a list of Indexes to create a station
+
+        :param indexes: List of indexes to use
+        :param correct_timestamps: if True, correct timestamps, default False
+        :param use_model_correction: if True, correct timestamps using offset model, default True
+        :param base_out_dir: directory to save output files to, if saving to disk.  default "." (current directory)
+        :param save_output: if True, save output to disk, default False
+        :param use_temp_dir: if True, use a temporary directory, default False
+        :return:
+        """
+        station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
+                          base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
+        station.load_from_indexes(indexes)
+        return station
+
+    def load_from_indexes(self, indexes: List[Index]):
+        """
+        fill station using data from a list of Indexes
+        
+        :param indexes: List of indexes of the files to read
+        """
+        first_pkt = indexes[0].read_first_packet()
+        self._load_metadata_from_packet(first_pkt)
+        self._fs_writer.file_name = self._get_id_key()
+        self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
+        file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
+        self._timesync_data.arrow_file = f"timesync_{file_date}"
+        all_summaries = ptp.AggregateSummary()
+        self._timesync_data = TimeSync()
+        for idx in indexes:
+            pkts = idx.read_contents()
+            self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
+            self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
+            for aggsum in ptp.stream_to_pyarrow(pkts, self.save_dir()).summaries:
+                all_summaries.add_summary(aggsum)
+        self._set_pyarrow_sensors(all_summaries)
+        if self._correct_timestamps:
+            self._start_date = self._timesync_data.offset_model().update_time(
+                self._start_date, self._use_model_correction
+            )
+
+    @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
                             correct_timestamps: bool = False,
                             use_model_correction: bool = True,
-                            base_out_dir: str = "",
+                            base_out_dir: str = ".",
                             save_output: bool = False,
                             use_temp_dir: bool = False) -> "Station":
         """
@@ -183,7 +232,7 @@ class Station:
         :param correct_timestamps: if True, correct timestamps as soon as possible.  Default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_out_dir: directory to save parquet files, default "" (current directory)
+        :param base_out_dir: directory to save parquet files, default "." (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
         :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         :return: station using data from redvox packets.
@@ -196,7 +245,7 @@ class Station:
     @staticmethod
     def create_from_metadata(packet: api_m.RedvoxPacketM,
                              use_model_correction: bool = True,
-                             base_out_dir: str = "",
+                             base_out_dir: str = ".",
                              save_output: bool = False,
                              use_temp_dir: bool = False) -> "Station":
         """
@@ -205,7 +254,7 @@ class Station:
         :param packet: API M redvox packet to load metadata from
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_out_dir: directory to save parquet files, default "" (current directory)
+        :param base_out_dir: directory to save parquet files, default "." (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
         :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         :return: Station without any sensor or timing
@@ -218,6 +267,7 @@ class Station:
     def load_data_from_packets(self, packets: List[api_m.RedvoxPacketM]):
         """
         fill station with data from packets
+        
         :param packets: API M redvox packets with data to load
         """
         if packets and st_utils.validate_station_key_list(packets, self._errors):
@@ -359,6 +409,7 @@ class Station:
                 and new_station.get_key() == self.get_key()
                 and self._metadata.validate_metadata(new_station._metadata)
         ):
+            self._errors.extend_error(new_station.errors())
             self.append_station_data(new_station._data)
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()

@@ -60,13 +60,22 @@ class ApiReaderDw(ApiReader):
         :param findex: index with files to build a station with
         :return: Station built from files in findex, without building the data from parquet
         """
-        stpa = Station.create_from_packets(self.read_files_in_index(findex), self.correct_timestamps,
-                                           self.use_model_correction, self.dw_base_dir,
-                                           True if self.save_mode != io.FileSystemSaveMode.MEM else False,
-                                           )
-        if self.debug:
-            print(f"station {stpa.id()} files read: {len(findex.entries)}")
-        return stpa
+        split_list = self._split_workload(findex)
+        if len(split_list) > 0:
+            stpa = Station.create_from_indexes(split_list,
+                                               correct_timestamps=self.correct_timestamps,
+                                               use_model_correction=self.use_model_correction,
+                                               base_out_dir=self.dw_base_dir,
+                                               save_output=True if self.save_mode != io.FileSystemSaveMode.MEM
+                                               else False,
+                                               use_temp_dir=True if len(split_list) > 1 else False
+                                               )
+
+            if self.debug:
+                print(f"station {stpa.id()} files read: {len(findex.entries)}")
+            return stpa
+        self.errors.append("No files found to create station.")
+        return Station()
 
     def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[Station]:
         """

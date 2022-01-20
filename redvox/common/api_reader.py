@@ -9,7 +9,7 @@ import multiprocessing.pool
 
 import pyarrow as pa
 from time import time
-
+import psutil
 
 import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
@@ -30,6 +30,9 @@ meta_py_stct = pa.struct([("api", pa.float64()), ("sub_api", pa.float64()), ("ma
                           ("app", pa.string()), ("app_version", pa.string()), ("is_private", pa.bool_()),
                           ("packet_duration_s", pa.float64()), ("station_description", pa.string()),
                           ])
+
+
+PERCENT_FREE_MEM_USE = .8  # Percentage of total free memory to use when creating stations (1. is 100%)
 
 
 class ApiReader:
@@ -80,22 +83,27 @@ class ApiReader:
         self.errors = RedVoxExceptions("APIReader")
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
+        mem_split_factor = 1
+        if len(self.files_index) > 0:
+            if settings.is_parallelism_enabled():
+                mem_split_factor = len(self.files_index)
+            self.chunk_limit = psutil.virtual_memory().available * PERCENT_FREE_MEM_USE / mem_split_factor
+            max_file_size = max([fe.file_size_bytes for fi in self.files_index for fe in fi.entries])
+            if max_file_size > self.chunk_limit:
+                # self.errors.append(f"System requires {max_file_size} bytes of memory but only has {self.chunk_limit} "
+                #                    f"available")
+                raise MemoryError(f"System requires {max_file_size} bytes of memory to process a file but only has "
+                                  f"{self.chunk_limit} available.  Please free or add more RAM.")
+            if debug:
+                print(f"{mem_split_factor} stations each have {self.chunk_limit} bytes for loading files in memory.")
+        else:
+            self.chunk_limit = 0
 
         if debug:
             self.errors.print()
 
-        # self.helper()
-
         if pool is None:
             _pool.close()
-
-    # def helper(self):
-    #     start = time()
-    #     mem = 0
-    #     for index in self.files_index:
-    #         mem += np.sum([os.stat(entry.full_path).st_size for entry in index.entries])
-    #     end = time()
-    #     print("Elapsed time for calculation:", mem, end - start)
 
     def _flatten_files_index(self):
         """
@@ -120,25 +128,10 @@ class ApiReader:
         index: List[io.Index] = []
         # this guarantees that all ids we search for are valid
         all_index = self._apply_filter(pool=_pool)
-        total_bytes_loading = 0
-        overhead = 0
         for station_id in all_index.summarize().station_ids():
             id_index = all_index.get_index_for_station_id(station_id)
             checked_index = self._check_station_stats(id_index, pool=_pool)
             index.extend(checked_index)
-            # start = time()
-            # bytes_per_station = id_index.files_size()
-            # end = time()
-            # total_bytes_loading += bytes_per_station
-            # overhead += end - start
-            # print(
-            #     f"station_id: {station_id}, " +
-            #     f"num_bytes: {bytes_per_station / 1000} KB"
-            # )
-        # print(f"\nExpected DataWindow size: {total_bytes_loading / 166.6:.2f} KB")
-        # print(f"total overhead: {overhead}")
-        # print(f"Total memory loading: {total_bytes_loading / 1000} KB")
-        # print(f"Overhead for calculating the file size: {overhead}")
 
         if pool is None:
             _pool.close()
@@ -252,6 +245,34 @@ class ApiReader:
             results[key].append(entries=[station_index.entries[v]])
 
         return list(results.values())
+
+    def _split_workload(self, findex: io.Index) -> List[io.Index]:
+        """
+        takes an index and splits it into chunks based on a size limit
+        while running_total + next_file_size < limit, adds files to a chunk (Index)
+        if limit is exceeded, adds the chunk and puts the next file into a new chunk
+
+        :param findex: index of files to split
+        :return: list of Index to process
+        """
+        packet_list = []
+        chunk_queue = 0
+        chunk_list = []
+        for f in findex.entries:
+            chunk_queue += f.file_size_bytes
+            if chunk_queue > self.chunk_limit:
+                packet_list.append(io.Index(chunk_list))
+                chunk_queue = 0
+                chunk_list = []
+            chunk_list.append(f)
+            # if f.api_version == io.ApiVersion.API_900:
+            #     chunk_list.append(
+            #         ac.convert_api_900_to_1000_raw(f.read_raw())
+            #     )
+            # if f.api_version == io.ApiVersion.API_1000:
+            #     chunk_list.append(f.read_raw())
+        packet_list.append(io.Index(chunk_list))
+        return packet_list
 
     @staticmethod
     def read_files_in_index(indexf: io.Index) -> List[api_m.RedvoxPacketM]:
