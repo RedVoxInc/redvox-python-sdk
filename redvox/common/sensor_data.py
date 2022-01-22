@@ -221,11 +221,11 @@ class SensorData:
         self._fs_writer = Fsw("", "parquet", base_dir, save_mode)
         self._gaps: List[Tuple] = gaps if gaps else []
         if sensor_data is not None:
-            self._data = sensor_data
             if "timestamps" not in sensor_data.schema.names:
+                self._data = sensor_data
                 self._errors.append('must have a column titled "timestamps"')
             elif sensor_data['timestamps'].length() > 0:
-                self.set_file_name(f"{sensor_type.name}_{int(sensor_data['timestamps'][0].as_py())}")
+                # self.set_file_name(f"{sensor_type.name}_{int(sensor_data['timestamps'][0].as_py())}")
                 if calculate_stats:
                     self.organize_and_update_stats(sensor_data)
                 elif sensor_data["timestamps"].length() > 1:
@@ -276,7 +276,6 @@ class SensorData:
                             sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s,
                             is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
                             use_offset_model_for_correction, save_data, data_path, use_temp_dir=use_temp_dir)
-        result.set_file_name()
         return result
 
     @staticmethod
@@ -437,16 +436,19 @@ class SensorData:
         """
         return self.pyarrow_table().to_pandas()
 
-    def write_pyarrow_table(self, table: Optional[pa.Table] = None):
+    def write_pyarrow_table(self, table: Optional[pa.Table] = None, update_file_name: Optional[bool] = True):
         """
         * saves the pyarrow table to disk or to memory.
         * if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
         * creates the directory if it doesn't exist and removes any existing parquet files
 
         :param table: the table to write, default None (write existing data)
+        :param update_file_name: if True, updates the file name to match the new data.  Default True
         """
         if self._fs_writer.is_save_disk():
             self._fs_writer.create_dir()
+            if update_file_name:
+                self.set_file_name(f"{self.type().name}_{int(table['timestamps'][0].as_py())}")
             pq.write_table(table, self.full_path())
             self._data = None
         else:
@@ -772,7 +774,7 @@ class SensorData:
                                                                  self._use_offset_model))
         # old_name = self.full_path()
         self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", timestamps))
-        self.set_file_name()
+        # self.set_file_name()
         # os.rename(old_name, self.full_path())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) > 1:

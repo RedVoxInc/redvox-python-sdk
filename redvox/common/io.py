@@ -397,7 +397,7 @@ class IndexEntry:
             dt_us(entry.date_time),
             entry.extension,
             ApiVersion.from_str(entry.api_version),
-            os.path.getsize(entry.full_path),
+            os.path.getsize(entry.full_path) * 8,
         )
 
     def to_native(self):

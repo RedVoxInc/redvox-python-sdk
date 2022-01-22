@@ -5,7 +5,6 @@ Data files can be either API 900 or API 1000 data formats
 from typing import List, Optional
 import multiprocessing.pool
 import numpy as np
-import psutil
 
 import redvox.settings as settings
 from redvox.common import io
@@ -22,7 +21,7 @@ class ApiReaderDw(ApiReader):
                  correct_timestamps: bool = False,
                  use_model_correction: bool = True,
                  dw_base_dir: str = ".",
-                 save_files: bool = False,
+                 save_mode: io.FileSystemSaveMode = io.FileSystemSaveMode.TEMP,
                  debug: bool = False,
                  pool: Optional[multiprocessing.pool.Pool] = None):
         """
@@ -37,30 +36,29 @@ class ApiReaderDw(ApiReader):
                                         if correct_timestamps is False, this value doesn't matter.  Default True
         :param dw_base_dir: the directory to save DataWindow files to.  if save_files is False, this value doesn't
                             matter.  default "." (current directory)
-        :param save_files: if True, save the data the disk.  Default False
+        :param save_mode: save method for files.  Default FileSystemSaveMode.TEMP which saves to a temp_dir
         :param debug: if True, output program warnings/errors during function execution.  Default False.
         """
         super().__init__(base_dir, structured_dir, read_filter, debug, pool)
         self.correct_timestamps = correct_timestamps
         self.use_model_correction = use_model_correction
         self.dw_base_dir = dw_base_dir
-        self.save_mode = io.FileSystemSaveMode.DISK if save_files else io.FileSystemSaveMode.MEM
+        self.save_mode = save_mode
         self.all_files_size = np.sum([idx.files_size() for idx in self.files_index])
         self._stations = self._read_stations()
 
-    def use_temp_dir(self) -> bool:
-        """
-        :return: True if temporary directory is needed to contain large files that can't be held in memory
-        """
-        return (self.all_files_size * 10. > psutil.virtual_memory().available
-                and self.save_mode == io.FileSystemSaveMode.MEM)
-
     def _stations_by_index(self, findex: io.Index) -> Station:
         """
+        builds station using the index of files to read
+        splits the index into smaller chunks if entire record cannot be held in memory
+
         :param findex: index with files to build a station with
         :return: Station built from files in findex, without building the data from parquet
         """
         split_list = self._split_workload(findex)
+        use_temp_dir = True if len(split_list) > 1 else False
+        if use_temp_dir and self.save_mode == io.FileSystemSaveMode.MEM:
+            self.save_mode = io.FileSystemSaveMode.TEMP
         if len(split_list) > 0:
             stpa = Station.create_from_indexes(split_list,
                                                correct_timestamps=self.correct_timestamps,
@@ -68,11 +66,12 @@ class ApiReaderDw(ApiReader):
                                                base_out_dir=self.dw_base_dir,
                                                save_output=True if self.save_mode != io.FileSystemSaveMode.MEM
                                                else False,
-                                               use_temp_dir=True if len(split_list) > 1 else False
+                                               use_temp_dir=use_temp_dir
                                                )
-
             if self.debug:
                 print(f"station {stpa.id()} files read: {len(findex.entries)}")
+                if len(split_list) > 1:
+                    print(f"required making {len(split_list)} smaller segments due to memory restraints")
             return stpa
         self.errors.append("No files found to create station.")
         return Station()

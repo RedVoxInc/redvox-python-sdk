@@ -8,7 +8,6 @@ import multiprocessing
 import multiprocessing.pool
 
 import pyarrow as pa
-from time import time
 import psutil
 
 import redvox.settings as settings
@@ -19,7 +18,6 @@ from redvox.common import io
 from redvox.common import file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station_old import Station as StationOld
-from redvox.common.station import Station
 from redvox.common.errors import RedVoxExceptions
 
 

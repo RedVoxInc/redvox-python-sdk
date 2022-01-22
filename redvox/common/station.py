@@ -12,7 +12,7 @@ import pyarrow.dataset as ds
 import pyarrow as pa
 
 from redvox.common import station_io as io
-from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode, IndexEntry, Index
+from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode, Index
 from redvox.common import sensor_data as sd
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSync
@@ -1407,7 +1407,15 @@ class Station:
                 self._start_date = self._timesync_data.offset_model().update_time(
                     self._start_date, self._use_model_correction
                 )
+            if self._fs_writer.file_name != self._get_id_key():
+                if self._fs_writer.is_save_disk():
+                    old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
+                    self._fs_writer.file_name = self._get_id_key()
+                    os.rename(old_name, self.save_dir())
+                else:
+                    self._fs_writer.file_name = self._get_id_key()
             for sensor in self._data:
+                sensor.set_save_dir(os.path.join(self.save_dir(), sensor.type().name))
                 sensor.update_data_timestamps(self._timesync_data.offset_model())
             for packet in self._packet_metadata:
                 packet.update_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
@@ -1415,10 +1423,6 @@ class Station:
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
             self.update_first_and_last_data_timestamps()
-            if self._fs_writer.file_name != self._get_id_key():
-                old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
-                self._fs_writer.file_name = self._get_id_key()
-                os.rename(old_name, self.save_dir())
             self._is_timestamps_updated = True
         return self
 

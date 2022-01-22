@@ -642,24 +642,24 @@ class DataWindow:
         r_f.with_start_dt_buf(self._config.start_buffer_td)
         r_f.with_end_dt_buf(self._config.end_buffer_td)
 
+        if self.debug:
+            print("Reading files from disk.  This may take a few minutes to complete.")
+
         # get the data to convert into a window
         a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
                           correct_timestamps=self._config.apply_correction,
                           use_model_correction=self._config.use_model_correction,
                           dw_base_dir=self.save_dir(),
-                          save_files=False if self._fs_writer.is_use_mem() else True,
+                          save_mode=self._fs_writer.save_mode(),
                           debug=self.debug, pool=_pool)
-
-        exit(69)
 
         self._errors.extend_error(a_r.errors)
 
-        if self.debug:
-            print("checking size of data")
-        if a_r.use_temp_dir() and self._fs_writer.is_use_mem():
-            print("Estimated size of files exceeds available memory.")
-            print("Automatically using temporary directory to store data.")
-            self._fs_writer.use_temp_dir = True
+        if self._fs_writer.is_use_mem() and a_r.save_mode != self._fs_writer.save_mode():
+            if self.debug:
+                print("Estimated size of files exceeds available memory.")
+                print("Automatically using temporary directory to store data.")
+            self._fs_writer.set_use_temp(True)
 
         # Parallel update
         # Apply timing correction in parallel by station
