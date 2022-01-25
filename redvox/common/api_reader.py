@@ -93,7 +93,8 @@ class ApiReader:
                 raise MemoryError(f"System requires {max_file_size} bytes of memory to process a file but only has "
                                   f"{self.chunk_limit} available.  Please free or add more RAM.")
             if debug:
-                print(f"{mem_split_factor} stations each have {self.chunk_limit} bytes for loading files in memory.")
+                print(f"{mem_split_factor} stations each have {int(self.chunk_limit)} bytes for loading files in "
+                      f"memory.")
         else:
             self.chunk_limit = 0
 
@@ -335,7 +336,7 @@ class ApiReader:
 
         return result
 
-    def _stations_by_index(self, findex: io.Index) -> StationOld:
+    def _station_by_index(self, findex: io.Index) -> StationOld:
         """
         :param findex: index with files to build a station with
         :return: Station built from files in findex
@@ -348,7 +349,7 @@ class ApiReader:
         :return: List of all stations in the ApiReader
         """
         return list(maybe_parallel_map(pool,
-                                       self._stations_by_index,
+                                       self._station_by_index,
                                        self.files_index,
                                        chunk_size=1
                                        )

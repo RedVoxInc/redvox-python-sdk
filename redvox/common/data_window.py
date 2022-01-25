@@ -666,14 +666,16 @@ class DataWindow:
         sts = a_r.get_stations()
         if self.debug:
             print("num stations loaded: ", len(sts))
-        if self._config.apply_correction:
-            for st in maybe_parallel_map(_pool, Station.update_timestamps,
-                                         iter(sts), chunk_size=1):
-                self._add_sensor_to_window(st)
-                if self.debug:
-                    print("station processed: ", st.id())
-        else:
-            [self._add_sensor_to_window(s) for s in sts]
+        # if self._config.apply_correction:
+            # for st in maybe_parallel_map(_pool, Station.update_timestamps,
+            #                              iter(sts), chunk_size=1):
+            #     self._add_sensor_to_window(st)
+            #     if self.debug:
+            #         print("station processed: ", st.id())
+        for st in maybe_parallel_map(_pool, lambda x: x, iter(sts), chunk_size=1):
+            self._add_sensor_to_window(st)
+            if self.debug:
+                print("station processed: ", st.id())
 
         # check for stations without data
         self._check_for_audio()

@@ -1,3 +1,4 @@
+import tempfile
 from typing import Optional, Dict, Callable, List
 import os
 from pathlib import Path
@@ -240,7 +241,7 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
 
 def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -> AggregateSummary:
     """
-    gets non-audio sensor information by writing it folders with the sensor names to the out_dir
+    gets non-audio sensor information by writing it into folders with the sensor names to the out_dir
 
     :param packet: packet to extract data from
     :param out_dir: optional directory to write the pyarrow files to; if None, don't write files.  default None
@@ -273,10 +274,7 @@ def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -> A
         if data:
             data.start = packet_start
             if out_dir:
-                sensor_dir = os.path.join(out_dir, data.stype.name)
-            # os.makedirs(sensor_dir, exist_ok=True)
-                data.fdir = sensor_dir
-            # avoid converting packets into parquets for now; just load the data into memory and process
+                data.fdir = os.path.join(out_dir, data.stype.name)
                 data.write_data()
             result.add_summary(data)
     return result

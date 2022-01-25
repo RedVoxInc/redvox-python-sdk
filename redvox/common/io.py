@@ -134,6 +134,12 @@ class FileSystemWriter:
         if use_temp:
             self._save_mode = FileSystemSaveMode.TEMP
 
+    def get_temp(self) -> str:
+        """
+        :return: path of temp directory
+        """
+        return self._temp_dir.name
+
     def is_use_disk(self) -> bool:
         """
         :return: if writing to path on disk
@@ -232,6 +238,8 @@ class FileSystemWriter:
         if self.is_use_disk():
             if os.path.exists(self.save_dir()):
                 remove_dir_contents(Path(self.save_dir()))
+            else:
+                os.makedirs(self.save_dir())
         elif self.is_use_temp():
             remove_dir_contents(self._temp_dir.name)
 

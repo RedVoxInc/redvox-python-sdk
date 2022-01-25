@@ -47,7 +47,7 @@ class ApiReaderDw(ApiReader):
         self.all_files_size = np.sum([idx.files_size() for idx in self.files_index])
         self._stations = self._read_stations()
 
-    def _stations_by_index(self, findex: io.Index) -> Station:
+    def _station_by_index(self, findex: io.Index) -> Station:
         """
         builds station using the index of files to read
         splits the index into smaller chunks if entire record cannot be held in memory
@@ -87,12 +87,12 @@ class ApiReaderDw(ApiReader):
         :param pool: optional multiprocessing pool
         :return: List of all stations in the ApiReader, without building the data from parquet
         """
-        if settings.is_parallelism_enabled():
-            return list(maybe_parallel_map(pool, self._stations_by_index,
+        if settings.is_parallelism_enabled() and len(self.files_index) > 1:
+            return list(maybe_parallel_map(pool, self._station_by_index,
                                            self.files_index,
                                            chunk_size=1
                                            ))
-        return list(map(self._stations_by_index, self.files_index))
+        return list(map(self._station_by_index, self.files_index))
 
     def get_station_by_id(self, get_id: str) -> Optional[List[Station]]:
         """

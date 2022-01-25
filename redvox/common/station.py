@@ -133,16 +133,29 @@ class Station:
     def set_save_data(self, save_on: bool = False):
         """
         set the option to save the station
+
         :param save_on: if True, saves the station data, default False
         """
         self._fs_writer.save_to_disk = save_on
+
+    def set_save_dir(self, name: Optional[str] = None):
+        """
+        sets the file name and save directory of a Station.  Uses the default stationid_stationstartdate
+        if no name is specified
+
+        :param name: optional name to use
+        """
+        if name is None:
+            name = self._get_id_key()
+        self._fs_writer.file_name = name
+        self._fs_writer.base_dir = os.path.join(os.path.dirname(self.save_dir()), name)
 
     def save_dir(self) -> str:
         """
         :return: directory where files are being written to
         """
         if self._fs_writer.is_save_disk():
-            return os.path.join(self._fs_writer.save_dir(), self._get_id_key())
+            return self._fs_writer.save_dir()
         return ""
 
     def save(self, file_name: Optional[str] = None) -> Optional[Path]:
@@ -202,23 +215,21 @@ class Station:
         """
         first_pkt = indexes[0].read_first_packet()
         self._load_metadata_from_packet(first_pkt)
-        self._fs_writer.file_name = self._get_id_key()
+        self.set_save_dir()
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
-        file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
-        self._timesync_data.arrow_file = f"timesync_{file_date}"
+        self._timesync_data.arrow_file = \
+            f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
         all_summaries = ptp.AggregateSummary()
         self._timesync_data = TimeSync()
         for idx in indexes:
             pkts = idx.read_contents()
             self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
             self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
-            for aggsum in ptp.stream_to_pyarrow(pkts, self.save_dir()).summaries:
+            for aggsum in ptp.stream_to_pyarrow(pkts, self._fs_writer.get_temp()).summaries:
                 all_summaries.add_summary(aggsum)
         self._set_pyarrow_sensors(all_summaries)
         if self._correct_timestamps:
-            self._start_date = self._timesync_data.offset_model().update_time(
-                self._start_date, self._use_model_correction
-            )
+            self.update_timestamps()
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
@@ -277,16 +288,12 @@ class Station:
                 st_utils.StationPacketMetadata(packet) for packet in packets
             ]
             self._timesync_data = TimeSync().from_raw_packets(packets)
-            if self._correct_timestamps:
-                self._start_date = self._timesync_data.offset_model().update_time(
-                    self._start_date, self._use_model_correction
-                )
-            self._fs_writer.file_name = self._get_id_key()
-            # self._fs_writer.create_dir()
+            self.set_save_dir()
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
-            file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
-            self._timesync_data.arrow_file = f"timesync_{file_date}"
-            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self.save_dir()))
+            self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
+            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self._fs_writer.get_temp()))
+            if self._correct_timestamps:
+                self.update_timestamps()
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -1400,23 +1407,24 @@ class Station:
         """
         if self._is_timestamps_updated:
             self._errors.append("Timestamps already corrected!")
-        else:
-            # if timestamps were not corrected on creation
-            if not self._correct_timestamps:
-                # self.timesync_data.update_timestamps(self.use_model_correction)
-                self._start_date = self._timesync_data.offset_model().update_time(
-                    self._start_date, self._use_model_correction
-                )
+        elif self._correct_timestamps:
+            update_dir = False
+            self._start_date = self._timesync_data.offset_model().update_time(
+                self._start_date, self._use_model_correction
+            )
             if self._fs_writer.file_name != self._get_id_key():
+                update_dir = True
                 if self._fs_writer.is_save_disk():
-                    old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
-                    self._fs_writer.file_name = self._get_id_key()
-                    os.rename(old_name, self.save_dir())
+                    old_name = self._fs_writer.save_dir()
+                    self.set_save_dir()
+                    if os.path.exists(old_name):
+                        os.rename(old_name, self.save_dir())
                 else:
                     self._fs_writer.file_name = self._get_id_key()
             for sensor in self._data:
-                sensor.set_save_dir(os.path.join(self.save_dir(), sensor.type().name))
                 sensor.update_data_timestamps(self._timesync_data.offset_model())
+                if update_dir:
+                    sensor.move_pyarrow_dir(self.save_dir())
             for packet in self._packet_metadata:
                 packet.update_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
             for g in range(len(self._gaps)):

@@ -454,6 +454,20 @@ class SensorData:
         else:
             self._data = table
 
+    def move_pyarrow_dir(self, new_dir: str) -> Path:
+        """
+        Move the sensor's pyarrow files to a new directory
+
+        :param new_dir: directory to save files into
+        """
+        old_sensor_save_dir = self.save_dir()
+        self.set_save_dir(os.path.join(new_dir, self._type.name))
+        for r, d, f in os.walk(old_sensor_save_dir):
+            for file in f:
+                self._fs_writer.create_dir()
+                os.rename(os.path.join(old_sensor_save_dir, file), os.path.join(self.save_dir(), file))
+        return Path(self.save_dir())
+
     def errors(self) -> RedVoxExceptions:
         """
         :return: errors of the sensor
