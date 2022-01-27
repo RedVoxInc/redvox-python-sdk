@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import pyarrow.dataset as ds
 import pyarrow as pa
+import pyarrow.parquet as pq
 
 from redvox.common import station_io as io
 from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode, Index
@@ -130,6 +131,13 @@ class Station:
         """
         return [s.name for s in self._data]
 
+    def get_save_dir_sensor(self, sensor: sd.SensorType) -> str:
+        """
+        :param sensor: the type of sensor to get a save directory for
+        :return: the station's save dir with the sensor type name as a subdir
+        """
+        return os.path.join(self.save_dir(), sensor.name)
+
     def set_save_data(self, save_on: bool = False):
         """
         set the option to save the station
@@ -140,7 +148,7 @@ class Station:
 
     def set_save_dir(self, name: Optional[str] = None):
         """
-        sets the file name and save directory of a Station.  Uses the default stationid_stationstartdate
+        sets the file name and save directory of a Station.  Uses the default [station_id]_[station_startdate]
         if no name is specified
 
         :param name: optional name to use
@@ -149,6 +157,7 @@ class Station:
             name = self._get_id_key()
         self._fs_writer.file_name = name
         self._fs_writer.base_dir = os.path.join(os.path.dirname(self.save_dir()), name)
+        self._fs_writer.create_dir()
 
     def save_dir(self) -> str:
         """
@@ -215,7 +224,8 @@ class Station:
         """
         first_pkt = indexes[0].read_first_packet()
         self._load_metadata_from_packet(first_pkt)
-        self.set_save_dir()
+        if self._fs_writer.is_save_disk():
+            self.set_save_dir()
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
         self._timesync_data.arrow_file = \
             f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
@@ -225,7 +235,8 @@ class Station:
             pkts = idx.read_contents()
             self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
             self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
-            for aggsum in ptp.stream_to_pyarrow(pkts, self._fs_writer.get_temp()).summaries:
+            for aggsum in ptp.stream_to_pyarrow(
+                    pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None).summaries:
                 all_summaries.add_summary(aggsum)
         self._set_pyarrow_sensors(all_summaries)
         if self._correct_timestamps:
@@ -288,10 +299,14 @@ class Station:
                 st_utils.StationPacketMetadata(packet) for packet in packets
             ]
             self._timesync_data = TimeSync().from_raw_packets(packets)
-            self.set_save_dir()
+            if self._fs_writer.is_save_disk():
+                self.set_save_dir()
+                files_dir = self._fs_writer.get_temp()
+            else:
+                files_dir = None
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
             self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
-            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, self._fs_writer.get_temp()))
+            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, files_dir))
             if self._correct_timestamps:
                 self.update_timestamps()
 
@@ -420,8 +435,8 @@ class Station:
             self.append_station_data(new_station._data)
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
-            self.update_first_and_last_data_timestamps()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+            self.update_first_and_last_data_timestamps()
 
     def append_station_data(self, new_station_data: List[sd.SensorData]):
         """
@@ -1204,19 +1219,30 @@ class Station:
 
         :param sensor_summaries: summaries of sensor data that can be used to create sensors
         """
-        self._gaps = sensor_summaries.audio_gaps
-        self._errors.extend_error(sensor_summaries.errors)
-        audo = sensor_summaries.get_audio()[0]
-        if audo:
-            if self._fs_writer.is_save_disk():
-                self._data.append(sd.AudioSensor.from_dir(
-                    sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
-                    sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz, sample_interval_std_s=0.,
-                    is_sample_rate_fixed=True, save_data=self._fs_writer.is_save_disk())
-                )
+        audio_summary = sensor_summaries.get_audio()
+        if audio_summary:
+            # fuse audio into a single result
+            packet_info = []
+            first_audio = audio_summary[0]
+
+            if not first_audio.check_data():
+                audio_files = [(a.file_name(), a.start) for a in audio_summary]
+                audio_files.sort()
+                for f, start in audio_files:
+                    packet_info.append((int(start), pq.read_table(f)))
             else:
-                self._data.append(sd.AudioSensor(audo.name, audo.data(), audo.srate_hz, 1 / audo.srate_hz, 0., True,
-                                                 base_dir=audo.fdir, save_data=self._fs_writer.is_save_disk()))
+                for f in audio_summary:
+                    packet_info.append((int(f.start), f.data()))
+                packet_info.sort()
+
+            gp_result = gpu.fill_audio_gaps2(
+                packet_info, s_to_us(1 / first_audio.srate_hz)
+            )
+            self._gaps = gp_result.gaps
+            self._errors.extend_error(gp_result.errors)
+            self._data.append(sd.AudioSensor(first_audio.name, gp_result.create_timestamps(), first_audio.srate_hz,
+                                             1 / first_audio.srate_hz, 0., True, base_dir=first_audio.fdir,
+                                             save_data=self._fs_writer.is_save_disk()))
             self.update_first_and_last_data_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
@@ -1231,21 +1257,22 @@ class Station:
                         stats.add(sds.smint_s, sds.sstd_s, sds.scount)
                     d, g = gpu.fill_gaps(
                         data_table,
-                        sensor_summaries.audio_gaps,
+                        self._gaps,
                         s_to_us(stats.mean_of_means()), True)
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
-                        base_dir=sdata[0].fdir)
+                        base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 else:
                     d, g = gpu.fill_gaps(
                         data_table,
-                        sensor_summaries.audio_gaps,
+                        self._gaps,
                         s_to_us(sdata[0].smint_s), True)
                     new_sensor = sd.SensorData(
                             sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
-                            sample_interval_std_s=0., is_sample_rate_fixed=True, base_dir=sdata[0].fdir)
+                            sample_interval_std_s=0., is_sample_rate_fixed=True,
+                            base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 self._data.append(new_sensor.class_from_type())
         else:
             self._errors.append("Audio Sensor expected, but does not exist.")
@@ -1422,9 +1449,9 @@ class Station:
                 else:
                     self._fs_writer.file_name = self._get_id_key()
             for sensor in self._data:
-                sensor.update_data_timestamps(self._timesync_data.offset_model())
                 if update_dir:
                     sensor.move_pyarrow_dir(self.save_dir())
+                sensor.update_data_timestamps(self._timesync_data.offset_model())
             for packet in self._packet_metadata:
                 packet.update_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
             for g in range(len(self._gaps)):

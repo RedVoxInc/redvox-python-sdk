@@ -64,6 +64,47 @@ class GapPadResult:
         self.errors.append(error)
 
 
+@dataclass_json()
+@dataclass
+class AudioWithGaps:
+    """
+    Represents methods of reconstructing audio data with or without gaps in it
+
+    Properties:
+        sample_interval_micros: microseconds between sample points
+
+        metadata: list of start times in microseconds since epoch UTC and the data to add
+
+        gaps: the list of start and end points of gaps (the start and end are actual data points)
+
+        errors: the errors encountered while getting the data
+    """
+    sample_interval_micros: float
+    metadata: Optional[List[Tuple[float, pa.Table]]] = None
+    gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
+    errors: RedVoxExceptions = field(default_factory=lambda: RedVoxExceptions("AudioWithGaps"))
+
+    def create_timestamps(self) -> pa.Table:
+        """
+        :return: converts the audio metadata into a data table
+        """
+        result_array = [[], [], []]
+        for m in self.metadata:
+            timestamps = calc_evenly_sampled_timestamps(m[0], m[1].num_rows, self.sample_interval_micros)
+            result_array[0].extend(timestamps)
+            result_array[1].extend(timestamps)
+            result_array[2].extend(m[1]["microphone"].to_numpy())
+        for gs, ge in self.gaps:
+            num_samples = int((ge - gs) / self.sample_interval_micros) - 1
+            timestamps = calc_evenly_sampled_timestamps(gs + self.sample_interval_micros, num_samples,
+                                                        self.sample_interval_micros)
+            gap_array = [timestamps, np.full(len(timestamps), np.nan)]
+            result_array[0].extend(gap_array[0])
+            result_array[1].extend(gap_array[0])
+            result_array[2].extend(gap_array[1])
+        return pa.Table.from_pydict(dict(zip(AUDIO_DF_COLUMNS, result_array)))
+
+
 def calc_evenly_sampled_timestamps(
         start: float, samples: int, sample_interval_micros: float
 ) -> np.array:
@@ -169,6 +210,54 @@ def fill_gaps(
         indic = pc.sort_indices(arrow_df, sort_keys=[("timestamps", "ascending")])
         return arrow_df.take(indic), gaps
     return arrow_df, gaps
+
+
+def fill_audio_gaps2(
+        packet_data: List[Tuple[float, pa.Table]],
+        sample_interval_micros: float,
+        gap_upper_limit: float = DEFAULT_GAP_UPPER_LIMIT,
+        gap_lower_limit: float = DEFAULT_GAP_LOWER_LIMIT
+) -> AudioWithGaps:
+    """
+    fills gaps in the table with np.nan by interpolating timestamps based on the expected sample interval
+      * ignores gaps with duration less than or equal to packet length * gap_lower_limit
+      * converts gaps with duration greater than or equal to packet length * gap_upper_limit into a multiple of
+        packet length
+
+    :param packet_data: list of tuples, each tuple containing two pieces of packet information:
+                        packet_start_timestamps; float of packet start timestamp in microseconds
+                        and audio_data; pa.Table of data points
+    :param sample_interval_micros: sample interval in microseconds
+    :param gap_upper_limit: percentage of packet length required to confirm gap is at least 1 packet,
+                            default DEFAULT_GAP_UPPER_LIMIT
+    :param gap_lower_limit: percentage of packet length required to disregard gap, default DEFAULT_GAP_LOWER_LIMIT
+    :return: list of timestamps of the non-inclusive start and end of the gaps
+    """
+    last_data_timestamp = packet_data[0][0]
+    gaps = []
+    result = AudioWithGaps(sample_interval_micros, packet_data)
+    for packet in packet_data:
+        samples_in_packet = packet[1].num_rows
+        start_ts = packet[0]
+        packet_length = sample_interval_micros * samples_in_packet
+        # check if start_ts is close to the last timestamp in data_timestamps
+        last_timestamp_diff = start_ts - last_data_timestamp
+        if last_timestamp_diff > gap_lower_limit * packet_length:
+            fractional_packet, num_packets = modf(last_timestamp_diff /
+                                                  (samples_in_packet * sample_interval_micros))
+            if fractional_packet >= gap_upper_limit:
+                num_samples = samples_in_packet * (num_packets + 1)
+            else:
+                num_samples = np.max([np.floor((fractional_packet + num_packets) * samples_in_packet), 1])
+            start_ts = last_data_timestamp + (num_samples * sample_interval_micros) + sample_interval_micros
+            gaps.append((last_data_timestamp, start_ts))
+        elif last_timestamp_diff < -gap_lower_limit * packet_length:
+            result.add_error(f"Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} "
+                             f"is before last timestamp of previous "
+                             f"packet: {dtu.microseconds_to_seconds(last_data_timestamp)}")
+        last_data_timestamp += (samples_in_packet + 1) * sample_interval_micros
+    result.gaps = gaps
+    return result
 
 
 def fill_audio_gaps(

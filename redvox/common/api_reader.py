@@ -36,15 +36,21 @@ PERCENT_FREE_MEM_USE = .8  # Percentage of total free memory to use when creatin
 class ApiReader:
     """
     Reads data from api 900 or api 1000 format, converting all data read into RedvoxPacketM for
-        ease of comparison and use.
+    ease of comparison and use.
+
     Properties:
         filter: io.ReadFilter with the station ids, start and end time, start and end time padding, and
-                types of files to read
+        types of files to read
+
         base_dir: str of the directory containing all the files to read
+
         structured_dir: bool, if True, the base_dir contains a specific directory structure used by the
-                        respective api formats.  If False, base_dir only has the data files.  Default False.
+        respective api formats.  If False, base_dir only has the data files.  Default False.
+
         files_index: io.Index of the files that match the filter that are in base_dir
+
         index_summary: io.IndexSummary of the filtered data
+
         debug: bool, if True, output additional information during function execution.  Default False.
     """
 

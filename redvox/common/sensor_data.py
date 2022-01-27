@@ -19,7 +19,7 @@ import redvox.common.date_time_utils as dtu
 from redvox.common.io import FileSystemSaveMode, FileSystemWriter as Fsw
 from redvox.common import offset_model as om
 from redvox.common.errors import RedVoxExceptions
-from redvox.common.gap_and_pad_utils import calc_evenly_sampled_timestamps
+from redvox.common.gap_and_pad_utils import calc_evenly_sampled_timestamps, AudioWithGaps
 from redvox.api1000.wrapped_redvox_packet.station_information import (
     NetworkType,
     PowerState,
@@ -985,10 +985,50 @@ class AudioSensor(SensorData):
                  save_data: bool = False,
                  base_dir: str = ".",
                  gaps: Optional[List[Tuple[float, float]]] = None,
-                 show_errors: bool = False):
+                 show_errors: bool = False,
+                 use_temp_dir: bool = False):
         super().__init__(sensor_name, sensor_data, SensorType.AUDIO, sample_rate_hz, sample_interval_s,
                          sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
-                         use_offset_model_for_correction, save_data, base_dir, gaps, show_errors)
+                         use_offset_model_for_correction, save_data, base_dir, gaps, show_errors, use_temp_dir)
+
+    @staticmethod
+    def from_metadata(sensor_name: str,
+                      data: AudioWithGaps,
+                      sample_rate_hz: float = np.nan,
+                      sample_interval_s: float = np.nan,
+                      sample_interval_std_s: float = np.nan,
+                      is_sample_rate_fixed: bool = False,
+                      are_timestamps_altered: bool = False,
+                      calculate_stats: bool = False,
+                      use_offset_model_for_correction: bool = False,
+                      save_data: bool = False,
+                      base_dir: str = ".",
+                      use_temp_dir: bool = False) -> "SensorData":
+        """
+        init but using metadata
+
+        :param sensor_name: name of the sensor
+        :param data: the metadata used to create the sensor
+        :param sample_rate_hz: sample rate in hz of the data, default np.nan
+        :param sample_interval_s: sample interval in seconds of the data, default np.nan
+        :param sample_interval_std_s: std dev of sample interval in seconds of the data, default np.nan
+        :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
+        :param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
+                                        original values, default False
+        :param calculate_stats: if True, calculate sample_rate, sample_interval_s, and sample_interval_std_s
+                                default False
+        :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
+                                                use the best known offset.  default False
+        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param base_dir: directory to save pyarrow table, default "." (current dir).  internally uses a temporary
+                            dir if not saving data
+        :param use_temp_dir: if True, save the data using a temporary directory.  default False
+        :return: RedvoxSensor object
+        """
+        return SensorData(sensor_name, data.create_timestamps(),
+                          SensorType.AUDIO, sample_rate_hz, sample_interval_s, sample_interval_std_s,
+                          is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
+                          use_offset_model_for_correction, save_data, base_dir, use_temp_dir=use_temp_dir)
 
     def get_microphone_data(self) -> np.array:
         """

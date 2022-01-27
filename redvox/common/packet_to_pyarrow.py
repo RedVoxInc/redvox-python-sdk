@@ -72,7 +72,7 @@ class PyarrowSummary:
     def __init__(self, name: str, stype: srupa.SensorType, start: float, srate: float, fdir: str,
                  scount: int, smint: float = np.nan, sstd: float = np.nan, data: Optional[pa.Table] = None):
         """
-        intialize a summary of a sensor
+        initialize a summary of a sensor
 
         :param name: name of sensor
         :param stype: sensor type of summary
@@ -131,17 +131,19 @@ class PyarrowSummary:
 
     def check_data(self) -> bool:
         """
-        :return: True if data is not written to disk yet
+        :return: True if data exists as a property (also means not written to disk)
         """
-        if self._data:
-            return True
-        return False
+        return True if self._data else False
 
-    def data(self) -> pa.Table:
+    def data(self) -> Optional[pa.Table]:
         """
-        :return: the data as pyarrow table
+        :return: the data as pyarrow table or None if it doesn't exist
         """
-        return self._data
+        if self.check_data():
+            return self._data
+        if os.path.exists(self.file_name()):
+            return pq.read_table(self.file_name())
+        return pa.Table()
 
 
 class AggregateSummary:
@@ -152,8 +154,6 @@ class AggregateSummary:
         if not pya_sum:
             pya_sum = []
         self.summaries = pya_sum
-        self.audio_gaps = []
-        self.errors = RedVoxExceptions("PyarrowConversionSummary")
 
     def add_summary(self, pya_sum: PyarrowSummary):
         self.summaries.append(pya_sum)
@@ -188,55 +188,14 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
 
     :param packets: redvox packets to convert
     :param out_dir: optional directory to write the pyarrow files to; if None, don't write files.  default None
-    :return: summary of the sensors, their data and their file locations
+    :return: summary of the sensors, their data and their file locations if possible
     """
     summary = AggregateSummary()
     for k in map(packet_to_pyarrow, packets, repeat(out_dir)):
         for t in k.summaries:
             summary.add_summary(t)
 
-    res_summary = AggregateSummary()
-    # fuse audio into a single result
-    packet_info = []
-    audio: PyarrowSummary = summary.get_audio()[0]
-    if out_dir:
-        audio_files = glob(os.path.join(audio.fdir, "*.parquet"))
-        audio_files.sort()
-        for f in audio_files:
-            # Attempt to parse file name parts
-            split_name = f.split("/")[-1].split("_")
-            ts_str: str = split_name[1].split(".")[0]
-            packet_info.append((int(ts_str), pq.read_table(f)))
-    else:
-        for f in summary.get_audio():
-            packet_info.append((int(f.start), f.data()))
-        packet_info.sort()
-
-    # for f in summary.get_audio():
-    #     packet_info.append((int(f.start), f.data()))
-    # packet_info.sort()
-
-    gp_result = gpu.fill_audio_gaps(
-        packet_info, dtu.seconds_to_microseconds(1 / audio.srate_hz)
-    )
-    res_summary.audio_gaps = gp_result.gaps
-    res_summary.errors.extend_error(gp_result.errors)
-
-    if audio:
-        audio_data = PyarrowSummary(audio.name, srupa.SensorType.AUDIO, audio.start, audio.srate_hz, audio.fdir,
-                                    gp_result.result.num_rows, data=gp_result.result)
-        if out_dir:
-            audio_data.write_data(True)
-        res_summary.add_summary(audio_data)
-    if res_summary.errors.get_num_errors() > 0:
-        res_summary.errors.print()
-
-    non_audio = summary.get_non_audio_list()
-    if len(non_audio) > 0:
-        for na in non_audio:
-            res_summary.add_summary(na)
-
-    return res_summary
+    return summary
 
 
 def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -> AggregateSummary:
@@ -274,7 +233,7 @@ def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -> A
         if data:
             data.start = packet_start
             if out_dir:
-                data.fdir = os.path.join(out_dir, data.stype.name)
+                data.fdir = os.path.join(out_dir, f"{data.stype.name}_SUMMARY")
                 data.write_data()
             result.add_summary(data)
     return result
