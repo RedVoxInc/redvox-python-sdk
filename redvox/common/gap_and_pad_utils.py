@@ -102,7 +102,8 @@ class AudioWithGaps:
             result_array[0].extend(gap_array[0])
             result_array[1].extend(gap_array[0])
             result_array[2].extend(gap_array[1])
-        return pa.Table.from_pydict(dict(zip(AUDIO_DF_COLUMNS, result_array)))
+        ptable = pa.Table.from_pydict(dict(zip(AUDIO_DF_COLUMNS, result_array)))
+        return pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", "ascending")]))
 
 
 def calc_evenly_sampled_timestamps(

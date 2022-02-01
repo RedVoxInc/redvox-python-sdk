@@ -15,17 +15,17 @@ import pyarrow.parquet as pq
 
 
 if TYPE_CHECKING:
-    from redvox.common.timesync_wpa import TimeSyncArrow
+    from redvox.common.timesync import TimeSync
 
 
-def to_json(timesync: "TimeSyncArrow",) -> str:
+def to_json(timesync: "TimeSync",) -> str:
     """
     :return: timesync as json string
     """
     return json.dumps(timesync.as_dict())
 
 
-def to_json_file(timesync: "TimeSyncArrow",
+def to_json_file(timesync: "TimeSync",
                  file_name: Optional[str] = None) -> Path:
     """
     saves the timesync as json and data in the same directory.

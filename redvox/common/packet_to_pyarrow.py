@@ -14,6 +14,7 @@ from redvox.common import sensor_reader_utils as srupa
 from redvox.common import gap_and_pad_utils as gpu
 from redvox.common import date_time_utils as dtu
 from redvox.common.errors import RedVoxExceptions
+from redvox.common.stats_helper import StatsContainer
 
 
 # Maps a sensor type to a function that can extract that sensor for a particular packet.
@@ -94,6 +95,21 @@ class PyarrowSummary:
         self.scount = scount
         self._data = data
 
+    def to_dict(self) -> dict:
+        """
+        :return: dictionary representation of the data
+        """
+        return {
+            "name": self.name,
+            "stype": self.stype.name,
+            "start": self.start,
+            "srate_hz": self.srate_hz,
+            "fdir": self.fdir,
+            "smint_s": self.smint_s,
+            "sstd_s": self.sstd_s,
+            "scount": self.scount
+        }
+
     def file_name(self) -> str:
         """
         :return: full file name of where the file should exist
@@ -155,7 +171,57 @@ class AggregateSummary:
             pya_sum = []
         self.summaries = pya_sum
 
-    def add_summary(self, pya_sum: PyarrowSummary):
+    def to_dict(self) -> dict:
+        """
+        :return: dictionary representation of all summaries
+        """
+        result = {}
+        for ps in self.summaries:
+            result[ps.stype.name] = ps.to_dict()
+        return result
+
+    def add_aggregate_summary(self, agg_sum: 'AggregateSummary', merge: bool = True):
+        """
+        adds another aggregate summary to this one
+
+        :param agg_sum: another aggregate summary to add
+        :param merge: if True, combine the summaries with the same type
+        """
+        if merge:
+            for agg in agg_sum.summaries:
+                self.add_summary(agg)
+        else:
+            self.summaries.extend(agg_sum.summaries)
+
+    def add_summary(self, pya_sum: PyarrowSummary, merge: bool = True):
+        """
+        adds a summary to the aggregate
+
+        :param pya_sum: the summary to add
+        :param merge: if True, combine the summary with the same type
+        """
+        if merge:
+            summaries = self.get_sensor(pya_sum.stype)
+            if len(summaries) > 0:
+                first_summary = summaries[0]
+                stats = StatsContainer("temp")
+                first_summary.srate_hz = (first_summary.scount + pya_sum.scount) / \
+                                         ((first_summary.scount / first_summary.srate_hz) +
+                                          (pya_sum.scount / pya_sum.srate_hz))
+                stats.add(first_summary.smint_s, first_summary.sstd_s, first_summary.scount)
+                stats.add(pya_sum.smint_s, pya_sum.sstd_s, pya_sum.scount)
+                tbl = pa.concat_tables([first_summary.data(), pya_sum.data()])
+                if first_summary.check_data():
+                    first_summary._data = tbl
+                else:
+                    os.makedirs(first_summary.fdir, exist_ok=True)
+                    pq.write_table(tbl, first_summary.file_name())
+                    os.remove(pya_sum.file_name())
+                first_summary.srate_hz = 1 / stats.mean_of_means()
+                first_summary.scount = int(np.sum(np.nan_to_num(stats.count_array)))
+                first_summary.smint_s = stats.mean_of_means()
+                first_summary.sstd_s = stats.total_std_dev()
+                return
         self.summaries.append(pya_sum)
 
     def get_audio(self) -> List[PyarrowSummary]:
@@ -170,6 +236,9 @@ class AggregateSummary:
 
     def get_non_audio_list(self) -> List[PyarrowSummary]:
         return [s for s in self.summaries if s.stype != srupa.SensorType.AUDIO]
+
+    def get_sensor(self, stype: srupa.SensorType) -> List[PyarrowSummary]:
+        return [s for s in self.summaries if s.stype == stype]
 
     def sensor_types(self) -> List[srupa.SensorType]:
         """
@@ -193,7 +262,7 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
     summary = AggregateSummary()
     for k in map(packet_to_pyarrow, packets, repeat(out_dir)):
         for t in k.summaries:
-            summary.add_summary(t)
+            summary.add_summary(t, False)
 
     return summary
 

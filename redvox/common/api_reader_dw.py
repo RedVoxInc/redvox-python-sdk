@@ -34,8 +34,8 @@ class ApiReaderDw(ApiReader):
         :param correct_timestamps: if True, correct the timestamps of the data.  Default False
         :param use_model_correction: if True, use the offset model of the station to correct the timestamps.
                                         if correct_timestamps is False, this value doesn't matter.  Default True
-        :param dw_base_dir: the directory to save DataWindow files to.  if save_files is False, this value doesn't
-                            matter.  default "." (current directory)
+        :param dw_base_dir: the directory to save DataWindow files to.  if save_mode is FileSystemSaveMode.MEM,
+                            this value doesn't matter.  default "." (current directory)
         :param save_mode: save method for files.  Default FileSystemSaveMode.TEMP which saves to a temp_dir
         :param debug: if True, output program warnings/errors during function execution.  Default False.
         """
