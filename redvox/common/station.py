@@ -21,6 +21,7 @@ from redvox.common import packet_to_pyarrow as ptp
 from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.stats_helper import StatsContainer
 from redvox.common.date_time_utils import seconds_to_microseconds as s_to_us
+from redvox.common.event_stream import EventStreams
 
 
 class Station:
@@ -105,6 +106,7 @@ class Station:
         self._timesync_data = TimeSync()
         self._is_timestamps_updated = False
         self._fs_writer = Fsw("", "", base_dir, save_data)
+        self._event_data = EventStreams()
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
@@ -221,6 +223,8 @@ class Station:
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
             file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
             self._timesync_data.arrow_file = f"timesync_{file_date}"
+            for p in packets:
+                self._event_data.read_from_packets(p)
             self._set_pyarrow_sensors(
                 ptp.stream_to_pyarrow(packets, self.save_dir() if self._fs_writer.save_to_disk else None))
 
@@ -1348,6 +1352,8 @@ class Station:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
+            for evnt in self._event_data.streams:
+                evnt.update_data_timestamps(self._use_model_correction, self._timesync_data.offset_model())
             self.update_first_and_last_data_timestamps()
             if self._fs_writer.file_name != self._get_id_key():
                 old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)

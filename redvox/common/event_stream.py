@@ -1,13 +1,20 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 from dataclasses import dataclass, field
+from pathlib import Path
+import os
 
 import numpy as np
 import pyarrow as pa
+import pyarrow.parquet as pq
 from dataclasses_json import dataclass_json
 
+from redvox.api1000.common.mapping import Mapping
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet import event_streams as es
 from redvox.common.errors import RedVoxExceptions
+from redvox.common import offset_model as om
+from redvox.common.io import FileSystemWriter as Fsw
+import redvox.common.event_stream_io as io
 
 
 class EventStream:
@@ -15,20 +22,79 @@ class EventStream:
     stores event stream data gathered from a single station.
     ALL timestamps in microseconds since epoch UTC unless otherwise stated
     """
-    def __init__(self, name: str):
+    def __init__(self, name: str = "event",
+                 schema: Optional[Dict[str, list]] = None,
+                 save_data: bool = False,
+                 base_dir: str = "."):
         """
         initialize EventStream for a station
 
-        :param name: name of the EventStream
+        :param name: name of the EventStream.  Default "event"
+        :param schema: a structured dictionary of the data table schema.  Dictionary must look like:
+                    {"string": [s_values], "numeric": [n_values], "boolean": [o_values], "byte": [b_values]}
+                    where [*_values] is a list of strings and can be empty.  Default None
+        :param save_data: if True, save the data to the base_dir specified instead of locally.  Default False
+        :param base_dir: the location of the parquet file that holds the data.  Not used if save_data is False.
+                            Default current directory (".")
         """
         self.name = name
         self.timestamps_metadata = {}
         self.metadata = {}
+
         self._errors = RedVoxExceptions("EventStream")
-        self._string_data = pa.Table.from_pydict({})
-        self._numeric_data = pa.Table.from_pydict({})
-        self._boolean_data = pa.Table.from_pydict({})
-        self._byte_data = pa.Table.from_pydict({})
+        self._is_timestamps_corrected = False
+        self._fs_writer = Fsw(f"event_{name}", "parquet", base_dir, save_data)
+        self._data = None
+        self._schema = {"string": [], "numeric": [], "boolean": [], "byte": []}
+        if schema is not None:
+            self.set_schema(schema)
+
+    def as_dict(self) -> dict:
+        """
+        :return: EventStream as a dictionary
+        """
+        return {
+            "name": self.name,
+            "metadata": self.metadata,
+            "timestamp_metadata": self.timestamps_metadata,
+            "is_timestamps_corrected": self._is_timestamps_corrected,
+            "schema": self._schema,
+            "errors": self._errors.as_dict()
+        }
+
+    @staticmethod
+    def __get_items(payload: Mapping[str]):
+        return payload.get_metadata().items()
+
+    @staticmethod
+    def __get_items_raw(payload):
+        return payload.items()
+
+    @staticmethod
+    def __get_keys(ptype: str, payload: Mapping[str]):
+        return ptype, payload.get_metadata().keys()
+
+    @staticmethod
+    def __get_keys_raw(ptype: str, payload):
+        return ptype, payload.keys()
+
+    def __set_schema(self, name: str, value: str):
+        self._schema[name].append(value)
+
+    def _get_tbl_schema(self) -> Dict[str, list]:
+        """
+        :return: the dictionary used to create the EventStream data object
+        """
+        if self._data:
+            result = {}
+            for f in self._data.schema.names:
+                result[f] = []
+        else:
+            result = {"timestamps": [], "unaltered_timestamps": []}
+            for t, s in self._schema.items():
+                for k in s:
+                    result[k] = []
+        return result
 
     def read_events(self, eventstream: es.EventStream):
         """
@@ -37,169 +103,189 @@ class EventStream:
         :param eventstream: stream of events to process
         """
         self.name = eventstream.get_name()
-        self.timestamps_metadata = eventstream.get_timestamps().get_metadata()
-        self.metadata = eventstream.get_metadata()
-        tbl = {"timestamps": [], "unaltered_timestamps": []}
-        str_tbl = {}
-        num_tbl = {}
-        bool_tbl = {}
-        byte_tbl = {}
+        self._fs_writer.file_name = self.name
         num_events = eventstream.get_events().get_count()
         if num_events > 1:
+            tbl = self._get_tbl_schema()
+            self.timestamps_metadata = eventstream.get_timestamps().get_metadata()
+            self.metadata = eventstream.get_metadata()
             first_event = eventstream.get_events().get_values()[0]
-            for c, v in first_event.get_string_payload().get_metadata().items():
-                str_tbl[c] = []
-            for c, v in first_event.get_numeric_payload().get_metadata().items():
-                num_tbl[c] = []
-            for c, v in first_event.get_boolean_payload().get_metadata().items():
-                bool_tbl[c] = []
-            for c, v in first_event.get_byte_payload().get_metadata().items():
-                byte_tbl[c] = []
+            for t, c in map(self.__get_keys, ["string", "numeric", "boolean", "byte"],
+                            [first_event.get_string_payload(), first_event.get_numeric_payload(),
+                             first_event.get_boolean_payload(), first_event.get_byte_payload()]):
+                for k in c:
+                    self.add_to_schema(t, k)
+                    tbl[k] = []
             for i in range(num_events):
                 tbl["timestamps"].append(eventstream.get_timestamps().get_timestamps()[i])
                 tbl["unaltered_timestamps"].append(eventstream.get_timestamps().get_timestamps()[i])
                 evnt = eventstream.get_events().get_values()[i]
-                for c, st in evnt.get_string_payload().get_metadata().items():
-                    str_tbl[c].append(st)
-                for c, st in evnt.get_numeric_payload().get_metadata().items():
-                    num_tbl[c].append(st)
-                for c, st in evnt.get_boolean_payload().get_metadata().items():
-                    bool_tbl[c].append(st)
-                for c, st in evnt.get_byte_payload().get_metadata().items():
-                    byte_tbl[c].append(st)
-            if len(str_tbl) > 0:
-                self._string_data = pa.Table.from_pydict({**tbl, **str_tbl})
-            if len(num_tbl) > 0:
-                self._numeric_data = pa.Table.from_pydict({**tbl, **num_tbl})
-            if len(bool_tbl) > 0:
-                self._boolean_data = pa.Table.from_pydict({**tbl, **bool_tbl})
-            if len(byte_tbl) > 0:
-                self._byte_data = pa.Table.from_pydict({**tbl, **byte_tbl})
+                for items in map(self.__get_items, [evnt.get_string_payload(), evnt.get_numeric_payload(),
+                                                    evnt.get_boolean_payload(), evnt.get_byte_payload()]):
+                    for c, st in items:
+                        tbl[c].append(st)
+            self._data = pa.Table.from_pydict(tbl)
 
-    @staticmethod
-    def read_raw(stream: RedvoxPacketM.EventStream) -> 'EventStream':
+    def read_raw(self, stream: RedvoxPacketM.EventStream) -> 'EventStream':
         """
         read the contents of a protobuf stream
 
         :param stream: the protobuf stream to read
         """
-        tbl = {"timestamps": [], "unaltered_timestamps": []}
-        str_tbl = {}
-        num_tbl = {}
-        bool_tbl = {}
-        byte_tbl = {}
+        self.name = stream.name
+        self._fs_writer.file_name = self.name
         num_events = len(stream.events)
         if num_events > 1:
-            result = EventStream(stream.name)
-            result.timestamps_metadata = stream.timestamps.metadata
-            result.metadata = stream.metadata
+            tbl = self._get_tbl_schema()
+            self.timestamps_metadata = stream.timestamps.metadata
+            self.metadata = stream.metadata
             first_event = stream.events[0]
-            for c in first_event.string_payload.keys():
-                str_tbl[c] = []
-            for c in first_event.numeric_payload.keys():
-                num_tbl[c] = []
-            for c in first_event.boolean_payload.keys():
-                bool_tbl[c] = []
-            for c in first_event.byte_payload.keys():
-                byte_tbl[c] = []
+            for t, c in map(EventStream.__get_keys_raw, ["string", "numeric", "boolean", "byte"],
+                            [first_event.string_payload, first_event.numeric_payload,
+                             first_event.boolean_payload, first_event.byte_payload]):
+                for k in c:
+                    self.add_to_schema(t, k)
+                    tbl[k] = []
             for i in range(num_events):
                 tbl["timestamps"].append(stream.timestamps.timestamps[i])
                 tbl["unaltered_timestamps"].append(stream.timestamps.timestamps[i])
                 evnt = stream.events[i]
-                for c, st in evnt.string_payload.items():
-                    str_tbl[c].append(st)
-                for c, st in evnt.numeric_payload.items():
-                    num_tbl[c].append(st)
-                for c, st in evnt.boolean_payload.items():
-                    bool_tbl[c].append(st)
-                for c, st in evnt.byte_payload.items():
-                    byte_tbl[c].append(st)
-            if len(str_tbl) > 0:
-                result._string_data = pa.Table.from_pydict({**tbl, **str_tbl})
-            if len(num_tbl) > 0:
-                result._numeric_data = pa.Table.from_pydict({**tbl, **num_tbl})
-            if len(bool_tbl) > 0:
-                result._boolean_data = pa.Table.from_pydict({**tbl, **bool_tbl})
-            if len(byte_tbl) > 0:
-                result._byte_data = pa.Table.from_pydict({**tbl, **byte_tbl})
-            return result
-        return EventStream("Empty")
+                for items in map(EventStream.__get_items_raw, [evnt.string_payload, evnt.numeric_payload,
+                                                               evnt.boolean_payload, evnt.byte_payload]):
+                    for c, st in items:
+                        tbl[c].append(st)
+            self._data = pa.Table.from_pydict(tbl)
+        return self
 
-    def string_data(self) -> Optional[pa.Table]:
+    def read_from_dir(self, file: str):
         """
-        :return: the string data as a pyarrow table or None if there is no data
+        read a pyarrow table from a file on disk
+
+        :param file: full path to the file to read
         """
-        return self._string_data
+        tbl = pq.read_table(file)
+        if tbl.schema.names == self._get_tbl_schema():
+            self._data = tbl
+
+    def get_string_schema(self) -> List[str]:
+        """
+        :return: the column names of string typed data as a list of strings
+        """
+        return self._schema["string"]
+
+    def get_numeric_schema(self) -> List[str]:
+        """
+        :return: the column names of numeric typed data as a list of strings
+        """
+        return self._schema["numeric"]
+
+    def get_boolean_schema(self) -> List[str]:
+        """
+        :return: the column names of boolean typed data as a list of strings
+        """
+        return self._schema["boolean"]
+
+    def get_byte_schema(self) -> List[str]:
+        """
+        :return: the column names of byte typed data as a list of strings
+        """
+        return self._schema["byte"]
+
+    def string_data(self) -> pa.Table:
+        """
+        :return: the string data as a pyarrow table
+        """
+        return self._data.select(self.get_string_schema())
 
     def numeric_data(self) -> Optional[pa.Table]:
         """
-        :return: the numeric data as a pyarrow table or None if there is no data
+        :return: the numeric data as a pyarrow table
         """
-        return self._numeric_data
+        return self._data.select(self.get_numeric_schema())
 
     def boolean_data(self) -> Optional[pa.Table]:
         """
-        :return: the boolean data as a pyarrow table or None if there is no data
+        :return: the boolean data as a pyarrow table
         """
-        return self._boolean_data
+        return self._data.select(self.get_boolean_schema())
 
     def byte_data(self) -> Optional[pa.Table]:
         """
-        :return: the byte data as a pyarrow table or None if there is no data
+        :return: the byte data as a pyarrow table
         """
-        return self._byte_data
+        return self._data.select(self.get_byte_schema())
+
+    def _check_for_name(self, channel_name: str, schema: List[str]) -> bool:
+        """
+        :param channel_name: name of channel to check for
+        :param schema: list of allowed names
+        :return: True if channel_name is in schema, sets error and returns False if not
+        """
+        if channel_name not in schema:
+            self._errors.append(f"WARNING: {channel_name} does not exist; try one of {schema}")
+            return False
+        return True
 
     def get_string_channel(self, channel_name: str) -> List[str]:
         """
         :param channel_name: name of string payload to retrieve
         :return: string data from the channel specified
         """
-        _arrow = self._string_data
-        if channel_name not in _arrow.schema.names:
-            self._errors.append(f"WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}")
-            return []
-        return [c for c in _arrow[channel_name]]
+        return [c for c in self._data[channel_name]] \
+            if self._check_for_name(channel_name, self.get_string_schema()) else []
 
     def get_numeric_channel(self, channel_name: str) -> np.array:
         """
         :param channel_name: name of numeric payload to retrieve
         :return: numeric data from the channel specified
         """
-        _arrow = self._numeric_data
-        if channel_name not in _arrow.schema.names:
-            self._errors.append(f"WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}")
-            return []
-        return _arrow[channel_name].to_numpy()
+        return self._data[channel_name].to_numpy() \
+            if self._check_for_name(channel_name, self.get_numeric_schema()) else np.array([])
 
     def get_boolean_channel(self, channel_name: str) -> List[bool]:
         """
         :param channel_name: name of boolean payload to retrieve
         :return: boolean data from the channel specified
         """
-        _arrow = self._boolean_data
-        if channel_name not in _arrow.schema.names:
-            self._errors.append(f"WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}")
-            return []
-        return [c for c in _arrow[channel_name]]
+        return [c for c in self._data[channel_name]] \
+            if self._check_for_name(channel_name, self.get_boolean_schema()) else []
 
     def get_byte_channel(self, channel_name: str) -> List[bytes]:
         """
         :param channel_name: name of byte payload to retrieve
         :return: bytes data from the channel specified
         """
-        _arrow = self._byte_data
-        if channel_name not in _arrow.schema.names:
-            self._errors.append(f"WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}")
-            return []
-        return [c for c in _arrow[channel_name]]
+        return [c for c in self._data[channel_name]] \
+            if self._check_for_name(channel_name, self.get_byte_schema()) else []
 
-    def set_data(self, eventstream: es.EventStream):
+    def set_schema(self, schema: Dict[str, list]):
         """
-        sets the data using the values from eventstream
+        sets the schema of the EventStream using a specially structured dictionary.
+        Structure is:
 
-        :param eventstream: the protobuf eventstream to read
+        {"string": [s_values], "numeric": [n_values], "boolean": [o_values], "byte": [b_values]}
+
+        where [*_values] is a list of strings and can be empty
+
+        :param schema: specially structured dictionary of data table schema
         """
-        self.read_events(eventstream)
+        if schema.keys() != self._schema.keys():
+            self._errors.append(f"Attempted to add invalid schema f{schema.keys()} to EventStreams")
+        else:
+            self._schema = schema
+
+    def add_to_schema(self, key: str, value: str):
+        """
+        adds a value to the schema, under the specified key
+
+        :param key: one of "string", "numeric", "boolean", or "byte"
+        :param value: the name of the column to add to the schema
+        """
+        if key not in self._schema.keys():
+            self._errors.append("Attempted to add an unknown key to the EventStream schema.\n"
+                                f"You must use one of {self._schema.keys()}.")
+        else:
+            self._schema[key].append(value)
 
     def add(self, other_stream: es.EventStream):
         """
@@ -213,34 +299,17 @@ class EventStream:
             self.timestamps_metadata = {**self.timestamps_metadata, **other_stream.get_timestamps().get_metadata()}
             self.metadata = {**self.metadata, **other_stream.get_metadata()}
             num_events = other_stream.get_events().get_count()
-            if num_events > 0:
-                tbl = {"timestamps": [], "unaltered_timestamps": []}
-                str_tbl = {f: [] for f in self._string_data.schema.names}
-                num_tbl = {f: [] for f in self._numeric_data.schema.names}
-                bool_tbl = {f: [] for f in self._boolean_data.schema.names}
-                byte_tbl = {f: [] for f in self._byte_data.schema.names}
+            if num_events > 1:
+                tbl = self._get_tbl_schema()
                 for i in range(num_events):
                     tbl["timestamps"].append(other_stream.get_timestamps().get_timestamps()[i])
                     tbl["unaltered_timestamps"].append(other_stream.get_timestamps().get_timestamps()[i])
                     evnt = other_stream.get_events().get_values()[i]
-                    for c, st in evnt.get_string_payload().get_metadata().items():
-                        str_tbl[c].append(st)
-                    for c, st in evnt.get_numeric_payload().get_metadata().items():
-                        num_tbl[c].append(st)
-                    for c, st in evnt.get_boolean_payload().get_metadata().items():
-                        bool_tbl[c].append(st)
-                    for c, st in evnt.get_byte_payload().get_metadata().items():
-                        byte_tbl[c].append(st)
-                if len(str_tbl) > 0:
-                    self._string_data = pa.concat_tables((self._string_data, pa.Table.from_pydict({**str_tbl, **tbl})))
-                if len(num_tbl) > 0:
-                    self._numeric_data = pa.concat_tables((self._numeric_data,
-                                                           pa.Table.from_pydict({**num_tbl, **tbl})))
-                if len(bool_tbl) > 0:
-                    self._boolean_data = pa.concat_tables((self._boolean_data,
-                                                           pa.Table.from_pydict({**bool_tbl, **tbl})))
-                if len(byte_tbl) > 0:
-                    self._byte_data = pa.concat_tables((self._byte_data, pa.Table.from_pydict({**byte_tbl, **tbl})))
+                    for items in map(self.__get_items, [evnt.get_string_payload(), evnt.get_numeric_payload(),
+                                                        evnt.get_boolean_payload(), evnt.get_byte_payload()]):
+                        for c, st in items:
+                            tbl[c].append(st)
+                self._data = pa.concat_tables([self._data, pa.Table.from_pydict(tbl)])
 
     def add_raw(self, other_stream: RedvoxPacketM.EventStream):
         """
@@ -254,40 +323,169 @@ class EventStream:
             self.timestamps_metadata = {**self.timestamps_metadata, **other_stream.timestamps.metadata}
             self.metadata = {**self.metadata, **other_stream.metadata}
             num_events = len(other_stream.events)
-            if num_events > 0:
-                tbl = {"timestamps": [], "unaltered_timestamps": []}
-                str_tbl = {f: [] for f in self._string_data.schema.names}
-                num_tbl = {f: [] for f in self._numeric_data.schema.names}
-                bool_tbl = {f: [] for f in self._boolean_data.schema.names}
-                byte_tbl = {f: [] for f in self._byte_data.schema.names}
+            if num_events > 1:
+                tbl = self._get_tbl_schema()
                 for i in range(num_events):
                     tbl["timestamps"].append(other_stream.timestamps.timestamps[i])
                     tbl["unaltered_timestamps"].append(other_stream.timestamps.timestamps[i])
                     evnt = other_stream.events[i]
-                    for c, st in evnt.string_payload.items():
-                        str_tbl[c].append(st)
-                    for c, st in evnt.numeric_payload.items():
-                        num_tbl[c].append(st)
-                    for c, st in evnt.boolean_payload.items():
-                        bool_tbl[c].append(st)
-                    for c, st in evnt.byte_payload.items():
-                        byte_tbl[c].append(st)
-                if len(str_tbl) > 0:
-                    self._string_data = pa.concat_tables((self._string_data, pa.Table.from_pydict({**str_tbl, **tbl})))
-                if len(num_tbl) > 0:
-                    self._numeric_data = pa.concat_tables((self._numeric_data,
-                                                           pa.Table.from_pydict({**num_tbl, **tbl})))
-                if len(bool_tbl) > 0:
-                    self._boolean_data = pa.concat_tables((self._boolean_data,
-                                                           pa.Table.from_pydict({**bool_tbl, **tbl})))
-                if len(byte_tbl) > 0:
-                    self._byte_data = pa.concat_tables((self._byte_data, pa.Table.from_pydict({**byte_tbl, **tbl})))
+                    for items in map(EventStream.__get_items_raw, [evnt.string_payload, evnt.numeric_payload,
+                                                                   evnt.boolean_payload, evnt.byte_payload]):
+                        for c, st in items:
+                            tbl[c].append(st)
+                self._data = pa.concat_tables([self._data, pa.Table.from_pydict(tbl)])
+
+    def update_data_timestamps(self, use_model: bool = False, offset_model: Optional[om.OffsetModel] = None):
+        """
+        updates the timestamps of the data points
+
+        :param use_model: if True, use the model to update the timestamps
+        :param offset_model: model used to update the timestamps
+        """
+        if self._data.num_rows > 0:
+            # sample_interval = np.mean(np.diff(self._string_data["timestamps"].to_numpy()))
+            # slope = sample_interval * (1 + offset_model.slope) if use_model else sample_interval
+            timestamps = pa.array(offset_model.update_timestamps(self._data["timestamps"].to_numpy(),
+                                                                 use_model))
+            self._data.set_column(0, "timestamps", timestamps)
+
+    def default_json_file_name(self) -> str:
+        """
+        :return: default event stream json file name (event_[event.name]): note there is no extension
+        """
+        return f"event_{self.name}"
+
+    def is_save_to_disk(self) -> bool:
+        """
+        :return: True if sensor will be saved to disk
+        """
+        return self._fs_writer.save_to_disk
+
+    def set_save_to_disk(self, save: bool):
+        """
+        :param save: If True, save to disk
+        """
+        self._fs_writer.save_to_disk = save
+
+    def set_file_name(self, new_file: Optional[str] = None):
+        """
+        * set the pyarrow file name or use the default: {sensor_type}_{int(first_timestamp)}
+        * Do not give an extension
+
+        :param new_file: optional file name to change to; default None (use default name)
+        """
+        self._fs_writer.file_name = new_file if new_file else f"event_{self.name}"
+
+    def full_file_name(self) -> str:
+        """
+        :return: full name of parquet file containing the data
+        """
+        return self._fs_writer.full_name()
+
+    def file_name(self) -> str:
+        """
+        :return: file name without extension
+        """
+        return self._fs_writer.file_name
+
+    def set_save_dir(self, new_dir: Optional[str] = None):
+        """
+        set the pyarrow directory or use the default: "." (current directory)
+
+        :param new_dir: the directory to change to; default None (use current directory)
+        """
+        self._fs_writer.base_dir = new_dir if new_dir else "."
+
+    def save_dir(self) -> str:
+        """
+        :return: directory containing parquet files for the sensor
+        """
+        return self._fs_writer.save_dir()
+
+    def full_path(self) -> str:
+        """
+        :return: the full path to the data file
+        """
+        return self._fs_writer.full_path()
+
+    def fs_writer(self) -> Fsw:
+        """
+        :return: FileSystemWriter object
+        """
+        return self._fs_writer
+
+    def write_table(self):
+        """
+        writes the event stream data to disk.
+        """
+        self._fs_writer.create_dir()
+        pq.write_table(self._data, self.full_path())
+        self._data = None
+
+    def pyarrow_table(self) -> pa.Table:
+        """
+        :return: the table defined by the dataset stored in self
+        """
+        return self._data if self._data else pq.read_table(self.full_file_name())
+
+    @staticmethod
+    def from_json_file(file_dir: str, file_name: str) -> "EventStream":
+        """
+        :param file_dir: full path to containing directory for the file
+        :param file_name: name of file and extension to load data from
+        :return: EventStream from json file
+        """
+        if file_name is None:
+            file_name = io.get_json_file(file_dir)
+            if file_name is None:
+                result = EventStream("Empty")
+                result.append_error("JSON file to load EventStream from not found.")
+                return result
+        json_data = io.json_file_to_dict(os.path.join(file_dir, file_name))
+        if "name" in json_data.keys():
+            result = EventStream(json_data["name"], json_data["schema"])
+            result.metadata = json_data["metadata"]
+            result.timestamps_metadata = json_data["timestamps_metadata"]
+            result.set_errors(RedVoxExceptions.from_dict(json_data["errors"]))
+        else:
+            result = EventStream("Empty")
+            result.append_error(f"Loading from {file_name} failed; missing EventStream name.")
+        return result
+
+    def to_json_file(self, file_name: Optional[str] = None) -> Path:
+        """
+        saves the EventStream as a json file
+
+        :param file_name: the optional base file name.  Do not include a file extension.
+                            If None, a default file name is created using this format:
+                            [station_id]_[start_date].json
+        :return: path to json file
+        """
+        if self._fs_writer.file_extension == "parquet":
+            self.write_table()
+        return io.to_json_file(self, file_name)
 
     def errors(self) -> RedVoxExceptions:
         """
         :return: errors of the sensor
         """
         return self._errors
+
+    def set_errors(self, errors: RedVoxExceptions):
+        """
+        sets the errors of the Sensor
+
+        :param errors: errors to set
+        """
+        self._errors = errors
+
+    def append_error(self, error: str):
+        """
+        add an error to the Sensor
+
+        :param error: error to add
+        """
+        self._errors.append(error)
 
     def print_errors(self):
         """
@@ -304,6 +502,8 @@ class EventStreams:
     ALL timestamps in microseconds since epoch UTC unless otherwise stated
     """
     streams: List[EventStream] = field(default_factory=lambda: [])
+    save_data: bool = False
+    base_dir: str = "."
     debug: bool = False
 
     def read_from_packets(self, packet: RedvoxPacketM):
@@ -316,7 +516,7 @@ class EventStreams:
             if st.name in self.get_stream_names():
                 self.get_stream(st.name).add_raw(st)
             else:
-                self.streams.append(EventStream.read_raw(st))
+                self.streams.append(EventStream(save_data=self.save_data, base_dir=self.base_dir).read_raw(st))
 
     def get_stream(self, stream_name: str) -> Optional[EventStream]:
         """
