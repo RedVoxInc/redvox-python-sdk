@@ -441,6 +441,7 @@ class Station:
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+            self._event_data.append_streams(new_station.event_data())
             self.update_first_and_last_data_timestamps()
 
     def append_station_data(self, new_station_data: List[sd.SensorData]):
