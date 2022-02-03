@@ -23,6 +23,7 @@ from redvox.common import packet_to_pyarrow as ptp
 from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.stats_helper import StatsContainer
 from redvox.common.date_time_utils import seconds_to_microseconds as s_to_us
+from redvox.common.event_stream import EventStreams
 
 
 class Station:
@@ -115,6 +116,7 @@ class Station:
         else:
             save_mode = FileSystemSaveMode.MEM
         self._fs_writer = Fsw("", "", base_dir, save_mode)
+        self._event_data = EventStreams(save_data=save_data)
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
@@ -219,7 +221,7 @@ class Station:
     def load_from_indexes(self, indexes: List[Index]):
         """
         fill station using data from a list of Indexes
-        
+
         :param indexes: List of indexes of the files to read
         """
         first_pkt = indexes[0].read_first_packet()
@@ -289,7 +291,7 @@ class Station:
     def load_data_from_packets(self, packets: List[api_m.RedvoxPacketM]):
         """
         fill station with data from packets
-        
+
         :param packets: API M redvox packets with data to load
         """
         if packets and st_utils.validate_station_key_list(packets, self._errors):
@@ -309,6 +311,9 @@ class Station:
             self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, files_dir))
             if self._correct_timestamps:
                 self.update_timestamps()
+            self._event_data.base_dir = os.path.join(self.save_dir(), "events")
+            for p in packets:
+                self._event_data.read_from_packets(p)
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -1205,6 +1210,20 @@ class Station:
         """
         return self._gaps
 
+    def event_data(self) -> EventStreams:
+        """
+        :return: all EventStreams in the Station
+        """
+        return self._event_data
+
+    def set_event_data(self, data: EventStreams):
+        """
+        set the station's event data
+
+        :param data: EventStreams object to set
+        """
+        self._event_data = data
+
     def _get_id_key(self) -> str:
         """
         :return: the station's id and start time as a string
@@ -1457,6 +1476,7 @@ class Station:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
+            self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
             self._is_timestamps_updated = True
         return self
@@ -1480,7 +1500,8 @@ class Station:
             "packet_metadata": [p.as_dict() for p in self._packet_metadata],
             "gaps": self._gaps,
             "errors": self._errors.as_dict(),
-            "sensors": [s.type().name for s in self._data]
+            "sensors": [s.type().name for s in self._data],
+            "event_data": self._event_data.list_for_dict()
         }
 
     def default_station_json_file_name(self) -> str:
@@ -1533,6 +1554,7 @@ class Station:
                 result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
             ts_file_name = io.get_json_file(os.path.join(file_dir, "timesync"))
             result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, "timesync", ts_file_name)))
+            result.set_event_data(EventStreams.from_dir(os.path.join(file_dir, "events"), json_data["event_data"]))
             result.update_first_and_last_data_timestamps()
         else:
             result = Station()

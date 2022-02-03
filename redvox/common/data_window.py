@@ -484,6 +484,7 @@ class DataWindow:
         :param file_path: full path of file to load
         :return: DataWindow from json metadata
         """
+        os.chdir(os.path.dirname(file_path))
         return DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
 
     def config(self) -> DataWindowConfig:
