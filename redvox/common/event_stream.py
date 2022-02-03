@@ -340,6 +340,18 @@ class EventStream:
                             tbl[c].append(st)
                 self._data = pa.concat_tables([self._data, pa.Table.from_pydict(tbl)])
 
+    def append(self, other_stream: "EventStream"):
+        """
+        add another EventStream onto the calling one if they have the same name
+
+        :param other_stream: other stream to add to current
+        """
+        if other_stream.name == self.name:
+            self._data = pa.concat_tables([self._data, other_stream._data])
+            self.timestamps_metadata = {**self.timestamps_metadata, **other_stream.timestamps_metadata}
+            self.metadata = {**self.metadata, **other_stream.metadata}
+            self._errors.extend_error(other_stream.errors())
+
     def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         """
         updates the timestamps of the data points
@@ -530,6 +542,26 @@ class EventStreams:
                 self.get_stream(st.name).add_raw(st)
             else:
                 self.streams.append(EventStream(save_data=self.save_data, base_dir=self.base_dir).read_raw(st))
+
+    def append(self, other_stream: EventStream):
+        """
+        append another EventStream to an existing EventStream or add to the list of EventStream
+
+        :param other_stream: other EventStream to add
+        """
+        if other_stream.name in self.get_stream_names():
+            self.get_stream(other_stream.name).append(other_stream)
+        else:
+            self.streams.append(other_stream)
+
+    def append_streams(self, other_streams: "EventStreams"):
+        """
+        append another EventStreams object to an existing EventStreams object
+
+        :param other_streams: EventStreams to add
+        """
+        for s in other_streams.streams:
+            self.append(s)
 
     def get_stream(self, stream_name: str) -> Optional[EventStream]:
         """
