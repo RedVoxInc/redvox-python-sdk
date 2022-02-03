@@ -47,6 +47,10 @@ def to_json_file(station: "Station",
     os.makedirs(ts_dir, exist_ok=True)
     station.timesync_data().to_json_file()
 
+    ev_dir = os.path.join(station.save_dir(), "events")
+    os.makedirs(ev_dir, exist_ok=True)
+    station.event_data().save_streams()
+
     file_path: Path = Path(station.save_dir()).joinpath(station.fs_writer().json_file_name())
     with open(file_path, "w") as f_p:
         f_p.write(to_json(station))

@@ -106,7 +106,7 @@ class Station:
         self._timesync_data = TimeSync()
         self._is_timestamps_updated = False
         self._fs_writer = Fsw("", "", base_dir, save_data)
-        self._event_data = EventStreams()
+        self._event_data = EventStreams(save_data=save_data)
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
@@ -219,10 +219,10 @@ class Station:
                     self._start_date, self._use_model_correction
                 )
             self._fs_writer.file_name = self._get_id_key()
-            # self._fs_writer.create_dir()
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
             file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
             self._timesync_data.arrow_file = f"timesync_{file_date}"
+            self._event_data.base_dir = os.path.join(self.save_dir(), "events")
             for p in packets:
                 self._event_data.read_from_packets(p)
             self._set_pyarrow_sensors(
@@ -1122,6 +1122,20 @@ class Station:
         """
         return self._gaps
 
+    def event_data(self) -> EventStreams:
+        """
+        :return: all EventStreams in the Station
+        """
+        return self._event_data
+
+    def set_event_data(self, data: EventStreams):
+        """
+        set the station's event data
+
+        :param data: EventStreams object to set
+        """
+        self._event_data = data
+
     def _get_id_key(self) -> str:
         """
         :return: the station's id and start time as a string
@@ -1140,28 +1154,11 @@ class Station:
         self._errors.extend_error(sensor_summaries.errors)
         audo = sensor_summaries.get_audio()[0]
         if audo:
-            # avoid converting packets into parquets for now; just load the data into memory and process
-            # if self.save_output:
-            #     self._data.append(sd.SensorDataPa.from_dir(
-            #         sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
-            #         sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
-            #         sample_interval_std_s=0., is_sample_rate_fixed=True)
-            #     )
-            # else:
-            #     self._data.append(sd.SensorDataPa(audo.name, audo.data(), audo.stype,
-            #                                       audo.srate_hz, 1/audo.srate_hz, 0., True))
             self._data.append(sd.AudioSensor(audo.name, audo.data(), audo.srate_hz, 1 / audo.srate_hz, 0., True,
                                              base_dir=audo.fdir, save_data=self._fs_writer.save_to_disk))
             self.update_first_and_last_data_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
                 stats = StatsContainer(snr.name)
-                # avoid converting packets into parquets for now; just load the data into memory and process
-                # if self.save_output:
-                #     data_table = ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table()
-                # else:
-                #     data_table = sdata[0].data()
-                #     for i in range(1, len(sdata)):
-                #         data_table = pa.concat_tables([data_table, sdata[i].data()])
                 data_table = sdata[0].data()
                 for i in range(1, len(sdata)):
                     data_table = pa.concat_tables([data_table, sdata[i].data()])
@@ -1341,7 +1338,6 @@ class Station:
         else:
             # if timestamps were not corrected on creation
             if not self._correct_timestamps:
-                # self.timesync_data.update_timestamps(self.use_model_correction)
                 self._start_date = self._timesync_data.offset_model().update_time(
                     self._start_date, self._use_model_correction
                 )
@@ -1352,8 +1348,7 @@ class Station:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
-            for evnt in self._event_data.streams:
-                evnt.update_data_timestamps(self._use_model_correction, self._timesync_data.offset_model())
+            self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
             if self._fs_writer.file_name != self._get_id_key():
                 old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
@@ -1381,7 +1376,8 @@ class Station:
             "packet_metadata": [p.as_dict() for p in self._packet_metadata],
             "gaps": self._gaps,
             "errors": self._errors.as_dict(),
-            "sensors": [s.type().name for s in self._data]
+            "sensors": [s.type().name for s in self._data],
+            "event_data": self._event_data.list_for_dict()
         }
 
     def default_station_json_file_name(self) -> str:
@@ -1434,6 +1430,7 @@ class Station:
                 result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
             ts_file_name = io.get_json_file(os.path.join(file_dir, "timesync"))
             result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, "timesync", ts_file_name)))
+            result.set_event_data(EventStreams.from_dir(os.path.join(file_dir, "events"), json_data["event_data"]))
             result.update_first_and_last_data_timestamps()
         else:
             result = Station()

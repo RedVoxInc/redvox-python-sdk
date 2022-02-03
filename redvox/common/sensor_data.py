@@ -835,7 +835,7 @@ class SensorData:
                             [sensor_type]_[first_timestamp].json
         :return: path to json file
         """
-        if self._fs_writer.file_extension == "parquet":
+        if self._fs_writer.file_extension == "parquet" and not self.is_save_to_disk():
             self._actual_file_write_table()
         return io.to_json_file(self, file_name)
 

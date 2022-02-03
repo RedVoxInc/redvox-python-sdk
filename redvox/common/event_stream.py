@@ -56,9 +56,10 @@ class EventStream:
         return {
             "name": self.name,
             "metadata": self.metadata,
-            "timestamp_metadata": self.timestamps_metadata,
+            "timestamps_metadata": self.timestamps_metadata,
             "is_timestamps_corrected": self._is_timestamps_corrected,
             "schema": self._schema,
+            "file_path": self.full_path(),
             "errors": self._errors.as_dict()
         }
 
@@ -103,7 +104,7 @@ class EventStream:
         :param eventstream: stream of events to process
         """
         self.name = eventstream.get_name()
-        self._fs_writer.file_name = self.name
+        self._fs_writer.file_name = f"event_{self.name}"
         num_events = eventstream.get_events().get_count()
         if num_events > 1:
             tbl = self._get_tbl_schema()
@@ -133,7 +134,7 @@ class EventStream:
         :param stream: the protobuf stream to read
         """
         self.name = stream.name
-        self._fs_writer.file_name = self.name
+        self._fs_writer.file_name = f"event_{self.name}"
         num_events = len(stream.events)
         if num_events > 1:
             tbl = self._get_tbl_schema()
@@ -163,9 +164,13 @@ class EventStream:
 
         :param file: full path to the file to read
         """
-        tbl = pq.read_table(file)
-        if tbl.schema.names == self._get_tbl_schema():
-            self._data = tbl
+        try:
+            tbl = pq.read_table(file)
+            if tbl.schema.names == self._get_tbl_schema():
+                self._data = tbl
+        except FileNotFoundError:
+            self._errors.append("No data file was found; this event is empty.")
+            self._data = None
 
     def get_string_schema(self) -> List[str]:
         """
@@ -335,18 +340,17 @@ class EventStream:
                             tbl[c].append(st)
                 self._data = pa.concat_tables([self._data, pa.Table.from_pydict(tbl)])
 
-    def update_data_timestamps(self, use_model: bool = False, offset_model: Optional[om.OffsetModel] = None):
+    def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         """
         updates the timestamps of the data points
 
-        :param use_model: if True, use the model to update the timestamps
         :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model's slope function to update the timestamps.
+                                    otherwise uses the best offset (model's intercept value).  Default False
         """
-        if self._data.num_rows > 0:
-            # sample_interval = np.mean(np.diff(self._string_data["timestamps"].to_numpy()))
-            # slope = sample_interval * (1 + offset_model.slope) if use_model else sample_interval
+        if self._data is not None and self._data.num_rows > 0:
             timestamps = pa.array(offset_model.update_timestamps(self._data["timestamps"].to_numpy(),
-                                                                 use_model))
+                                                                 use_model_function))
             self._data.set_column(0, "timestamps", timestamps)
 
     def default_json_file_name(self) -> str:
@@ -418,15 +422,17 @@ class EventStream:
         """
         writes the event stream data to disk.
         """
-        self._fs_writer.create_dir()
-        pq.write_table(self._data, self.full_path())
-        self._data = None
+        # self._fs_writer.create_dir()
+        if self._data is not None:
+            pq.write_table(self._data, self.full_path())
 
     def pyarrow_table(self) -> pa.Table:
         """
         :return: the table defined by the dataset stored in self
         """
-        return self._data if self._data else pq.read_table(self.full_file_name())
+        if self._data is None:
+            self._data = pq.read_table(self.full_path())
+        return self._data
 
     @staticmethod
     def from_json_file(file_dir: str, file_name: str) -> "EventStream":
@@ -441,12 +447,13 @@ class EventStream:
                 result = EventStream("Empty")
                 result.append_error("JSON file to load EventStream from not found.")
                 return result
-        json_data = io.json_file_to_dict(os.path.join(file_dir, file_name))
+        json_data = io.json_file_to_dict(os.path.join(file_dir, f"{file_name}.json"))
         if "name" in json_data.keys():
             result = EventStream(json_data["name"], json_data["schema"])
             result.metadata = json_data["metadata"]
             result.timestamps_metadata = json_data["timestamps_metadata"]
             result.set_errors(RedVoxExceptions.from_dict(json_data["errors"]))
+            result.read_from_dir(json_data["file_path"])
         else:
             result = EventStream("Empty")
             result.append_error(f"Loading from {file_name} failed; missing EventStream name.")
@@ -458,10 +465,10 @@ class EventStream:
 
         :param file_name: the optional base file name.  Do not include a file extension.
                             If None, a default file name is created using this format:
-                            [station_id]_[start_date].json
+                            event_[event.name].json
         :return: path to json file
         """
-        if self._fs_writer.file_extension == "parquet":
+        if self._fs_writer.file_extension == "parquet" and self._data is not None:
             self.write_table()
         return io.to_json_file(self, file_name)
 
@@ -506,6 +513,12 @@ class EventStreams:
     base_dir: str = "."
     debug: bool = False
 
+    def list_for_dict(self) -> list:
+        """
+        :return: the name of files that store event streams
+        """
+        return [s.file_name() for s in self.streams]
+
     def read_from_packets(self, packet: RedvoxPacketM):
         """
         read the eventstream payload from a single Redvox Api1000 packet
@@ -535,3 +548,42 @@ class EventStreams:
         :return: names of all streams
         """
         return [s.name for s in self.streams]
+
+    def save_streams(self):
+        """
+        saves all streams to disk
+
+        note: use the function set_save_dir() to change where events are saved
+        """
+        for s in self.streams:
+            s.to_json_file()
+
+    def set_save_dir(self, new_dir: str):
+        """
+        change the directory where events are saved to
+
+        :param new_dir: new directory path
+        """
+        for s in self.streams:
+            s.set_save_dir(new_dir)
+
+    def update_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        """
+        update the timestamps in the data
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model's slope function to update the timestamps.
+                                    otherwise uses the best offset (model's intercept value).  Default False
+        """
+        for evnt in self.streams:
+            evnt.update_data_timestamps(offset_model, use_model_function)
+
+    @staticmethod
+    def from_dir(base_dir: str, file_names: List[str]) -> "EventStreams":
+        """
+        :param base_dir: directory containing EventStream files
+        :param file_names: the names of .json files containing EventStream data
+
+        :return: EventStreams object from a directory
+        """
+        return EventStreams([EventStream.from_json_file(base_dir, e) for e in file_names])
