@@ -377,10 +377,10 @@ def load_apim_location(packet: RedvoxPacketM) -> Optional[PyarrowSummary]:
         timestamps = loc.timestamps.timestamps
         if len(timestamps) > 0:
             if len(timestamps) > 1:
-                m_intv = np.mean(np.diff(timestamps))
-                intv_std = np.std(np.diff(timestamps))
+                m_intv = dtu.microseconds_to_seconds(np.mean(np.diff(timestamps)))
+                intv_std = dtu.microseconds_to_seconds(np.std(np.diff(timestamps)))
             else:
-                m_intv = srupa.__packet_duration_us(packet)
+                m_intv = srupa.__packet_duration_s(packet)
                 intv_std = 0.
             return PyarrowSummary(
                 loc.sensor_description, srupa.SensorType.LOCATION, np.nan, np.nan, "",
@@ -406,8 +406,8 @@ def load_apim_best_location(packet: RedvoxPacketM) -> Optional[PyarrowSummary]:
                 best_loc = loc.overall_best_location
             packet_len_s = srupa.__packet_duration_s(packet)
             return PyarrowSummary(
-                loc.sensor_description, srupa.SensorType.BEST_LOCATION, np.nan, 1./packet_len_s, "",
-                1, dtu.seconds_to_microseconds(packet_len_s), 0.,
+                loc.sensor_description, srupa.SensorType.BEST_LOCATION, np.nan,
+                1./packet_len_s, "", 1, packet_len_s, 0.,
                 srupa.apim_best_location_to_pyarrow(best_loc,
                                                     packet.timing_information.packet_start_mach_timestamp),
             )
@@ -449,10 +449,10 @@ def load_single(
         sensor = sensor_fn(packet)
         t = sensor.timestamps.timestamps
         if len(t) > 1:
-            m_intv = np.mean(np.diff(t))
-            intv_std = np.std(np.diff(t))
+            m_intv = dtu.microseconds_to_seconds(np.mean(np.diff(t)))
+            intv_std = dtu.microseconds_to_seconds(np.std(np.diff(t)))
         else:
-            m_intv = srupa.__packet_duration_us(packet)
+            m_intv = srupa.__packet_duration_s(packet)
             intv_std = 0.
         if len(t) > 0:
             return PyarrowSummary(
@@ -524,10 +524,10 @@ def load_xyz(
         sensor = sensor_fn(packet)
         t = sensor.timestamps.timestamps
         if len(t) > 1:
-            m_intv = np.mean(np.diff(t))
-            intv_std = np.std(np.diff(t))
+            m_intv = dtu.microseconds_to_seconds(np.mean(np.diff(t)))
+            intv_std = dtu.microseconds_to_seconds(np.std(np.diff(t)))
         else:
-            m_intv = srupa.__packet_duration_us(packet)
+            m_intv = srupa.__packet_duration_s(packet)
             intv_std = 0.
         if len(t) > 0:
             return PyarrowSummary(
