@@ -18,7 +18,6 @@ from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.packet_to_pyarrow import AggregateSummary, stream_to_pyarrow, PyarrowSummary
 from redvox.common.timesync import TimeSync
 from redvox.common.sensor_data import SensorType
-from redvox.common.stats_helper import StatsContainer
 import redvox.common.gap_and_pad_utils as gpu
 import redvox.settings as settings
 from redvox.api1000.wrapped_redvox_packet.station_information import (
@@ -245,16 +244,14 @@ class ApiReaderSummary(ApiReader):
         :param stype: the type of sensor to combine
         :param summaries: the summaries to look through
         """
-        stats = StatsContainer("temp")
         smrs = []
         for smry in summaries:
             for mry in smry.summaries:
                 if mry.stype == stype:
                     smrs.append(mry)
         first_summary = smrs.pop(0)
-        stats.add(first_summary.smint_s, first_summary.sstd_s, first_summary.scount)
+        tbl = first_summary.data()
         for smrys in smrs:
-            stats.add(smrys.smint_s, smrys.sstd_s, smrys.scount)
             tbl = pa.concat_tables([first_summary.data(), smrys.data()])
             if first_summary.check_data():
                 first_summary._data = tbl
@@ -262,10 +259,11 @@ class ApiReaderSummary(ApiReader):
                 os.makedirs(first_summary.fdir, exist_ok=True)
                 pq.write_table(tbl, first_summary.file_name())
                 os.remove(smrys.file_name())
+        mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl["timestamps"].to_numpy()))))
+        stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl["timestamps"].to_numpy()))))
         return PyarrowSummary(first_summary.name, first_summary.stype, first_summary.start,
-                              1 / stats.mean_of_means(), first_summary.fdir,
-                              int(np.sum(np.nan_to_num(stats.count_array))), stats.mean_of_means(),
-                              stats.total_std_dev(), first_summary.data() if first_summary.check_data() else None
+                              1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                              first_summary.data() if first_summary.check_data() else None
                               )
 
 
@@ -330,6 +328,8 @@ def calc_summary(dur_s: float, snsr: PyarrowSummary, snsr_name: str, tims: TimeS
               "Updating duration so that number of points per duration is 1")
         num_points_per_dur = 1
         dur_s = 1 / snsr.srate_hz
+    if num_points_per_dur * iters > tbl.num_rows:
+        num_points_per_dur = tbl.num_rows / iters
     cur_index = 0
 
     st = timeit.default_timer()
@@ -395,29 +395,29 @@ if __name__ == "__main__":
 
     os.chdir(out_dir)
 
-    # s = timeit.default_timer()
-    # ar = ApiReaderSummary(event_name=ev_name, base_dir=mydir, arrow_dir=".",
-    #                       structured_dir=True, debug=True)
-    # e = timeit.default_timer()
-    #
-    # ar.errors.print()
-    # print(f"make stations: {e-s} seconds")
-    #
-    # ar.merge_audio_summaries()
-    #
-    # with open(os.path.join(out_dir, f"{ev_name}.json"), 'w') as f:
-    #     f.write(ar.to_json())
-    # sumries = ar.summary
+    s = timeit.default_timer()
+    ar = ApiReaderSummary(event_name=ev_name, base_dir=mydir, arrow_dir=".",
+                          structured_dir=True, debug=True)
+    e = timeit.default_timer()
 
-    # total_size = 0
-    # for pth, drnm, flnm in os.walk(out_dir):
-    #     for f in flnm:
-    #         fp = os.path.join(pth, f)
-    #         if not os.path.islink(fp):
-    #             total_size += os.path.getsize(fp)
-    # print(f"data size: {total_size} B")
-    #
-    # print("\n**************************************\n")
+    ar.errors.print()
+    print(f"make stations: {e-s} seconds")
+
+    ar.merge_audio_summaries()
+
+    with open(os.path.join(out_dir, f"{ev_name}.json"), 'w') as f:
+        f.write(ar.to_json())
+    sumries = ar.summary
+
+    total_size = 0
+    for pth, drnm, flnm in os.walk(out_dir):
+        for f in flnm:
+            fp = os.path.join(pth, f)
+            if not os.path.islink(fp):
+                total_size += os.path.getsize(fp)
+    print(f"data size: {total_size} B")
+
+    print("\n**************************************\n")
 
     duration_s = 1.
     timsnc = TimeSync.from_json_file(os.path.join(out_dir, ev_name, "timesync/timesync.json"))

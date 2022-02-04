@@ -21,7 +21,6 @@ from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import packet_to_pyarrow as ptp
 from redvox.common import gap_and_pad_utils as gpu
-from redvox.common.stats_helper import StatsContainer
 from redvox.common.date_time_utils import seconds_to_microseconds as s_to_us
 from redvox.common.event_stream import EventStreams
 
@@ -1265,7 +1264,6 @@ class Station:
                                              save_data=self._fs_writer.is_save_disk()))
             self.update_first_and_last_data_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
-                stats = StatsContainer(snr.name)
                 if self._fs_writer.is_save_disk():
                     data_table = ds.dataset(sdata[0].fdir, format="parquet", exclude_invalid_files=True).to_table()
                 else:
@@ -1273,12 +1271,11 @@ class Station:
                     for i in range(1, len(sdata)):
                         data_table = pa.concat_tables([data_table, sdata[i].data()])
                 if np.isnan(sdata[0].srate_hz):
-                    for sds in sdata:
-                        stats.add(sds.smint_s, sds.sstd_s, sds.scount)
+                    smnint = float(np.mean(np.diff(data_table["timestamps"].to_numpy())))
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        s_to_us(stats.mean_of_means()), True)
+                        smnint, True)
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
