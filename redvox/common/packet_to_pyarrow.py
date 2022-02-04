@@ -11,10 +11,10 @@ import pyarrow.parquet as pq
 
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.common import sensor_reader_utils as srupa
-from redvox.common import gap_and_pad_utils as gpu
 from redvox.common import date_time_utils as dtu
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.stats_helper import StatsContainer
+from redvox.common.sensor_data import SensorType
 
 
 # Maps a sensor type to a function that can extract that sensor for a particular packet.
@@ -159,7 +159,7 @@ class PyarrowSummary:
             return self._data
         if os.path.exists(self.file_name()):
             return pq.read_table(self.file_name())
-        return pa.Table()
+        return pa.Table.from_pydict({})
 
 
 class AggregateSummary:
@@ -178,6 +178,18 @@ class AggregateSummary:
         result = {}
         for ps in self.summaries:
             result[ps.stype.name] = ps.to_dict()
+        return result
+
+    @staticmethod
+    def from_dict(summary_dict: dict) -> "AggregateSummary":
+        """
+        :param summary_dict: dictionary to load data from
+        :return: AggregateSummary from a dictionary
+        """
+        result = AggregateSummary()
+        for v in summary_dict.values():
+            result.summaries.append(PyarrowSummary(v["name"], SensorType[v["stype"]], v["start"], v["srate_hz"],
+                                                   v["fdir"], v["scount"], v["smint_s"], v["sstd_s"]))
         return result
 
     def add_aggregate_summary(self, agg_sum: 'AggregateSummary', merge: bool = True):

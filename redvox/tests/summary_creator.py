@@ -348,11 +348,10 @@ def calc_summary(dur_s: float, snsr: PyarrowSummary, snsr_name: str, tims: TimeS
             means_stds[f"{cn}_std"] = []
             means_stds[f"{cn}_diff"] = []
 
-    # todo: how do you compute stats for bytes? (diff is good, what about mean/std?)
     for i in range(iters):
         means_stds["timestamp"].append(current)
+        slce = tbl.slice(int(cur_index), int(num_points_per_dur))
         for cn in channel_names:
-            slce = tbl.slice(cur_index, num_points_per_dur)
             if cn in DIFF_ONLY_CHANNEL_NAMES:
                 if len(slce) < 1:
                     print("HOI!  EMPTY SLICE AT: ", current)
@@ -369,7 +368,7 @@ def calc_summary(dur_s: float, snsr: PyarrowSummary, snsr_name: str, tims: TimeS
                 for v in slce[cn].to_pylist():
                     enum_value_counts[cn][v] = enum_value_counts[cn][v] + 1
             elif len(slce) < 1:
-                print("HOI!  EMPTY SLICE AT: ", current)
+                print(f"EMPTY SLICE IN {cn} AT: {current}")
                 means_stds[f"{cn}_mean"].append(np.nan)
                 means_stds[f"{cn}_std"].append(0.)
                 means_stds[f"{cn}_diff"].append(np.nan)
@@ -379,8 +378,8 @@ def calc_summary(dur_s: float, snsr: PyarrowSummary, snsr_name: str, tims: TimeS
                 means_stds[f"{cn}_std"].append(np.std(slce[cn].to_numpy()))
                 means_stds[f"{cn}_diff"].append(mean - prev_mean)
                 prev_mean = mean
-            current += duration_us
-            cur_index += num_points_per_dur
+        current += duration_us
+        cur_index += num_points_per_dur
 
     en = timeit.default_timer()
     print(f"{snsr_name} summary grind: {en-st} seconds")
@@ -396,42 +395,52 @@ if __name__ == "__main__":
 
     os.chdir(out_dir)
 
-    s = timeit.default_timer()
-    ar = ApiReaderSummary(event_name=ev_name, base_dir=mydir, arrow_dir=".",
-                          structured_dir=True, debug=True)
-    e = timeit.default_timer()
+    # s = timeit.default_timer()
+    # ar = ApiReaderSummary(event_name=ev_name, base_dir=mydir, arrow_dir=".",
+    #                       structured_dir=True, debug=True)
+    # e = timeit.default_timer()
+    #
+    # ar.errors.print()
+    # print(f"make stations: {e-s} seconds")
+    #
+    # ar.merge_audio_summaries()
+    #
+    # with open(os.path.join(out_dir, f"{ev_name}.json"), 'w') as f:
+    #     f.write(ar.to_json())
+    # sumries = ar.summary
 
-    ar.errors.print()
-    print(f"make stations: {e-s} seconds")
-
-    with open(os.path.join(out_dir, f"{ev_name}.json"), 'w') as f:
-        f.write(ar.to_json())
-
-    total_size = 0
-    for pth, drnm, flnm in os.walk(out_dir):
-        for f in flnm:
-            fp = os.path.join(pth, f)
-            if not os.path.islink(fp):
-                total_size += os.path.getsize(fp)
-    print(f"data size: {total_size} B")
-
-    print("\n**************************************\n")
+    # total_size = 0
+    # for pth, drnm, flnm in os.walk(out_dir):
+    #     for f in flnm:
+    #         fp = os.path.join(pth, f)
+    #         if not os.path.islink(fp):
+    #             total_size += os.path.getsize(fp)
+    # print(f"data size: {total_size} B")
+    #
+    # print("\n**************************************\n")
 
     duration_s = 1.
     timsnc = TimeSync.from_json_file(os.path.join(out_dir, ev_name, "timesync/timesync.json"))
 
-    ar.merge_audio_summaries()
-    audio_summary = calc_summary(duration_s, ar.summary.get_audio()[0], "microphone", timsnc)
+    with open(f"{ev_name}.json", 'r') as f:
+        ar_smry = json.loads(f.read())
+    sumries = AggregateSummary.from_dict(ar_smry["summary"])
+
+    audio_summary = calc_summary(duration_s, sumries.get_audio()[0], "microphone", timsnc)
     audio_summary.write_summary()
     del audio_summary
 
-    bar_summary = calc_summary(duration_s, ar.summary.get_sensor(SensorType.PRESSURE)[0], "barometer", timsnc)
+    bar_summary = calc_summary(duration_s, sumries.get_sensor(SensorType.PRESSURE)[0], "barometer", timsnc)
     bar_summary.write_summary()
     del bar_summary
 
-    hlt_summary = calc_summary(duration_s, ar.summary.get_sensor(SensorType.STATION_HEALTH)[0], "health", timsnc)
+    hlt_summary = calc_summary(duration_s, sumries.get_sensor(SensorType.STATION_HEALTH)[0], "health", timsnc)
     hlt_summary.write_summary()
     del hlt_summary
 
-    loc_summary = calc_summary(duration_s, ar.summary.get_sensor(SensorType.LOCATION)[0], "location", timsnc)
+    loc_summary = calc_summary(duration_s, sumries.get_sensor(SensorType.LOCATION)[0], "location", timsnc)
     loc_summary.write_summary()
+    del loc_summary
+
+    acc_summary = calc_summary(duration_s, sumries.get_sensor(SensorType.ACCELEROMETER)[0], "accelerometer", timsnc)
+    acc_summary.write_summary()
