@@ -315,21 +315,16 @@ def calc_summary(dur_s: float, snsr: PyarrowSummary, snsr_name: str, tims: TimeS
     duration_us = dtu.seconds_to_microseconds(dur_s)
     current = tims.data_start_timestamp()
     total_duration = int(dtu.microseconds_to_seconds(tims.data_end_timestamp() - tims.data_start_timestamp()))
-    print(f"total_duration: {total_duration} seconds")
     iters = int(total_duration / dur_s)
 
     tbl = snsr.data()
 
     prev_mean = np.nan
     print(f"start {snsr_name} summary")
-    num_points_per_dur = snsr.srate_hz * dur_s
-    if num_points_per_dur < 1:
-        print("Number of points per interval is less than 1."
-              "Updating duration so that number of points per duration is 1")
-        num_points_per_dur = 1
-        dur_s = 1 / snsr.srate_hz
-    if num_points_per_dur * iters > tbl.num_rows:
-        num_points_per_dur = tbl.num_rows / iters
+    num_points_per_dur = 1.0 if iters >= tbl.num_rows else tbl.num_rows / iters
+    if not(-1 < num_points_per_dur * iters / snsr.srate_hz - total_duration < 1):
+        print("Sensor's sample rate * data duration is not consistent with "
+              "number of data points per interval * number of summary intervals")
     cur_index = 0
 
     st = timeit.default_timer()
@@ -395,29 +390,29 @@ if __name__ == "__main__":
 
     os.chdir(out_dir)
 
-    s = timeit.default_timer()
-    ar = ApiReaderSummary(event_name=ev_name, base_dir=mydir, arrow_dir=".",
-                          structured_dir=True, debug=True)
-    e = timeit.default_timer()
-
-    ar.errors.print()
-    print(f"make stations: {e-s} seconds")
-
-    ar.merge_audio_summaries()
-
-    with open(os.path.join(out_dir, f"{ev_name}.json"), 'w') as f:
-        f.write(ar.to_json())
-    sumries = ar.summary
-
-    total_size = 0
-    for pth, drnm, flnm in os.walk(out_dir):
-        for f in flnm:
-            fp = os.path.join(pth, f)
-            if not os.path.islink(fp):
-                total_size += os.path.getsize(fp)
-    print(f"data size: {total_size} B")
-
-    print("\n**************************************\n")
+    # s = timeit.default_timer()
+    # ar = ApiReaderSummary(event_name=ev_name, base_dir=mydir, arrow_dir=".",
+    #                       structured_dir=True, debug=True)
+    # e = timeit.default_timer()
+    #
+    # ar.errors.print()
+    # print(f"make stations: {e-s} seconds")
+    #
+    # ar.merge_audio_summaries()
+    #
+    # with open(os.path.join(out_dir, f"{ev_name}.json"), 'w') as f:
+    #     f.write(ar.to_json())
+    # sumries = ar.summary
+    #
+    # total_size = 0
+    # for pth, drnm, flnm in os.walk(out_dir):
+    #     for f in flnm:
+    #         fp = os.path.join(pth, f)
+    #         if not os.path.islink(fp):
+    #             total_size += os.path.getsize(fp)
+    # print(f"data size: {total_size} B")
+    #
+    # print("\n**************************************\n")
 
     duration_s = 1.
     timsnc = TimeSync.from_json_file(os.path.join(out_dir, ev_name, "timesync/timesync.json"))
