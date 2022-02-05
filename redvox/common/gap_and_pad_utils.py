@@ -46,7 +46,7 @@ class DataPointCreationMode(enum.Enum):
         return [n.name for n in DataPointCreationMode]
 
 
-@dataclass_json()
+@dataclass_json
 @dataclass
 class GapPadResult:
     """
@@ -64,7 +64,7 @@ class GapPadResult:
         self.errors.append(error)
 
 
-@dataclass_json()
+@dataclass_json
 @dataclass
 class AudioWithGaps:
     """

@@ -513,7 +513,7 @@ class EventStream:
         self._errors.print()
 
 
-@dataclass_json()
+@dataclass_json
 @dataclass
 class EventStreams:
     """

@@ -236,9 +236,9 @@ class Station:
             pkts = idx.read_contents()
             self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
             self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
-            for aggsum in ptp.stream_to_pyarrow(
-                    pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None).summaries:
-                all_summaries.add_summary(aggsum)
+            all_summaries.add_aggregate_summary(ptp.stream_to_pyarrow(
+                pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None))
+        all_summaries.merge_all_summaries()
         self._set_pyarrow_sensors(all_summaries)
         if self._correct_timestamps:
             self.update_timestamps()
@@ -1244,19 +1244,11 @@ class Station:
             packet_info = []
             first_audio = audio_summary[0]
 
-            if not first_audio.check_data():
-                audio_files = [(a.file_name(), a.start) for a in audio_summary]
-                audio_files.sort()
-                for f, start in audio_files:
-                    packet_info.append((int(start), pq.read_table(f)))
-            else:
-                for f in audio_summary:
-                    packet_info.append((int(f.start), f.data()))
-                packet_info.sort()
+            for f in audio_summary:
+                packet_info.append((int(f.start), f.data() if f.check_data() else pq.read_table(f.file_name())))
+            packet_info.sort()
 
-            gp_result = gpu.fill_audio_gaps2(
-                packet_info, s_to_us(1 / first_audio.srate_hz)
-            )
+            gp_result = gpu.fill_audio_gaps2(packet_info, s_to_us(1 / first_audio.srate_hz))
             self._gaps = gp_result.gaps
             self._errors.extend_error(gp_result.errors)
             self._data.append(sd.AudioSensor(first_audio.name, gp_result.create_timestamps(), first_audio.srate_hz,

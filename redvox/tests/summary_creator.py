@@ -273,7 +273,7 @@ class SensorSummary:
     as well as counts of the enumerated fields
     """
     def __init__(self, interval: float, sensor_name: str, sensor_rate_hz: float,
-                 means_data, counts_data: dict, outfile_dir: str):
+                 means_data: pa.Table, counts_data: dict, outfile_dir: str):
         self.interval = interval
         self.sensor_name = sensor_name
         self.sensor_rate_hz = sensor_rate_hz

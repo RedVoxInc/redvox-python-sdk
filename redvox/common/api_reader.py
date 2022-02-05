@@ -94,8 +94,6 @@ class ApiReader:
             self.chunk_limit = psutil.virtual_memory().available * PERCENT_FREE_MEM_USE / mem_split_factor
             max_file_size = max([fe.file_size_bytes for fi in self.files_index for fe in fi.entries])
             if max_file_size > self.chunk_limit:
-                # self.errors.append(f"System requires {max_file_size} bytes of memory but only has {self.chunk_limit} "
-                #                    f"available")
                 raise MemoryError(f"System requires {max_file_size} bytes of memory to process a file but only has "
                                   f"{self.chunk_limit} available.  Please free or add more RAM.")
             if debug:
@@ -270,12 +268,6 @@ class ApiReader:
                 chunk_queue = 0
                 chunk_list = []
             chunk_list.append(f)
-            # if f.api_version == io.ApiVersion.API_900:
-            #     chunk_list.append(
-            #         ac.convert_api_900_to_1000_raw(f.read_raw())
-            #     )
-            # if f.api_version == io.ApiVersion.API_1000:
-            #     chunk_list.append(f.read_raw())
         packet_list.append(io.Index(chunk_list))
         return packet_list
 

@@ -1,4 +1,3 @@
-import tempfile
 from typing import Optional, Dict, Callable, List
 import os
 from pathlib import Path
@@ -8,12 +7,13 @@ from glob import glob
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
+from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json
 
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.common import sensor_reader_utils as srupa
 from redvox.common import date_time_utils as dtu
-from redvox.common.errors import RedVoxExceptions
-from redvox.common.stats_helper import StatsContainer
+from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.sensor_data import SensorType
 
 
@@ -69,31 +69,40 @@ station_schema = pa.schema([("id", pa.string()), ("uuid", pa.string()),
                             ("station_description", pa.string())])
 
 
+@dataclass_json
+@dataclass
 class PyarrowSummary:
-    def __init__(self, name: str, stype: srupa.SensorType, start: float, srate: float, fdir: str,
-                 scount: int, smint: float = np.nan, sstd: float = np.nan, data: Optional[pa.Table] = None):
-        """
-        initialize a summary of a sensor
+    """
+    Summary of a sensor using Pyarrow Tables or parquet files to store the data
 
-        :param name: name of sensor
-        :param stype: sensor type of summary
-        :param start: start timestamp in microseconds since epoch utc of sensor
-        :param srate: sample rate in Hz
-        :param fdir: directory where files can be found
-        :param scount: number of samples to read
-        :param smint: mean interval of sample rate in seconds
-        :param sstd: std dev of sample rate in seconds
-        :param data: optional data as a pyarrow table
-        """
-        self.name = name
-        self.stype = stype
-        self.start = start
-        self.srate_hz = srate
-        self.fdir = fdir
-        self.smint_s = smint
-        self.sstd_s = sstd
-        self.scount = scount
-        self._data = data
+    Properties:
+        name: str, name of sensor
+
+        stype: SensorType, sensor type of summary
+
+        start: float, start timestamp in microseconds since epoch utc of sensor
+
+        srate: float, sample rate in Hz
+
+        fdir: str, directory where parquet files can be found
+
+        scount: int, number of samples to read
+
+        smint: float, mean interval of sample rate in seconds
+
+        sstd: float, std dev of sample rate in seconds
+
+        data: optional data as a Pyarrow Table
+    """
+    name: str
+    stype: srupa.SensorType
+    start: float
+    srate_hz: float
+    fdir: str
+    scount: int
+    smint_s: float = np.nan
+    sstd_s: float = np.nan
+    _data: Optional[pa.Table] = None
 
     def to_dict(self) -> dict:
         """
@@ -112,7 +121,7 @@ class PyarrowSummary:
 
     def file_name(self) -> str:
         """
-        :return: full file name of where the file should exist
+        :return: full path and file name of where the file should exist
         """
         return os.path.join(self.fdir, f"{self.stype.name}_{int(self.start)}.parquet")
 
@@ -153,7 +162,7 @@ class PyarrowSummary:
 
     def data(self) -> Optional[pa.Table]:
         """
-        :return: the data as pyarrow table or None if it doesn't exist
+        :return: the data as a Pyarrow Table
         """
         if self.check_data():
             return self._data
@@ -162,14 +171,13 @@ class PyarrowSummary:
         return pa.Table.from_pydict({})
 
 
+@dataclass_json
+@dataclass
 class AggregateSummary:
     """
     aggregate of summaries
     """
-    def __init__(self, pya_sum: Optional[List[PyarrowSummary]] = None):
-        if not pya_sum:
-            pya_sum = []
-        self.summaries = pya_sum
+    summaries: List[PyarrowSummary] = field(default_factory=lambda: [])
 
     def to_dict(self) -> dict:
         """
@@ -192,54 +200,100 @@ class AggregateSummary:
                                                    v["fdir"], v["scount"], v["smint_s"], v["sstd_s"]))
         return result
 
-    def add_aggregate_summary(self, agg_sum: 'AggregateSummary', merge: bool = True):
+    def add_aggregate_summary(self, agg_sum: 'AggregateSummary'):
         """
         adds another aggregate summary to this one
 
         :param agg_sum: another aggregate summary to add
-        :param merge: if True, combine the summaries with the same type
         """
-        if merge:
-            for agg in agg_sum.summaries:
-                self.add_summary(agg)
-        else:
-            self.summaries.extend(agg_sum.summaries)
+        self.summaries.extend(agg_sum.summaries)
 
-    def add_summary(self, pya_sum: PyarrowSummary, merge: bool = True):
+    def add_summary(self, pya_sum: PyarrowSummary):
         """
         adds a summary to the aggregate
 
         :param pya_sum: the summary to add
-        :param merge: if True, combine the summary with the same type
         """
-        if merge:
-            summaries = self.get_sensor(pya_sum.stype)
-            if len(summaries) > 0:
-                first_summary = summaries[0]
-                stats = StatsContainer("temp")
-                first_summary.srate_hz = (first_summary.scount + pya_sum.scount) / \
-                                         ((first_summary.scount / first_summary.srate_hz) +
-                                          (pya_sum.scount / pya_sum.srate_hz))
-                stats.add(first_summary.smint_s, first_summary.sstd_s, first_summary.scount)
-                stats.add(pya_sum.smint_s, pya_sum.sstd_s, pya_sum.scount)
-                tbl = pa.concat_tables([first_summary.data(), pya_sum.data()])
-                if first_summary.check_data():
-                    first_summary._data = tbl
-                else:
-                    os.makedirs(first_summary.fdir, exist_ok=True)
-                    pq.write_table(tbl, first_summary.file_name())
-                    os.remove(pya_sum.file_name())
-                first_summary.srate_hz = 1 / stats.mean_of_means()
-                first_summary.scount = int(np.sum(np.nan_to_num(stats.count_array)))
-                first_summary.smint_s = stats.mean_of_means()
-                first_summary.sstd_s = stats.total_std_dev()
-                return
         self.summaries.append(pya_sum)
 
+    def merge_audio_summaries(self):
+        """
+        combines and replaces all Audio summaries into a single summary; also adds any gaps in the data
+        """
+        pckt_info = []
+        audio_lst = self.get_audio()
+        frst_audio = audio_lst[0]
+        use_mem = frst_audio.check_data()
+        for adl in audio_lst:
+            pckt_info.append((int(adl.start), adl.data()))
+
+        tbl = gpu.fill_audio_gaps2(pckt_info,
+                                   dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
+                                   ).create_timestamps()
+        frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
+                                    frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
+                                    tbl)
+        if not use_mem:
+            frst_audio.write_data(True)
+
+        self.summaries = self.get_non_audio_list()
+        self.add_summary(frst_audio)
+
+    def merge_summaries(self, stype: SensorType):
+        """
+        combines and replaces multiple summaries of one SensorType into a single one
+
+        *caution: using this on an audio sensor may cause data validation issues*
+
+        :param stype: the type of sensor to combine
+        """
+        smrs = []
+        other_smrs = []
+        for smry in self.summaries:
+            if smry.stype == stype:
+                smrs.append(smry)
+            else:
+                other_smrs.append(smry)
+        first_summary = smrs.pop(0)
+        tbl = first_summary.data()
+        if not first_summary.check_data():
+            os.makedirs(first_summary.fdir, exist_ok=True)
+        for smrys in smrs:
+            tbl = pa.concat_tables([first_summary.data(), smrys.data()])
+            if first_summary.check_data():
+                first_summary._data = tbl
+            else:
+                pq.write_table(tbl, first_summary.file_name())
+                os.remove(smrys.file_name())
+        mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl["timestamps"].to_numpy()))))
+        stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl["timestamps"].to_numpy()))))
+        single_smry = PyarrowSummary(first_summary.name, first_summary.stype, first_summary.start,
+                                     1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                                     first_summary.data() if first_summary.check_data() else None
+                                     )
+        self.summaries = other_smrs
+        self.summaries.append(single_smry)
+
+    def merge_all_summaries(self):
+        """
+        merge all PyarrowSummary with the same sensor type into single PyarrowSummary per type
+        """
+        self.merge_audio_summaries()
+        sensor_types = self.sensor_types()
+        sensor_types.remove(SensorType.AUDIO)
+        for s in sensor_types:
+            self.merge_summaries(s)
+
     def get_audio(self) -> List[PyarrowSummary]:
+        """
+        :return: a list of PyarrowSummary of only Audio data
+        """
         return [s for s in self.summaries if s.stype == srupa.SensorType.AUDIO]
 
     def get_non_audio(self) -> Dict[srupa.SensorType, List[PyarrowSummary]]:
+        """
+        :return: a dictionary of non-Audio SensorType: PyarrowSummary
+        """
         result = {}
         for k in self.sensor_types():
             if k != srupa.SensorType.AUDIO:
@@ -247,14 +301,21 @@ class AggregateSummary:
         return result
 
     def get_non_audio_list(self) -> List[PyarrowSummary]:
+        """
+        :return: a list of all non-Audio PyarrowSummary
+        """
         return [s for s in self.summaries if s.stype != srupa.SensorType.AUDIO]
 
     def get_sensor(self, stype: srupa.SensorType) -> List[PyarrowSummary]:
+        """
+        :param stype: type of sensor to find
+        :return: a list of all PyarrowSummary of the specified type
+        """
         return [s for s in self.summaries if s.stype == stype]
 
     def sensor_types(self) -> List[srupa.SensorType]:
         """
-        :return: list of sensor types in self.summaries
+        :return: a list of sensor types in self.summaries
         """
         result = []
         for s in self.summaries:
@@ -274,7 +335,7 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
     summary = AggregateSummary()
     for k in map(packet_to_pyarrow, packets, repeat(out_dir)):
         for t in k.summaries:
-            summary.add_summary(t, False)
+            summary.add_summary(t)
 
     return summary
 
@@ -389,8 +450,8 @@ def load_apim_location(packet: RedvoxPacketM) -> Optional[PyarrowSummary]:
         timestamps = loc.timestamps.timestamps
         if len(timestamps) > 0:
             if len(timestamps) > 1:
-                m_intv = dtu.microseconds_to_seconds(np.mean(np.diff(timestamps)))
-                intv_std = dtu.microseconds_to_seconds(np.std(np.diff(timestamps)))
+                m_intv = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+                intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
             else:
                 m_intv = srupa.__packet_duration_s(packet)
                 intv_std = 0.
@@ -455,14 +516,14 @@ def load_single(
 ) -> Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.SensorData]
+        Callable[[RedvoxPacketM], srupa.Sensor]
     ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
         t = sensor.timestamps.timestamps
         if len(t) > 1:
-            m_intv = dtu.microseconds_to_seconds(np.mean(np.diff(t)))
-            intv_std = dtu.microseconds_to_seconds(np.std(np.diff(t)))
+            m_intv = dtu.microseconds_to_seconds(float(np.mean(np.diff(t))))
+            intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
         else:
             m_intv = srupa.__packet_duration_s(packet)
             intv_std = 0.
@@ -530,14 +591,14 @@ def load_xyz(
 ) -> Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
     sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.SensorData]
+        Callable[[RedvoxPacketM], srupa.Sensor]
     ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
         t = sensor.timestamps.timestamps
         if len(t) > 1:
-            m_intv = dtu.microseconds_to_seconds(np.mean(np.diff(t)))
-            intv_std = dtu.microseconds_to_seconds(np.std(np.diff(t)))
+            m_intv = dtu.microseconds_to_seconds(float(np.mean(np.diff(t))))
+            intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
         else:
             m_intv = srupa.__packet_duration_s(packet)
             intv_std = 0.
