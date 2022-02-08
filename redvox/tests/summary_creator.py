@@ -13,11 +13,13 @@ import pyarrow as pa
 
 from redvox.common import io
 from redvox.common import date_time_utils as dtu
-from redvox.common.api_reader import ApiReader
+from redvox.common.api_reader_dw import ApiReaderDw
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.packet_to_pyarrow import AggregateSummary, stream_to_pyarrow, PyarrowSummary
 from redvox.common.timesync import TimeSync
 from redvox.common.sensor_data import SensorType
+from redvox.common.io import FileSystemSaveMode
+from redvox.common.station import Station
 import redvox.common.gap_and_pad_utils as gpu
 import redvox.settings as settings
 from redvox.api1000.wrapped_redvox_packet.station_information import (
@@ -116,157 +118,6 @@ ENUMERATED_CHANNEL_TO_ENUMERATION = {"location_provider": [e.name for e in Locat
                                      "screen_state": [e.name for e in ScreenState]}
 
 
-class ApiReaderSummary(ApiReader):
-    def __init__(self,
-                 event_name: str,
-                 base_dir: str,
-                 structured_dir: bool = False,
-                 read_filter: io.ReadFilter = None,
-                 correct_timestamps: bool = False,
-                 use_model_correction: bool = True,
-                 arrow_dir: str = ".",
-                 debug: bool = False,
-                 pool: Optional[multiprocessing.pool.Pool] = None):
-        """
-        initialize API reader for summaries
-
-        :param event_name: name of the summary to create
-        :param base_dir: directory containing the files to read
-        :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
-                                api formats.  If False, base_dir only has the data files.  Default False.
-        :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
-        :param correct_timestamps: if True, correct the timestamps of the data.  Default False
-        :param use_model_correction: if True, use the offset model of the station to correct the timestamps.
-                                        if correct_timestamps is False, this value doesn't matter.  Default True
-        :param arrow_dir: the base directory to save parquet files to.  default "." (current directory)
-        :param debug: if True, output program warnings/errors during function execution.  Default False.
-        """
-        super().__init__(base_dir, structured_dir, read_filter, debug, pool)
-        self.correct_timestamps = correct_timestamps
-        self.use_model_correction = use_model_correction
-        self.arrow_dir = os.path.join(arrow_dir, event_name)
-        os.makedirs(self.arrow_dir, exist_ok=True)
-        self.timesync = TimeSync(arrow_dir=os.path.join(self.arrow_dir, "timesync"))
-        os.makedirs(self.timesync.arrow_dir, exist_ok=True)
-        self.all_files_size = np.sum([idx.files_size() for idx in self.files_index])
-        self.summary = self._read_data()
-
-    def to_dict(self) -> dict:
-        """
-        :return: the metadata as a dictionary
-        """
-        return {"timesync": self.timesync.as_dict(),
-                "summary": self.summary.to_dict()}
-
-    def to_json(self):
-        return json.dumps(self.to_dict())
-
-    def _data_by_index(self, findex: io.Index) -> AggregateSummary:
-        """
-        builds station using the index of files to read
-        splits the index into smaller chunks if entire record cannot be held in memory
-
-        :param findex: index with files to build a station with
-        :return: Station built from files in findex, without building the data from parquet
-        """
-        split_list = self._split_workload(findex)
-        result = AggregateSummary()
-        if len(split_list) > 0:
-            for idx in split_list:
-                pkts = idx.read_contents()
-                self.timesync.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
-                result.add_aggregate_summary(stream_to_pyarrow(pkts, self.arrow_dir), False)
-            if self.debug:
-                print(f"files read: {len(findex.entries)}")
-                if len(split_list) > 1:
-                    print(f"required making {len(split_list)} smaller segments due to memory restraints")
-            self.timesync.to_json_file()
-        else:
-            self.errors.append("No files found to create summary.")
-        return result
-
-    def _read_data(self, pool: Optional[multiprocessing.pool.Pool] = None) -> AggregateSummary:
-        """
-        :param pool: optional multiprocessing pool
-        :return: List of summaries of data in the ApiReader
-        """
-        result = AggregateSummary()
-        if settings.is_parallelism_enabled() and len(self.files_index) > 1:
-            summaries = list(maybe_parallel_map(pool, self._data_by_index,
-                                                self.files_index,
-                                                chunk_size=1
-                                                ))
-        else:
-            summaries = list(map(self._data_by_index, self.files_index))
-        sensors = []
-        audio_summaries = []
-        for smry in summaries:
-            for mry in smry.summaries:
-                if mry.stype == SensorType.AUDIO:
-                    audio_summaries.append(mry)
-                elif mry.stype not in sensors:
-                    sensors.append(mry.stype)
-        for sensr in sensors:
-            result.add_summary(self.merge_summaries(sensr, summaries))
-        result.summaries.extend(audio_summaries)
-        return result
-
-    def merge_audio_summaries(self):
-        """
-        combines all audio summaries into a single table and summary, with gaps
-        """
-        pckt_info = []
-        audio_lst = self.summary.get_audio()
-        frst_audio = audio_lst[0]
-        for adl in audio_lst:
-            pckt_info.append((int(adl.start), pq.read_table(adl.file_name())))
-
-        tbl = gpu.fill_audio_gaps2(pckt_info,
-                                   dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
-                                   ).create_timestamps()
-
-        frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
-                                    frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
-                                    tbl)
-        frst_audio.write_data(True)
-
-        self.summary.summaries = [sm for sm in self.summary.summaries if sm.stype != SensorType.AUDIO]
-
-        self.summary.add_summary(frst_audio)
-
-    @staticmethod
-    def merge_summaries(stype: SensorType, summaries: List[AggregateSummary]) -> PyarrowSummary:
-        """
-        combines multiple summaries of one sensor into a single one
-
-        *caution: using this on an audio sensor may cause data validation issues*
-
-        :param stype: the type of sensor to combine
-        :param summaries: the summaries to look through
-        """
-        smrs = []
-        for smry in summaries:
-            for mry in smry.summaries:
-                if mry.stype == stype:
-                    smrs.append(mry)
-        first_summary = smrs.pop(0)
-        tbl = first_summary.data()
-        for smrys in smrs:
-            tbl = pa.concat_tables([first_summary.data(), smrys.data()])
-            if first_summary.check_data():
-                first_summary._data = tbl
-            else:
-                os.makedirs(first_summary.fdir, exist_ok=True)
-                pq.write_table(tbl, first_summary.file_name())
-                os.remove(smrys.file_name())
-        mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl["timestamps"].to_numpy()))))
-        stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl["timestamps"].to_numpy()))))
-        return PyarrowSummary(first_summary.name, first_summary.stype, first_summary.start,
-                              1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
-                              first_summary.data() if first_summary.check_data() else None
-                              )
-
-
 class SensorSummary:
     """
     Summary of a sensor.  contains data about the mean, std and diff of windows of data at a defined interval,
@@ -304,32 +155,35 @@ class SensorSummary:
         pq.write_table(self.means_data, os.path.join(summary_path, f"{self.sensor_name}.parquet"))
 
 
-def calc_summary(dur_s: float, snsr: PyarrowSummary, snsr_name: str, tims: TimeSync) -> SensorSummary:
+def calc_summary(dur_s: float, station: Station, stype: SensorType, snsr_name: str,
+                 out_dr: Optional[str] = None) -> SensorSummary:
     """
-    :param dur_s: duration of a single window of the summary
-    :param snsr: a PyarrowSummary with metadata and data for the sensor
+    :param dur_s: duration in seconds of a single window of the summary
+    :param station: the Station that contains the data to create a summary
+    :param stype: the type of sensor to create a summary for
     :param snsr_name: the name of the sensor used when saving the SensorSummary
-    :param tims: TimeSync for tracking corrections and sensor duration
+    :param out_dr: optional output directory for the summary; defaults to station's save directory
     :return: a summary of data points per window of the data
     """
     duration_us = dtu.seconds_to_microseconds(dur_s)
-    current = tims.data_start_timestamp()
-    total_duration = int(dtu.microseconds_to_seconds(tims.data_end_timestamp() - tims.data_start_timestamp()))
+    current = station.timesync_data().data_start_timestamp()
+    total_duration = int(dtu.microseconds_to_seconds(
+        station.timesync_data().data_end_timestamp() - station.timesync_data().data_start_timestamp()))
     iters = int(total_duration / dur_s)
 
-    tbl = snsr.data()
+    tbl = station.get_sensor_by_type(stype).pyarrow_table()
 
     prev_mean = np.nan
     print(f"start {snsr_name} summary")
     num_points_per_dur = 1.0 if iters >= tbl.num_rows else tbl.num_rows / iters
-    if not(-1 < num_points_per_dur * iters / snsr.srate_hz - total_duration < 1):
+    if not(-1 < num_points_per_dur * iters / station.get_sensor_by_type(stype).sample_rate_hz() - total_duration < 1):
         print("Sensor's sample rate * data duration is not consistent with "
               "number of data points per interval * number of summary intervals")
     cur_index = 0
 
     st = timeit.default_timer()
 
-    channel_names = SENSOR_CHANNEL_NAMES[snsr.stype]
+    channel_names = SENSOR_CHANNEL_NAMES[stype]
 
     means_stds: dict = {"timestamp": []}
     enum_value_counts: dict = {}
@@ -379,63 +233,60 @@ def calc_summary(dur_s: float, snsr: PyarrowSummary, snsr_name: str, tims: TimeS
     en = timeit.default_timer()
     print(f"{snsr_name} summary grind: {en-st} seconds")
 
-    return SensorSummary(dur_s, snsr_name, snsr.srate_hz, pa.Table.from_pydict(means_stds),
-                         enum_value_counts, out_dir)
+    return SensorSummary(dur_s, snsr_name, station.get_sensor_by_type(stype).sample_rate_hz(),
+                         pa.Table.from_pydict(means_stds), enum_value_counts,
+                         out_dr if out_dr is None else station.save_dir())
 
 
 if __name__ == "__main__":
     mydir = "/Users/tyler/Documents/big_data_file_read"
     out_dir = "/Users/tyler/Documents/big_data_file_read/summary"
     ev_name = "big_data_test_run"
+    smry_out_dir = os.path.join(out_dir, "summaries")
 
     os.chdir(out_dir)
 
     # s = timeit.default_timer()
-    # ar = ApiReaderSummary(event_name=ev_name, base_dir=mydir, arrow_dir=".",
-    #                       structured_dir=True, debug=True)
+    # ar = ApiReaderDw(base_dir=mydir, structured_dir=True, debug=True,
+    #                  dw_base_dir=".", save_mode=FileSystemSaveMode.DISK)
+    # stations = ar.get_stations()
     # e = timeit.default_timer()
     #
     # ar.errors.print()
     # print(f"make stations: {e-s} seconds")
     #
-    # ar.merge_audio_summaries()
-    #
-    # with open(os.path.join(out_dir, f"{ev_name}.json"), 'w') as f:
-    #     f.write(ar.to_json())
-    # sumries = ar.summary
-    #
-    # total_size = 0
-    # for pth, drnm, flnm in os.walk(out_dir):
-    #     for f in flnm:
-    #         fp = os.path.join(pth, f)
-    #         if not os.path.islink(fp):
-    #             total_size += os.path.getsize(fp)
-    # print(f"data size: {total_size} B")
-    #
-    # print("\n**************************************\n")
+    # for stn in stations:
+    #     stn.save()
+
+    sttn = Station.load(os.path.join(out_dir, '1637620005_1641846545849000'))
+
+    total_size = 0
+    for pth, drnm, flnm in os.walk(sttn.save_dir()):
+        for f in flnm:
+            fp = os.path.join(pth, f)
+            if not os.path.islink(fp):
+                total_size += os.path.getsize(fp)
+    print(f"data size: {total_size} B")
+
+    print("\n**************************************\n")
 
     duration_s = 1.
-    timsnc = TimeSync.from_json_file(os.path.join(out_dir, ev_name, "timesync/timesync.json"))
 
-    with open(f"{ev_name}.json", 'r') as f:
-        ar_smry = json.loads(f.read())
-    sumries = AggregateSummary.from_dict(ar_smry["summary"])
-
-    audio_summary = calc_summary(duration_s, sumries.get_audio()[0], "microphone", timsnc)
+    audio_summary = calc_summary(duration_s, sttn, SensorType.AUDIO, "microphone", smry_out_dir)
     audio_summary.write_summary()
     del audio_summary
 
-    bar_summary = calc_summary(duration_s, sumries.get_sensor(SensorType.PRESSURE)[0], "barometer", timsnc)
+    bar_summary = calc_summary(duration_s, sttn, SensorType.PRESSURE, "barometer", smry_out_dir)
     bar_summary.write_summary()
     del bar_summary
 
-    hlt_summary = calc_summary(duration_s, sumries.get_sensor(SensorType.STATION_HEALTH)[0], "health", timsnc)
+    hlt_summary = calc_summary(duration_s, sttn, SensorType.STATION_HEALTH, "health", smry_out_dir)
     hlt_summary.write_summary()
     del hlt_summary
 
-    loc_summary = calc_summary(duration_s, sumries.get_sensor(SensorType.LOCATION)[0], "location", timsnc)
+    loc_summary = calc_summary(duration_s, sttn, SensorType.LOCATION, "location", smry_out_dir)
     loc_summary.write_summary()
     del loc_summary
 
-    acc_summary = calc_summary(duration_s, sumries.get_sensor(SensorType.ACCELEROMETER)[0], "accelerometer", timsnc)
+    acc_summary = calc_summary(duration_s, sttn, SensorType.ACCELEROMETER, "accelerometer", smry_out_dir)
     acc_summary.write_summary()

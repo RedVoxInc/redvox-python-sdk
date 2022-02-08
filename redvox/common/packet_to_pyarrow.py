@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Callable, List
+from typing import Optional, Dict, Callable, List, Tuple
 import os
 from pathlib import Path
 from itertools import repeat
@@ -176,8 +176,13 @@ class PyarrowSummary:
 class AggregateSummary:
     """
     aggregate of summaries
+
+    properties:
+        summaries: the summaries of sensors
+        gaps: gaps in audio data as a list of tuples of start and end time
     """
     summaries: List[PyarrowSummary] = field(default_factory=lambda: [])
+    gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
 
     def to_dict(self) -> dict:
         """
@@ -227,15 +232,17 @@ class AggregateSummary:
         for adl in audio_lst:
             pckt_info.append((int(adl.start), adl.data()))
 
-        tbl = gpu.fill_audio_gaps2(pckt_info,
-                                   dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
-                                   ).create_timestamps()
+        audio_data = gpu.fill_audio_gaps2(pckt_info,
+                                          dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
+                                          )
+        tbl = audio_data.create_timestamps()
         frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
                                     frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
                                     tbl)
         if not use_mem:
             frst_audio.write_data(True)
 
+        self.gaps = audio_data.gaps
         self.summaries = self.get_non_audio_list()
         self.add_summary(frst_audio)
 

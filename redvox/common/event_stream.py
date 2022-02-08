@@ -13,7 +13,7 @@ from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet import event_streams as es
 from redvox.common.errors import RedVoxExceptions
 from redvox.common import offset_model as om
-from redvox.common.io import FileSystemWriter as Fsw
+from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode
 import redvox.common.event_stream_io as io
 
 
@@ -24,7 +24,7 @@ class EventStream:
     """
     def __init__(self, name: str = "event",
                  schema: Optional[Dict[str, list]] = None,
-                 save_data: bool = False,
+                 save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
                  base_dir: str = "."):
         """
         initialize EventStream for a station
@@ -33,7 +33,9 @@ class EventStream:
         :param schema: a structured dictionary of the data table schema.  Dictionary must look like:
                     {"string": [s_values], "numeric": [n_values], "boolean": [o_values], "byte": [b_values]}
                     where [*_values] is a list of strings and can be empty.  Default None
-        :param save_data: if True, save the data to the base_dir specified instead of locally.  Default False
+        :param save_mode: FileSystemSaveMode that determines how data is saved.
+                            Default FileSystemSaveMode.MEM (use RAM).  Other options are DISK (save to directory)
+                            and TEMP (save to temporary directory)
         :param base_dir: the location of the parquet file that holds the data.  Not used if save_data is False.
                             Default current directory (".")
         """
@@ -43,7 +45,7 @@ class EventStream:
 
         self._errors = RedVoxExceptions("EventStream")
         self._is_timestamps_corrected = False
-        self._fs_writer = Fsw(f"event_{name}", "parquet", base_dir, save_data)
+        self._fs_writer = Fsw(f"event_{name}", "parquet", base_dir, save_mode)
         self._data = None
         self._schema = {"string": [], "numeric": [], "boolean": [], "byte": []}
         if schema is not None:
@@ -375,7 +377,7 @@ class EventStream:
         """
         :return: True if sensor will be saved to disk
         """
-        return self._fs_writer.save_to_disk
+        return self._fs_writer.is_save_disk()
 
     def set_save_to_disk(self, save: bool):
         """
@@ -521,7 +523,7 @@ class EventStreams:
     ALL timestamps in microseconds since epoch UTC unless otherwise stated
     """
     streams: List[EventStream] = field(default_factory=lambda: [])
-    save_data: bool = False
+    save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM
     base_dir: str = "."
     debug: bool = False
 
@@ -531,7 +533,7 @@ class EventStreams:
         """
         return [s.file_name() for s in self.streams]
 
-    def read_from_packets(self, packet: RedvoxPacketM):
+    def read_from_packet(self, packet: RedvoxPacketM):
         """
         read the eventstream payload from a single Redvox Api1000 packet
 
@@ -541,7 +543,17 @@ class EventStreams:
             if st.name in self.get_stream_names():
                 self.get_stream(st.name).add_raw(st)
             else:
-                self.streams.append(EventStream(save_data=self.save_data, base_dir=self.base_dir).read_raw(st))
+                self.streams.append(EventStream(save_mode=self.save_mode, base_dir=self.base_dir).read_raw(st))
+
+    def read_from_packets_list(self, packets: List[RedvoxPacketM]):
+        """
+        read the eventstream payload from multiple Redvox Api1000 packets
+
+        :param packets: packets to read data from
+        """
+        for p in packets:
+            if type(p) == RedvoxPacketM:
+                self.read_from_packet(p)
 
     def append(self, other_stream: EventStream):
         """

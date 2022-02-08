@@ -39,6 +39,7 @@ def to_json_file(event_stream: "EventStream",
         else event_stream.default_json_file_name()
     )
 
+    # file_path: Path = Path(station.save_dir()).joinpath(event_stream.fs_writer().json_file_name())
     file_path: Path = event_stream.fs_writer().json_path()
     with open(file_path, "w") as f_p:
         f_p.write(to_json(event_stream))

@@ -115,7 +115,7 @@ class Station:
         else:
             save_mode = FileSystemSaveMode.MEM
         self._fs_writer = Fsw("", "", base_dir, save_mode)
-        self._event_data = EventStreams(save_data=save_data)
+        self._event_data = EventStreams(save_mode=save_mode)
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
@@ -181,7 +181,8 @@ class Station:
             return self.to_json_file(file_name)
         return None
 
-    def load(self, in_dir: str = "") -> "Station":
+    @staticmethod
+    def load(in_dir: str = "") -> "Station":
         """
         :param in_dir: structured directory with json metadata file to load
         :return: Station using data from files
@@ -190,9 +191,9 @@ class Station:
         if file is None:
             st = Station("LoadError")
             st.append_error("File to load Station not found.")
-            return self
+            return st
         else:
-            return self.from_json_file(in_dir, file)
+            return Station.from_json_file(in_dir, file)
 
     @staticmethod
     def create_from_indexes(indexes: List[Index],
@@ -231,11 +232,12 @@ class Station:
         self._timesync_data.arrow_file = \
             f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
         all_summaries = ptp.AggregateSummary()
-        self._timesync_data = TimeSync()
+        self._event_data.base_dir = os.path.join(self.save_dir(), "events")
         for idx in indexes:
             pkts = idx.read_contents()
             self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
             self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
+            self._event_data.read_from_packets_list(pkts)
             all_summaries.add_aggregate_summary(ptp.stream_to_pyarrow(
                 pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None))
         all_summaries.merge_all_summaries()
@@ -307,12 +309,13 @@ class Station:
                 files_dir = None
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
             self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
-            self._set_pyarrow_sensors(ptp.stream_to_pyarrow(packets, files_dir))
+            summaries = ptp.stream_to_pyarrow(packets, files_dir)
+            summaries.merge_all_summaries()
+            self._set_pyarrow_sensors(summaries)
             if self._correct_timestamps:
                 self.update_timestamps()
             self._event_data.base_dir = os.path.join(self.save_dir(), "events")
-            for p in packets:
-                self._event_data.read_from_packets(p)
+            self._event_data.read_from_packets_list(packets)
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -1241,18 +1244,11 @@ class Station:
         audio_summary = sensor_summaries.get_audio()
         if audio_summary:
             # fuse audio into a single result
-            packet_info = []
             first_audio = audio_summary[0]
-
-            for f in audio_summary:
-                packet_info.append((int(f.start), f.data() if f.check_data() else pq.read_table(f.file_name())))
-            packet_info.sort()
-
-            gp_result = gpu.fill_audio_gaps2(packet_info, s_to_us(1 / first_audio.srate_hz))
-            self._gaps = gp_result.gaps
-            self._errors.extend_error(gp_result.errors)
-            self._data.append(sd.AudioSensor(first_audio.name, gp_result.create_timestamps(), first_audio.srate_hz,
-                                             1 / first_audio.srate_hz, 0., True, base_dir=first_audio.fdir,
+            self._gaps = sensor_summaries.gaps
+            self._data.append(sd.AudioSensor(first_audio.name, first_audio.data(), first_audio.srate_hz,
+                                             1 / first_audio.srate_hz, 0., True,
+                                             base_dir=self.get_save_dir_sensor(sd.SensorType.AUDIO),
                                              save_data=self._fs_writer.is_save_disk()))
             self.update_first_and_last_data_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
