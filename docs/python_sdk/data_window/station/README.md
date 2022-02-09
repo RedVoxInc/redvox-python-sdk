@@ -20,6 +20,9 @@ RedVox data, but it is capable of representing a variety of station and sensor c
   * [Station Metadata](#station-metadata)
   * [Station Packet Metadata](#station-packet-metadata)
   * [Timesync and Offset Model](#timesync-and-offset-model)
+  * [Events](#events)
+    * [EventStreams](#eventstreams)
+    * [EventStream](#eventstream)
 - [Sensor Data](#sensor-data)
   * [Sensor Data Creation](#sensor-data-creation)
   * [Sensor Data Properties](#sensor-data-properties)
@@ -70,15 +73,17 @@ The default value of each property is given.
 11. `_is_timestamps_updated`: boolean; True if timestamps have been altered from original data values, default False
 12. `_timesync_data`: TimeSync object; contains information about the station's timing values.  Refer to 
     the [Timesync Documentation](#timesync-and-offset-model) for more information
-13. `_use_model_correction`: boolean; if True, time correction is done using OffsetModel functions, otherwise
+13. `_event_data`: EventStreams object; contains information about events that the station has detected.  Refer to
+    the [Events Documentation](#events) for more information
+14. `_use_model_correction`: boolean; if True, time correction is done using OffsetModel functions, otherwise
     correction is done by adding the best offset from the OffsetModel (also known as the model's intercept value or
     the best offset from TimeSync).  default True
 14.`_correct_timestamps`: boolean; if True, corrects the timestamps of the data.  default False
 15.`_gaps`: List of Tuples; pairs of timestamps indicating start and end times of gaps.  Times are not inclusive of 
     the gap. Set by reading the data.  default empty list.
-14. `_fs_writer`: FileSystemWriter, stores the information used to save the data to disk.  Defaults to not saving and 
+15. `_fs_writer`: FileSystemWriter, stores the information used to save the data to disk.  Defaults to not saving and 
     using the current directory.
-15. `_errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the station.  
+16. `_errors`: RedVoxExceptions, class containing a list of all errors encountered when creating the station.  
     This is set by the SDK.  default empty RedVoxExceptions
 
 _[Table of Contents](#table-of-contents)_
@@ -122,30 +127,32 @@ Accessors allow you to read values from the Station.  The Accessor functions are
 
 15. `has_timesync_data() -> bool`: Returns `True` if the Station has TimeSync data.
 
-16. `audio_sample_rate_nominal_hz() -> float`: Returns the nominal audio sample rate in Hz of the Station.
+16. `event_data() -> EventStreams`: Returns the EventStreams of the Station.
 
-17. `is_audio_scrambled() -> float`: Returns if the audio data of the Station is scrambled.
+17. `audio_sample_rate_nominal_hz() -> float`: Returns the nominal audio sample rate in Hz of the Station.
 
-18. `check_key() -> bool`: Returns `True` if the Station's key is set, otherwise creates an error and returns `False`.
+18. `is_audio_scrambled() -> float`: Returns if the audio data of the Station is scrambled.
 
-19. `get_key() -> Optional[st_utils.StationKey]`: Returns the key of the Station if it exists, otherwise returns `None`.
+19. `check_key() -> bool`: Returns `True` if the Station's key is set, otherwise creates an error and returns `False`.
 
-20. `save_dir() -> str`: Returns the name of the directory used to save the Station data.
+20. `get_key() -> Optional[st_utils.StationKey]`: Returns the key of the Station if it exists, otherwise returns `None`.
 
-21. `is_save_to_disk() -> bool`: Returns if the Station data will be saved to disk.
+21. `save_dir() -> str`: Returns the name of the directory used to save the Station data.
 
-22. `fs_writer() -> FileSystemWriter`: Returns the FileSystemWriter object used by the Station to control saving to disk.
+22. `is_save_to_disk() -> bool`: Returns if the Station data will be saved to disk.
 
-23. `get_mean_packet_duration() -> float`: Returns the mean duration of audio samples in the data packets used to create the Station.
+23. `fs_writer() -> FileSystemWriter`: Returns the FileSystemWriter object used by the Station to control saving to disk.
 
-24. `get_mean_packet_audio_samples() -> float`: Returns the mean number of audio samples per data packet used to create the Station.
+24. `get_mean_packet_duration() -> float`: Returns the mean duration of audio samples in the data packets used to create the Station.
 
-25. `get_sensor_by_type(sensor_type: sd.SensorType) -> Optional[sd.SensorData]`: Returns the Sensor specified by 
+25. `get_mean_packet_audio_samples() -> float`: Returns the mean number of audio samples per data packet used to create the Station.
+
+26. `get_sensor_by_type(sensor_type: sd.SensorType) -> Optional[sd.SensorData]`: Returns the Sensor specified by 
     `sensor_type` or None if the type cannot be found.
 
-26. `errors() -> RedVoxExceptions`: Returns the errors class of the Station.
+27. `errors() -> RedVoxExceptions`: Returns the errors class of the Station.
 
-27. `print_errors()`: Print the errors encountered when creating the Station.
+28. `print_errors()`: Print the errors encountered when creating the Station.
 
 #### Station Setters
 
@@ -178,12 +185,14 @@ Setters allow you to set or change the properties of the Station.  The Setter fu
 
 12. `set_timesync_data(self, timesync: TimeSync)`: Sets the time sync data of the Station to `timesync`.
 
-13. `set_errors(self, errors: RedVoxExceptions)`: Sets the errors of the Station to `errors`.
+13. `set_event_data(self, data: EventStreams)`: Sets the EventStreams of the Station to `data`.
 
-14. `append_sensor(sensor_data: sd.SensorData)`: Adds the `sensor_data` to the Station or appends the data to an 
+14. `set_errors(self, errors: RedVoxExceptions)`: Sets the errors of the Station to `errors`.
+
+15. `append_sensor(sensor_data: sd.SensorData)`: Adds the `sensor_data` to the Station or appends the data to an 
      existing SensorData of the same type.
 
-15. `append_station(new_station: "Station")`: Adds the data from the `new_station` to the calling Station, if the keys 
+16. `append_station(new_station: "Station")`: Adds the data from the `new_station` to the calling Station, if the keys 
      of both Stations are the same.  If the keys are different or one of the keys is invalid, nothing happens.
 
 #### Station Save and Load
@@ -415,6 +424,106 @@ print(my_om.intercept)
 
 _[Table of Contents](#table-of-contents)_
 
+### Events
+
+Stations are able to record Events.  These are stored as an EventStreams object within the Station object.  
+EventStreams are comprised of many EventStream, organized by their name.
+
+#### EventStreams
+
+These are the properties of an EventStreams:
+1. `streams`: List of EventStream; All EventStream objects
+2. `save_mode`: FileSystemSaveMode; The method used to save the data.  Options are:  
+   1. MEM: the default method, saves to memory and is deleted when the program finishes
+   2. TEMP: a temporary directory on disk that is deleted when the program is finished
+   3. DISK: a chosen directory on disk that remains after the program is finished
+3. `base_dir`: string; The directory where the files are saved to if the `save_mode` is FileSystemSaveMode.DISK.
+4. `debug`: boolean; If True, outputs additional messages during program execution.  Default False
+
+EventStreams have multiple methods available:
+1. `list_for_dict(self) -> list`: returns the name(s) of files that store EventStream
+
+2. `read_from_packet(self, packet: RedvoxPacketM)`: reads the eventstream payload from a single Redvox Api1000 packet
+   and stores it in the EventStreams
+
+3. `read_from_packets_list(self, packets: List[RedvoxPacketM])`:read the eventstream payload from multiple Redvox
+   Api1000 packets and store them in the EventStreams
+
+4. `append(self, other_stream: EventStream)`: append another EventStream to an existing EventStream or add to the 
+   list of EventStream
+
+5. `append_streams(self, other_streams: "EventStreams")`: append another EventStreams object to an existing 
+   EventStreams object
+
+6. `get_stream(self, stream_name: str) -> Optional[EventStream]`: returns the EventStream that has the name specified 
+   or None if it doesn't exist
+
+7. `get_stream_names(self) -> List[str]`: returns the names of all EventStream in the EventStreams
+
+8. `save_streams(self)`: saves all streams to disk; uses the `base_dir` property as the starting directory
+
+9. `set_save_dir(self, new_dir: str)`: changes the directory where data is saved to `new_dir`
+
+10. `from_dir(base_dir: str, file_names: List[str]) -> "EventStreams"`: returns EventStreams object from a directory if 
+    the names of the EventStream files match a value in `file_names`
+
+#### EventStream
+
+EventStreams are comprised of EventStream objects.  There may be multiple Events (of a single type) in an EventStream.
+Each row returned by the function `pyarrow_table()` is a single Event.
+
+These are the publicly available properties of EventStream:
+1. `name`: string; the unique name of the EventStream.  All Events in the EventStream have this name.  Default is "event"
+2. `timestamps_metadata`: dictionary of strings; Metadata from the timestamps of the Events.
+3. `metadata`: dictionary of strings; Metadata from the Events themselves.
+
+These are the protected properties of EventStream.  You will need functions to access and update these values.
+1. `_errors`: RedVoxExceptions that keep track of any errors that occur while reading the Events.
+2. `_is_timestamps_corrected`: boolean; Keeps track of whether or not timestamps have been updated.  Default False.
+3. `_fs_writer`: FileSystemWriter; stores the information used to save the data to disk.  Defaults to not saving and
+   using the current directory.
+4. `_data`: Pyarrow Table; The data of the events.  Includes timestamps for each Event.
+5. `_schema`: dict; The schema of the Event data.  Data is organized via type.  
+   Default is {"string": [], "numeric": [], "boolean": [], "byte": []}
+
+These are the methods used to access the EventStream's data:
+
+1. `pyarrow_table(self) -> pa.Table`: Returns all Events as a pyarrow Table
+
+2. `get_string_schema(self) -> List[str]`: Returns the column names of string typed data as a list of strings
+
+3. `get_numeric_schema(self) -> List[str]`: Returns the column names of numeric typed data as a list of strings
+
+4. `get_boolean_schema(self) -> List[str]`: Returns the column names of boolean typed data as a list of strings
+
+5. `get_byte_schema(self) -> List[str]`: Returns the column names of byte typed data as a list of strings
+
+6. `def string_data(self) -> pa.Table`: Returns all string data as a pyarrow table
+
+7. `numeric_data(self) -> Optional[pa.Table]`: Returns all numeric data as a pyarrow table
+
+8. `boolean_data(self) -> Optional[pa.Table]`: Returns all boolean data as a pyarrow table
+
+9. `byte_data(self) -> Optional[pa.Table]`: Returns all byte data as a pyarrow Table
+
+10. `get_string_channel(self, channel_name: str) -> List[str]`: Returns string data from the channel specified.  Returns
+    an empty list if the `channel_name` doesn't exist in the string data.
+
+11. `get_numeric_channel(self, channel_name: str) -> np.array`: Returns numeric data from the channel specified.
+    Returns an empty numpy array if `channel_name` doesn't exist in the numeric data.
+
+12. `get_boolean_channel(self, channel_name: str) -> List[bool]`: Returns boolean data from the channel specified.
+    Returns an empty list if the `channel_name` doesn't exist in the boolean data.
+
+13. `get_byte_channel(self, channel_name: str) -> List[bytes]`: Returns byte data from the channel specified. Returns 
+    an empty list if the `channel_name` doesn't exist in the byte data.
+
+14. `data_timestamps(self) -> np.array`: Returns the timestamps of the data as a numpy array
+
+15. `unaltered_data_timestamps(self) -> np.array`: Returns the unaltered timestamps of the data as a numpy array
+
+_[Table of Contents](#table-of-contents)_
+
 ## Sensor Data
 
 SensorData is a format-agnostic representation of the data.  This data can be gathered from or converted to another format as needed.
@@ -508,8 +617,8 @@ You must use a function to return or update the values.  We do not recommend upd
 5. `_sample_interval_std_s`: float; standard deviation in seconds between samples, default np.nan
 6. `_is_sample_rate_fixed`: boolean; True if sample rate is expected to be constant, default False
 7. `_timestamps_altered`: boolean; True if timestamps in the sensor have been altered from their original values, default False
-8. `_use_offset_model`: boolean, if True, uses an offset model to correct timestamps, default False
-9. `_fs_writer`: FileSystemWriter, stores the information used to save the data to disk.  Defaults to not saving and
+8. `_use_offset_model`: boolean; if True, uses an offset model to correct timestamps, default False
+9. `_fs_writer`: FileSystemWriter; stores the information used to save the data to disk.  Defaults to not saving and
    using the current directory.
 10. `_gaps`: List of paired tuples; the timestamps of data points on the edge of data gaps.  Any point between the timestamps
     is not valid and exists purely to maintain sample rate.

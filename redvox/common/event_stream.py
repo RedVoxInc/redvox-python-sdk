@@ -354,6 +354,24 @@ class EventStream:
             self.metadata = {**self.metadata, **other_stream.metadata}
             self._errors.extend_error(other_stream.errors())
 
+    def data_timestamps(self) -> np.array:
+        """
+        :return: the timestamps as a numpy array or [np.nan] if none exist
+        """
+        if "timestamps" in self.pyarrow_table().schema.names:
+            return self.pyarrow_table()["timestamps"].to_numpy()
+        else:
+            return np.array([np.nan])
+
+    def unaltered_data_timestamps(self) -> np.array:
+        """
+        :return: the unaltered timestamps as a numpy array
+        """
+        if "unaltered_timestamps" in self.pyarrow_table().schema.names:
+            return self.pyarrow_table()["unaltered_timestamps"].to_numpy()
+        else:
+            return np.array([np.nan])
+
     def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         """
         updates the timestamps of the data points
@@ -442,7 +460,7 @@ class EventStream:
 
     def pyarrow_table(self) -> pa.Table:
         """
-        :return: the table defined by the dataset stored in self
+        :return: the data as a pyarrow table
         """
         if self._data is None:
             self._data = pq.read_table(self.full_path())
