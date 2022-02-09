@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.1.5rc2 (2022-2-9)
+
+* Events added to Stations
+* Updated methods used to create Stations
+* Fixed bugs when creating DataWindows, Stations, and Sensors
+
 ### 3.1.5rc1 (2022-1-10)
 
 * Write SensorData to disk instead of saving in memory
