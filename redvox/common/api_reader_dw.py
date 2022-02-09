@@ -1,4 +1,5 @@
 """
+For use with DataWindow specifically.  Do NOT use with non-DataWindow objects
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 """
@@ -14,6 +15,9 @@ from redvox.common.station import Station
 
 
 class ApiReaderDw(ApiReader):
+    """
+    For use with DataWindow specifically.  Do NOT use with non-DataWindow objects
+    """
     def __init__(self,
                  base_dir: str,
                  structured_dir: bool = False,
@@ -21,7 +25,7 @@ class ApiReaderDw(ApiReader):
                  correct_timestamps: bool = False,
                  use_model_correction: bool = True,
                  dw_base_dir: str = ".",
-                 save_mode: io.FileSystemSaveMode = io.FileSystemSaveMode.TEMP,
+                 dw_save_mode: io.FileSystemSaveMode = io.FileSystemSaveMode.TEMP,
                  debug: bool = False,
                  pool: Optional[multiprocessing.pool.Pool] = None):
         """
@@ -36,14 +40,14 @@ class ApiReaderDw(ApiReader):
                                         if correct_timestamps is False, this value doesn't matter.  Default True
         :param dw_base_dir: the directory to save DataWindow files to.  if save_mode is FileSystemSaveMode.MEM,
                             this value doesn't matter.  default "." (current directory)
-        :param save_mode: save method for files.  Default FileSystemSaveMode.TEMP which saves to a temp_dir
+        :param dw_save_mode: save method for the data window.  Default FileSystemSaveMode.TEMP which saves to a temp_dir
         :param debug: if True, output program warnings/errors during function execution.  Default False.
         """
         super().__init__(base_dir, structured_dir, read_filter, debug, pool)
         self.correct_timestamps = correct_timestamps
         self.use_model_correction = use_model_correction
         self.dw_base_dir = dw_base_dir
-        self.save_mode = save_mode
+        self.dw_save_mode = dw_save_mode
         self.all_files_size = np.sum([idx.files_size() for idx in self.files_index])
         self._stations = self._read_stations()
 
@@ -57,14 +61,15 @@ class ApiReaderDw(ApiReader):
         """
         split_list = self._split_workload(findex)
         use_temp_dir = True if len(split_list) > 1 else False
-        if use_temp_dir and self.save_mode == io.FileSystemSaveMode.MEM:
+        if use_temp_dir and self.dw_save_mode == io.FileSystemSaveMode.MEM:
             self.save_mode = io.FileSystemSaveMode.TEMP
+
         if len(split_list) > 0:
             stpa = Station.create_from_indexes(split_list,
                                                correct_timestamps=self.correct_timestamps,
                                                use_model_correction=self.use_model_correction,
                                                base_out_dir=self.dw_base_dir,
-                                               save_output=True if self.save_mode != io.FileSystemSaveMode.MEM
+                                               save_output=True if self.dw_save_mode != io.FileSystemSaveMode.MEM
                                                else False,
                                                use_temp_dir=use_temp_dir
                                                )

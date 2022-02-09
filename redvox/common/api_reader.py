@@ -358,7 +358,7 @@ class ApiReader:
         :param get_id: the id to filter on
         :return: list of all stations with the requested id or None if id can't be found
         """
-        result = [s for s in self.get_stations() if s.id == get_id]
+        result = [s for s in self.get_stations() if s.id() == get_id]
         if len(result) < 1:
             return None
         return result

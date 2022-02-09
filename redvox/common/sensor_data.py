@@ -220,11 +220,12 @@ class SensorData:
             save_mode = FileSystemSaveMode.MEM
         self._fs_writer = Fsw("", "parquet", base_dir, save_mode)
         self._gaps: List[Tuple] = gaps if gaps else []
+        set_data_as_sensor_data = True
         if sensor_data is not None:
             if "timestamps" not in sensor_data.schema.names:
-                self._data = sensor_data
                 self._errors.append('must have a column titled "timestamps"')
             elif sensor_data['timestamps'].length() > 0:
+                set_data_as_sensor_data = False
                 # self.set_file_name(f"{sensor_type.name}_{int(sensor_data['timestamps'][0].as_py())}")
                 if calculate_stats:
                     self.organize_and_update_stats(sensor_data)
@@ -232,8 +233,8 @@ class SensorData:
                     self.sort_by_data_timestamps(sensor_data)
                 else:
                     self.write_pyarrow_table(sensor_data)
-        else:
-            self._data = None
+        if set_data_as_sensor_data:
+            self._data = sensor_data
         if show_errors:
             self.print_errors()
 

@@ -1439,7 +1439,7 @@ class Station:
         """
         if self._is_timestamps_updated:
             self._errors.append("Timestamps already corrected!")
-        elif self._correct_timestamps:
+        else:
             update_dir = False
             self._start_date = self._timesync_data.offset_model().update_time(
                 self._start_date, self._use_model_correction

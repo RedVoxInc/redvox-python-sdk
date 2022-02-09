@@ -651,12 +651,12 @@ class DataWindow:
                           correct_timestamps=self._config.apply_correction,
                           use_model_correction=self._config.use_model_correction,
                           dw_base_dir=self.save_dir(),
-                          save_mode=self._fs_writer.save_mode(),
+                          dw_save_mode=self._fs_writer.save_mode(),
                           debug=self.debug, pool=_pool)
 
         self._errors.extend_error(a_r.errors)
 
-        if self._fs_writer.is_use_mem() and a_r.save_mode != self._fs_writer.save_mode():
+        if self._fs_writer.is_use_mem() and a_r.dw_save_mode != self._fs_writer.save_mode():
             if self.debug:
                 print("Estimated size of files exceeds available memory.")
                 print("Automatically using temporary directory to store data.")
