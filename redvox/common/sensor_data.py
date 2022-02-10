@@ -3,7 +3,7 @@ Defines generic sensor data and data for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 """
 import enum
-from typing import List, Union, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple
 from pathlib import Path
 import os
 
@@ -31,11 +31,19 @@ from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvid
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 
+# function used to translate values of enumerated columns
+COLUMN_TO_ENUM_FN = {"location_provider": lambda l: LocationProvider(l).name,
+                     "image_codec": lambda l: ImageCodec(l).name,
+                     "audio_codec": lambda l: AudioCodec(l).name,
+                     "network_type": lambda l: NetworkType(l).name,
+                     "power_state": lambda l: PowerState(l).name,
+                     "cell_service": lambda l: CellServiceState(l).name,
+                     "wifi_wake_lock": lambda l: WifiWakeLock(l).name,
+                     "screen_state": lambda l: ScreenState(l).name}
 # columns that cannot be interpolated
 NON_INTERPOLATED_COLUMNS = ["compressed_audio", "image"]
 # columns that are not numeric but can be interpolated
-NON_NUMERIC_COLUMNS = ["location_provider", "image_codec", "audio_codec", "network_type",
-                       "power_state", "cell_service", "wifi_wake_lock", "screen_state"]
+NON_NUMERIC_COLUMNS = list(COLUMN_TO_ENUM_FN.keys())
 
 
 class SensorType(enum.Enum):
@@ -676,7 +684,7 @@ class SensorData:
             return self.pyarrow_table().schema.names
         return []
 
-    def get_data_channel(self, channel_name: str) -> Union[np.array, List[str]]:
+    def get_data_channel(self, channel_name: str) -> np.array:
         """
         gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
 
@@ -690,22 +698,8 @@ class SensorData:
         if channel_name not in _arrow.schema.names:
             self._errors.append(f"WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}")
             return []
-        if channel_name == "location_provider":
-            return [LocationProvider(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "image_codec":
-            return [ImageCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "audio_codec":
-            return [AudioCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "network_type":
-            return [NetworkType(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "power_state":
-            return [PowerState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "cell_service":
-            return [CellServiceState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "wifi_wake_lock":
-            return [WifiWakeLock(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "screen_state":
-            return [ScreenState(c.as_py()).name for c in _arrow[channel_name]]
+        if channel_name in NON_NUMERIC_COLUMNS:
+            return np.array([COLUMN_TO_ENUM_FN[channel_name](c.as_py()) for c in _arrow[channel_name]])
         return _arrow[channel_name].to_numpy()
 
     def _get_non_numeric_data_channel(self, channel_name: str) -> List[str]:
@@ -715,23 +709,12 @@ class SensorData:
         :param channel_name: the name of the channel to get data for
         :return: the data values of the channel as a list of strings
         """
-        _arrow = self.pyarrow_table()
-        if channel_name == "location_provider":
-            return [LocationProvider(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "image_codec":
-            return [ImageCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "audio_codec":
-            return [AudioCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "network_type":
-            return [NetworkType(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "power_state":
-            return [PowerState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "cell_service":
-            return [CellServiceState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "wifi_wake_lock":
-            return [WifiWakeLock(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == "screen_state":
-            return [ScreenState(c.as_py()).name for c in _arrow[channel_name]]
+        if not self.pyarrow_table():
+            self._errors.append(f"WARNING: There are no channels to access in this Sensor!")
+        else:
+            _arrow = self.pyarrow_table()
+            if channel_name in NON_NUMERIC_COLUMNS:
+                return [COLUMN_TO_ENUM_FN[channel_name](c.as_py()) for c in _arrow[channel_name]]
         self._errors.append(f"WARNING: {channel_name} does not exist")
         return []
 
@@ -796,7 +779,7 @@ class SensorData:
             self._sample_interval_s = dtu.microseconds_to_seconds(slope)
             if self._sample_interval_s > 0:
                 self._sample_rate_hz = 1 / self._sample_interval_s
-                self._sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
+                self._sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(time_diffs)))
         self._timestamps_altered = True
 
     def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
@@ -907,42 +890,30 @@ class SensorData:
 
         :return: Self
         """
-        if self._type == SensorType.AUDIO:
-            self.__class__ = AudioSensor
-        if self._type == SensorType.COMPRESSED_AUDIO:
-            self.__class__ = CompressedAudioSensor
-        if self._type == SensorType.IMAGE:
-            self.__class__ = ImageSensor
-        if self._type == SensorType.LOCATION:
-            self.__class__ = LocationSensor
-        if self._type == SensorType.BEST_LOCATION:
-            self.__class__ = BestLocationSensor
-        if self._type == SensorType.STATION_HEALTH:
-            self.__class__ = StationHealthSensor
-        if self._type == SensorType.LIGHT:
-            self.__class__ = LightSensor
-        if self._type == SensorType.PRESSURE:
-            self.__class__ = PressureSensor
-        if self._type == SensorType.PROXIMITY or self._type == SensorType.INFRARED:
-            self.__class__ = ProximitySensor
-        if self._type == SensorType.RELATIVE_HUMIDITY:
-            self.__class__ = RelativeHumiditySensor
-        if self._type == SensorType.AMBIENT_TEMPERATURE:
-            self.__class__ = AmbientTemperatureSensor
-        if self._type == SensorType.ACCELEROMETER:
-            self.__class__ = AccelerometerSensor
-        if self._type == SensorType.GYROSCOPE:
-            self.__class__ = GyroscopeSensor
-        if self._type == SensorType.MAGNETOMETER:
-            self.__class__ = MagnetometerSensor
-        if self._type == SensorType.ORIENTATION:
-            self.__class__ = OrientationSensor
-        if self._type == SensorType.GRAVITY:
-            self.__class__ = GravitySensor
-        if self._type == SensorType.LINEAR_ACCELERATION:
-            self.__class__ = LinearAccelerationSensor
-        if self._type == SensorType.ROTATION_VECTOR:
-            self.__class__ = RotationVectorSensor
+        if self._type in SensorType:
+            sensor_class_from_type = {
+                SensorType.AUDIO: AudioSensor,
+                SensorType.COMPRESSED_AUDIO: CompressedAudioSensor,
+                SensorType.IMAGE: ImageSensor,
+                SensorType.LOCATION: LocationSensor,
+                SensorType.BEST_LOCATION: BestLocationSensor,
+                SensorType.STATION_HEALTH: StationHealthSensor,
+                SensorType.LIGHT: LightSensor,
+                SensorType.PRESSURE: PressureSensor,
+                SensorType.PROXIMITY: ProximitySensor,
+                SensorType.INFRARED: ProximitySensor,
+                SensorType.RELATIVE_HUMIDITY: RelativeHumiditySensor,
+                SensorType.AMBIENT_TEMPERATURE: AmbientTemperatureSensor,
+                SensorType.ACCELEROMETER: AccelerometerSensor,
+                SensorType.GYROSCOPE: GyroscopeSensor,
+                SensorType.MAGNETOMETER: MagnetometerSensor,
+                SensorType.ORIENTATION: OrientationSensor,
+                SensorType.GRAVITY: GravitySensor,
+                SensorType.LINEAR_ACCELERATION: LinearAccelerationSensor,
+                SensorType.ROTATION_VECTOR: RotationVectorSensor,
+                SensorType.UNKNOWN_SENSOR: SensorData
+            }
+            self.__class__ = sensor_class_from_type[self._type]
         return self
 
     def set_errors(self, errors: RedVoxExceptions):

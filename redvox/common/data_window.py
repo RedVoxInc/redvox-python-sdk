@@ -181,6 +181,40 @@ class DataWindowConfig:
         self.use_model_correction = use_model_correction
         self.copy_edge_points = copy_edge_points
 
+    # def __repr__(self):
+    #     return dw_io.dict_to_json({
+    #         "input_dir": self.input_dir,
+    #         "structured_layout": self.structured_layout,
+    #         "start_datetime": self.start_datetime.__repr__(),
+    #         "end_datetime": self.end_datetime.__repr__(),
+    #         "start_buffer_td": self.start_buffer_td.__repr__(),
+    #         "end_buffer_td": self.end_buffer_td.__repr__(),
+    #         "drop_time_s": self.drop_time_s,
+    #         "station_ids": list(self.station_ids) if self.station_ids else [],
+    #         "extensions": list(self.extensions) if self.extensions else [],
+    #         "api_versions": [a_v.value for a_v in self.api_versions] if self.api_versions else [],
+    #         "apply_correction": self.apply_correction,
+    #         "use_model_correction": self.use_model_correction,
+    #         "copy_edge_points": self.copy_edge_points.value
+    #     })
+    #
+    # def __str__(self):
+    #     return dw_io.dict_to_json({
+    #         "input_dir": self.input_dir,
+    #         "structured_layout": self.structured_layout,
+    #         "start_datetime": self.start_datetime.strftime("%Y %B %d %I:%M:%S.%f") if self.start_datetime else None,
+    #         "end_datetime": self.end_datetime.strftime("%Y %B %d %I:%M:%S.%f") if self.end_datetime else None,
+    #         "start_buffer_td (in s)": self.start_buffer_td.total_seconds(),
+    #         "end_buffer_td (in s)": self.end_buffer_td.total_seconds(),
+    #         "drop_time_s": self.drop_time_s,
+    #         "station_ids": list(self.station_ids) if self.station_ids else [],
+    #         "extensions": list(self.extensions) if self.extensions else [],
+    #         "api_versions": [a_v.value for a_v in self.api_versions] if self.api_versions else [],
+    #         "apply_correction": self.apply_correction,
+    #         "use_model_correction": self.use_model_correction,
+    #         "copy_edge_points": self.copy_edge_points.name
+    #     })
+
     def as_dict(self) -> Dict:
         return {"input_dir": self.input_dir,
                 "structured_layout": self.structured_layout,
@@ -191,7 +225,7 @@ class DataWindowConfig:
                 "drop_time_s": self.drop_time_s,
                 "station_ids": list(self.station_ids) if self.station_ids else [],
                 "extensions": list(self.extensions) if self.extensions else [],
-                "api_versions": [a_v.value for a_v in self.api_versions],
+                "api_versions": [a_v.value for a_v in self.api_versions] if self.api_versions else [],
                 "apply_correction": self.apply_correction,
                 "use_model_correction": self.use_model_correction,
                 "copy_edge_points": self.copy_edge_points.value
@@ -262,10 +296,7 @@ class DataWindow:
         :param debug: if True, outputs additional information during initialization.  Default False
         """
         self.event_name: str = event_name
-        if event_origin:
-            self.event_origin: EventOrigin = event_origin
-        else:
-            self.event_origin = EventOrigin()
+        self.event_origin: EventOrigin = event_origin if event_origin else EventOrigin()
         self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, output_dir, make_runme)
         self.debug: bool = debug
         self._sdk_version: str = redvox.VERSION
@@ -280,6 +311,37 @@ class DataWindow:
                 self.create_data_window()
         if self.debug:
             self.print_errors()
+
+    # def __repr__(self):
+    #     # todo: use representations for the datetime and timedelta objects
+    #     # todo: use the dictionary function
+    #     return dw_io.dict_to_json({
+    #         "event_name": self.event_name,
+    #         "event_origin": repr(self.event_origin),
+    #         "config": repr(self._config),
+    #         "base_dir": self.save_dir(),
+    #         "out_type": self._fs_writer.file_extension,
+    #         "make_runme": self._fs_writer.make_run_me,
+    #         "sdk_version": self._sdk_version,
+    #         "errors": repr(self._errors),
+    #         "debug": self.debug
+    #     })
+    #
+    # def __str__(self):
+    #     # todo: use representations for the datetime and timedelta objects
+    #     # todo: use the dictionary function
+    #     return dw_io.dict_to_json(
+    #         {"event_name": self.event_name,
+    #          "event_origin": str(self.event_origin),
+    #          "config": str(self._config),
+    #          "base_dir": self.save_dir(),
+    #          "stations": [s.default_station_json_file_name() for s in self._stations],
+    #          "out_type": self._fs_writer.file_extension,
+    #          "make_runme": self._fs_writer.make_run_me,
+    #          "sdk_version": self._sdk_version,
+    #          "errors": str(self._errors),
+    #          "debug": self.debug
+    #          })
 
     def save_dir(self) -> str:
         """

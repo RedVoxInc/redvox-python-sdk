@@ -198,72 +198,76 @@ class EventStream:
         """
         return self._schema["byte"]
 
-    def string_data(self) -> pa.Table:
+    def get_string_values(self) -> pa.Table:
         """
         :return: the string data as a pyarrow table
         """
         return self._data.select(self.get_string_schema())
 
-    def numeric_data(self) -> Optional[pa.Table]:
+    def get_numeric_values(self) -> Optional[pa.Table]:
         """
         :return: the numeric data as a pyarrow table
         """
         return self._data.select(self.get_numeric_schema())
 
-    def boolean_data(self) -> Optional[pa.Table]:
+    def get_boolean_values(self) -> Optional[pa.Table]:
         """
         :return: the boolean data as a pyarrow table
         """
         return self._data.select(self.get_boolean_schema())
 
-    def byte_data(self) -> Optional[pa.Table]:
+    def get_byte_values(self) -> Optional[pa.Table]:
         """
         :return: the byte data as a pyarrow table
         """
         return self._data.select(self.get_byte_schema())
 
-    def _check_for_name(self, channel_name: str, schema: List[str]) -> bool:
+    def _check_for_name(self, column_name: str, schema: List[str]) -> bool:
         """
-        :param channel_name: name of channel to check for
+        :param column_name: name of column to check for
         :param schema: list of allowed names
-        :return: True if channel_name is in schema, sets error and returns False if not
+        :return: True if column_name is in schema, sets error and returns False if not
         """
-        if channel_name not in schema:
-            self._errors.append(f"WARNING: {channel_name} does not exist; try one of {schema}")
+        if column_name not in schema:
+            self._errors.append(f"WARNING: Column {column_name} does not exist; try one of {schema}")
             return False
         return True
 
-    def get_string_channel(self, channel_name: str) -> List[str]:
+    def __get_column_data(self, schema: List[str], column_name: str) -> np.array:
         """
-        :param channel_name: name of string payload to retrieve
-        :return: string data from the channel specified
+        :param schema: list of column names to search
+        :param column_name: column name to get
+        :return: the data as an np.array; if empty, column name or data doesn't exist
         """
-        return [c for c in self._data[channel_name]] \
-            if self._check_for_name(channel_name, self.get_string_schema()) else []
+        return self._data[column_name].to_numpy() if self._check_for_name(column_name, schema) else np.array([])
 
-    def get_numeric_channel(self, channel_name: str) -> np.array:
+    def get_string_column(self, column_name: str) -> np.array:
         """
-        :param channel_name: name of numeric payload to retrieve
-        :return: numeric data from the channel specified
+        :param column_name: name of string payload to retrieve
+        :return: string data from the column specified
         """
-        return self._data[channel_name].to_numpy() \
-            if self._check_for_name(channel_name, self.get_numeric_schema()) else np.array([])
+        return self.__get_column_data(self.get_string_schema(), column_name)
 
-    def get_boolean_channel(self, channel_name: str) -> List[bool]:
+    def get_numeric_column(self, column_name: str) -> np.array:
         """
-        :param channel_name: name of boolean payload to retrieve
-        :return: boolean data from the channel specified
+        :param column_name: name of numeric payload to retrieve
+        :return: numeric data from the column specified
         """
-        return [c for c in self._data[channel_name]] \
-            if self._check_for_name(channel_name, self.get_boolean_schema()) else []
+        return self.__get_column_data(self.get_numeric_schema(), column_name)
 
-    def get_byte_channel(self, channel_name: str) -> List[bytes]:
+    def get_boolean_column(self, column_name: str) -> np.array:
         """
-        :param channel_name: name of byte payload to retrieve
-        :return: bytes data from the channel specified
+        :param column_name: name of boolean payload to retrieve
+        :return: boolean data from the column specified
         """
-        return [c for c in self._data[channel_name]] \
-            if self._check_for_name(channel_name, self.get_byte_schema()) else []
+        return self.__get_column_data(self.get_boolean_schema(), column_name)
+
+    def get_byte_column(self, column_name: str) -> np.array:
+        """
+        :param column_name: name of byte payload to retrieve
+        :return: bytes data from the column specified
+        """
+        return self.__get_column_data(self.get_byte_schema(), column_name)
 
     def set_schema(self, schema: Dict[str, list]):
         """
