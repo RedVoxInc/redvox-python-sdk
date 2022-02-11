@@ -498,29 +498,33 @@ These are the methods used to access the EventStream's data:
 
 5. `get_byte_schema(self) -> List[str]`: Returns the column names of byte typed data as a list of strings
 
-6. `def string_data(self) -> pa.Table`: Returns all string data as a pyarrow table
+6. `get_string_values(self) -> pa.Table`: Returns all string data as a pyarrow Table.  An empty result means there is 
+   no data of that type.
 
-7. `numeric_data(self) -> Optional[pa.Table]`: Returns all numeric data as a pyarrow table
+7. `get_numeric_values(self) -> pa.Table`: Returns all numeric data as a pyarrow Table.  An empty result means there is 
+   no data of that type.
 
-8. `boolean_data(self) -> Optional[pa.Table]`: Returns all boolean data as a pyarrow table
+9. `get_boolean_values(self) -> pa.Table`: Returns all boolean data as a pyarrow Table.  An empty result means there is
+   no data of that type.
 
-9. `byte_data(self) -> Optional[pa.Table]`: Returns all byte data as a pyarrow Table
+10. `get_byte_values(self) -> pa.Table`: Returns all byte data as a pyarrow Table.  An empty result means there is
+    no data of that type.
 
-10. `get_string_channel(self, channel_name: str) -> List[str]`: Returns string data from the channel specified.  Returns
-    an empty list if the `channel_name` doesn't exist in the string data.
+11. `get_string_column(self, column_name: str) -> np.array`: Returns string data from the column specified.  Returns
+    an empty numpy array if the `column_name` doesn't exist in the string data.
 
-11. `get_numeric_channel(self, channel_name: str) -> np.array`: Returns numeric data from the channel specified.
-    Returns an empty numpy array if `channel_name` doesn't exist in the numeric data.
+12. `get_numeric_column(self, column_name: str) -> np.array`: Returns numeric data from the column specified.
+    Returns an empty numpy array if `column_name` doesn't exist in the numeric data.
 
-12. `get_boolean_channel(self, channel_name: str) -> List[bool]`: Returns boolean data from the channel specified.
-    Returns an empty list if the `channel_name` doesn't exist in the boolean data.
+13. `get_boolean_column(self, column_name: str) -> np.array`: Returns boolean data from the column specified.
+    Returns an empty numpy array if the `column_name` doesn't exist in the boolean data.
 
-13. `get_byte_channel(self, channel_name: str) -> List[bytes]`: Returns byte data from the channel specified. Returns 
-    an empty list if the `channel_name` doesn't exist in the byte data.
+14. `get_byte_column(self, column_name: str) -> np.array`: Returns byte data from the column specified. Returns 
+    an empty numpy array if the `column_name` doesn't exist in the byte data.
 
-14. `data_timestamps(self) -> np.array`: Returns the timestamps of the data as a numpy array
+15. `timestamps(self) -> np.array`: Returns the timestamps of the data as a numpy array
 
-15. `unaltered_data_timestamps(self) -> np.array`: Returns the unaltered timestamps of the data as a numpy array
+16. `unaltered_timestamps(self) -> np.array`: Returns the unaltered timestamps of the data as a numpy array
 
 _[Table of Contents](#table-of-contents)_
 

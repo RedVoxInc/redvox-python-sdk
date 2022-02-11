@@ -17,14 +17,14 @@ from typing import (
 
 import lz4.frame
 
-from redvox.common.io import FileSystemWriter, FileSystemSaveMode, json_to_dict
+from redvox.common.io import FileSystemWriter, FileSystemSaveMode, json_to_dict, dict_to_json
 from redvox.common.date_time_utils import (
     datetime_to_epoch_microseconds_utc as us_dt,
 )
 
 
 if TYPE_CHECKING:
-    from redvox.common.data_window import DataWindow
+    from redvox.common.data_window import DataWindow, DataWindowConfig
     from redvox.common.data_window_old import DataWindow as DwOld
 
 

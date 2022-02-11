@@ -1,5 +1,14 @@
 ## Changelog
 
+### 3.1.5rc3 (2022-2-10)
+
+* Updated functions in EventStream
+  * functions string_data, numeric_data, boolean_data and byte_data are renamed to 
+    get_string_values, get_numeric_values, get_boolean_values and get_byte_values respectively
+  * functions get_string_channel, get_numeric_channel, get_boolean_channel and get_byte_channel
+    are renamed to get_string_column, get_numeric_column, get_boolean_column and get_byte_column respectively
+  * removed the word data from functions data_timestamps and unaltered_data_timestamps
+
 ### 3.1.5rc2 (2022-2-9)
 
 * Events added to Stations

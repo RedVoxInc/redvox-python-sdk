@@ -270,6 +270,14 @@ class FileSystemWriter:
                                 FileSystemSaveMode[data_dict["save_mode"]])
 
 
+def dict_to_json(dct: dict) -> str:
+    """
+    :param dct: dictionary to convert to json
+    :return: dictionary as json string
+    """
+    return json.dumps(dct)
+
+
 def json_to_dict(json_str: str) -> Dict:
     """
     :param json_str: string of json to convert to dictionary

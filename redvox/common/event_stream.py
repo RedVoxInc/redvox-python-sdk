@@ -204,19 +204,19 @@ class EventStream:
         """
         return self._data.select(self.get_string_schema())
 
-    def get_numeric_values(self) -> Optional[pa.Table]:
+    def get_numeric_values(self) -> pa.Table:
         """
         :return: the numeric data as a pyarrow table
         """
         return self._data.select(self.get_numeric_schema())
 
-    def get_boolean_values(self) -> Optional[pa.Table]:
+    def get_boolean_values(self) -> pa.Table:
         """
         :return: the boolean data as a pyarrow table
         """
         return self._data.select(self.get_boolean_schema())
 
-    def get_byte_values(self) -> Optional[pa.Table]:
+    def get_byte_values(self) -> pa.Table:
         """
         :return: the byte data as a pyarrow table
         """
@@ -281,7 +281,8 @@ class EventStream:
         :param schema: specially structured dictionary of data table schema
         """
         if schema.keys() != self._schema.keys():
-            self._errors.append(f"Attempted to add invalid schema f{schema.keys()} to EventStreams")
+            self._errors.append(f"Attempted to add invalid schema with keys {list(schema.keys())} to EventStreams.\n"
+                                f"Valid keys are: {list(self._schema.keys())}")
         else:
             self._schema = schema
 
@@ -358,7 +359,7 @@ class EventStream:
             self.metadata = {**self.metadata, **other_stream.metadata}
             self._errors.extend_error(other_stream.errors())
 
-    def data_timestamps(self) -> np.array:
+    def timestamps(self) -> np.array:
         """
         :return: the timestamps as a numpy array or [np.nan] if none exist
         """
@@ -367,7 +368,7 @@ class EventStream:
         else:
             return np.array([np.nan])
 
-    def unaltered_data_timestamps(self) -> np.array:
+    def unaltered_timestamps(self) -> np.array:
         """
         :return: the unaltered timestamps as a numpy array
         """
@@ -376,7 +377,7 @@ class EventStream:
         else:
             return np.array([np.nan])
 
-    def update_data_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+    def update_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         """
         updates the timestamps of the data points
 
@@ -642,7 +643,7 @@ class EventStreams:
                                     otherwise uses the best offset (model's intercept value).  Default False
         """
         for evnt in self.streams:
-            evnt.update_data_timestamps(offset_model, use_model_function)
+            evnt.update_timestamps(offset_model, use_model_function)
 
     @staticmethod
     def from_dir(base_dir: str, file_names: List[str]) -> "EventStreams":
