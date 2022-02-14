@@ -68,25 +68,42 @@ class DataWindowOutputType(enum.Enum):
 
 class DataWindowFileSystemWriter(FileSystemWriter):
     """
-    This class holds the FileSystemWriter info for DataWindows
+    This class holds the FileSystemWriter info for DataWindows.  Extends the FileSystemWriter from io.py
+
+    Properties:
+        file_name: str, the name of the file (do not include extension)
+
+        file_ext: str, the extension used by the file (do not include the .)  Default "NONE"
+
+        base_dir: str, the directory to save the file to.  Default "." (current dir)
+
+        make_run_me: bool, if True, makes a sample runme.py file when saving to disk.  default False
+
+        orig_path: str, the current working directory when the object is initialized
+
+    Protected:
+        _save_mode: FileSystemSaveMode, determines how files get saved
+
+        _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
     """
 
     def __init__(self, file_name: str, file_ext: str = "none", base_dir: str = ".", make_run_me: bool = False):
         """
-        initialize FileSystemWriter
+        initialize DataWindowFileSystemWriter
 
         :param file_name: name of file
         :param file_ext: extension of file, default "none"
         :param base_dir: directory to save file to, default "." (current dir)
         :param make_run_me: if True, add a runme.py file to the saved files.  Default False
         """
+        self.orig_path = os.getcwd()
         if not os.path.exists(base_dir):
             os.makedirs(base_dir, exist_ok=True)
         os.chdir(base_dir)
         super().__init__(file_name, file_ext, ".",
-                         FileSystemSaveMode.MEM
-                         if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.NONE
-                         else FileSystemSaveMode.DISK)
+                         FileSystemSaveMode.DISK
+                         if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.PARQUET
+                         else FileSystemSaveMode.MEM)
         self.make_run_me = make_run_me
 
 

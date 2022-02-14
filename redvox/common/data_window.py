@@ -367,9 +367,9 @@ class DataWindow:
         """
         self._fs_writer.make_run_me = make_runme
 
-    def fs_writer(self) -> io.FileSystemWriter:
+    def fs_writer(self) -> dw_io.DataWindowFileSystemWriter:
         """
-        :return: FileSystemWriter for DataWindow
+        :return: DataWindowFileSystemWriter for DataWindow
         """
         return self._fs_writer
 
@@ -546,8 +546,11 @@ class DataWindow:
         :param file_path: full path of file to load
         :return: DataWindow from json metadata
         """
+        cur_path = os.getcwd()
         os.chdir(os.path.dirname(file_path))
-        return DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
+        result = DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
+        os.chdir(cur_path)
+        return result
 
     def config(self) -> DataWindowConfig:
         """

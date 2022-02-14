@@ -198,29 +198,35 @@ class EventStream:
         """
         return self._schema["byte"]
 
+    def get_schema(self) -> dict:
+        """
+        :return: the schema of the EventStream
+        """
+        return self._schema
+
     def get_string_values(self) -> pa.Table:
         """
         :return: the string data as a pyarrow table
         """
-        return self._data.select(self.get_string_schema())
+        return self._data.select(self.get_string_schema()) if self._data else pa.Table.from_pydict({})
 
     def get_numeric_values(self) -> pa.Table:
         """
         :return: the numeric data as a pyarrow table
         """
-        return self._data.select(self.get_numeric_schema())
+        return self._data.select(self.get_numeric_schema()) if self._data else pa.Table.from_pydict({})
 
     def get_boolean_values(self) -> pa.Table:
         """
         :return: the boolean data as a pyarrow table
         """
-        return self._data.select(self.get_boolean_schema())
+        return self._data.select(self.get_boolean_schema()) if self._data else pa.Table.from_pydict({})
 
     def get_byte_values(self) -> pa.Table:
         """
         :return: the byte data as a pyarrow table
         """
-        return self._data.select(self.get_byte_schema())
+        return self._data.select(self.get_byte_schema()) if self._data else pa.Table.from_pydict({})
 
     def _check_for_name(self, column_name: str, schema: List[str]) -> bool:
         """
@@ -301,9 +307,9 @@ class EventStream:
 
     def add(self, other_stream: es.EventStream):
         """
-        adds an event stream with the same name to the data
+        adds a Redvox Api1000 EventStream with the same name to the data
 
-        :param other_stream: another event stream with the same name
+        :param other_stream: another EventStream with the same name
         """
         if self.name != other_stream.get_name():
             self._errors.append(f"Attempted to add a stream with a different name ({other_stream.get_name()})")
@@ -361,21 +367,21 @@ class EventStream:
 
     def timestamps(self) -> np.array:
         """
-        :return: the timestamps as a numpy array or [np.nan] if none exist
+        :return: the timestamps as a numpy array; returns empty array if no timestamps exist
         """
-        if "timestamps" in self.pyarrow_table().schema.names:
-            return self.pyarrow_table()["timestamps"].to_numpy()
+        if "timestamps" in self.data().schema.names:
+            return self.data()["timestamps"].to_numpy()
         else:
-            return np.array([np.nan])
+            return np.array([])
 
     def unaltered_timestamps(self) -> np.array:
         """
-        :return: the unaltered timestamps as a numpy array
+        :return: the unaltered timestamps as a numpy array; returns empty array if no timestamps exist
         """
-        if "unaltered_timestamps" in self.pyarrow_table().schema.names:
-            return self.pyarrow_table()["unaltered_timestamps"].to_numpy()
+        if "unaltered_timestamps" in self.data().schema.names:
+            return self.data()["unaltered_timestamps"].to_numpy()
         else:
-            return np.array([np.nan])
+            return np.array([])
 
     def update_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         """
@@ -410,7 +416,7 @@ class EventStream:
 
     def set_file_name(self, new_file: Optional[str] = None):
         """
-        * set the pyarrow file name or use the default: {sensor_type}_{int(first_timestamp)}
+        * set the pyarrow file name or use the default: event_{EventStream.name}
         * Do not give an extension
 
         :param new_file: optional file name to change to; default None (use default name)
@@ -459,16 +465,18 @@ class EventStream:
         """
         writes the event stream data to disk.
         """
-        # self._fs_writer.create_dir()
         if self._data is not None:
             pq.write_table(self._data, self.full_path())
 
-    def pyarrow_table(self) -> pa.Table:
+    def data(self) -> pa.Table:
         """
         :return: the data as a pyarrow table
         """
         if self._data is None:
-            self._data = pq.read_table(self.full_path())
+            if self.is_save_to_disk():
+                self._data = pq.read_table(self.full_path())
+            else:
+                return pa.Table.from_pydict({})
         return self._data
 
     @staticmethod
