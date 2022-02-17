@@ -234,8 +234,8 @@ class SensorData:
                 self._errors.append('must have a column titled "timestamps"')
             elif sensor_data['timestamps'].length() > 0:
                 set_data_as_sensor_data = False
-                # self.set_file_name(f"{sensor_type.name}_{int(sensor_data['timestamps'][0].as_py())}")
-                if calculate_stats:
+                if calculate_stats and np.isnan(sample_interval_s) and np.isnan(sample_rate_hz) \
+                        and np.isnan(sample_interval_std_s):
                     self.organize_and_update_stats(sensor_data)
                 elif sensor_data["timestamps"].length() > 1:
                     self.sort_by_data_timestamps(sensor_data)
@@ -390,13 +390,13 @@ class SensorData:
         """
         return self._fs_writer.file_name
 
-    def set_save_dir(self, new_dir: Optional[str] = None):
+    def set_save_dir(self, new_dir: str = "."):
         """
         set the pyarrow directory or use the default: "." (current directory)
 
-        :param new_dir: the directory to change to; default None (use current directory)
+        :param new_dir: the directory to change to; default "." (use current directory)
         """
-        self._fs_writer.base_dir = new_dir if new_dir else "."
+        self._fs_writer.base_dir = new_dir
 
     def save_dir(self) -> str:
         """
@@ -445,16 +445,21 @@ class SensorData:
         """
         return self.pyarrow_table().to_pandas()
 
-    def write_pyarrow_table(self, table: Optional[pa.Table] = None, update_file_name: Optional[bool] = True):
+    def write_pyarrow_table(self, table: pa.Table, update_file_name: Optional[bool] = True):
         """
-        * saves the pyarrow table to disk or to memory.
-        * if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
-        * creates the directory if it doesn't exist and removes any existing parquet files
+        saves the pyarrow table to disk or to memory.
 
-        :param table: the table to write, default None (write existing data)
+        * if there is no data or there is no column named timestamps in the table, an error will be created
+        * if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
+        * uses the directory defined by self.save_dir().  Creates the directory if it doesn't exist and removes any
+        existing parquet files from the directory if it exists
+
+        :param table: the table to write
         :param update_file_name: if True, updates the file name to match the new data.  Default True
         """
-        if self._fs_writer.is_save_disk():
+        if table.num_rows < 1 or "timestamps" not in table.schema.names:
+            self._errors.append("Attempted to write invalid table.")
+        elif self._fs_writer.is_save_disk():
             self._fs_writer.create_dir()
             if update_file_name:
                 self.set_file_name(f"{self.type().name}_{int(table['timestamps'][0].as_py())}")
@@ -551,9 +556,6 @@ class SensorData:
         else:
             order = "descending"
         data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", order)]))
-        # if not np.isnan(self.first_data_timestamp()) and self.first_data_timestamp() != data['timestamps'][0].as_py():
-        #     os.remove(self.full_path())
-        # self.set_file_name(f"{self._type.name}_{int(data['timestamps'][0].as_py())}")
         self.write_pyarrow_table(data)
 
     def organize_and_update_stats(self, ptable: pa.Table) -> "SensorData":

@@ -62,7 +62,7 @@ class DataWindowOutputType(enum.Enum):
         """
         str_type = str_type.upper()
         if str_type == "LZ4" or str_type == "PARQUET":
-            return DataWindowOutputType[str_type.upper()]
+            return DataWindowOutputType[str_type]
         return DataWindowOutputType["NONE"]
 
 
@@ -105,6 +105,14 @@ class DataWindowFileSystemWriter(FileSystemWriter):
                          if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.PARQUET
                          else FileSystemSaveMode.MEM)
         self.make_run_me = make_run_me
+
+    def set_extension(self, ext: str):
+        """
+        change the file extension.  Valid values are "PARQUET", "LZ4" and "NONE".  Invalid values become "NONE"
+
+        :param ext: extension to change to
+        """
+        self.file_extension = DataWindowOutputType.str_to_type(ext).name.lower()
 
 
 @dataclass

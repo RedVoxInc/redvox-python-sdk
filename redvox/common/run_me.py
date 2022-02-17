@@ -18,7 +18,7 @@ def main():
     print("Stations by ID in Data Window:", [sttn.id() for sttn in dw.stations()])
     st = dw.first_station()
 
-    print(f"Sensors in Station {st.id()}:", st.get_sensors())
+    print(f"Sensors in Station {st.id()}:", st.get_sensor_names())
     audio = st.audio_sensor()
     print(f"Audio Sensor {audio.name} Data: ", audio.get_microphone_data())
 

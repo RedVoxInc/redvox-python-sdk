@@ -10,7 +10,6 @@ from pathlib import Path
 import numpy as np
 import pyarrow.dataset as ds
 import pyarrow as pa
-import pyarrow.parquet as pq
 
 from redvox.common import station_io as io
 from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode, Index
@@ -40,9 +39,9 @@ class Station:
 
         _packet_metadata: list of StationPacketMetadata that changes from packet to packet, default empty list
 
-        _id: str id of the station, default None
+        _id: str id of the station, default empty string
 
-        _uuid: str uuid of the station, default None
+        _uuid: str uuid of the station, default empty string
 
         _start_date: float of microseconds since epoch UTC when the station started recording, default np.nan
 
@@ -226,8 +225,6 @@ class Station:
         """
         first_pkt = indexes[0].read_first_packet()
         self._load_metadata_from_packet(first_pkt)
-        if self._fs_writer.is_save_disk():
-            self.set_save_dir()
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
         self._timesync_data.arrow_file = \
             f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
@@ -238,9 +235,11 @@ class Station:
             self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
             self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
             self._event_data.read_from_packets_list(pkts)
-            all_summaries.add_aggregate_summary(ptp.stream_to_pyarrow(
-                pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None))
+            all_summaries.add_aggregate_summary(
+                ptp.stream_to_pyarrow(pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None))
         all_summaries.merge_all_summaries()
+        if self._fs_writer.is_save_disk():
+            self.set_save_dir()
         self._set_pyarrow_sensors(all_summaries)
         if self._correct_timestamps:
             self.update_timestamps()
@@ -302,15 +301,12 @@ class Station:
                 st_utils.StationPacketMetadata(packet) for packet in packets
             ]
             self._timesync_data = TimeSync().from_raw_packets(packets)
-            if self._fs_writer.is_save_disk():
-                self.set_save_dir()
-                files_dir = self._fs_writer.get_temp()
-            else:
-                files_dir = None
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
             self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
-            summaries = ptp.stream_to_pyarrow(packets, files_dir)
+            summaries = ptp.stream_to_pyarrow(packets, self._fs_writer.get_temp() if self.is_save_to_disk() else None)
             summaries.merge_all_summaries()
+            if self._fs_writer.is_save_disk():
+                self.set_save_dir()
             self._set_pyarrow_sensors(summaries)
             if self._correct_timestamps:
                 self.update_timestamps()

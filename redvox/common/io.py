@@ -217,6 +217,20 @@ class FileSystemWriter:
         self.file_name = name
         self.file_extension = ext
 
+    def set_name(self, name: str):
+        """
+        set the name of the output file.
+        :param name: file name
+        """
+        self.file_name = name
+
+    def set_extension(self, ext: str):
+        """
+        set the extension of the output file.  Do not include the . for the extension
+        :param ext: file extension
+        """
+        self.file_extension = ext
+
     def json_file_name(self) -> str:
         """
         :return: file name with .json extension
@@ -233,7 +247,7 @@ class FileSystemWriter:
         """
         if saving to disk, remove the directory if it exists,
         then create an empty directory to save things into
-         if saving to temp dir, remove any files in the temp dir
+        if saving to temp dir, remove any files in the temp dir
         """
         if self.is_use_disk():
             if os.path.exists(self.save_dir()):

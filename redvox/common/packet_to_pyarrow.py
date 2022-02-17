@@ -15,6 +15,7 @@ from redvox.common import sensor_reader_utils as srupa
 from redvox.common import date_time_utils as dtu
 from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.sensor_data import SensorType
+from redvox.common.errors import RedVoxExceptions
 
 
 # Maps a sensor type to a function that can extract that sensor for a particular packet.
@@ -183,6 +184,7 @@ class AggregateSummary:
     """
     summaries: List[PyarrowSummary] = field(default_factory=lambda: [])
     gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
+    errors: RedVoxExceptions = RedVoxExceptions("AggregateSummary")
 
     def to_dict(self) -> dict:
         """
@@ -246,7 +248,48 @@ class AggregateSummary:
         self.summaries = self.get_non_audio_list()
         self.add_summary(frst_audio)
 
-    def merge_summaries(self, stype: SensorType):
+    def merge_non_audio_summaries(self):
+        """
+        combines and replaces all summaries per type except for audio summaries
+        """
+        smrs_dict = {}
+        for smry in self.summaries:
+            if smry.stype != SensorType.AUDIO:
+                if smry.stype in smrs_dict.keys():
+                    smrs_dict[smry.stype].append(smry)
+                else:
+                    smrs_dict[smry.stype] = [smry]
+        self.summaries = self.get_audio()
+        for styp, smrys in smrs_dict.items():
+            first_summary = smrys.pop(0)
+            tbl = first_summary.data()
+            combined_mint = np.mean([smrs.smint_s for smrs in smrys])
+            combined_std = np.mean([smrs.sstd_s for smrs in smrys])
+            if not first_summary.check_data():
+                os.makedirs(first_summary.fdir, exist_ok=True)
+            for smrs in smrys:
+                tbl = pa.concat_tables([tbl, smrs.data()])
+                if not first_summary.check_data():
+                    os.remove(smrs.file_name())
+            if first_summary.check_data():
+                first_summary._data = tbl
+            else:
+                pq.write_table(tbl, first_summary.file_name())
+            mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl["timestamps"].to_numpy()))))
+            stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl["timestamps"].to_numpy()))))
+            if not combined_mint + combined_std > mnint > combined_mint - combined_std:
+                self.errors.append(f"Mean interval s of combined {styp.name} sensor does not match the "
+                                   f"compilation of individual mean interval s per packet.  Will use compilation of "
+                                   f"individual values.")
+                mnint = combined_mint
+                stdint = combined_std
+            single_smry = PyarrowSummary(first_summary.name, styp, first_summary.start,
+                                         1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                                         first_summary.data() if first_summary.check_data() else None
+                                         )
+            self.summaries.append(single_smry)
+
+    def merge_summaries_of_type(self, stype: SensorType):
         """
         combines and replaces multiple summaries of one SensorType into a single one
 
@@ -286,10 +329,7 @@ class AggregateSummary:
         merge all PyarrowSummary with the same sensor type into single PyarrowSummary per type
         """
         self.merge_audio_summaries()
-        sensor_types = self.sensor_types()
-        sensor_types.remove(SensorType.AUDIO)
-        for s in sensor_types:
-            self.merge_summaries(s)
+        self.merge_non_audio_summaries()
 
     def get_audio(self) -> List[PyarrowSummary]:
         """

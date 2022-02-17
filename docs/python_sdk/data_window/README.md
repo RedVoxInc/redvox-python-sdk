@@ -1,4 +1,4 @@
-# <img src="../img/redvox_logo.png" height="25"> **RedVox Python SDK Data Window Manual**
+# <img src="../img/redvox_logo.png" height="25"> **RedVox Python SDK DataWindow Manual**
 
 The RedVox Python SDK contains routines for reading, creating, and writing RedVox API 900 and RedVox API 1000 
 data files. The SDK is open-source.
@@ -13,34 +13,34 @@ If you wish to learn more about the low-level class used to construct DataWindow
 
 <!-- toc -->
 
-- [Data Window](#data-window)
-  * [Data Window Parameters](#data-window-parameters)
-    + [Strongly Recommended Data Window Parameters](#strongly-recommended-data-window-parameters)
-    + [Optional Data Window Parameters](#optional-data-window-parameters)
+- [DataWindow](#datawindow)
+  * [DataWindow Parameters](#datawindow-parameters)
+    + [Strongly Recommended DataWindow Parameters](#strongly-recommended-datawindow-parameters)
+    + [Optional DataWindow Parameters](#optional-datawindow-parameters)
   * [Event Origin](#event-origin)
-  * [Data Window Config](#data-window-config)
+  * [DataWindowConfig](#datawindow-config)
     + [Required Config Parameter](#required-config-parameter)
-    + [Strongly Config Recommended Parameters](#strongly-recommended-config-parameters)
+    + [Strongly Recommended Config Parameters](#strongly-recommended-config-parameters)
     + [Optional Config Parameters](#optional-config-parameters)
-    + [Advanced Config Optional Parameters](#advanced-optional-config-parameters)
-  * [Creating Data Windows](#creating-data-windows)
-  * [Using the Data Window Results](#using-the-data-window-results)
-  * [Data Window Properties](#data-window-properties)
-  * [Data Window Functions](#data-window-functions)
-- [Data Window Methodology](#data-window-methodology)
-  * [Data Window Initialization](#data-window-initialization)
-  * [Data Window File Search](#data-window-file-search)
+    + [Advanced Optional Config Parameters](#advanced-optional-config-parameters)
+  * [Creating DataWindows](#creating-datawindows)
+  * [Using the DataWindow Results](#using-the-datawindow-results)
+  * [DataWindow Properties](#datawindow-properties)
+  * [DataWindow Functions](#datawindow-functions)
+- [DataWindow Methodology](#datawindow-methodology)
+  * [DataWindow Initialization](#datawindow-initialization)
+  * [DataWindow File Search](#datawindow-file-search)
   * [File Indexing and Timestamp Update](#file-indexing-and-timestamp-update)
   * [Data Aggregation](#data-aggregation)
   * [Data Preparation](#data-preparation)
-  * [Data Window Complete](#data-window-complete)
+  * [DataWindow Complete](#datawindow-complete)
 - [Low-Level Data Access](#low-level-data-access)
 - [DataWindow Example Code](#datawindow-example-code)
 - [Errors and Troubleshooting](#errors-and-troubleshooting)
 
 <!-- tocstop -->
 
-## Data Window
+## DataWindow
 
 DataWindow is a module designed to search for data within a specified start and end time.  
 It will provide the most complete set of data it can find to the user as efficiently as possible.
@@ -63,14 +63,14 @@ If you want a quick example to copy and paste into your Python IDE, check [here]
 
 _[Table of Contents](#table-of-contents)_
 
-### Data Window Parameters
+### DataWindow Parameters
 
 The primary way to create a DataWindow is to invoke its constructor. The constructor has several parameters that allow 
 you to customize its behavior.  This section will detail the specifics of each parameter.
 
 _[Table of Contents](#table-of-contents)_
 
-#### Strongly Recommended Data Window Parameters
+#### Strongly Recommended DataWindow Parameters
 We strongly recommend setting these parameters when creating a DataWindow.
 
 If these parameters are not set, the given default values will be used.
@@ -83,14 +83,14 @@ where `[start_date]` is the first timestamp of the data and `[num_stations]` is 
 Using the default will create an empty EventOrigin.  See the section on [EventOrigin](#event-origin) for more details.
 
 `config`: Optional DataWindowConfig object that describes the parameters of the DataWindow.  Default is `None`.  If there is no
-DataWindowConfig, no data will be collected.  See the section on [DataWindowConfig](#data-window-config) for more details.
+DataWindowConfig, no data will be collected.  See the section on [DataWindowConfig](#datawindow-config) for more details.
 
 `output_dir`: a string that identifies the directory to save the DataWindow to.  Default `"."`, or current directory.
 
 `out_type`: a string that identifies the method to save the DataWindow.  Options: `"PARQUET", "LZ4", "NONE"`. 
 Default is `"NONE"` (no saving).
 
-#### Optional Data Window Parameters
+#### Optional DataWindow Parameters
 This parameter does not have to be set when creating a DataWindow.
 
 `debug`: a boolean value that controls the output level of DataWindow.  If `True`, DataWindow will output more information
@@ -121,7 +121,7 @@ All parameters for this class are optional.
 
 _[Table of Contents](#table-of-contents)_
 
-### Data Window Config
+### DataWindow Config
 This class defines the dimensions of a DataWindow
 
 #### Required Config Parameter
@@ -283,7 +283,7 @@ the timestamps.  If False, uses the best offset for correction.  The default val
 
 _[Table of Contents](#table-of-contents)_
 
-### Creating Data Windows
+### Creating DataWindows
 
 DataWindows can be created by invoking the initializer function of the class.
 We will also need to set up a few of the parameters to the initializer function.
@@ -353,21 +353,22 @@ Once the config file is created, you must create the DataWindow using this funct
 datawindow = DataWindow.from_config_file("path/to/data_window.config.toml")
 ```
 
-The DataWindowConfiguration specific API documentation is available [here](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window_configuration.html)
+The DataWindowConfigFile specific API documentation is available [here](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window_configuration.html)
 
 _[Table of Contents](#table-of-contents)_
 
-### Using the Data Window Results
+### Using the DataWindow Results
 
-DataWindow stores all the data gathered in its `_stations` property, which is a list of Station data objects.  
+DataWindow stores all the data gathered in a list of Station data objects.  
 These are the methods to access the Stations:
 
 ```python
 station_list = datawindow.stations()  # All stations as a list
 first_station = datawindow.first_station()  # The first station in the list
 first_with_id = datawindow.first_station(station_id)  # The first station that matches the station_id
-# A list of stations identified by station_id, uuid, and start timestamp
-stations = datawindow.get_station(station_id, station_uuid, station_start_timestamp)
+# A list of stations identified by station_id and optionally by uuid and start timestamp as well
+stations = datawindow.get_station(station_id)
+specific_stations = datawindow.get_station(station_id, station_uuid, station_start_timestamp)
 ```
 
 We recommend using the datawindow.stations() to get all the Station objects and datawindow.get_station() to get specific Stations.
@@ -404,6 +405,8 @@ We can access the microphone data in the audio sensor using:
 samples = audio_sensor.get_microphone_data()
 ```
 
+Other sensors will have functions specific to their data channels.
+
 Now that we have access to our data, the possibilities are limitless.  Here is a short pyplot example showing the audio data:
 ```python
 import matplotlib.pyplot as plt
@@ -417,21 +420,24 @@ We can even save our DataWindow and load it later. We currently support two form
 Both formats produce a JSON file that contains metadata about the DataWindow.  The JSON file is critical when loading 
 DataWindow. Please note that loading DataWindows is much faster than going through the entire creation process.
 
-The format is determined by the DataWindow parameter `out_type`, and the save directory is determined by `output_dir`.
+The format is determined by the DataWindow parameter `out_type`, and the save directory is determined by `output_dir`. 
+The two parameters are described [above](#strongly-recommended-datawindow-parameters).  You may save DataWindow by 
+calling the `save()` function
 ```python
-# save the DataWindow based on its parameters
+# save the DataWindow using information from its properties
 path_to_file = datawindow.save()
 ```
 
-Loading the DataWindow requires the full path to the JSON file created during the saving process.
+Loading the DataWindow requires the full path to the JSON file created during the saving process.  Use the `load()` 
+function to load the data.
 ```python
 # load a previously created DataWindow
-datawindow = DataWindowArrow.load(path_to_file)
+datawindow = DataWindow.load(path_to_file)
 ```
 
 _[Table of Contents](#table-of-contents)_
 
-### Data Window Properties
+### DataWindow Properties
 This is the list of all properties you can access from DataWindow. Many of the values are set via the parameters above.  
 Some properties do not have the same name as the initialization parameters.  Defaults for values will be given if
 applicable.  All timestamps are in UTC.
@@ -450,9 +456,9 @@ This is the list of properties that are set by the SDK during creation of the Da
 
 This property is set via the initialization parameters and cannot be changed without using specific functions:
 
-* `_config`: DataWindowConfig, class containing Data Window configuration parameters.   Default `None`.  If there is no
+* `_config`: DataWindowConfig, class containing DataWindow configuration parameters.   Default `None`.  If there is no
   DataWindowConfig, no data will be collected.
-* `_fs_writer`: DataWindowFileSystemWriter, uses the event_name, out_type and output_dir parameters to define how and 
+* `_fs_writer`: DataWindowFileSystemWriter, uses the `event_name`, `out_type` and `output_dir` parameters to define how and 
   where to save the DataWindow.
 
 ### Event Origin Properties
@@ -468,7 +474,7 @@ Defaults for values will be given.
 * `altitude_std`: float, standard deviation of best estimate of altitude, default np.nan
 * `event_radius_m`: float, radius of event in meters, default 0.0
 
-### Data Window Config Properties
+### DataWindow Config Properties
 This is a list of all properties you can access from DataWindowConfig.  These values are set via the parameters above.
 Defaults for values will be given if applicable.  All timestamps are in [UTC](https://www.timeanddate.com/time/aboututc.html).
 
@@ -476,11 +482,11 @@ _It is not recommended to set or change the properties of DataWindowConfig after
 
 * `input_directory`: string, directory that contains the files to read data from.  Required parameter.
 * `structured_layout`: bool, if True, the input_directory contains specially named and organized directories of data.  Default True
-* `station_ids`: optional set of strings, representing the station ids to filter on. If empty or None, get any ids found in the input directory.  Default None
-* `extensions`: optional set of strings, representing file extensions to filter on. If None, gets as much data as it can in the input directory.  Default None
-* `api_versions`: optional set of ApiVersions, representing api versions to filter on. If None, get as much data as it can in the input directory.  Default None
-* `start_datetime`: optional datetime, start datetime of the window. If None, uses the first timestamp of the filtered data.  Default None
-* `end_datetime`: optional datetime, non-inclusive end datetime of the window. If None, uses the last timestamp of the filtered data.  Default None
+* `station_ids`: optional set of strings, representing the station ids to filter on. If empty or `None`, get any ids found in the input directory.  Default `None`
+* `extensions`: optional set of strings, representing file extensions to filter on. If `None`, gets as much data as it can in the input directory.  Default `None`
+* `api_versions`: optional set of ApiVersions, representing api versions to filter on. If `None`, get as much data as it can in the input directory.  Default `None`
+* `start_datetime`: optional datetime, start datetime of the window. If `None`, uses the first timestamp of the filtered data.  Default `None`
+* `end_datetime`: optional datetime, non-inclusive end datetime of the window. If `None`, uses the last timestamp of the filtered data.  Default `None`
 * `start_buffer_td`: timedelta, the amount of time to include before the start_datetime when filtering data. Default 2 minutes
 * `end_buffer_td`: timedelta, the amount of time to include after the end_datetime when filtering data. Default 2 minutes
 * `drop_time_s`: float, the minimum amount of seconds between data files that would indicate a gap. Default .2 seconds
@@ -491,7 +497,7 @@ _It is not recommended to set or change the properties of DataWindowConfig after
 
 _[Table of Contents](#table-of-contents)_
 
-### Data Window Functions
+### DataWindow Functions
 
 1. `stations() -> List[StationPa]`
 
@@ -554,13 +560,14 @@ Returns the DataWindowConfig object that stores the information about loading th
 
 11. `set_out_type(new_out_type: str)`
 
-Sets the output type of the DataWindow to the parameter new_out_type.  Accepted values are: "NONE", "PARQUET", "LZ4"
+Sets the output type of the DataWindow to the parameter `new_out_type`.  Accepted values are: "NONE", "PARQUET", "LZ4". 
+Invalid values become "NONE".
 
 12. `print_errors()`
 
 Prints the errors encountered while creating a DataWindow.
 
-### Data Window Save and Load Functions
+### DataWindow Save and Load Functions
 
 These functions allow you to save and load DataWindow objects.
 
@@ -577,13 +584,14 @@ Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-s
 
 _[Table of Contents](#table-of-contents)_
 
-## Data Window Methodology
+## DataWindow Methodology
 
-Creating a Data Window involves many processes of varying complexity.  This section will break down and explain each step taken in the creation of the Data Window.
+Creating a DataWindow involves many processes of varying complexity.  This section will break down and explain each 
+step taken in the creation of the DataWindow.
 
 _[Table of Contents](#table-of-contents)_
 
-### Data Window Initialization
+### DataWindow Initialization
 
 When creating a DataWindow, the parameters of its creation are stored for future reference.
 Each parameter used to create the DataWindow is saved to its respective property.  If the parameter is not specified, 
@@ -591,15 +599,13 @@ the default value is saved.
 
 Once the parameters are saved, the DataWindow begins aggregating and updating the data requested.
 
-### Data Window File Search
+### DataWindow File Search
 
 DataWindow uses several methods in the Redvox SDK to gather the files needed to complete the request.
 
 If the user specified a structured directory, we look for directories specifically named `api900` and/or `api1000` 
-either as part of the input directory or within the input directory.
-
-Next, we read through the sub-directories of the api directory, which are organized by year, month, day and for api1000 
-data, by hour as well. 
+either as part of the input directory or within the input directory. Next, we read through the sub-directories of the 
+api directory, which are organized by year, month, day and for api1000 data, by hour as well. 
 
 If the user specified an unstructured directory, we are looking at all files within the input directory.
 
@@ -644,36 +650,35 @@ Once the data is retrieved, it must be aggregated and prepared for the user.
 2. The data files are organized into Station objects.  Files are put into a station if and only if each of these values 
    are equal across each file: station id, station uuid, station start timestamp and station metadata.
    * Any change in the station's information will create a new Station object to represent that change.
+   
+3. As part of the creation of Station objects, an attempt is made to fill any recognizable gaps in their sensors.
 
-3. Station objects attempt to fill any recognizable gaps in their sensors.
+4. If apply_correction is True, all timestamps in the Station will be updated as the last step of its creation.
 
-* Any errors encountered while creating the Station object will be recorded and can be displayed to the user.
+* Any errors encountered while creating the Station object will be recorded and can be displayed to the user via the `print_errors()` function.
 
 ### Data Preparation
 
 The data is now organized by Station.  This process will be performed on all Stations in the DataWindow.
 
-1. If apply_correction is True, update all timestamps in the Station using the offset model.  This is the final 
-   timestamp update before the user gets the data.
+1. Remove any Audio data points outside the request window.
 
-2. Remove any Audio data points outside the request window.
-
-3. Create Audio data points with NaN data values and timestamps based on the Audio sample rate such that the entire Audio record fills 
+2. Create Audio data points with NaN data values and timestamps based on the Audio sample rate such that the entire Audio record fills 
    the request window and there are no points greater than 2 sample intervals apart or data points outside the window.
 
-4. Remove data points from each non-audio sensor that are outside the request window.
+3. Remove data points from each non-audio sensor that are outside the request window.
 
-5. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
+4. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
    * The copy_edge_points parameter determines which data values of these fabricated points will contain.
     
-6. Update the Station metadata.  This does not include the Station's timesync data.
-   * Note that the Timesync data for a Station is unaltered from the data gathered during operation.
+5. Update the Station metadata.
+   * Timesync data for a Station is unaltered from the data gathered, even if portions of it exist outside the window.
    
-7. Update the Data Window metadata to match the data.
+6. Update the DataWindow metadata to match the data.
 
-### Data Window Complete
+### DataWindow Complete
 
-The Data Window has completed all operations and is ready for you to use!
+The DataWindow has completed all operations and is ready for you to use!
 
 _[Table of Contents](#table-of-contents)_
 
@@ -687,7 +692,7 @@ _[Table of Contents](#table-of-contents)_
 
 ## DataWindow Example Code
 
-Below are a few examples of how to use DataWindow.  Ensure you have installed the latest Redvox SDK.
+Below are a few examples of how to use DataWindow.  Ensure you have installed the latest [Redvox SDK](https://pypi.org/project/redvox/).
 
 Update the variables to match your environment before running.
 
@@ -844,8 +849,8 @@ datawindow = DataWindow(event_name=my_event_name,
                         debug=True)
 ```
 
-* Check the value of `input_dir` for any errors, and that the files within the directory are in one of two formats 
-(structured or unstructured) described in the [Optional Data Window Parameters](#structured-layout) section.
+* Check the value of `input_dir` in the DataWindowConfig for any errors, and that the files within the directory are in 
+one of two formats (structured or unstructured) described in the [DataWindow Config](#datawindow-config) section.
 Use the appropriate value for the `structured` parameter of DataWindowConfig.
 
 * When working with structured directories, ensure that all API 1000 (API M) files are in a directory called `api1000` 
@@ -853,7 +858,7 @@ and all API 900 files are in a directory called `api900`.  API 1000 files normal
 normally end in `.rdvxz`
 
 * Adjust the start and end datetime values of DataWindow, as described in the 
-[Strongly Recommended Data Window Parameters](#strongly-recommended-data-window-parameters) section.
+[Strongly Recommended Config Parameters](#strongly-recommended-config-parameters) section.
 Timestamps are in [UTC](https://www.timeanddate.com/time/aboututc.html).  Use the 
 [date time utilities](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/date_time_utils.html) 
 provided in `redvox.common.date_time_utils` to convert UTC epoch times into datetimes.

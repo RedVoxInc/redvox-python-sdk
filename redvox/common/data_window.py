@@ -381,11 +381,11 @@ class DataWindow:
 
     def set_out_type(self, new_out_type: str):
         """
-        set the output type of the DataWindow.  options are "NONE", "PARQUET" and "LZ4"
+        set the output type of the DataWindow.  options are "NONE", "PARQUET" and "LZ4".  invalid values become "NONE"
 
         :param new_out_type: new output type of the DataWindow
         """
-        self._fs_writer.file_extension = new_out_type
+        self._fs_writer.set_extension(new_out_type)
 
     def as_dict(self) -> Dict:
         """

@@ -168,7 +168,7 @@ def fill_gaps(
     :param gaps: list of tuples of known non-inclusive start and end timestamps of the gaps
     :param sample_interval_micros: known sample interval of the data points
     :param copy: if True, copy the data points, otherwise interpolate from edges, default False
-    :return: table without gaps
+    :return: table without gaps and the list of gaps
     """
     # extract the necessary information to compute gap size and gap timestamps
     data_time_stamps = arrow_df["timestamps"].to_numpy()
