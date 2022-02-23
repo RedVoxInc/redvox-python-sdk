@@ -507,8 +507,8 @@ class DataWindow:
                                   None, json_dict["base_dir"], json_dict["out_type"], json_dict["make_runme"],
                                   json_dict["debug"])
                 dwin._config = DataWindowConfig.from_dict(json_dict["config"])
-                dwin.errors = RedVoxExceptions.from_dict(json_dict["errors"])
-                dwin.set_sdk_version(json_dict["sdk_version"])
+                dwin._errors = RedVoxExceptions.from_dict(json_dict["errors"])
+                dwin._sdk_version = json_dict["sdk_version"]
                 for st in json_dict["stations"]:
                     dwin.add_station(Station.from_json_file(os.path.join(json_dict["base_dir"], st), f"{st}.json"))
             elif out_type == dw_io.DataWindowOutputType.LZ4:
@@ -738,7 +738,7 @@ class DataWindow:
             #     self._add_sensor_to_window(st)
             #     if self.debug:
             #         print("station processed: ", st.id())
-        for st in maybe_parallel_map(_pool, lambda x: x, iter(sts), chunk_size=1):
+        for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
             self._add_sensor_to_window(st)
             if self.debug:
                 print("station processed: ", st.id())
@@ -827,6 +827,9 @@ class DataWindow:
         station.set_packet_metadata([meta for meta in station.packet_metadata()
                                      if meta.packet_start_mach_timestamp < station.last_data_timestamp() and
                                      meta.packet_end_mach_timestamp >= station.first_data_timestamp()])
+        if self._fs_writer.is_save_disk():
+            station.set_save_mode(io.FileSystemSaveMode.DISK)
+            station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
         self._stations.append(station)
 
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,

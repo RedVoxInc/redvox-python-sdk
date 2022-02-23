@@ -1,5 +1,12 @@
 ## Changelog
 
+### 3.1.5
+
+* Official Release 3.1.5
+* Updated automatic file writing functions to use temporary directory when available memory is insufficient
+* Updated json loading functions
+* Updated json writing functions
+
 ### 3.1.5rc3 (2022-2-10)
 
 * Updated functions in EventStream

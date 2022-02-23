@@ -255,7 +255,7 @@ class FileSystemWriter:
             else:
                 os.makedirs(self.save_dir())
         elif self.is_use_temp():
-            remove_dir_contents(self._temp_dir.name)
+            remove_dir_contents(Path(self._temp_dir.name))
 
     def __del__(self):
         """

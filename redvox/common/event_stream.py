@@ -414,6 +414,14 @@ class EventStream:
         """
         self._fs_writer.save_to_disk = save
 
+    def set_save_mode(self, save_mode: FileSystemSaveMode):
+        """
+        set the save mode
+
+        :param save_mode: new save mode
+        """
+        self._fs_writer.set_save_mode(save_mode)
+
     def set_file_name(self, new_file: Optional[str] = None):
         """
         * set the pyarrow file name or use the default: event_{EventStream.name}
@@ -494,7 +502,7 @@ class EventStream:
                 return result
         json_data = io.json_file_to_dict(os.path.join(file_dir, f"{file_name}.json"))
         if "name" in json_data.keys():
-            result = EventStream(json_data["name"], json_data["schema"])
+            result = EventStream(json_data["name"], json_data["schema"], FileSystemSaveMode.DISK, file_dir)
             result.metadata = json_data["metadata"]
             result.timestamps_metadata = json_data["timestamps_metadata"]
             result.set_errors(RedVoxExceptions.from_dict(json_data["errors"]))
@@ -639,8 +647,18 @@ class EventStreams:
 
         :param new_dir: new directory path
         """
+        self.base_dir = new_dir
         for s in self.streams:
             s.set_save_dir(new_dir)
+
+    def set_save_mode(self, new_save_mode: FileSystemSaveMode):
+        """
+        update the save mode for all EventStream
+
+        :param new_save_mode: save mode to set
+        """
+        for s in self.streams:
+            s.set_save_mode(new_save_mode)
 
     def update_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         """
@@ -661,4 +679,5 @@ class EventStreams:
 
         :return: EventStreams object from a directory
         """
-        return EventStreams([EventStream.from_json_file(base_dir, e) for e in file_names])
+        return EventStreams([EventStream.from_json_file(base_dir, e) for e in file_names],
+                            save_mode=FileSystemSaveMode.DISK, base_dir=base_dir)

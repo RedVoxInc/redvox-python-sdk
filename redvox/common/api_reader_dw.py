@@ -61,24 +61,23 @@ class ApiReaderDw(ApiReader):
         """
         split_list = self._split_workload(findex)
         use_temp_dir = True if len(split_list) > 1 else False
-        if use_temp_dir and self.dw_save_mode == io.FileSystemSaveMode.MEM:
-            self.save_mode = io.FileSystemSaveMode.TEMP
 
         if len(split_list) > 0:
-            if self.debug and self.dw_save_mode != io.FileSystemSaveMode.MEM:
+            if self.debug and use_temp_dir:
                 print("Writing data to disk; this may take a few minutes to complete.")
             stpa = Station.create_from_indexes(split_list,
-                                               correct_timestamps=self.correct_timestamps,
                                                use_model_correction=self.use_model_correction,
                                                base_out_dir=self.dw_base_dir,
-                                               save_output=True if self.dw_save_mode != io.FileSystemSaveMode.MEM
-                                               else False,
                                                use_temp_dir=use_temp_dir
                                                )
             if self.debug:
                 print(f"station {stpa.id()} files read: {len(findex.entries)}")
                 if len(split_list) > 1:
                     print(f"required making {len(split_list)} smaller segments due to memory restraints")
+            if self.dw_save_mode == io.FileSystemSaveMode.MEM and use_temp_dir:
+                self.dw_save_mode = io.FileSystemSaveMode.TEMP
+            if self.correct_timestamps:
+                stpa.set_correct_timestamps()
             return stpa
         self.errors.append("No files found to create station.")
         return Station()

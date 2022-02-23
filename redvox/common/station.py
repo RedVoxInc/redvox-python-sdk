@@ -138,6 +138,17 @@ class Station:
         """
         return os.path.join(self.save_dir(), sensor.name)
 
+    def set_save_mode(self, new_save_mode: FileSystemSaveMode):
+        """
+        sets the save mode of the Station
+
+        :param new_save_mode: FileSystemSaveMode to change to
+        """
+        self._fs_writer.set_save_mode(new_save_mode)
+        self._event_data.set_save_mode(new_save_mode)
+        for s in self._data:
+            s.set_save_mode(new_save_mode)
+
     def set_save_data(self, save_on: bool = False):
         """
         set the option to save the station
@@ -146,26 +157,37 @@ class Station:
         """
         self._fs_writer.save_to_disk = save_on
 
-    def set_save_dir(self, name: Optional[str] = None):
+    def set_save_dir(self, new_dir: str, station_dir_name: Optional[str] = None):
         """
-        sets the file name and save directory of a Station.  Uses the default [station_id]_[station_startdate]
-        if no name is specified
+        sets the save directory of a Station.  combines the new_dir and the station_name to form a directory called
+        new_dir/station_dir_name/
 
-        :param name: optional name to use
+        Uses the default [station_id]_[station_startdate] if no name is specified
+
+        :param new_dir: new base directory to use
+        :param station_dir_name: optional station directory to use
         """
-        if name is None:
-            name = self._get_id_key()
-        self._fs_writer.file_name = name
-        self._fs_writer.base_dir = os.path.join(os.path.dirname(self.save_dir()), name)
-        self._fs_writer.create_dir()
+        if station_dir_name is None:
+            station_dir_name = self._get_id_key()
+        self._fs_writer.file_name = station_dir_name
+        if self._fs_writer.is_use_disk():
+            self._fs_writer.base_dir = os.path.join(new_dir)
+        else:
+            self._fs_writer.base_dir = os.path.join(self._fs_writer.get_temp())
+        for s in self._data:
+            s.move_pyarrow_dir(self.save_dir())
+        self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
+        self._event_data.set_save_dir(os.path.join(self.save_dir(), "events"))
 
     def save_dir(self) -> str:
         """
         :return: directory where files are being written to
         """
-        if self._fs_writer.is_save_disk():
-            return self._fs_writer.save_dir()
-        return ""
+        if self._fs_writer.is_use_disk():
+            return os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
+        elif self._fs_writer.is_use_temp():
+            return os.path.join(self._fs_writer.get_temp(), self._get_id_key())
+        return "."
 
     def save(self, file_name: Optional[str] = None) -> Optional[Path]:
         """
@@ -177,6 +199,7 @@ class Station:
         :return: Path to the saved file or None if not saved
         """
         if self.is_save_to_disk():
+            self._fs_writer.create_dir()
             return self.to_json_file(file_name)
         return None
 
@@ -238,8 +261,6 @@ class Station:
             all_summaries.add_aggregate_summary(
                 ptp.stream_to_pyarrow(pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None))
         all_summaries.merge_all_summaries()
-        if self._fs_writer.is_save_disk():
-            self.set_save_dir()
         self._set_pyarrow_sensors(all_summaries)
         if self._correct_timestamps:
             self.update_timestamps()
@@ -305,8 +326,6 @@ class Station:
             self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
             summaries = ptp.stream_to_pyarrow(packets, self._fs_writer.get_temp() if self.is_save_to_disk() else None)
             summaries.merge_all_summaries()
-            if self._fs_writer.is_save_disk():
-                self.set_save_dir()
             self._set_pyarrow_sensors(summaries)
             if self._correct_timestamps:
                 self.update_timestamps()
@@ -422,6 +441,12 @@ class Station:
         if self.check_key():
             return st_utils.StationKey(self._id, self._uuid, self._start_date)
         return None
+
+    def set_correct_timestamps(self):
+        """
+        set the correction of timestamps to True.
+        """
+        self._correct_timestamps = True
 
     def append_station(self, new_station: "Station"):
         """
@@ -1380,6 +1405,8 @@ class Station:
         self._errors.print()
         for sen in self._data:
             sen.print_errors()
+        for ev in self._event_data.streams:
+            ev.print_errors()
 
     def audio_sample_rate_nominal_hz(self) -> float:
         """
@@ -1443,9 +1470,9 @@ class Station:
             if self._fs_writer.file_name != self._get_id_key():
                 update_dir = True
                 if self._fs_writer.is_save_disk():
-                    old_name = self._fs_writer.save_dir()
-                    self.set_save_dir()
-                    if os.path.exists(old_name):
+                    old_name = self.save_dir()
+                    self.set_save_dir(self._fs_writer.base_dir)
+                    if old_name != "." and os.path.exists(old_name):
                         os.rename(old_name, self.save_dir())
                 else:
                     self._fs_writer.file_name = self._get_id_key()
@@ -1460,6 +1487,7 @@ class Station:
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
             self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
+            self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
             self._is_timestamps_updated = True
         return self
 
@@ -1524,6 +1552,8 @@ class Station:
         if "id" in json_data.keys() and "start_date" in json_data.keys():
             result = Station(json_data["id"], json_data["uuid"], json_data["start_date"],
                              use_model_correction=json_data["use_model_correction"])
+            result._fs_writer.file_name = json_data["base_dir"]
+            result.set_save_mode(FileSystemSaveMode.DISK)
             result.set_audio_scrambled(json_data["is_audio_scrambled"])
             result.set_timestamps_updated(json_data["is_timestamps_updated"])
             result.set_audio_sample_rate_hz(json_data["audio_sample_rate_nominal_hz"])

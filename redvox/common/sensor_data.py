@@ -357,6 +357,14 @@ class SensorData:
         else:
             return self.from_json_file(in_dir, file)
 
+    def set_save_mode(self, new_save_mode: FileSystemSaveMode):
+        """
+        changes the save mode to new_save_mode
+
+        :param new_save_mode: FileSystemSaveMode to change to
+        """
+        self._fs_writer.set_save_mode(new_save_mode)
+
     def is_save_to_disk(self) -> bool:
         """
         :return: True if sensor will be saved to disk
@@ -433,15 +441,15 @@ class SensorData:
 
     def pyarrow_table(self) -> pa.Table:
         """
-        :return: the table defined by the dataset stored in self
+        :return: the table defined by the _data property or the dataset stored in self.save_dir()
         """
-        if self._fs_writer.is_save_disk():
-            return self.pyarrow_ds().to_table()
-        return self._data
+        if self._data or self._fs_writer.is_use_mem():
+            return self._data
+        return self.pyarrow_ds().to_table()
 
     def data_df(self) -> pd.DataFrame:
         """
-        :return: the pandas dataframe defined by the dataset stored in self._arrow_dir
+        :return: the pandas dataframe defined by the dataset stored in self.save_dir()
         """
         return self.pyarrow_table().to_pandas()
 
@@ -856,6 +864,7 @@ class SensorData:
                             [sensor_type]_[first_timestamp].json
         :return: path to json file
         """
+        self.write_pyarrow_table(self.pyarrow_table())
         return io.to_json_file(self, file_name)
 
     @staticmethod
@@ -880,6 +889,8 @@ class SensorData:
                                          json_data["sample_interval_std_s"], json_data["is_sample_rate_fixed"],
                                          json_data["timestamps_altered"], False, json_data["use_offset_model"])
             result.set_errors(RedVoxExceptions.from_dict(json_data["errors"]))
+            result.set_save_to_disk(True)
+            result.set_file_name()
             result.set_gaps(json_data["gaps"])
         else:
             result = SensorData("Empty")
