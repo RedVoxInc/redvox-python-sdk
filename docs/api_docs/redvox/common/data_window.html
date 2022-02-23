@@ -212,6 +212,40 @@ class DataWindowConfig:
         self.use_model_correction = use_model_correction
         self.copy_edge_points = copy_edge_points
 
+    # def __repr__(self):
+    #     return dw_io.dict_to_json({
+    #         &#34;input_dir&#34;: self.input_dir,
+    #         &#34;structured_layout&#34;: self.structured_layout,
+    #         &#34;start_datetime&#34;: self.start_datetime.__repr__(),
+    #         &#34;end_datetime&#34;: self.end_datetime.__repr__(),
+    #         &#34;start_buffer_td&#34;: self.start_buffer_td.__repr__(),
+    #         &#34;end_buffer_td&#34;: self.end_buffer_td.__repr__(),
+    #         &#34;drop_time_s&#34;: self.drop_time_s,
+    #         &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
+    #         &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
+    #         &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
+    #         &#34;apply_correction&#34;: self.apply_correction,
+    #         &#34;use_model_correction&#34;: self.use_model_correction,
+    #         &#34;copy_edge_points&#34;: self.copy_edge_points.value
+    #     })
+    #
+    # def __str__(self):
+    #     return dw_io.dict_to_json({
+    #         &#34;input_dir&#34;: self.input_dir,
+    #         &#34;structured_layout&#34;: self.structured_layout,
+    #         &#34;start_datetime&#34;: self.start_datetime.strftime(&#34;%Y %B %d %I:%M:%S.%f&#34;) if self.start_datetime else None,
+    #         &#34;end_datetime&#34;: self.end_datetime.strftime(&#34;%Y %B %d %I:%M:%S.%f&#34;) if self.end_datetime else None,
+    #         &#34;start_buffer_td (in s)&#34;: self.start_buffer_td.total_seconds(),
+    #         &#34;end_buffer_td (in s)&#34;: self.end_buffer_td.total_seconds(),
+    #         &#34;drop_time_s&#34;: self.drop_time_s,
+    #         &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
+    #         &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
+    #         &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
+    #         &#34;apply_correction&#34;: self.apply_correction,
+    #         &#34;use_model_correction&#34;: self.use_model_correction,
+    #         &#34;copy_edge_points&#34;: self.copy_edge_points.name
+    #     })
+
     def as_dict(self) -&gt; Dict:
         return {&#34;input_dir&#34;: self.input_dir,
                 &#34;structured_layout&#34;: self.structured_layout,
@@ -222,7 +256,7 @@ class DataWindowConfig:
                 &#34;drop_time_s&#34;: self.drop_time_s,
                 &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
                 &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
-                &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions],
+                &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
                 &#34;apply_correction&#34;: self.apply_correction,
                 &#34;use_model_correction&#34;: self.use_model_correction,
                 &#34;copy_edge_points&#34;: self.copy_edge_points.value
@@ -293,10 +327,7 @@ class DataWindow:
         :param debug: if True, outputs additional information during initialization.  Default False
         &#34;&#34;&#34;
         self.event_name: str = event_name
-        if event_origin:
-            self.event_origin: EventOrigin = event_origin
-        else:
-            self.event_origin = EventOrigin()
+        self.event_origin: EventOrigin = event_origin if event_origin else EventOrigin()
         self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, output_dir, make_runme)
         self.debug: bool = debug
         self._sdk_version: str = redvox.VERSION
@@ -312,13 +343,42 @@ class DataWindow:
         if self.debug:
             self.print_errors()
 
+    # def __repr__(self):
+    #     # todo: use representations for the datetime and timedelta objects
+    #     # todo: use the dictionary function
+    #     return dw_io.dict_to_json({
+    #         &#34;event_name&#34;: self.event_name,
+    #         &#34;event_origin&#34;: repr(self.event_origin),
+    #         &#34;config&#34;: repr(self._config),
+    #         &#34;base_dir&#34;: self.save_dir(),
+    #         &#34;out_type&#34;: self._fs_writer.file_extension,
+    #         &#34;make_runme&#34;: self._fs_writer.make_run_me,
+    #         &#34;sdk_version&#34;: self._sdk_version,
+    #         &#34;errors&#34;: repr(self._errors),
+    #         &#34;debug&#34;: self.debug
+    #     })
+    #
+    # def __str__(self):
+    #     # todo: use representations for the datetime and timedelta objects
+    #     # todo: use the dictionary function
+    #     return dw_io.dict_to_json(
+    #         {&#34;event_name&#34;: self.event_name,
+    #          &#34;event_origin&#34;: str(self.event_origin),
+    #          &#34;config&#34;: str(self._config),
+    #          &#34;base_dir&#34;: self.save_dir(),
+    #          &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
+    #          &#34;out_type&#34;: self._fs_writer.file_extension,
+    #          &#34;make_runme&#34;: self._fs_writer.make_run_me,
+    #          &#34;sdk_version&#34;: self._sdk_version,
+    #          &#34;errors&#34;: str(self._errors),
+    #          &#34;debug&#34;: self.debug
+    #          })
+
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
-        :return: directory data is saved to
+        :return: directory data is saved to (empty string means saving to memory)
         &#34;&#34;&#34;
-        if self._fs_writer.save_to_disk:
-            return self._fs_writer.save_dir()
-        return &#34;&#34;
+        return self._fs_writer.save_dir()
 
     def set_save_dir(self, new_save_dir: Optional[str] = &#34;.&#34;):
         &#34;&#34;&#34;
@@ -338,9 +398,9 @@ class DataWindow:
         &#34;&#34;&#34;
         self._fs_writer.make_run_me = make_runme
 
-    def fs_writer(self) -&gt; io.FileSystemWriter:
+    def fs_writer(self) -&gt; dw_io.DataWindowFileSystemWriter:
         &#34;&#34;&#34;
-        :return: FileSystemWriter for DataWindow
+        :return: DataWindowFileSystemWriter for DataWindow
         &#34;&#34;&#34;
         return self._fs_writer
 
@@ -352,11 +412,11 @@ class DataWindow:
 
     def set_out_type(self, new_out_type: str):
         &#34;&#34;&#34;
-        set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34; and &#34;LZ4&#34;
+        set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34; and &#34;LZ4&#34;.  invalid values become &#34;NONE&#34;
 
         :param new_out_type: new output type of the DataWindow
         &#34;&#34;&#34;
-        self._fs_writer.file_extension = new_out_type
+        self._fs_writer.set_extension(new_out_type)
 
     def as_dict(self) -&gt; Dict:
         &#34;&#34;&#34;
@@ -425,6 +485,7 @@ class DataWindow:
     def serialize(self, compression_factor: int = 4) -&gt; Path:
         &#34;&#34;&#34;
         Serializes and compresses this DataWindow to a file.
+        Uses the event_name and out_dir to name the file.
 
         :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take
         longer. (default=4).
@@ -477,8 +538,8 @@ class DataWindow:
                                   None, json_dict[&#34;base_dir&#34;], json_dict[&#34;out_type&#34;], json_dict[&#34;make_runme&#34;],
                                   json_dict[&#34;debug&#34;])
                 dwin._config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
-                dwin.errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
-                dwin.set_sdk_version(json_dict[&#34;sdk_version&#34;])
+                dwin._errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
+                dwin._sdk_version = json_dict[&#34;sdk_version&#34;]
                 for st in json_dict[&#34;stations&#34;]:
                     dwin.add_station(Station.from_json_file(os.path.join(json_dict[&#34;base_dir&#34;], st), f&#34;{st}.json&#34;))
             elif out_type == dw_io.DataWindowOutputType.LZ4:
@@ -490,11 +551,13 @@ class DataWindow:
 
     def save(self) -&gt; Path:
         &#34;&#34;&#34;
-        save the DataWindow
-        :return: the path to where the files exist
+        save the DataWindow to disk if saving is enabled
+        if saving is not enabled, adds an error to the DataWindow and returns an empty path.
+
+        :return: the path to where the files exist; an empty path means no files were saved
         &#34;&#34;&#34;
-        if self._fs_writer.save_to_disk:
-            if self._fs_writer.make_run_me:
+        if self._fs_writer.is_save_disk():
+            if self._fs_writer.is_use_disk() and self._fs_writer.make_run_me:
                 shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
                                 os.path.join(self._fs_writer.save_dir(), &#34;runme.py&#34;))
             if self._fs_writer.file_extension == &#34;parquet&#34;:
@@ -504,6 +567,7 @@ class DataWindow:
         else:
             self._errors.append(&#34;Saving not enabled.&#34;)
             print(&#34;WARNING: Cannot save data window without knowing extension.&#34;)
+            return Path()
 
     @staticmethod
     def load(file_path: str) -&gt; &#34;DataWindow&#34;:
@@ -513,7 +577,11 @@ class DataWindow:
         :param file_path: full path of file to load
         :return: DataWindow from json metadata
         &#34;&#34;&#34;
-        return DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
+        cur_path = os.getcwd()
+        os.chdir(os.path.dirname(file_path))
+        result = DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
+        os.chdir(cur_path)
+        return result
 
     def config(self) -&gt; DataWindowConfig:
         &#34;&#34;&#34;
@@ -610,7 +678,12 @@ class DataWindow:
         :return: first station matching params; if no params given, gets first station in list.
                     returns None if no station with given station_id exists.
         &#34;&#34;&#34;
-        if station_id:
+        if len(self._stations) &lt; 1:
+            self._errors.append(f&#34;Attempted to get a station, but there are no stations in the data window!&#34;)
+            if self.debug:
+                print(f&#34;Attempted to get a station, but there are no stations in the data window!&#34;)
+            return None
+        elif station_id:
             result = [s for s in self._stations if s.get_key().check_key(station_id, None, None)]
             if len(result) &gt; 0:
                 return result[0]
@@ -618,8 +691,7 @@ class DataWindow:
             if self.debug:
                 print(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
             return None
-        else:
-            return self._stations[0]
+        return self._stations[0]
 
     def get_station(self, station_id: str, station_uuid: Optional[str] = None,
                     start_timestamp: Optional[float] = None) -&gt; Optional[List[Station]]:
@@ -640,9 +712,9 @@ class DataWindow:
             print(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
         return None
 
-    def _add_sensor_to_window(self, station: Station):
+    # def _add_sensor_to_window(self, station: Station):
         # set the window start and end if they were specified, otherwise use the bounds of the data
-        self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
+        # self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         &#34;&#34;&#34;
@@ -671,29 +743,40 @@ class DataWindow:
         r_f.with_start_dt_buf(self._config.start_buffer_td)
         r_f.with_end_dt_buf(self._config.end_buffer_td)
 
+        if self.debug:
+            print(&#34;Reading files from disk.  This may take a few minutes to complete.&#34;)
+
         # get the data to convert into a window
         a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
                           correct_timestamps=self._config.apply_correction,
                           use_model_correction=self._config.use_model_correction,
                           dw_base_dir=self.save_dir(),
-                          save_files=self._fs_writer.save_to_disk,
+                          dw_save_mode=self._fs_writer.save_mode(),
                           debug=self.debug, pool=_pool)
 
         self._errors.extend_error(a_r.errors)
+
+        if self._fs_writer.is_use_mem() and a_r.dw_save_mode != self._fs_writer.save_mode():
+            if self.debug:
+                print(&#34;Estimated size of files exceeds available memory.&#34;)
+                print(&#34;Automatically using temporary directory to store data.&#34;)
+            self._fs_writer.set_use_temp(True)
 
         # Parallel update
         # Apply timing correction in parallel by station
         sts = a_r.get_stations()
         if self.debug:
             print(&#34;num stations loaded: &#34;, len(sts))
-        if self._config.apply_correction:
-            for st in maybe_parallel_map(_pool, Station.update_timestamps,
-                                         iter(sts), chunk_size=1):
-                self._add_sensor_to_window(st)
-                if self.debug:
-                    print(&#34;station processed: &#34;, st.id())
-        else:
-            [self._add_sensor_to_window(s) for s in sts]
+        # if self._config.apply_correction:
+            # for st in maybe_parallel_map(_pool, Station.update_timestamps,
+            #                              iter(sts), chunk_size=1):
+            #     self._add_sensor_to_window(st)
+            #     if self.debug:
+            #         print(&#34;station processed: &#34;, st.id())
+        for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
+            self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
+            if self.debug:
+                print(&#34;station processed: &#34;, st.id())
 
         # check for stations without data
         self._check_for_audio()
@@ -779,6 +862,9 @@ class DataWindow:
         station.set_packet_metadata([meta for meta in station.packet_metadata()
                                      if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
                                      meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+        if self._fs_writer.is_save_disk():
+            station.set_save_mode(io.FileSystemSaveMode.DISK)
+            station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
         self._stations.append(station)
 
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
@@ -990,10 +1076,7 @@ Default False</p></div>
         :param debug: if True, outputs additional information during initialization.  Default False
         &#34;&#34;&#34;
         self.event_name: str = event_name
-        if event_origin:
-            self.event_origin: EventOrigin = event_origin
-        else:
-            self.event_origin = EventOrigin()
+        self.event_origin: EventOrigin = event_origin if event_origin else EventOrigin()
         self._fs_writer = dw_io.DataWindowFileSystemWriter(self.event_name, out_type, output_dir, make_runme)
         self.debug: bool = debug
         self._sdk_version: str = redvox.VERSION
@@ -1009,13 +1092,42 @@ Default False</p></div>
         if self.debug:
             self.print_errors()
 
+    # def __repr__(self):
+    #     # todo: use representations for the datetime and timedelta objects
+    #     # todo: use the dictionary function
+    #     return dw_io.dict_to_json({
+    #         &#34;event_name&#34;: self.event_name,
+    #         &#34;event_origin&#34;: repr(self.event_origin),
+    #         &#34;config&#34;: repr(self._config),
+    #         &#34;base_dir&#34;: self.save_dir(),
+    #         &#34;out_type&#34;: self._fs_writer.file_extension,
+    #         &#34;make_runme&#34;: self._fs_writer.make_run_me,
+    #         &#34;sdk_version&#34;: self._sdk_version,
+    #         &#34;errors&#34;: repr(self._errors),
+    #         &#34;debug&#34;: self.debug
+    #     })
+    #
+    # def __str__(self):
+    #     # todo: use representations for the datetime and timedelta objects
+    #     # todo: use the dictionary function
+    #     return dw_io.dict_to_json(
+    #         {&#34;event_name&#34;: self.event_name,
+    #          &#34;event_origin&#34;: str(self.event_origin),
+    #          &#34;config&#34;: str(self._config),
+    #          &#34;base_dir&#34;: self.save_dir(),
+    #          &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
+    #          &#34;out_type&#34;: self._fs_writer.file_extension,
+    #          &#34;make_runme&#34;: self._fs_writer.make_run_me,
+    #          &#34;sdk_version&#34;: self._sdk_version,
+    #          &#34;errors&#34;: str(self._errors),
+    #          &#34;debug&#34;: self.debug
+    #          })
+
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
-        :return: directory data is saved to
+        :return: directory data is saved to (empty string means saving to memory)
         &#34;&#34;&#34;
-        if self._fs_writer.save_to_disk:
-            return self._fs_writer.save_dir()
-        return &#34;&#34;
+        return self._fs_writer.save_dir()
 
     def set_save_dir(self, new_save_dir: Optional[str] = &#34;.&#34;):
         &#34;&#34;&#34;
@@ -1035,9 +1147,9 @@ Default False</p></div>
         &#34;&#34;&#34;
         self._fs_writer.make_run_me = make_runme
 
-    def fs_writer(self) -&gt; io.FileSystemWriter:
+    def fs_writer(self) -&gt; dw_io.DataWindowFileSystemWriter:
         &#34;&#34;&#34;
-        :return: FileSystemWriter for DataWindow
+        :return: DataWindowFileSystemWriter for DataWindow
         &#34;&#34;&#34;
         return self._fs_writer
 
@@ -1049,11 +1161,11 @@ Default False</p></div>
 
     def set_out_type(self, new_out_type: str):
         &#34;&#34;&#34;
-        set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34; and &#34;LZ4&#34;
+        set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34; and &#34;LZ4&#34;.  invalid values become &#34;NONE&#34;
 
         :param new_out_type: new output type of the DataWindow
         &#34;&#34;&#34;
-        self._fs_writer.file_extension = new_out_type
+        self._fs_writer.set_extension(new_out_type)
 
     def as_dict(self) -&gt; Dict:
         &#34;&#34;&#34;
@@ -1122,6 +1234,7 @@ Default False</p></div>
     def serialize(self, compression_factor: int = 4) -&gt; Path:
         &#34;&#34;&#34;
         Serializes and compresses this DataWindow to a file.
+        Uses the event_name and out_dir to name the file.
 
         :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take
         longer. (default=4).
@@ -1174,8 +1287,8 @@ Default False</p></div>
                                   None, json_dict[&#34;base_dir&#34;], json_dict[&#34;out_type&#34;], json_dict[&#34;make_runme&#34;],
                                   json_dict[&#34;debug&#34;])
                 dwin._config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
-                dwin.errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
-                dwin.set_sdk_version(json_dict[&#34;sdk_version&#34;])
+                dwin._errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
+                dwin._sdk_version = json_dict[&#34;sdk_version&#34;]
                 for st in json_dict[&#34;stations&#34;]:
                     dwin.add_station(Station.from_json_file(os.path.join(json_dict[&#34;base_dir&#34;], st), f&#34;{st}.json&#34;))
             elif out_type == dw_io.DataWindowOutputType.LZ4:
@@ -1187,11 +1300,13 @@ Default False</p></div>
 
     def save(self) -&gt; Path:
         &#34;&#34;&#34;
-        save the DataWindow
-        :return: the path to where the files exist
+        save the DataWindow to disk if saving is enabled
+        if saving is not enabled, adds an error to the DataWindow and returns an empty path.
+
+        :return: the path to where the files exist; an empty path means no files were saved
         &#34;&#34;&#34;
-        if self._fs_writer.save_to_disk:
-            if self._fs_writer.make_run_me:
+        if self._fs_writer.is_save_disk():
+            if self._fs_writer.is_use_disk() and self._fs_writer.make_run_me:
                 shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
                                 os.path.join(self._fs_writer.save_dir(), &#34;runme.py&#34;))
             if self._fs_writer.file_extension == &#34;parquet&#34;:
@@ -1201,6 +1316,7 @@ Default False</p></div>
         else:
             self._errors.append(&#34;Saving not enabled.&#34;)
             print(&#34;WARNING: Cannot save data window without knowing extension.&#34;)
+            return Path()
 
     @staticmethod
     def load(file_path: str) -&gt; &#34;DataWindow&#34;:
@@ -1210,7 +1326,11 @@ Default False</p></div>
         :param file_path: full path of file to load
         :return: DataWindow from json metadata
         &#34;&#34;&#34;
-        return DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
+        cur_path = os.getcwd()
+        os.chdir(os.path.dirname(file_path))
+        result = DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
+        os.chdir(cur_path)
+        return result
 
     def config(self) -&gt; DataWindowConfig:
         &#34;&#34;&#34;
@@ -1307,7 +1427,12 @@ Default False</p></div>
         :return: first station matching params; if no params given, gets first station in list.
                     returns None if no station with given station_id exists.
         &#34;&#34;&#34;
-        if station_id:
+        if len(self._stations) &lt; 1:
+            self._errors.append(f&#34;Attempted to get a station, but there are no stations in the data window!&#34;)
+            if self.debug:
+                print(f&#34;Attempted to get a station, but there are no stations in the data window!&#34;)
+            return None
+        elif station_id:
             result = [s for s in self._stations if s.get_key().check_key(station_id, None, None)]
             if len(result) &gt; 0:
                 return result[0]
@@ -1315,8 +1440,7 @@ Default False</p></div>
             if self.debug:
                 print(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
             return None
-        else:
-            return self._stations[0]
+        return self._stations[0]
 
     def get_station(self, station_id: str, station_uuid: Optional[str] = None,
                     start_timestamp: Optional[float] = None) -&gt; Optional[List[Station]]:
@@ -1337,9 +1461,9 @@ Default False</p></div>
             print(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
         return None
 
-    def _add_sensor_to_window(self, station: Station):
+    # def _add_sensor_to_window(self, station: Station):
         # set the window start and end if they were specified, otherwise use the bounds of the data
-        self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
+        # self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         &#34;&#34;&#34;
@@ -1368,29 +1492,40 @@ Default False</p></div>
         r_f.with_start_dt_buf(self._config.start_buffer_td)
         r_f.with_end_dt_buf(self._config.end_buffer_td)
 
+        if self.debug:
+            print(&#34;Reading files from disk.  This may take a few minutes to complete.&#34;)
+
         # get the data to convert into a window
         a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
                           correct_timestamps=self._config.apply_correction,
                           use_model_correction=self._config.use_model_correction,
                           dw_base_dir=self.save_dir(),
-                          save_files=self._fs_writer.save_to_disk,
+                          dw_save_mode=self._fs_writer.save_mode(),
                           debug=self.debug, pool=_pool)
 
         self._errors.extend_error(a_r.errors)
+
+        if self._fs_writer.is_use_mem() and a_r.dw_save_mode != self._fs_writer.save_mode():
+            if self.debug:
+                print(&#34;Estimated size of files exceeds available memory.&#34;)
+                print(&#34;Automatically using temporary directory to store data.&#34;)
+            self._fs_writer.set_use_temp(True)
 
         # Parallel update
         # Apply timing correction in parallel by station
         sts = a_r.get_stations()
         if self.debug:
             print(&#34;num stations loaded: &#34;, len(sts))
-        if self._config.apply_correction:
-            for st in maybe_parallel_map(_pool, Station.update_timestamps,
-                                         iter(sts), chunk_size=1):
-                self._add_sensor_to_window(st)
-                if self.debug:
-                    print(&#34;station processed: &#34;, st.id())
-        else:
-            [self._add_sensor_to_window(s) for s in sts]
+        # if self._config.apply_correction:
+            # for st in maybe_parallel_map(_pool, Station.update_timestamps,
+            #                              iter(sts), chunk_size=1):
+            #     self._add_sensor_to_window(st)
+            #     if self.debug:
+            #         print(&#34;station processed: &#34;, st.id())
+        for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
+            self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
+            if self.debug:
+                print(&#34;station processed: &#34;, st.id())
 
         # check for stations without data
         self._check_for_audio()
@@ -1476,6 +1611,9 @@ Default False</p></div>
         station.set_packet_metadata([meta for meta in station.packet_metadata()
                                      if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
                                      meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+        if self._fs_writer.is_save_disk():
+            station.set_save_mode(io.FileSystemSaveMode.DISK)
+            station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
         self._stations.append(station)
 
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
@@ -1714,8 +1852,8 @@ def from_json_dict(json_dict: Dict) -&gt; &#34;DataWindow&#34;:
                               None, json_dict[&#34;base_dir&#34;], json_dict[&#34;out_type&#34;], json_dict[&#34;make_runme&#34;],
                               json_dict[&#34;debug&#34;])
             dwin._config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
-            dwin.errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
-            dwin.set_sdk_version(json_dict[&#34;sdk_version&#34;])
+            dwin._errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
+            dwin._sdk_version = json_dict[&#34;sdk_version&#34;]
             for st in json_dict[&#34;stations&#34;]:
                 dwin.add_station(Station.from_json_file(os.path.join(json_dict[&#34;base_dir&#34;], st), f&#34;{st}.json&#34;))
         elif out_type == dw_io.DataWindowOutputType.LZ4:
@@ -1745,7 +1883,11 @@ def load(file_path: str) -&gt; &#34;DataWindow&#34;:
     :param file_path: full path of file to load
     :return: DataWindow from json metadata
     &#34;&#34;&#34;
-    return DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))</code></pre>
+    cur_path = os.getcwd()
+    os.chdir(os.path.dirname(file_path))
+    result = DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
+    os.chdir(cur_path)
+    return result</code></pre>
 </details>
 </dd>
 </dl>
@@ -1850,29 +1992,40 @@ stations without audio or any data outside the window are removed</p></div>
     r_f.with_start_dt_buf(self._config.start_buffer_td)
     r_f.with_end_dt_buf(self._config.end_buffer_td)
 
+    if self.debug:
+        print(&#34;Reading files from disk.  This may take a few minutes to complete.&#34;)
+
     # get the data to convert into a window
     a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
                       correct_timestamps=self._config.apply_correction,
                       use_model_correction=self._config.use_model_correction,
                       dw_base_dir=self.save_dir(),
-                      save_files=self._fs_writer.save_to_disk,
+                      dw_save_mode=self._fs_writer.save_mode(),
                       debug=self.debug, pool=_pool)
 
     self._errors.extend_error(a_r.errors)
+
+    if self._fs_writer.is_use_mem() and a_r.dw_save_mode != self._fs_writer.save_mode():
+        if self.debug:
+            print(&#34;Estimated size of files exceeds available memory.&#34;)
+            print(&#34;Automatically using temporary directory to store data.&#34;)
+        self._fs_writer.set_use_temp(True)
 
     # Parallel update
     # Apply timing correction in parallel by station
     sts = a_r.get_stations()
     if self.debug:
         print(&#34;num stations loaded: &#34;, len(sts))
-    if self._config.apply_correction:
-        for st in maybe_parallel_map(_pool, Station.update_timestamps,
-                                     iter(sts), chunk_size=1):
-            self._add_sensor_to_window(st)
-            if self.debug:
-                print(&#34;station processed: &#34;, st.id())
-    else:
-        [self._add_sensor_to_window(s) for s in sts]
+    # if self._config.apply_correction:
+        # for st in maybe_parallel_map(_pool, Station.update_timestamps,
+        #                              iter(sts), chunk_size=1):
+        #     self._add_sensor_to_window(st)
+        #     if self.debug:
+        #         print(&#34;station processed: &#34;, st.id())
+    for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
+        self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
+        if self.debug:
+            print(&#34;station processed: &#34;, st.id())
 
     # check for stations without data
     self._check_for_audio()
@@ -1943,6 +2096,9 @@ returns nothing, updates the station in place</p>
     station.set_packet_metadata([meta for meta in station.packet_metadata()
                                  if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
                                  meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+    if self._fs_writer.is_save_disk():
+        station.set_save_mode(io.FileSystemSaveMode.DISK)
+        station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
     self._stations.append(station)</code></pre>
 </details>
 </dd>
@@ -1981,7 +2137,12 @@ returns None if no station with given station_id exists.</p></div>
     :return: first station matching params; if no params given, gets first station in list.
                 returns None if no station with given station_id exists.
     &#34;&#34;&#34;
-    if station_id:
+    if len(self._stations) &lt; 1:
+        self._errors.append(f&#34;Attempted to get a station, but there are no stations in the data window!&#34;)
+        if self.debug:
+            print(f&#34;Attempted to get a station, but there are no stations in the data window!&#34;)
+        return None
+    elif station_id:
         result = [s for s in self._stations if s.get_key().check_key(station_id, None, None)]
         if len(result) &gt; 0:
             return result[0]
@@ -1989,22 +2150,21 @@ returns None if no station with given station_id exists.</p></div>
         if self.debug:
             print(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
         return None
-    else:
-        return self._stations[0]</code></pre>
+    return self._stations[0]</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.fs_writer"><code class="name flex">
-<span>def <span class="ident">fs_writer</span></span>(<span>self) ‑> <a title="redvox.common.io.FileSystemWriter" href="io.html#redvox.common.io.FileSystemWriter">FileSystemWriter</a></span>
+<span>def <span class="ident">fs_writer</span></span>(<span>self) ‑> <a title="redvox.common.data_window_io.DataWindowFileSystemWriter" href="data_window_io.html#redvox.common.data_window_io.DataWindowFileSystemWriter">DataWindowFileSystemWriter</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>:return: FileSystemWriter for DataWindow</p></div>
+<div class="desc"><p>:return: DataWindowFileSystemWriter for DataWindow</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def fs_writer(self) -&gt; io.FileSystemWriter:
+<pre><code class="python">def fs_writer(self) -&gt; dw_io.DataWindowFileSystemWriter:
     &#34;&#34;&#34;
-    :return: FileSystemWriter for DataWindow
+    :return: DataWindowFileSystemWriter for DataWindow
     &#34;&#34;&#34;
     return self._fs_writer</code></pre>
 </details>
@@ -2043,7 +2203,11 @@ Results will match all non-None parameters given.</p>
     self._errors.append(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
     if self.debug:
         print(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
-    return None</code></pre>
+    return None
+
+# def _add_sensor_to_window(self, station: Station):
+    # set the window start and end if they were specified, otherwise use the bounds of the data
+    # self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.is_make_runme"><code class="name flex">
@@ -2278,19 +2442,22 @@ start date is in microseconds since epoch UTC</p>
 <span>def <span class="ident">save</span></span>(<span>self) ‑> pathlib.Path</span>
 </code></dt>
 <dd>
-<div class="desc"><p>save the DataWindow
-:return: the path to where the files exist</p></div>
+<div class="desc"><p>save the DataWindow to disk if saving is enabled
+if saving is not enabled, adds an error to the DataWindow and returns an empty path.</p>
+<p>:return: the path to where the files exist; an empty path means no files were saved</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def save(self) -&gt; Path:
     &#34;&#34;&#34;
-    save the DataWindow
-    :return: the path to where the files exist
+    save the DataWindow to disk if saving is enabled
+    if saving is not enabled, adds an error to the DataWindow and returns an empty path.
+
+    :return: the path to where the files exist; an empty path means no files were saved
     &#34;&#34;&#34;
-    if self._fs_writer.save_to_disk:
-        if self._fs_writer.make_run_me:
+    if self._fs_writer.is_save_disk():
+        if self._fs_writer.is_use_disk() and self._fs_writer.make_run_me:
             shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
                             os.path.join(self._fs_writer.save_dir(), &#34;runme.py&#34;))
         if self._fs_writer.file_extension == &#34;parquet&#34;:
@@ -2299,25 +2466,24 @@ start date is in microseconds since epoch UTC</p>
             return self.serialize()
     else:
         self._errors.append(&#34;Saving not enabled.&#34;)
-        print(&#34;WARNING: Cannot save data window without knowing extension.&#34;)</code></pre>
+        print(&#34;WARNING: Cannot save data window without knowing extension.&#34;)
+        return Path()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.save_dir"><code class="name flex">
 <span>def <span class="ident">save_dir</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:return: directory data is saved to</p></div>
+<div class="desc"><p>:return: directory data is saved to (empty string means saving to memory)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def save_dir(self) -&gt; str:
     &#34;&#34;&#34;
-    :return: directory data is saved to
+    :return: directory data is saved to (empty string means saving to memory)
     &#34;&#34;&#34;
-    if self._fs_writer.save_to_disk:
-        return self._fs_writer.save_dir()
-    return &#34;&#34;</code></pre>
+    return self._fs_writer.save_dir()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.sdk_version"><code class="name flex">
@@ -2340,7 +2506,8 @@ start date is in microseconds since epoch UTC</p>
 <span>def <span class="ident">serialize</span></span>(<span>self, compression_factor: int = 4) ‑> pathlib.Path</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Serializes and compresses this DataWindow to a file.</p>
+<div class="desc"><p>Serializes and compresses this DataWindow to a file.
+Uses the event_name and out_dir to name the file.</p>
 <p>:param compression_factor: A value between 1 and 12. Higher values provide better compression, but take
 longer. (default=4).
 :return: The path to the written file.</p></div>
@@ -2351,6 +2518,7 @@ longer. (default=4).
 <pre><code class="python">def serialize(self, compression_factor: int = 4) -&gt; Path:
     &#34;&#34;&#34;
     Serializes and compresses this DataWindow to a file.
+    Uses the event_name and out_dir to name the file.
 
     :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take
     longer. (default=4).
@@ -2381,7 +2549,8 @@ Default False</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>set the output type of the DataWindow.
-options are "NONE", "PARQUET" and "LZ4"</p>
+options are "NONE", "PARQUET" and "LZ4".
+invalid values become "NONE"</p>
 <p>:param new_out_type: new output type of the DataWindow</p></div>
 <details class="source">
 <summary>
@@ -2389,11 +2558,11 @@ options are "NONE", "PARQUET" and "LZ4"</p>
 </summary>
 <pre><code class="python">def set_out_type(self, new_out_type: str):
     &#34;&#34;&#34;
-    set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34; and &#34;LZ4&#34;
+    set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34; and &#34;LZ4&#34;.  invalid values become &#34;NONE&#34;
 
     :param new_out_type: new output type of the DataWindow
     &#34;&#34;&#34;
-    self._fs_writer.file_extension = new_out_type</code></pre>
+    self._fs_writer.set_extension(new_out_type)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.set_save_dir"><code class="name flex">
@@ -2616,6 +2785,40 @@ Default True</p></div>
         self.use_model_correction = use_model_correction
         self.copy_edge_points = copy_edge_points
 
+    # def __repr__(self):
+    #     return dw_io.dict_to_json({
+    #         &#34;input_dir&#34;: self.input_dir,
+    #         &#34;structured_layout&#34;: self.structured_layout,
+    #         &#34;start_datetime&#34;: self.start_datetime.__repr__(),
+    #         &#34;end_datetime&#34;: self.end_datetime.__repr__(),
+    #         &#34;start_buffer_td&#34;: self.start_buffer_td.__repr__(),
+    #         &#34;end_buffer_td&#34;: self.end_buffer_td.__repr__(),
+    #         &#34;drop_time_s&#34;: self.drop_time_s,
+    #         &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
+    #         &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
+    #         &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
+    #         &#34;apply_correction&#34;: self.apply_correction,
+    #         &#34;use_model_correction&#34;: self.use_model_correction,
+    #         &#34;copy_edge_points&#34;: self.copy_edge_points.value
+    #     })
+    #
+    # def __str__(self):
+    #     return dw_io.dict_to_json({
+    #         &#34;input_dir&#34;: self.input_dir,
+    #         &#34;structured_layout&#34;: self.structured_layout,
+    #         &#34;start_datetime&#34;: self.start_datetime.strftime(&#34;%Y %B %d %I:%M:%S.%f&#34;) if self.start_datetime else None,
+    #         &#34;end_datetime&#34;: self.end_datetime.strftime(&#34;%Y %B %d %I:%M:%S.%f&#34;) if self.end_datetime else None,
+    #         &#34;start_buffer_td (in s)&#34;: self.start_buffer_td.total_seconds(),
+    #         &#34;end_buffer_td (in s)&#34;: self.end_buffer_td.total_seconds(),
+    #         &#34;drop_time_s&#34;: self.drop_time_s,
+    #         &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
+    #         &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
+    #         &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
+    #         &#34;apply_correction&#34;: self.apply_correction,
+    #         &#34;use_model_correction&#34;: self.use_model_correction,
+    #         &#34;copy_edge_points&#34;: self.copy_edge_points.name
+    #     })
+
     def as_dict(self) -&gt; Dict:
         return {&#34;input_dir&#34;: self.input_dir,
                 &#34;structured_layout&#34;: self.structured_layout,
@@ -2626,7 +2829,7 @@ Default True</p></div>
                 &#34;drop_time_s&#34;: self.drop_time_s,
                 &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
                 &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
-                &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions],
+                &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
                 &#34;apply_correction&#34;: self.apply_correction,
                 &#34;use_model_correction&#34;: self.use_model_correction,
                 &#34;copy_edge_points&#34;: self.copy_edge_points.value
@@ -2692,7 +2895,7 @@ def from_dict(data_dict: Dict) -&gt; &#34;DataWindowConfig&#34;:
             &#34;drop_time_s&#34;: self.drop_time_s,
             &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
             &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
-            &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions],
+            &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
             &#34;apply_correction&#34;: self.apply_correction,
             &#34;use_model_correction&#34;: self.use_model_correction,
             &#34;copy_edge_points&#34;: self.copy_edge_points.value

@@ -34,7 +34,7 @@ Defines generic sensor data and data for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 &#34;&#34;&#34;
 import enum
-from typing import List, Union, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple
 from pathlib import Path
 import os
 
@@ -47,10 +47,10 @@ import pyarrow.parquet as pq
 
 import redvox.common.sensor_io as io
 import redvox.common.date_time_utils as dtu
-from redvox.common.io import FileSystemWriter as Fsw
+from redvox.common.io import FileSystemSaveMode, FileSystemWriter as Fsw
 from redvox.common import offset_model as om
 from redvox.common.errors import RedVoxExceptions
-from redvox.common.gap_and_pad_utils import calc_evenly_sampled_timestamps
+from redvox.common.gap_and_pad_utils import calc_evenly_sampled_timestamps, AudioWithGaps
 from redvox.api1000.wrapped_redvox_packet.station_information import (
     NetworkType,
     PowerState,
@@ -62,11 +62,19 @@ from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvid
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 
+# function used to translate values of enumerated columns
+COLUMN_TO_ENUM_FN = {&#34;location_provider&#34;: lambda l: LocationProvider(l).name,
+                     &#34;image_codec&#34;: lambda l: ImageCodec(l).name,
+                     &#34;audio_codec&#34;: lambda l: AudioCodec(l).name,
+                     &#34;network_type&#34;: lambda l: NetworkType(l).name,
+                     &#34;power_state&#34;: lambda l: PowerState(l).name,
+                     &#34;cell_service&#34;: lambda l: CellServiceState(l).name,
+                     &#34;wifi_wake_lock&#34;: lambda l: WifiWakeLock(l).name,
+                     &#34;screen_state&#34;: lambda l: ScreenState(l).name}
 # columns that cannot be interpolated
 NON_INTERPOLATED_COLUMNS = [&#34;compressed_audio&#34;, &#34;image&#34;]
 # columns that are not numeric but can be interpolated
-NON_NUMERIC_COLUMNS = [&#34;location_provider&#34;, &#34;image_codec&#34;, &#34;audio_codec&#34;, &#34;network_type&#34;,
-                       &#34;power_state&#34;, &#34;cell_service&#34;, &#34;wifi_wake_lock&#34;, &#34;screen_state&#34;]
+NON_NUMERIC_COLUMNS = list(COLUMN_TO_ENUM_FN.keys())
 
 
 class SensorType(enum.Enum):
@@ -203,7 +211,8 @@ class SensorData:
             save_data: bool = False,
             base_dir: str = &#34;.&#34;,
             gaps: Optional[List[Tuple[float, float]]] = None,
-            show_errors: bool = False
+            show_errors: bool = False,
+            use_temp_dir: bool = False
     ):
         &#34;&#34;&#34;
         initialize the sensor data with params
@@ -231,6 +240,7 @@ class SensorData:
                         the pairs of points exists to maintain sample rate and are not considered valid points.
                         Default None
         :param show_errors: if True, show any errors encountered.  Default False
+        :param use_temp_dir: if True, use a temp directory to save data.  Default False
         &#34;&#34;&#34;
         self._errors: RedVoxExceptions = RedVoxExceptions(&#34;Sensor&#34;)
         self.name: str = sensor_name
@@ -241,22 +251,29 @@ class SensorData:
         self._is_sample_rate_fixed: bool = is_sample_rate_fixed
         self._timestamps_altered: bool = are_timestamps_altered
         self._use_offset_model: bool = use_offset_model_for_correction
-        self._fs_writer = Fsw(&#34;&#34;, &#34;parquet&#34;, base_dir, save_data)
+        if save_data:
+            save_mode = FileSystemSaveMode.DISK
+        elif use_temp_dir:
+            save_mode = FileSystemSaveMode.TEMP
+        else:
+            save_mode = FileSystemSaveMode.MEM
+        self._fs_writer = Fsw(&#34;&#34;, &#34;parquet&#34;, base_dir, save_mode)
         self._gaps: List[Tuple] = gaps if gaps else []
-        self._data: Optional[pa.Table()] = None
-        if sensor_data:
+        set_data_as_sensor_data = True
+        if sensor_data is not None:
             if &#34;timestamps&#34; not in sensor_data.schema.names:
                 self._errors.append(&#39;must have a column titled &#34;timestamps&#34;&#39;)
             elif sensor_data[&#39;timestamps&#39;].length() &gt; 0:
-                self.set_file_name(f&#34;{sensor_type.name}_{int(sensor_data[&#39;timestamps&#39;][0].as_py())}&#34;)
-                if calculate_stats:
+                set_data_as_sensor_data = False
+                if calculate_stats and np.isnan(sample_interval_s) and np.isnan(sample_rate_hz) \
+                        and np.isnan(sample_interval_std_s):
                     self.organize_and_update_stats(sensor_data)
                 elif sensor_data[&#34;timestamps&#34;].length() &gt; 1:
                     self.sort_by_data_timestamps(sensor_data)
                 else:
                     self.write_pyarrow_table(sensor_data)
-        else:
-            self._errors.append(&#39;cannot be empty&#39;)
+        if set_data_as_sensor_data:
+            self._data = sensor_data
         if show_errors:
             self.print_errors()
 
@@ -272,7 +289,8 @@ class SensorData:
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
-            save_data: bool = False) -&gt; &#34;SensorData&#34;:
+            save_data: bool = False,
+            use_temp_dir: bool = False) -&gt; &#34;SensorData&#34;:
         &#34;&#34;&#34;
         init but with a path to directory containing parquet file(s) instead of a table of data
 
@@ -290,14 +308,14 @@ class SensorData:
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param use_temp_dir: if True, save the data using a temporary directory.  default False
         :return: RedvoxSensor object
         &#34;&#34;&#34;
         result = SensorData(sensor_name,
                             ds.dataset(data_path, format=&#34;parquet&#34;, exclude_invalid_files=True).to_table(),
                             sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s,
                             is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
-                            use_offset_model_for_correction, save_data, data_path)
-        result.set_file_name()
+                            use_offset_model_for_correction, save_data, data_path, use_temp_dir=use_temp_dir)
         return result
 
     @staticmethod
@@ -314,6 +332,7 @@ class SensorData:
             use_offset_model_for_correction: bool = False,
             save_data: bool = False,
             arrow_dir: str = &#34;&#34;,
+            use_temp_dir: bool = False
     ) -&gt; &#34;SensorData&#34;:
         &#34;&#34;&#34;
         init but with a dictionary
@@ -335,11 +354,13 @@ class SensorData:
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
         :param arrow_dir: directory to save pyarrow table, default &#34;&#34; (current dir).  default temporary dir if not
                             saving data
+        :param use_temp_dir: If True, use a temporary directory to save the data.  default False
         :return: RedvoxSensor object
         &#34;&#34;&#34;
         return SensorData(sensor_name, pa.Table.from_pydict(sensor_data), sensor_type, sample_rate_hz,
                           sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
-                          calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)
+                          calculate_stats, use_offset_model_for_correction, save_data, arrow_dir,
+                          use_temp_dir=use_temp_dir)
 
     def save(self, file_name: Optional[str] = None) -&gt; Optional[Path]:
         &#34;&#34;&#34;
@@ -350,7 +371,7 @@ class SensorData:
                             [sensor_type]_[first_timestamp].json
         :return: The path to the saved file or None if unable to save.
         &#34;&#34;&#34;
-        if self._fs_writer.save_to_disk:
+        if self._fs_writer.is_save_disk():
             return self.to_json_file(file_name)
         return None
 
@@ -367,17 +388,25 @@ class SensorData:
         else:
             return self.from_json_file(in_dir, file)
 
+    def set_save_mode(self, new_save_mode: FileSystemSaveMode):
+        &#34;&#34;&#34;
+        changes the save mode to new_save_mode
+
+        :param new_save_mode: FileSystemSaveMode to change to
+        &#34;&#34;&#34;
+        self._fs_writer.set_save_mode(new_save_mode)
+
     def is_save_to_disk(self) -&gt; bool:
         &#34;&#34;&#34;
         :return: True if sensor will be saved to disk
         &#34;&#34;&#34;
-        return self._fs_writer.save_to_disk
+        return self._fs_writer.is_use_disk()
 
     def set_save_to_disk(self, save: bool):
         &#34;&#34;&#34;
         :param save: If True, save to disk
         &#34;&#34;&#34;
-        self._fs_writer.save_to_disk = save
+        self._fs_writer.set_use_disk(save)
 
     def set_file_name(self, new_file: Optional[str] = None):
         &#34;&#34;&#34;
@@ -400,13 +429,13 @@ class SensorData:
         &#34;&#34;&#34;
         return self._fs_writer.file_name
 
-    def set_save_dir(self, new_dir: Optional[str] = None):
+    def set_save_dir(self, new_dir: str = &#34;.&#34;):
         &#34;&#34;&#34;
         set the pyarrow directory or use the default: &#34;.&#34; (current directory)
 
-        :param new_dir: the directory to change to; default None (use current directory)
+        :param new_dir: the directory to change to; default &#34;.&#34; (use current directory)
         &#34;&#34;&#34;
-        self._fs_writer.base_dir = new_dir if new_dir else &#34;.&#34;
+        self._fs_writer.base_dir = new_dir
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -426,9 +455,15 @@ class SensorData:
         &#34;&#34;&#34;
         return self._fs_writer
 
+    def set_use_temp_dir(self, use_temp_dir: bool = False):
+        &#34;&#34;&#34;
+        :param use_temp_dir: if True, use temp dir to save data.  default False
+        &#34;&#34;&#34;
+        self._fs_writer.set_use_temp(use_temp_dir)
+
     def pyarrow_ds(self, base_dir: Optional[str] = None) -&gt; ds.Dataset:
         &#34;&#34;&#34;
-        :param base_dir: optional directory to use when loading the dataset.  if None, use self.base_dir()
+        :param base_dir: optional directory to use when loading the dataset.  if None, use self.save_dir()
         :return: the dataset stored in base_dir
         &#34;&#34;&#34;
         if base_dir is None:
@@ -437,35 +472,54 @@ class SensorData:
 
     def pyarrow_table(self) -&gt; pa.Table:
         &#34;&#34;&#34;
-        :return: the table defined by the dataset stored in self
+        :return: the table defined by the _data property or the dataset stored in self.save_dir()
         &#34;&#34;&#34;
-        return self._data if self._data else self.pyarrow_ds().to_table()
+        if self._data or self._fs_writer.is_use_mem():
+            return self._data
+        return self.pyarrow_ds().to_table()
 
     def data_df(self) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
-        :return: the pandas dataframe defined by the dataset stored in self._arrow_dir
+        :return: the pandas dataframe defined by the dataset stored in self.save_dir()
         &#34;&#34;&#34;
         return self.pyarrow_table().to_pandas()
 
-    def write_pyarrow_table(self, table: pa.Table):
+    def write_pyarrow_table(self, table: pa.Table, update_file_name: Optional[bool] = True):
         &#34;&#34;&#34;
-        * saves the pyarrow table to disk or to memory.
+        saves the pyarrow table to disk or to memory.
+
+        * if there is no data or there is no column named timestamps in the table, an error will be created
         * if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
-        * creates the directory if it doesn&#39;t exist and removes any existing parquet files
+        * uses the directory defined by self.save_dir().  Creates the directory if it doesn&#39;t exist and removes any
+        existing parquet files from the directory if it exists
 
         :param table: the table to write
+        :param update_file_name: if True, updates the file name to match the new data.  Default True
         &#34;&#34;&#34;
-        self._data = table
-        # self._fs_writer.create_dir()
-        # pq.write_table(table, self.full_path())
+        if table.num_rows &lt; 1 or &#34;timestamps&#34; not in table.schema.names:
+            self._errors.append(&#34;Attempted to write invalid table.&#34;)
+        elif self._fs_writer.is_save_disk():
+            self._fs_writer.create_dir()
+            if update_file_name:
+                self.set_file_name(f&#34;{self.type().name}_{int(table[&#39;timestamps&#39;][0].as_py())}&#34;)
+            pq.write_table(table, self.full_path())
+            self._data = None
+        else:
+            self._data = table
 
-    def _actual_file_write_table(self):
+    def move_pyarrow_dir(self, new_dir: str) -&gt; Path:
         &#34;&#34;&#34;
-        file writing function; use when file system writing is dependable.
+        Move the sensor&#39;s pyarrow files to a new directory
+
+        :param new_dir: directory to save files into
         &#34;&#34;&#34;
-        self._fs_writer.create_dir()
-        pq.write_table(self._data, self.full_path())
-        self._data = None
+        old_sensor_save_dir = self.save_dir()
+        self.set_save_dir(os.path.join(new_dir, self._type.name))
+        for r, d, f in os.walk(old_sensor_save_dir):
+            for file in f:
+                self._fs_writer.create_dir()
+                os.rename(os.path.join(old_sensor_save_dir, file), os.path.join(self.save_dir(), file))
+        return Path(self.save_dir())
 
     def errors(self) -&gt; RedVoxExceptions:
         &#34;&#34;&#34;
@@ -541,9 +595,6 @@ class SensorData:
         else:
             order = &#34;descending&#34;
         data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[(&#34;timestamps&#34;, order)]))
-        # if not np.isnan(self.first_data_timestamp()) and self.first_data_timestamp() != data[&#39;timestamps&#39;][0].as_py():
-        #     os.remove(self.full_path())
-        # self.set_file_name(f&#34;{self._type.name}_{int(data[&#39;timestamps&#39;][0].as_py())}&#34;)
         self.write_pyarrow_table(data)
 
     def organize_and_update_stats(self, ptable: pa.Table) -&gt; &#34;SensorData&#34;:
@@ -670,35 +721,26 @@ class SensorData:
         &#34;&#34;&#34;
         :return: a list of the names of the columns (data channels) of the dataframe
         &#34;&#34;&#34;
-        return self.pyarrow_table().schema.names
+        if self.pyarrow_table():
+            return self.pyarrow_table().schema.names
+        return []
 
-    def get_data_channel(self, channel_name: str) -&gt; Union[np.array, List[str]]:
+    def get_data_channel(self, channel_name: str) -&gt; np.array:
         &#34;&#34;&#34;
         gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
 
         :param channel_name: the name of the channel to get data for
         :return: the data values of the channel as a numpy array or list of strings for enumerated channels
         &#34;&#34;&#34;
+        if not self.pyarrow_table():
+            self._errors.append(f&#34;WARNING: There are no channels to access in this Sensor!&#34;)
+            return []
         _arrow = self.pyarrow_table()
         if channel_name not in _arrow.schema.names:
             self._errors.append(f&#34;WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}&#34;)
             return []
-        if channel_name == &#34;location_provider&#34;:
-            return [LocationProvider(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;image_codec&#34;:
-            return [ImageCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;audio_codec&#34;:
-            return [AudioCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;network_type&#34;:
-            return [NetworkType(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;power_state&#34;:
-            return [PowerState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;cell_service&#34;:
-            return [CellServiceState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;wifi_wake_lock&#34;:
-            return [WifiWakeLock(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;screen_state&#34;:
-            return [ScreenState(c.as_py()).name for c in _arrow[channel_name]]
+        if channel_name in NON_NUMERIC_COLUMNS:
+            return np.array([COLUMN_TO_ENUM_FN[channel_name](c.as_py()) for c in _arrow[channel_name]])
         return _arrow[channel_name].to_numpy()
 
     def _get_non_numeric_data_channel(self, channel_name: str) -&gt; List[str]:
@@ -708,23 +750,12 @@ class SensorData:
         :param channel_name: the name of the channel to get data for
         :return: the data values of the channel as a list of strings
         &#34;&#34;&#34;
-        _arrow = self.pyarrow_table()
-        if channel_name == &#34;location_provider&#34;:
-            return [LocationProvider(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;image_codec&#34;:
-            return [ImageCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;audio_codec&#34;:
-            return [AudioCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;network_type&#34;:
-            return [NetworkType(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;power_state&#34;:
-            return [PowerState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;cell_service&#34;:
-            return [CellServiceState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;wifi_wake_lock&#34;:
-            return [WifiWakeLock(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;screen_state&#34;:
-            return [ScreenState(c.as_py()).name for c in _arrow[channel_name]]
+        if not self.pyarrow_table():
+            self._errors.append(f&#34;WARNING: There are no channels to access in this Sensor!&#34;)
+        else:
+            _arrow = self.pyarrow_table()
+            if channel_name in NON_NUMERIC_COLUMNS:
+                return [COLUMN_TO_ENUM_FN[channel_name](c.as_py()) for c in _arrow[channel_name]]
         self._errors.append(f&#34;WARNING: {channel_name} does not exist&#34;)
         return []
 
@@ -782,14 +813,14 @@ class SensorData:
                                                                  self._use_offset_model))
         # old_name = self.full_path()
         self.write_pyarrow_table(self.pyarrow_table().set_column(0, &#34;timestamps&#34;, timestamps))
-        self.set_file_name()
+        # self.set_file_name()
         # os.rename(old_name, self.full_path())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) &gt; 1:
             self._sample_interval_s = dtu.microseconds_to_seconds(slope)
             if self._sample_interval_s &gt; 0:
                 self._sample_rate_hz = 1 / self._sample_interval_s
-                self._sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
+                self._sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(time_diffs)))
         self._timestamps_altered = True
 
     def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
@@ -864,8 +895,7 @@ class SensorData:
                             [sensor_type]_[first_timestamp].json
         :return: path to json file
         &#34;&#34;&#34;
-        if self._fs_writer.file_extension == &#34;parquet&#34;:
-            self._actual_file_write_table()
+        self.write_pyarrow_table(self.pyarrow_table())
         return io.to_json_file(self, file_name)
 
     @staticmethod
@@ -890,6 +920,8 @@ class SensorData:
                                          json_data[&#34;sample_interval_std_s&#34;], json_data[&#34;is_sample_rate_fixed&#34;],
                                          json_data[&#34;timestamps_altered&#34;], False, json_data[&#34;use_offset_model&#34;])
             result.set_errors(RedVoxExceptions.from_dict(json_data[&#34;errors&#34;]))
+            result.set_save_to_disk(True)
+            result.set_file_name()
             result.set_gaps(json_data[&#34;gaps&#34;])
         else:
             result = SensorData(&#34;Empty&#34;)
@@ -902,42 +934,30 @@ class SensorData:
 
         :return: Self
         &#34;&#34;&#34;
-        if self._type == SensorType.AUDIO:
-            self.__class__ = AudioSensor
-        if self._type == SensorType.COMPRESSED_AUDIO:
-            self.__class__ = CompressedAudioSensor
-        if self._type == SensorType.IMAGE:
-            self.__class__ = ImageSensor
-        if self._type == SensorType.LOCATION:
-            self.__class__ = LocationSensor
-        if self._type == SensorType.BEST_LOCATION:
-            self.__class__ = BestLocationSensor
-        if self._type == SensorType.STATION_HEALTH:
-            self.__class__ = StationHealthSensor
-        if self._type == SensorType.LIGHT:
-            self.__class__ = LightSensor
-        if self._type == SensorType.PRESSURE:
-            self.__class__ = PressureSensor
-        if self._type == SensorType.PROXIMITY or self._type == SensorType.INFRARED:
-            self.__class__ = ProximitySensor
-        if self._type == SensorType.RELATIVE_HUMIDITY:
-            self.__class__ = RelativeHumiditySensor
-        if self._type == SensorType.AMBIENT_TEMPERATURE:
-            self.__class__ = AmbientTemperatureSensor
-        if self._type == SensorType.ACCELEROMETER:
-            self.__class__ = AccelerometerSensor
-        if self._type == SensorType.GYROSCOPE:
-            self.__class__ = GyroscopeSensor
-        if self._type == SensorType.MAGNETOMETER:
-            self.__class__ = MagnetometerSensor
-        if self._type == SensorType.ORIENTATION:
-            self.__class__ = OrientationSensor
-        if self._type == SensorType.GRAVITY:
-            self.__class__ = GravitySensor
-        if self._type == SensorType.LINEAR_ACCELERATION:
-            self.__class__ = LinearAccelerationSensor
-        if self._type == SensorType.ROTATION_VECTOR:
-            self.__class__ = RotationVectorSensor
+        if self._type in SensorType:
+            sensor_class_from_type = {
+                SensorType.AUDIO: AudioSensor,
+                SensorType.COMPRESSED_AUDIO: CompressedAudioSensor,
+                SensorType.IMAGE: ImageSensor,
+                SensorType.LOCATION: LocationSensor,
+                SensorType.BEST_LOCATION: BestLocationSensor,
+                SensorType.STATION_HEALTH: StationHealthSensor,
+                SensorType.LIGHT: LightSensor,
+                SensorType.PRESSURE: PressureSensor,
+                SensorType.PROXIMITY: ProximitySensor,
+                SensorType.INFRARED: ProximitySensor,
+                SensorType.RELATIVE_HUMIDITY: RelativeHumiditySensor,
+                SensorType.AMBIENT_TEMPERATURE: AmbientTemperatureSensor,
+                SensorType.ACCELEROMETER: AccelerometerSensor,
+                SensorType.GYROSCOPE: GyroscopeSensor,
+                SensorType.MAGNETOMETER: MagnetometerSensor,
+                SensorType.ORIENTATION: OrientationSensor,
+                SensorType.GRAVITY: GravitySensor,
+                SensorType.LINEAR_ACCELERATION: LinearAccelerationSensor,
+                SensorType.ROTATION_VECTOR: RotationVectorSensor,
+                SensorType.UNKNOWN_SENSOR: SensorData
+            }
+            self.__class__ = sensor_class_from_type[self._type]
         return self
 
     def set_errors(self, errors: RedVoxExceptions):
@@ -981,10 +1001,50 @@ class AudioSensor(SensorData):
                  save_data: bool = False,
                  base_dir: str = &#34;.&#34;,
                  gaps: Optional[List[Tuple[float, float]]] = None,
-                 show_errors: bool = False):
+                 show_errors: bool = False,
+                 use_temp_dir: bool = False):
         super().__init__(sensor_name, sensor_data, SensorType.AUDIO, sample_rate_hz, sample_interval_s,
                          sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
-                         use_offset_model_for_correction, save_data, base_dir, gaps, show_errors)
+                         use_offset_model_for_correction, save_data, base_dir, gaps, show_errors, use_temp_dir)
+
+    @staticmethod
+    def from_metadata(sensor_name: str,
+                      data: AudioWithGaps,
+                      sample_rate_hz: float = np.nan,
+                      sample_interval_s: float = np.nan,
+                      sample_interval_std_s: float = np.nan,
+                      is_sample_rate_fixed: bool = False,
+                      are_timestamps_altered: bool = False,
+                      calculate_stats: bool = False,
+                      use_offset_model_for_correction: bool = False,
+                      save_data: bool = False,
+                      base_dir: str = &#34;.&#34;,
+                      use_temp_dir: bool = False) -&gt; &#34;SensorData&#34;:
+        &#34;&#34;&#34;
+        init but using metadata
+
+        :param sensor_name: name of the sensor
+        :param data: the metadata used to create the sensor
+        :param sample_rate_hz: sample rate in hz of the data, default np.nan
+        :param sample_interval_s: sample interval in seconds of the data, default np.nan
+        :param sample_interval_std_s: std dev of sample interval in seconds of the data, default np.nan
+        :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
+        :param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
+                                        original values, default False
+        :param calculate_stats: if True, calculate sample_rate, sample_interval_s, and sample_interval_std_s
+                                default False
+        :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
+                                                use the best known offset.  default False
+        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param base_dir: directory to save pyarrow table, default &#34;.&#34; (current dir).  internally uses a temporary
+                            dir if not saving data
+        :param use_temp_dir: if True, save the data using a temporary directory.  default False
+        :return: RedvoxSensor object
+        &#34;&#34;&#34;
+        return SensorData(sensor_name, data.create_timestamps(),
+                          SensorType.AUDIO, sample_rate_hz, sample_interval_s, sample_interval_std_s,
+                          is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
+                          use_offset_model_for_correction, save_data, base_dir, use_temp_dir=use_temp_dir)
 
     def get_microphone_data(self) -&gt; np.array:
         &#34;&#34;&#34;
@@ -2215,6 +2275,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -2412,6 +2474,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -2427,7 +2490,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -2476,6 +2541,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -2585,6 +2652,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -2600,7 +2668,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -2616,7 +2686,7 @@ Default False</p></div>
 </dd>
 <dt id="redvox.common.sensor_data.AudioSensor"><code class="flex name class">
 <span>class <span class="ident">AudioSensor</span></span>
-<span>(</span><span>sensor_name: str, sensor_data: Optional[pyarrow.lib.Table] = None, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False, use_offset_model_for_correction: bool = False, save_data: bool = False, base_dir: str = '.', gaps: Optional[List[Tuple[float, float]]] = None, show_errors: bool = False)</span>
+<span>(</span><span>sensor_name: str, sensor_data: Optional[pyarrow.lib.Table] = None, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False, use_offset_model_for_correction: bool = False, save_data: bool = False, base_dir: str = '.', gaps: Optional[List[Tuple[float, float]]] = None, show_errors: bool = False, use_temp_dir: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Audio specific functions</p>
@@ -2649,6 +2719,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -2670,10 +2742,50 @@ Default False</p></div>
                  save_data: bool = False,
                  base_dir: str = &#34;.&#34;,
                  gaps: Optional[List[Tuple[float, float]]] = None,
-                 show_errors: bool = False):
+                 show_errors: bool = False,
+                 use_temp_dir: bool = False):
         super().__init__(sensor_name, sensor_data, SensorType.AUDIO, sample_rate_hz, sample_interval_s,
                          sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
-                         use_offset_model_for_correction, save_data, base_dir, gaps, show_errors)
+                         use_offset_model_for_correction, save_data, base_dir, gaps, show_errors, use_temp_dir)
+
+    @staticmethod
+    def from_metadata(sensor_name: str,
+                      data: AudioWithGaps,
+                      sample_rate_hz: float = np.nan,
+                      sample_interval_s: float = np.nan,
+                      sample_interval_std_s: float = np.nan,
+                      is_sample_rate_fixed: bool = False,
+                      are_timestamps_altered: bool = False,
+                      calculate_stats: bool = False,
+                      use_offset_model_for_correction: bool = False,
+                      save_data: bool = False,
+                      base_dir: str = &#34;.&#34;,
+                      use_temp_dir: bool = False) -&gt; &#34;SensorData&#34;:
+        &#34;&#34;&#34;
+        init but using metadata
+
+        :param sensor_name: name of the sensor
+        :param data: the metadata used to create the sensor
+        :param sample_rate_hz: sample rate in hz of the data, default np.nan
+        :param sample_interval_s: sample interval in seconds of the data, default np.nan
+        :param sample_interval_std_s: std dev of sample interval in seconds of the data, default np.nan
+        :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
+        :param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
+                                        original values, default False
+        :param calculate_stats: if True, calculate sample_rate, sample_interval_s, and sample_interval_std_s
+                                default False
+        :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
+                                                use the best known offset.  default False
+        :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param base_dir: directory to save pyarrow table, default &#34;.&#34; (current dir).  internally uses a temporary
+                            dir if not saving data
+        :param use_temp_dir: if True, save the data using a temporary directory.  default False
+        :return: RedvoxSensor object
+        &#34;&#34;&#34;
+        return SensorData(sensor_name, data.create_timestamps(),
+                          SensorType.AUDIO, sample_rate_hz, sample_interval_s, sample_interval_std_s,
+                          is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
+                          use_offset_model_for_correction, save_data, base_dir, use_temp_dir=use_temp_dir)
 
     def get_microphone_data(self) -&gt; np.array:
         &#34;&#34;&#34;
@@ -2691,6 +2803,79 @@ Default False</p></div>
 <ul class="hlist">
 <li><a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></li>
 </ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.sensor_data.AudioSensor.from_metadata"><code class="name flex">
+<span>def <span class="ident">from_metadata</span></span>(<span>sensor_name: str, data: <a title="redvox.common.gap_and_pad_utils.AudioWithGaps" href="gap_and_pad_utils.html#redvox.common.gap_and_pad_utils.AudioWithGaps">AudioWithGaps</a>, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False, use_offset_model_for_correction: bool = False, save_data: bool = False, base_dir: str = '.', use_temp_dir: bool = False) ‑> <a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>init but using metadata</p>
+<p>:param sensor_name: name of the sensor
+:param data: the metadata used to create the sensor
+:param sample_rate_hz: sample rate in hz of the data, default np.nan
+:param sample_interval_s: sample interval in seconds of the data, default np.nan
+:param sample_interval_std_s: std dev of sample interval in seconds of the data, default np.nan
+:param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
+:param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
+original values, default False
+:param calculate_stats: if True, calculate sample_rate, sample_interval_s, and sample_interval_std_s
+default False
+:param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
+use the best known offset.
+default False
+:param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.
+default False
+:param base_dir: directory to save pyarrow table, default "." (current dir).
+internally uses a temporary
+dir if not saving data
+:param use_temp_dir: if True, save the data using a temporary directory.
+default False
+:return: RedvoxSensor object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_metadata(sensor_name: str,
+                  data: AudioWithGaps,
+                  sample_rate_hz: float = np.nan,
+                  sample_interval_s: float = np.nan,
+                  sample_interval_std_s: float = np.nan,
+                  is_sample_rate_fixed: bool = False,
+                  are_timestamps_altered: bool = False,
+                  calculate_stats: bool = False,
+                  use_offset_model_for_correction: bool = False,
+                  save_data: bool = False,
+                  base_dir: str = &#34;.&#34;,
+                  use_temp_dir: bool = False) -&gt; &#34;SensorData&#34;:
+    &#34;&#34;&#34;
+    init but using metadata
+
+    :param sensor_name: name of the sensor
+    :param data: the metadata used to create the sensor
+    :param sample_rate_hz: sample rate in hz of the data, default np.nan
+    :param sample_interval_s: sample interval in seconds of the data, default np.nan
+    :param sample_interval_std_s: std dev of sample interval in seconds of the data, default np.nan
+    :param is_sample_rate_fixed: if True, sample rate is constant for all data, default False
+    :param are_timestamps_altered: if True, timestamps in the sensor have been altered from their
+                                    original values, default False
+    :param calculate_stats: if True, calculate sample_rate, sample_interval_s, and sample_interval_std_s
+                            default False
+    :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
+                                            use the best known offset.  default False
+    :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+    :param base_dir: directory to save pyarrow table, default &#34;.&#34; (current dir).  internally uses a temporary
+                        dir if not saving data
+    :param use_temp_dir: if True, save the data using a temporary directory.  default False
+    :return: RedvoxSensor object
+    &#34;&#34;&#34;
+    return SensorData(sensor_name, data.create_timestamps(),
+                      SensorType.AUDIO, sample_rate_hz, sample_interval_s, sample_interval_std_s,
+                      is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
+                      use_offset_model_for_correction, save_data, base_dir, use_temp_dir=use_temp_dir)</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.sensor_data.AudioSensor.get_microphone_data"><code class="name flex">
@@ -2758,6 +2943,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -2773,7 +2959,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -2822,6 +3010,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -3376,6 +3566,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -3391,7 +3582,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -3440,6 +3633,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -3579,6 +3774,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -3594,7 +3790,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -3643,6 +3841,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -3840,6 +4040,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -3855,7 +4056,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -3904,6 +4107,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -4101,6 +4306,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -4116,7 +4322,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -4165,6 +4373,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -4323,6 +4533,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -4338,7 +4549,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -4387,6 +4600,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -4496,6 +4711,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -4511,7 +4727,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -4560,6 +4778,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -4757,6 +4977,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -4772,7 +4993,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -4821,6 +5044,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -5375,6 +5600,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -5390,7 +5616,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -5439,6 +5667,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -5636,6 +5866,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -5651,7 +5882,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -5700,6 +5933,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -5897,6 +6132,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -5912,7 +6148,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -5961,6 +6199,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -6070,6 +6310,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -6085,7 +6326,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -6134,6 +6377,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -6243,6 +6488,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -6258,7 +6504,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -6307,6 +6555,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -6416,6 +6666,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -6431,7 +6682,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -6480,6 +6733,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -6677,6 +6932,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -6692,7 +6948,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -6708,7 +6966,7 @@ Default False</p></div>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData"><code class="flex name class">
 <span>class <span class="ident">SensorData</span></span>
-<span>(</span><span>sensor_name: str, sensor_data: Optional[pyarrow.lib.Table] = None, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False, use_offset_model_for_correction: bool = False, save_data: bool = False, base_dir: str = '.', gaps: Optional[List[Tuple[float, float]]] = None, show_errors: bool = False)</span>
+<span>(</span><span>sensor_name: str, sensor_data: Optional[pyarrow.lib.Table] = None, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False, use_offset_model_for_correction: bool = False, save_data: bool = False, base_dir: str = '.', gaps: Optional[List[Tuple[float, float]]] = None, show_errors: bool = False, use_temp_dir: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generic RedvoxSensor class for API-independent analysis</p>
@@ -6760,6 +7018,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -6813,7 +7073,8 @@ Default False</p></div>
             save_data: bool = False,
             base_dir: str = &#34;.&#34;,
             gaps: Optional[List[Tuple[float, float]]] = None,
-            show_errors: bool = False
+            show_errors: bool = False,
+            use_temp_dir: bool = False
     ):
         &#34;&#34;&#34;
         initialize the sensor data with params
@@ -6841,6 +7102,7 @@ Default False</p></div>
                         the pairs of points exists to maintain sample rate and are not considered valid points.
                         Default None
         :param show_errors: if True, show any errors encountered.  Default False
+        :param use_temp_dir: if True, use a temp directory to save data.  Default False
         &#34;&#34;&#34;
         self._errors: RedVoxExceptions = RedVoxExceptions(&#34;Sensor&#34;)
         self.name: str = sensor_name
@@ -6851,22 +7113,29 @@ Default False</p></div>
         self._is_sample_rate_fixed: bool = is_sample_rate_fixed
         self._timestamps_altered: bool = are_timestamps_altered
         self._use_offset_model: bool = use_offset_model_for_correction
-        self._fs_writer = Fsw(&#34;&#34;, &#34;parquet&#34;, base_dir, save_data)
+        if save_data:
+            save_mode = FileSystemSaveMode.DISK
+        elif use_temp_dir:
+            save_mode = FileSystemSaveMode.TEMP
+        else:
+            save_mode = FileSystemSaveMode.MEM
+        self._fs_writer = Fsw(&#34;&#34;, &#34;parquet&#34;, base_dir, save_mode)
         self._gaps: List[Tuple] = gaps if gaps else []
-        self._data: Optional[pa.Table()] = None
-        if sensor_data:
+        set_data_as_sensor_data = True
+        if sensor_data is not None:
             if &#34;timestamps&#34; not in sensor_data.schema.names:
                 self._errors.append(&#39;must have a column titled &#34;timestamps&#34;&#39;)
             elif sensor_data[&#39;timestamps&#39;].length() &gt; 0:
-                self.set_file_name(f&#34;{sensor_type.name}_{int(sensor_data[&#39;timestamps&#39;][0].as_py())}&#34;)
-                if calculate_stats:
+                set_data_as_sensor_data = False
+                if calculate_stats and np.isnan(sample_interval_s) and np.isnan(sample_rate_hz) \
+                        and np.isnan(sample_interval_std_s):
                     self.organize_and_update_stats(sensor_data)
                 elif sensor_data[&#34;timestamps&#34;].length() &gt; 1:
                     self.sort_by_data_timestamps(sensor_data)
                 else:
                     self.write_pyarrow_table(sensor_data)
-        else:
-            self._errors.append(&#39;cannot be empty&#39;)
+        if set_data_as_sensor_data:
+            self._data = sensor_data
         if show_errors:
             self.print_errors()
 
@@ -6882,7 +7151,8 @@ Default False</p></div>
             are_timestamps_altered: bool = False,
             calculate_stats: bool = False,
             use_offset_model_for_correction: bool = False,
-            save_data: bool = False) -&gt; &#34;SensorData&#34;:
+            save_data: bool = False,
+            use_temp_dir: bool = False) -&gt; &#34;SensorData&#34;:
         &#34;&#34;&#34;
         init but with a path to directory containing parquet file(s) instead of a table of data
 
@@ -6900,14 +7170,14 @@ Default False</p></div>
         :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                                 use the best known offset.  default False
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+        :param use_temp_dir: if True, save the data using a temporary directory.  default False
         :return: RedvoxSensor object
         &#34;&#34;&#34;
         result = SensorData(sensor_name,
                             ds.dataset(data_path, format=&#34;parquet&#34;, exclude_invalid_files=True).to_table(),
                             sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s,
                             is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
-                            use_offset_model_for_correction, save_data, data_path)
-        result.set_file_name()
+                            use_offset_model_for_correction, save_data, data_path, use_temp_dir=use_temp_dir)
         return result
 
     @staticmethod
@@ -6924,6 +7194,7 @@ Default False</p></div>
             use_offset_model_for_correction: bool = False,
             save_data: bool = False,
             arrow_dir: str = &#34;&#34;,
+            use_temp_dir: bool = False
     ) -&gt; &#34;SensorData&#34;:
         &#34;&#34;&#34;
         init but with a dictionary
@@ -6945,11 +7216,13 @@ Default False</p></div>
         :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
         :param arrow_dir: directory to save pyarrow table, default &#34;&#34; (current dir).  default temporary dir if not
                             saving data
+        :param use_temp_dir: If True, use a temporary directory to save the data.  default False
         :return: RedvoxSensor object
         &#34;&#34;&#34;
         return SensorData(sensor_name, pa.Table.from_pydict(sensor_data), sensor_type, sample_rate_hz,
                           sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
-                          calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)
+                          calculate_stats, use_offset_model_for_correction, save_data, arrow_dir,
+                          use_temp_dir=use_temp_dir)
 
     def save(self, file_name: Optional[str] = None) -&gt; Optional[Path]:
         &#34;&#34;&#34;
@@ -6960,7 +7233,7 @@ Default False</p></div>
                             [sensor_type]_[first_timestamp].json
         :return: The path to the saved file or None if unable to save.
         &#34;&#34;&#34;
-        if self._fs_writer.save_to_disk:
+        if self._fs_writer.is_save_disk():
             return self.to_json_file(file_name)
         return None
 
@@ -6977,17 +7250,25 @@ Default False</p></div>
         else:
             return self.from_json_file(in_dir, file)
 
+    def set_save_mode(self, new_save_mode: FileSystemSaveMode):
+        &#34;&#34;&#34;
+        changes the save mode to new_save_mode
+
+        :param new_save_mode: FileSystemSaveMode to change to
+        &#34;&#34;&#34;
+        self._fs_writer.set_save_mode(new_save_mode)
+
     def is_save_to_disk(self) -&gt; bool:
         &#34;&#34;&#34;
         :return: True if sensor will be saved to disk
         &#34;&#34;&#34;
-        return self._fs_writer.save_to_disk
+        return self._fs_writer.is_use_disk()
 
     def set_save_to_disk(self, save: bool):
         &#34;&#34;&#34;
         :param save: If True, save to disk
         &#34;&#34;&#34;
-        self._fs_writer.save_to_disk = save
+        self._fs_writer.set_use_disk(save)
 
     def set_file_name(self, new_file: Optional[str] = None):
         &#34;&#34;&#34;
@@ -7010,13 +7291,13 @@ Default False</p></div>
         &#34;&#34;&#34;
         return self._fs_writer.file_name
 
-    def set_save_dir(self, new_dir: Optional[str] = None):
+    def set_save_dir(self, new_dir: str = &#34;.&#34;):
         &#34;&#34;&#34;
         set the pyarrow directory or use the default: &#34;.&#34; (current directory)
 
-        :param new_dir: the directory to change to; default None (use current directory)
+        :param new_dir: the directory to change to; default &#34;.&#34; (use current directory)
         &#34;&#34;&#34;
-        self._fs_writer.base_dir = new_dir if new_dir else &#34;.&#34;
+        self._fs_writer.base_dir = new_dir
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -7036,9 +7317,15 @@ Default False</p></div>
         &#34;&#34;&#34;
         return self._fs_writer
 
+    def set_use_temp_dir(self, use_temp_dir: bool = False):
+        &#34;&#34;&#34;
+        :param use_temp_dir: if True, use temp dir to save data.  default False
+        &#34;&#34;&#34;
+        self._fs_writer.set_use_temp(use_temp_dir)
+
     def pyarrow_ds(self, base_dir: Optional[str] = None) -&gt; ds.Dataset:
         &#34;&#34;&#34;
-        :param base_dir: optional directory to use when loading the dataset.  if None, use self.base_dir()
+        :param base_dir: optional directory to use when loading the dataset.  if None, use self.save_dir()
         :return: the dataset stored in base_dir
         &#34;&#34;&#34;
         if base_dir is None:
@@ -7047,35 +7334,54 @@ Default False</p></div>
 
     def pyarrow_table(self) -&gt; pa.Table:
         &#34;&#34;&#34;
-        :return: the table defined by the dataset stored in self
+        :return: the table defined by the _data property or the dataset stored in self.save_dir()
         &#34;&#34;&#34;
-        return self._data if self._data else self.pyarrow_ds().to_table()
+        if self._data or self._fs_writer.is_use_mem():
+            return self._data
+        return self.pyarrow_ds().to_table()
 
     def data_df(self) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
-        :return: the pandas dataframe defined by the dataset stored in self._arrow_dir
+        :return: the pandas dataframe defined by the dataset stored in self.save_dir()
         &#34;&#34;&#34;
         return self.pyarrow_table().to_pandas()
 
-    def write_pyarrow_table(self, table: pa.Table):
+    def write_pyarrow_table(self, table: pa.Table, update_file_name: Optional[bool] = True):
         &#34;&#34;&#34;
-        * saves the pyarrow table to disk or to memory.
+        saves the pyarrow table to disk or to memory.
+
+        * if there is no data or there is no column named timestamps in the table, an error will be created
         * if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
-        * creates the directory if it doesn&#39;t exist and removes any existing parquet files
+        * uses the directory defined by self.save_dir().  Creates the directory if it doesn&#39;t exist and removes any
+        existing parquet files from the directory if it exists
 
         :param table: the table to write
+        :param update_file_name: if True, updates the file name to match the new data.  Default True
         &#34;&#34;&#34;
-        self._data = table
-        # self._fs_writer.create_dir()
-        # pq.write_table(table, self.full_path())
+        if table.num_rows &lt; 1 or &#34;timestamps&#34; not in table.schema.names:
+            self._errors.append(&#34;Attempted to write invalid table.&#34;)
+        elif self._fs_writer.is_save_disk():
+            self._fs_writer.create_dir()
+            if update_file_name:
+                self.set_file_name(f&#34;{self.type().name}_{int(table[&#39;timestamps&#39;][0].as_py())}&#34;)
+            pq.write_table(table, self.full_path())
+            self._data = None
+        else:
+            self._data = table
 
-    def _actual_file_write_table(self):
+    def move_pyarrow_dir(self, new_dir: str) -&gt; Path:
         &#34;&#34;&#34;
-        file writing function; use when file system writing is dependable.
+        Move the sensor&#39;s pyarrow files to a new directory
+
+        :param new_dir: directory to save files into
         &#34;&#34;&#34;
-        self._fs_writer.create_dir()
-        pq.write_table(self._data, self.full_path())
-        self._data = None
+        old_sensor_save_dir = self.save_dir()
+        self.set_save_dir(os.path.join(new_dir, self._type.name))
+        for r, d, f in os.walk(old_sensor_save_dir):
+            for file in f:
+                self._fs_writer.create_dir()
+                os.rename(os.path.join(old_sensor_save_dir, file), os.path.join(self.save_dir(), file))
+        return Path(self.save_dir())
 
     def errors(self) -&gt; RedVoxExceptions:
         &#34;&#34;&#34;
@@ -7151,9 +7457,6 @@ Default False</p></div>
         else:
             order = &#34;descending&#34;
         data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[(&#34;timestamps&#34;, order)]))
-        # if not np.isnan(self.first_data_timestamp()) and self.first_data_timestamp() != data[&#39;timestamps&#39;][0].as_py():
-        #     os.remove(self.full_path())
-        # self.set_file_name(f&#34;{self._type.name}_{int(data[&#39;timestamps&#39;][0].as_py())}&#34;)
         self.write_pyarrow_table(data)
 
     def organize_and_update_stats(self, ptable: pa.Table) -&gt; &#34;SensorData&#34;:
@@ -7280,35 +7583,26 @@ Default False</p></div>
         &#34;&#34;&#34;
         :return: a list of the names of the columns (data channels) of the dataframe
         &#34;&#34;&#34;
-        return self.pyarrow_table().schema.names
+        if self.pyarrow_table():
+            return self.pyarrow_table().schema.names
+        return []
 
-    def get_data_channel(self, channel_name: str) -&gt; Union[np.array, List[str]]:
+    def get_data_channel(self, channel_name: str) -&gt; np.array:
         &#34;&#34;&#34;
         gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
 
         :param channel_name: the name of the channel to get data for
         :return: the data values of the channel as a numpy array or list of strings for enumerated channels
         &#34;&#34;&#34;
+        if not self.pyarrow_table():
+            self._errors.append(f&#34;WARNING: There are no channels to access in this Sensor!&#34;)
+            return []
         _arrow = self.pyarrow_table()
         if channel_name not in _arrow.schema.names:
             self._errors.append(f&#34;WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}&#34;)
             return []
-        if channel_name == &#34;location_provider&#34;:
-            return [LocationProvider(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;image_codec&#34;:
-            return [ImageCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;audio_codec&#34;:
-            return [AudioCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;network_type&#34;:
-            return [NetworkType(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;power_state&#34;:
-            return [PowerState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;cell_service&#34;:
-            return [CellServiceState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;wifi_wake_lock&#34;:
-            return [WifiWakeLock(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;screen_state&#34;:
-            return [ScreenState(c.as_py()).name for c in _arrow[channel_name]]
+        if channel_name in NON_NUMERIC_COLUMNS:
+            return np.array([COLUMN_TO_ENUM_FN[channel_name](c.as_py()) for c in _arrow[channel_name]])
         return _arrow[channel_name].to_numpy()
 
     def _get_non_numeric_data_channel(self, channel_name: str) -&gt; List[str]:
@@ -7318,23 +7612,12 @@ Default False</p></div>
         :param channel_name: the name of the channel to get data for
         :return: the data values of the channel as a list of strings
         &#34;&#34;&#34;
-        _arrow = self.pyarrow_table()
-        if channel_name == &#34;location_provider&#34;:
-            return [LocationProvider(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;image_codec&#34;:
-            return [ImageCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;audio_codec&#34;:
-            return [AudioCodec(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;network_type&#34;:
-            return [NetworkType(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;power_state&#34;:
-            return [PowerState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;cell_service&#34;:
-            return [CellServiceState(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;wifi_wake_lock&#34;:
-            return [WifiWakeLock(c.as_py()).name for c in _arrow[channel_name]]
-        elif channel_name == &#34;screen_state&#34;:
-            return [ScreenState(c.as_py()).name for c in _arrow[channel_name]]
+        if not self.pyarrow_table():
+            self._errors.append(f&#34;WARNING: There are no channels to access in this Sensor!&#34;)
+        else:
+            _arrow = self.pyarrow_table()
+            if channel_name in NON_NUMERIC_COLUMNS:
+                return [COLUMN_TO_ENUM_FN[channel_name](c.as_py()) for c in _arrow[channel_name]]
         self._errors.append(f&#34;WARNING: {channel_name} does not exist&#34;)
         return []
 
@@ -7392,14 +7675,14 @@ Default False</p></div>
                                                                  self._use_offset_model))
         # old_name = self.full_path()
         self.write_pyarrow_table(self.pyarrow_table().set_column(0, &#34;timestamps&#34;, timestamps))
-        self.set_file_name()
+        # self.set_file_name()
         # os.rename(old_name, self.full_path())
         time_diffs = np.floor(np.diff(self.data_timestamps()))
         if len(time_diffs) &gt; 1:
             self._sample_interval_s = dtu.microseconds_to_seconds(slope)
             if self._sample_interval_s &gt; 0:
                 self._sample_rate_hz = 1 / self._sample_interval_s
-                self._sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
+                self._sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(time_diffs)))
         self._timestamps_altered = True
 
     def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
@@ -7474,8 +7757,7 @@ Default False</p></div>
                             [sensor_type]_[first_timestamp].json
         :return: path to json file
         &#34;&#34;&#34;
-        if self._fs_writer.file_extension == &#34;parquet&#34;:
-            self._actual_file_write_table()
+        self.write_pyarrow_table(self.pyarrow_table())
         return io.to_json_file(self, file_name)
 
     @staticmethod
@@ -7500,6 +7782,8 @@ Default False</p></div>
                                          json_data[&#34;sample_interval_std_s&#34;], json_data[&#34;is_sample_rate_fixed&#34;],
                                          json_data[&#34;timestamps_altered&#34;], False, json_data[&#34;use_offset_model&#34;])
             result.set_errors(RedVoxExceptions.from_dict(json_data[&#34;errors&#34;]))
+            result.set_save_to_disk(True)
+            result.set_file_name()
             result.set_gaps(json_data[&#34;gaps&#34;])
         else:
             result = SensorData(&#34;Empty&#34;)
@@ -7512,42 +7796,30 @@ Default False</p></div>
 
         :return: Self
         &#34;&#34;&#34;
-        if self._type == SensorType.AUDIO:
-            self.__class__ = AudioSensor
-        if self._type == SensorType.COMPRESSED_AUDIO:
-            self.__class__ = CompressedAudioSensor
-        if self._type == SensorType.IMAGE:
-            self.__class__ = ImageSensor
-        if self._type == SensorType.LOCATION:
-            self.__class__ = LocationSensor
-        if self._type == SensorType.BEST_LOCATION:
-            self.__class__ = BestLocationSensor
-        if self._type == SensorType.STATION_HEALTH:
-            self.__class__ = StationHealthSensor
-        if self._type == SensorType.LIGHT:
-            self.__class__ = LightSensor
-        if self._type == SensorType.PRESSURE:
-            self.__class__ = PressureSensor
-        if self._type == SensorType.PROXIMITY or self._type == SensorType.INFRARED:
-            self.__class__ = ProximitySensor
-        if self._type == SensorType.RELATIVE_HUMIDITY:
-            self.__class__ = RelativeHumiditySensor
-        if self._type == SensorType.AMBIENT_TEMPERATURE:
-            self.__class__ = AmbientTemperatureSensor
-        if self._type == SensorType.ACCELEROMETER:
-            self.__class__ = AccelerometerSensor
-        if self._type == SensorType.GYROSCOPE:
-            self.__class__ = GyroscopeSensor
-        if self._type == SensorType.MAGNETOMETER:
-            self.__class__ = MagnetometerSensor
-        if self._type == SensorType.ORIENTATION:
-            self.__class__ = OrientationSensor
-        if self._type == SensorType.GRAVITY:
-            self.__class__ = GravitySensor
-        if self._type == SensorType.LINEAR_ACCELERATION:
-            self.__class__ = LinearAccelerationSensor
-        if self._type == SensorType.ROTATION_VECTOR:
-            self.__class__ = RotationVectorSensor
+        if self._type in SensorType:
+            sensor_class_from_type = {
+                SensorType.AUDIO: AudioSensor,
+                SensorType.COMPRESSED_AUDIO: CompressedAudioSensor,
+                SensorType.IMAGE: ImageSensor,
+                SensorType.LOCATION: LocationSensor,
+                SensorType.BEST_LOCATION: BestLocationSensor,
+                SensorType.STATION_HEALTH: StationHealthSensor,
+                SensorType.LIGHT: LightSensor,
+                SensorType.PRESSURE: PressureSensor,
+                SensorType.PROXIMITY: ProximitySensor,
+                SensorType.INFRARED: ProximitySensor,
+                SensorType.RELATIVE_HUMIDITY: RelativeHumiditySensor,
+                SensorType.AMBIENT_TEMPERATURE: AmbientTemperatureSensor,
+                SensorType.ACCELEROMETER: AccelerometerSensor,
+                SensorType.GYROSCOPE: GyroscopeSensor,
+                SensorType.MAGNETOMETER: MagnetometerSensor,
+                SensorType.ORIENTATION: OrientationSensor,
+                SensorType.GRAVITY: GravitySensor,
+                SensorType.LINEAR_ACCELERATION: LinearAccelerationSensor,
+                SensorType.ROTATION_VECTOR: RotationVectorSensor,
+                SensorType.UNKNOWN_SENSOR: SensorData
+            }
+            self.__class__ = sensor_class_from_type[self._type]
         return self
 
     def set_errors(self, errors: RedVoxExceptions):
@@ -7598,7 +7870,7 @@ Default False</p></div>
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.common.sensor_data.SensorData.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>sensor_name: str, sensor_data: Dict, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False, use_offset_model_for_correction: bool = False, save_data: bool = False, arrow_dir: str = '') ‑> <a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></span>
+<span>def <span class="ident">from_dict</span></span>(<span>sensor_name: str, sensor_data: Dict, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False, use_offset_model_for_correction: bool = False, save_data: bool = False, arrow_dir: str = '', use_temp_dir: bool = False) ‑> <a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>init but with a dictionary</p>
@@ -7622,6 +7894,8 @@ default False
 :param arrow_dir: directory to save pyarrow table, default "" (current dir).
 default temporary dir if not
 saving data
+:param use_temp_dir: If True, use a temporary directory to save the data.
+default False
 :return: RedvoxSensor object</p></div>
 <details class="source">
 <summary>
@@ -7641,6 +7915,7 @@ def from_dict(
         use_offset_model_for_correction: bool = False,
         save_data: bool = False,
         arrow_dir: str = &#34;&#34;,
+        use_temp_dir: bool = False
 ) -&gt; &#34;SensorData&#34;:
     &#34;&#34;&#34;
     init but with a dictionary
@@ -7662,15 +7937,17 @@ def from_dict(
     :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
     :param arrow_dir: directory to save pyarrow table, default &#34;&#34; (current dir).  default temporary dir if not
                         saving data
+    :param use_temp_dir: If True, use a temporary directory to save the data.  default False
     :return: RedvoxSensor object
     &#34;&#34;&#34;
     return SensorData(sensor_name, pa.Table.from_pydict(sensor_data), sensor_type, sample_rate_hz,
                       sample_interval_s, sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered,
-                      calculate_stats, use_offset_model_for_correction, save_data, arrow_dir)</code></pre>
+                      calculate_stats, use_offset_model_for_correction, save_data, arrow_dir,
+                      use_temp_dir=use_temp_dir)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.from_dir"><code class="name flex">
-<span>def <span class="ident">from_dir</span></span>(<span>sensor_name: str, data_path: str, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False, use_offset_model_for_correction: bool = False, save_data: bool = False) ‑> <a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></span>
+<span>def <span class="ident">from_dir</span></span>(<span>sensor_name: str, data_path: str, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="#redvox.common.sensor_data.SensorType">SensorType</a> = SensorType.UNKNOWN_SENSOR, sample_rate_hz: float = nan, sample_interval_s: float = nan, sample_interval_std_s: float = nan, is_sample_rate_fixed: bool = False, are_timestamps_altered: bool = False, calculate_stats: bool = False, use_offset_model_for_correction: bool = False, save_data: bool = False, use_temp_dir: bool = False) ‑> <a title="redvox.common.sensor_data.SensorData" href="#redvox.common.sensor_data.SensorData">SensorData</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>init but with a path to directory containing parquet file(s) instead of a table of data</p>
@@ -7690,6 +7967,8 @@ use the best known offset.
 default False
 :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.
 default False
+:param use_temp_dir: if True, save the data using a temporary directory.
+default False
 :return: RedvoxSensor object</p></div>
 <details class="source">
 <summary>
@@ -7707,7 +7986,8 @@ def from_dir(
         are_timestamps_altered: bool = False,
         calculate_stats: bool = False,
         use_offset_model_for_correction: bool = False,
-        save_data: bool = False) -&gt; &#34;SensorData&#34;:
+        save_data: bool = False,
+        use_temp_dir: bool = False) -&gt; &#34;SensorData&#34;:
     &#34;&#34;&#34;
     init but with a path to directory containing parquet file(s) instead of a table of data
 
@@ -7725,14 +8005,14 @@ def from_dir(
     :param use_offset_model_for_correction: if True, use an offset model to correct timestamps, otherwise
                                             use the best known offset.  default False
     :param save_data: if True, save the data of the sensor to disk, otherwise use a temporary dir.  default False
+    :param use_temp_dir: if True, save the data using a temporary directory.  default False
     :return: RedvoxSensor object
     &#34;&#34;&#34;
     result = SensorData(sensor_name,
                         ds.dataset(data_path, format=&#34;parquet&#34;, exclude_invalid_files=True).to_table(),
                         sensor_type, sample_rate_hz, sample_interval_s, sample_interval_std_s,
                         is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
-                        use_offset_model_for_correction, save_data, data_path)
-    result.set_file_name()
+                        use_offset_model_for_correction, save_data, data_path, use_temp_dir=use_temp_dir)
     return result</code></pre>
 </details>
 </dd>
@@ -7770,6 +8050,8 @@ def from_json_file(file_dir: str, file_name: Optional[str] = None) -&gt; &#34;Se
                                      json_data[&#34;sample_interval_std_s&#34;], json_data[&#34;is_sample_rate_fixed&#34;],
                                      json_data[&#34;timestamps_altered&#34;], False, json_data[&#34;use_offset_model&#34;])
         result.set_errors(RedVoxExceptions.from_dict(json_data[&#34;errors&#34;]))
+        result.set_save_to_disk(True)
+        result.set_file_name()
         result.set_gaps(json_data[&#34;gaps&#34;])
     else:
         result = SensorData(&#34;Empty&#34;)
@@ -7912,42 +8194,30 @@ recalculate the sample rate, interval, and interval std dev, default False
 
     :return: Self
     &#34;&#34;&#34;
-    if self._type == SensorType.AUDIO:
-        self.__class__ = AudioSensor
-    if self._type == SensorType.COMPRESSED_AUDIO:
-        self.__class__ = CompressedAudioSensor
-    if self._type == SensorType.IMAGE:
-        self.__class__ = ImageSensor
-    if self._type == SensorType.LOCATION:
-        self.__class__ = LocationSensor
-    if self._type == SensorType.BEST_LOCATION:
-        self.__class__ = BestLocationSensor
-    if self._type == SensorType.STATION_HEALTH:
-        self.__class__ = StationHealthSensor
-    if self._type == SensorType.LIGHT:
-        self.__class__ = LightSensor
-    if self._type == SensorType.PRESSURE:
-        self.__class__ = PressureSensor
-    if self._type == SensorType.PROXIMITY or self._type == SensorType.INFRARED:
-        self.__class__ = ProximitySensor
-    if self._type == SensorType.RELATIVE_HUMIDITY:
-        self.__class__ = RelativeHumiditySensor
-    if self._type == SensorType.AMBIENT_TEMPERATURE:
-        self.__class__ = AmbientTemperatureSensor
-    if self._type == SensorType.ACCELEROMETER:
-        self.__class__ = AccelerometerSensor
-    if self._type == SensorType.GYROSCOPE:
-        self.__class__ = GyroscopeSensor
-    if self._type == SensorType.MAGNETOMETER:
-        self.__class__ = MagnetometerSensor
-    if self._type == SensorType.ORIENTATION:
-        self.__class__ = OrientationSensor
-    if self._type == SensorType.GRAVITY:
-        self.__class__ = GravitySensor
-    if self._type == SensorType.LINEAR_ACCELERATION:
-        self.__class__ = LinearAccelerationSensor
-    if self._type == SensorType.ROTATION_VECTOR:
-        self.__class__ = RotationVectorSensor
+    if self._type in SensorType:
+        sensor_class_from_type = {
+            SensorType.AUDIO: AudioSensor,
+            SensorType.COMPRESSED_AUDIO: CompressedAudioSensor,
+            SensorType.IMAGE: ImageSensor,
+            SensorType.LOCATION: LocationSensor,
+            SensorType.BEST_LOCATION: BestLocationSensor,
+            SensorType.STATION_HEALTH: StationHealthSensor,
+            SensorType.LIGHT: LightSensor,
+            SensorType.PRESSURE: PressureSensor,
+            SensorType.PROXIMITY: ProximitySensor,
+            SensorType.INFRARED: ProximitySensor,
+            SensorType.RELATIVE_HUMIDITY: RelativeHumiditySensor,
+            SensorType.AMBIENT_TEMPERATURE: AmbientTemperatureSensor,
+            SensorType.ACCELEROMETER: AccelerometerSensor,
+            SensorType.GYROSCOPE: GyroscopeSensor,
+            SensorType.MAGNETOMETER: MagnetometerSensor,
+            SensorType.ORIENTATION: OrientationSensor,
+            SensorType.GRAVITY: GravitySensor,
+            SensorType.LINEAR_ACCELERATION: LinearAccelerationSensor,
+            SensorType.ROTATION_VECTOR: RotationVectorSensor,
+            SensorType.UNKNOWN_SENSOR: SensorData
+        }
+        self.__class__ = sensor_class_from_type[self._type]
     return self</code></pre>
 </details>
 </dd>
@@ -7964,21 +8234,23 @@ recalculate the sample rate, interval, and interval std dev, default False
     &#34;&#34;&#34;
     :return: a list of the names of the columns (data channels) of the dataframe
     &#34;&#34;&#34;
-    return self.pyarrow_table().schema.names</code></pre>
+    if self.pyarrow_table():
+        return self.pyarrow_table().schema.names
+    return []</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.data_df"><code class="name flex">
 <span>def <span class="ident">data_df</span></span>(<span>self) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:return: the pandas dataframe defined by the dataset stored in self._arrow_dir</p></div>
+<div class="desc"><p>:return: the pandas dataframe defined by the dataset stored in self.save_dir()</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def data_df(self) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    :return: the pandas dataframe defined by the dataset stored in self._arrow_dir
+    :return: the pandas dataframe defined by the dataset stored in self.save_dir()
     &#34;&#34;&#34;
     return self.pyarrow_table().to_pandas()</code></pre>
 </details>
@@ -8134,7 +8406,7 @@ recalculate the sample rate, interval, and interval std dev, default False
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.get_data_channel"><code class="name flex">
-<span>def <span class="ident">get_data_channel</span></span>(<span>self, channel_name: str) ‑> Union[<built-in function array>, List[str]]</span>
+<span>def <span class="ident">get_data_channel</span></span>(<span>self, channel_name: str) ‑> <built-in function array></span>
 </code></dt>
 <dd>
 <div class="desc"><p>gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe</p>
@@ -8144,33 +8416,22 @@ recalculate the sample rate, interval, and interval std dev, default False
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_data_channel(self, channel_name: str) -&gt; Union[np.array, List[str]]:
+<pre><code class="python">def get_data_channel(self, channel_name: str) -&gt; np.array:
     &#34;&#34;&#34;
     gets the data channel specified, raises an error and lists valid fields if channel_name is not in the dataframe
 
     :param channel_name: the name of the channel to get data for
     :return: the data values of the channel as a numpy array or list of strings for enumerated channels
     &#34;&#34;&#34;
+    if not self.pyarrow_table():
+        self._errors.append(f&#34;WARNING: There are no channels to access in this Sensor!&#34;)
+        return []
     _arrow = self.pyarrow_table()
     if channel_name not in _arrow.schema.names:
         self._errors.append(f&#34;WARNING: {channel_name} does not exist; try one of {_arrow.schema.names}&#34;)
         return []
-    if channel_name == &#34;location_provider&#34;:
-        return [LocationProvider(c.as_py()).name for c in _arrow[channel_name]]
-    elif channel_name == &#34;image_codec&#34;:
-        return [ImageCodec(c.as_py()).name for c in _arrow[channel_name]]
-    elif channel_name == &#34;audio_codec&#34;:
-        return [AudioCodec(c.as_py()).name for c in _arrow[channel_name]]
-    elif channel_name == &#34;network_type&#34;:
-        return [NetworkType(c.as_py()).name for c in _arrow[channel_name]]
-    elif channel_name == &#34;power_state&#34;:
-        return [PowerState(c.as_py()).name for c in _arrow[channel_name]]
-    elif channel_name == &#34;cell_service&#34;:
-        return [CellServiceState(c.as_py()).name for c in _arrow[channel_name]]
-    elif channel_name == &#34;wifi_wake_lock&#34;:
-        return [WifiWakeLock(c.as_py()).name for c in _arrow[channel_name]]
-    elif channel_name == &#34;screen_state&#34;:
-        return [ScreenState(c.as_py()).name for c in _arrow[channel_name]]
+    if channel_name in NON_NUMERIC_COLUMNS:
+        return np.array([COLUMN_TO_ENUM_FN[channel_name](c.as_py()) for c in _arrow[channel_name]])
     return _arrow[channel_name].to_numpy()</code></pre>
 </details>
 </dd>
@@ -8297,7 +8558,7 @@ Default True
     &#34;&#34;&#34;
     :return: True if sensor will be saved to disk
     &#34;&#34;&#34;
-    return self._fs_writer.save_to_disk</code></pre>
+    return self._fs_writer.is_use_disk()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.is_timestamps_altered"><code class="name flex">
@@ -8354,6 +8615,31 @@ Default True
         return self
     else:
         return self.from_json_file(in_dir, file)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.move_pyarrow_dir"><code class="name flex">
+<span>def <span class="ident">move_pyarrow_dir</span></span>(<span>self, new_dir: str) ‑> pathlib.Path</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Move the sensor's pyarrow files to a new directory</p>
+<p>:param new_dir: directory to save files into</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def move_pyarrow_dir(self, new_dir: str) -&gt; Path:
+    &#34;&#34;&#34;
+    Move the sensor&#39;s pyarrow files to a new directory
+
+    :param new_dir: directory to save files into
+    &#34;&#34;&#34;
+    old_sensor_save_dir = self.save_dir()
+    self.set_save_dir(os.path.join(new_dir, self._type.name))
+    for r, d, f in os.walk(old_sensor_save_dir):
+        for file in f:
+            self._fs_writer.create_dir()
+            os.rename(os.path.join(old_sensor_save_dir, file), os.path.join(self.save_dir(), file))
+    return Path(self.save_dir())</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.num_samples"><code class="name flex">
@@ -8441,7 +8727,7 @@ Updates the RedvoxSensor object with the new values</p>
 </code></dt>
 <dd>
 <div class="desc"><p>:param base_dir: optional directory to use when loading the dataset.
-if None, use self.base_dir()
+if None, use self.save_dir()
 :return: the dataset stored in base_dir</p></div>
 <details class="source">
 <summary>
@@ -8449,7 +8735,7 @@ if None, use self.base_dir()
 </summary>
 <pre><code class="python">def pyarrow_ds(self, base_dir: Optional[str] = None) -&gt; ds.Dataset:
     &#34;&#34;&#34;
-    :param base_dir: optional directory to use when loading the dataset.  if None, use self.base_dir()
+    :param base_dir: optional directory to use when loading the dataset.  if None, use self.save_dir()
     :return: the dataset stored in base_dir
     &#34;&#34;&#34;
     if base_dir is None:
@@ -8461,16 +8747,18 @@ if None, use self.base_dir()
 <span>def <span class="ident">pyarrow_table</span></span>(<span>self) ‑> pyarrow.lib.Table</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:return: the table defined by the dataset stored in self</p></div>
+<div class="desc"><p>:return: the table defined by the _data property or the dataset stored in self.save_dir()</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def pyarrow_table(self) -&gt; pa.Table:
     &#34;&#34;&#34;
-    :return: the table defined by the dataset stored in self
+    :return: the table defined by the _data property or the dataset stored in self.save_dir()
     &#34;&#34;&#34;
-    return self._data if self._data else self.pyarrow_ds().to_table()</code></pre>
+    if self._data or self._fs_writer.is_use_mem():
+        return self._data
+    return self.pyarrow_ds().to_table()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.sample_interval_s"><code class="name flex">
@@ -8565,7 +8853,7 @@ If None, a default file name is created using this format:
                         [sensor_type]_[first_timestamp].json
     :return: The path to the saved file or None if unable to save.
     &#34;&#34;&#34;
-    if self._fs_writer.save_to_disk:
+    if self._fs_writer.is_save_disk():
         return self.to_json_file(file_name)
     return None</code></pre>
 </details>
@@ -8648,22 +8936,41 @@ If None, a default file name is created using this format:
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.set_save_dir"><code class="name flex">
-<span>def <span class="ident">set_save_dir</span></span>(<span>self, new_dir: Optional[str] = None)</span>
+<span>def <span class="ident">set_save_dir</span></span>(<span>self, new_dir: str = '.')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>set the pyarrow directory or use the default: "." (current directory)</p>
-<p>:param new_dir: the directory to change to; default None (use current directory)</p></div>
+<p>:param new_dir: the directory to change to; default "." (use current directory)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def set_save_dir(self, new_dir: Optional[str] = None):
+<pre><code class="python">def set_save_dir(self, new_dir: str = &#34;.&#34;):
     &#34;&#34;&#34;
     set the pyarrow directory or use the default: &#34;.&#34; (current directory)
 
-    :param new_dir: the directory to change to; default None (use current directory)
+    :param new_dir: the directory to change to; default &#34;.&#34; (use current directory)
     &#34;&#34;&#34;
-    self._fs_writer.base_dir = new_dir if new_dir else &#34;.&#34;</code></pre>
+    self._fs_writer.base_dir = new_dir</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.set_save_mode"><code class="name flex">
+<span>def <span class="ident">set_save_mode</span></span>(<span>self, new_save_mode: <a title="redvox.common.io.FileSystemSaveMode" href="io.html#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>changes the save mode to new_save_mode</p>
+<p>:param new_save_mode: FileSystemSaveMode to change to</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_save_mode(self, new_save_mode: FileSystemSaveMode):
+    &#34;&#34;&#34;
+    changes the save mode to new_save_mode
+
+    :param new_save_mode: FileSystemSaveMode to change to
+    &#34;&#34;&#34;
+    self._fs_writer.set_save_mode(new_save_mode)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.set_save_to_disk"><code class="name flex">
@@ -8679,7 +8986,24 @@ If None, a default file name is created using this format:
     &#34;&#34;&#34;
     :param save: If True, save to disk
     &#34;&#34;&#34;
-    self._fs_writer.save_to_disk = save</code></pre>
+    self._fs_writer.set_use_disk(save)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.set_use_temp_dir"><code class="name flex">
+<span>def <span class="ident">set_use_temp_dir</span></span>(<span>self, use_temp_dir: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param use_temp_dir: if True, use temp dir to save data.
+default False</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_use_temp_dir(self, use_temp_dir: bool = False):
+    &#34;&#34;&#34;
+    :param use_temp_dir: if True, use temp dir to save data.  default False
+    &#34;&#34;&#34;
+    self._fs_writer.set_use_temp(use_temp_dir)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.sort_by_data_timestamps"><code class="name flex">
@@ -8705,9 +9029,6 @@ If None, a default file name is created using this format:
     else:
         order = &#34;descending&#34;
     data = pc.take(ptable, pc.sort_indices(ptable, sort_keys=[(&#34;timestamps&#34;, order)]))
-    # if not np.isnan(self.first_data_timestamp()) and self.first_data_timestamp() != data[&#39;timestamps&#39;][0].as_py():
-    #     os.remove(self.full_path())
-    # self.set_file_name(f&#34;{self._type.name}_{int(data[&#39;timestamps&#39;][0].as_py())}&#34;)
     self.write_pyarrow_table(data)</code></pre>
 </details>
 </dd>
@@ -8750,8 +9071,7 @@ If None, a default file name is created using this format:
                         [sensor_type]_[first_timestamp].json
     :return: path to json file
     &#34;&#34;&#34;
-    if self._fs_writer.file_extension == &#34;parquet&#34;:
-        self._actual_file_write_table()
+    self.write_pyarrow_table(self.pyarrow_table())
     return io.to_json_file(self, file_name)</code></pre>
 </details>
 </dd>
@@ -8839,14 +9159,14 @@ If None, a default file name is created using this format:
                                                              self._use_offset_model))
     # old_name = self.full_path()
     self.write_pyarrow_table(self.pyarrow_table().set_column(0, &#34;timestamps&#34;, timestamps))
-    self.set_file_name()
+    # self.set_file_name()
     # os.rename(old_name, self.full_path())
     time_diffs = np.floor(np.diff(self.data_timestamps()))
     if len(time_diffs) &gt; 1:
         self._sample_interval_s = dtu.microseconds_to_seconds(slope)
         if self._sample_interval_s &gt; 0:
             self._sample_rate_hz = 1 / self._sample_interval_s
-            self._sample_interval_std_s = dtu.microseconds_to_seconds(np.std(time_diffs))
+            self._sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(time_diffs)))
     self._timestamps_altered = True</code></pre>
 </details>
 </dd>
@@ -8867,30 +9187,46 @@ If None, a default file name is created using this format:
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.write_pyarrow_table"><code class="name flex">
-<span>def <span class="ident">write_pyarrow_table</span></span>(<span>self, table: pyarrow.lib.Table)</span>
+<span>def <span class="ident">write_pyarrow_table</span></span>(<span>self, table: pyarrow.lib.Table, update_file_name: Optional[bool] = True)</span>
 </code></dt>
 <dd>
-<div class="desc"><ul>
-<li>saves the pyarrow table to disk or to memory.</li>
+<div class="desc"><p>saves the pyarrow table to disk or to memory.</p>
+<ul>
+<li>if there is no data or there is no column named timestamps in the table, an error will be created</li>
 <li>if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet</li>
-<li>creates the directory if it doesn't exist and removes any existing parquet files</li>
+<li>uses the directory defined by self.save_dir().
+Creates the directory if it doesn't exist and removes any
+existing parquet files from the directory if it exists</li>
 </ul>
-<p>:param table: the table to write</p></div>
+<p>:param table: the table to write
+:param update_file_name: if True, updates the file name to match the new data.
+Default True</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def write_pyarrow_table(self, table: pa.Table):
+<pre><code class="python">def write_pyarrow_table(self, table: pa.Table, update_file_name: Optional[bool] = True):
     &#34;&#34;&#34;
-    * saves the pyarrow table to disk or to memory.
+    saves the pyarrow table to disk or to memory.
+
+    * if there is no data or there is no column named timestamps in the table, an error will be created
     * if writing to disk, uses a default filename: {sensor_type}_{first_timestamp}.parquet
-    * creates the directory if it doesn&#39;t exist and removes any existing parquet files
+    * uses the directory defined by self.save_dir().  Creates the directory if it doesn&#39;t exist and removes any
+    existing parquet files from the directory if it exists
 
     :param table: the table to write
+    :param update_file_name: if True, updates the file name to match the new data.  Default True
     &#34;&#34;&#34;
-    self._data = table
-    # self._fs_writer.create_dir()
-    # pq.write_table(table, self.full_path())</code></pre>
+    if table.num_rows &lt; 1 or &#34;timestamps&#34; not in table.schema.names:
+        self._errors.append(&#34;Attempted to write invalid table.&#34;)
+    elif self._fs_writer.is_save_disk():
+        self._fs_writer.create_dir()
+        if update_file_name:
+            self.set_file_name(f&#34;{self.type().name}_{int(table[&#39;timestamps&#39;][0].as_py())}&#34;)
+        pq.write_table(table, self.full_path())
+        self._data = None
+    else:
+        self._data = table</code></pre>
 </details>
 </dd>
 </dl>
@@ -9184,6 +9520,8 @@ anything between
 the pairs of points exists to maintain sample rate and are not considered valid points.
 Default None
 :param show_errors: if True, show any errors encountered.
+Default False
+:param use_temp_dir: if True, use a temp directory to save data.
 Default False</p></div>
 <details class="source">
 <summary>
@@ -9846,6 +10184,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -9861,7 +10200,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>
@@ -9912,6 +10253,7 @@ Default False</p></div>
 <li>
 <h4><code><a title="redvox.common.sensor_data.AudioSensor" href="#redvox.common.sensor_data.AudioSensor">AudioSensor</a></code></h4>
 <ul class="">
+<li><code><a title="redvox.common.sensor_data.AudioSensor.from_metadata" href="#redvox.common.sensor_data.AudioSensor.from_metadata">from_metadata</a></code></li>
 <li><code><a title="redvox.common.sensor_data.AudioSensor.get_microphone_data" href="#redvox.common.sensor_data.AudioSensor.get_microphone_data">get_microphone_data</a></code></li>
 <li><code><a title="redvox.common.sensor_data.AudioSensor.get_valid_microphone_data" href="#redvox.common.sensor_data.AudioSensor.get_valid_microphone_data">get_valid_microphone_data</a></code></li>
 </ul>
@@ -10112,6 +10454,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.is_timestamps_altered" href="#redvox.common.sensor_data.SensorData.is_timestamps_altered">is_timestamps_altered</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.last_data_timestamp" href="#redvox.common.sensor_data.SensorData.last_data_timestamp">last_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.load" href="#redvox.common.sensor_data.SensorData.load">load</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.move_pyarrow_dir" href="#redvox.common.sensor_data.SensorData.move_pyarrow_dir">move_pyarrow_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.num_samples" href="#redvox.common.sensor_data.SensorData.num_samples">num_samples</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.organize_and_update_stats" href="#redvox.common.sensor_data.SensorData.organize_and_update_stats">organize_and_update_stats</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.print_errors" href="#redvox.common.sensor_data.SensorData.print_errors">print_errors</a></code></li>
@@ -10127,7 +10470,9 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_file_name" href="#redvox.common.sensor_data.SensorData.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_gaps" href="#redvox.common.sensor_data.SensorData.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_dir" href="#redvox.common.sensor_data.SensorData.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_save_mode" href="#redvox.common.sensor_data.SensorData.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.set_save_to_disk" href="#redvox.common.sensor_data.SensorData.set_save_to_disk">set_save_to_disk</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.set_use_temp_dir" href="#redvox.common.sensor_data.SensorData.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.sort_by_data_timestamps" href="#redvox.common.sensor_data.SensorData.sort_by_data_timestamps">sort_by_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json" href="#redvox.common.sensor_data.SensorData.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.to_json_file" href="#redvox.common.sensor_data.SensorData.to_json_file">to_json_file</a></code></li>

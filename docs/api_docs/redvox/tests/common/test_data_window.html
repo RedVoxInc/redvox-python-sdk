@@ -107,6 +107,7 @@ class DataWindowTest(unittest.TestCase):
             )
         )
         self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))
+        self.assertIsNone(dw_invalid.first_station())
 
     def test_dw_first_station(self):
         dw_test = dw.DataWindow(
@@ -240,6 +241,7 @@ not have a method with the specified name.</p></div>
             )
         )
         self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))
+        self.assertIsNone(dw_invalid.first_station())
 
     def test_dw_first_station(self):
         dw_test = dw.DataWindow(
@@ -364,7 +366,8 @@ def setUpClass(cls) -&gt; None:
             structured_layout=False,
         )
     )
-    self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))</code></pre>
+    self.assertIsNone(dw_invalid.get_station(&#34;does_not_exist&#34;))
+    self.assertIsNone(dw_invalid.first_station())</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end"><code class="name flex">

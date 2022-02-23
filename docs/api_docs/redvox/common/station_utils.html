@@ -360,22 +360,24 @@ class StationPacketMetadata:
     A container for all the packet metadata that isn&#39;t consistent across all packets
 
     Properties:
-        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC,
+        default np.nan
 
-        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC,
+        default np.nan
 
-        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC, default np.nan
 
-        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC, default np.nan
 
         server_packet_received_timestamp: float, timestamp from server when packet was received in
         microseconds since epoch UTC
 
-        timing_info_score: float, quality of timing information
+        timing_info_score: float, quality of timing information, default np.nan
 
-        timing_score_method: TimingScoreMethod, method used to determine timing score
+        timing_score_method: TimingScoreMethod, method used to determine timing score, default &#34;UNKNOWN&#34;
 
-        other_metadata: dict, str: str of other metadata from the packet
+        other_metadata: dict, str: str of other metadata from the packet, default empty list
     &#34;&#34;&#34;
 
     def __init__(self, packet: Optional[api_m.RedvoxPacketM] = None):
@@ -1148,15 +1150,17 @@ other_metadata: dict, str: str of other metadata from the packet, default empty 
 <dd>
 <div class="desc"><p>A container for all the packet metadata that isn't consistent across all packets</p>
 <h2 id="properties">Properties</h2>
-<p>packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC</p>
-<p>packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC</p>
-<p>packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC</p>
-<p>packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC</p>
+<p>packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC,
+default np.nan</p>
+<p>packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC,
+default np.nan</p>
+<p>packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC, default np.nan</p>
+<p>packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC, default np.nan</p>
 <p>server_packet_received_timestamp: float, timestamp from server when packet was received in
 microseconds since epoch UTC</p>
-<p>timing_info_score: float, quality of timing information</p>
-<p>timing_score_method: TimingScoreMethod, method used to determine timing score</p>
-<p>other_metadata: dict, str: str of other metadata from the packet</p>
+<p>timing_info_score: float, quality of timing information, default np.nan</p>
+<p>timing_score_method: TimingScoreMethod, method used to determine timing score, default "UNKNOWN"</p>
+<p>other_metadata: dict, str: str of other metadata from the packet, default empty list</p>
 <p>initialize the metadata</p>
 <p>:param packet: Optional WrappedRedvoxPacketM to read data from</p></div>
 <details class="source">
@@ -1168,22 +1172,24 @@ microseconds since epoch UTC</p>
     A container for all the packet metadata that isn&#39;t consistent across all packets
 
     Properties:
-        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC,
+        default np.nan
 
-        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC,
+        default np.nan
 
-        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC, default np.nan
 
-        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC, default np.nan
 
         server_packet_received_timestamp: float, timestamp from server when packet was received in
         microseconds since epoch UTC
 
-        timing_info_score: float, quality of timing information
+        timing_info_score: float, quality of timing information, default np.nan
 
-        timing_score_method: TimingScoreMethod, method used to determine timing score
+        timing_score_method: TimingScoreMethod, method used to determine timing score, default &#34;UNKNOWN&#34;
 
-        other_metadata: dict, str: str of other metadata from the packet
+        other_metadata: dict, str: str of other metadata from the packet, default empty list
     &#34;&#34;&#34;
 
     def __init__(self, packet: Optional[api_m.RedvoxPacketM] = None):

@@ -30,10 +30,12 @@
 <pre><code class="python">&#34;&#34;&#34;
 This module provides IO primitives for working with cross-API RedVox data.
 &#34;&#34;&#34;
+import enum
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from glob import glob
+import numpy as np
 import json
 import os.path
 import multiprocessing
@@ -56,6 +58,7 @@ from typing import (
 import lz4.frame
 
 from redvox.api900.reader import read_rdvxz_file, read_buffer
+from redvox.common import api_conversions as ac
 from redvox.api1000.common.common import check_type
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
@@ -74,6 +77,45 @@ if TYPE_CHECKING:
     from redvox.api900.lib.api900_pb2 import RedvoxPacket
 
 
+def remove_dir_contents(dir_path: Path):
+    &#34;&#34;&#34;
+    removes all contents of the directory specified by dir_path
+
+    :param dir_path: path to directory to remove files from
+    &#34;&#34;&#34;
+    if dir_path.is_dir():
+        for entry in os.listdir(dir_path):
+            rmv_path = os.path.join(dir_path, entry)
+            if os.path.isdir(rmv_path):
+                rmtree(rmv_path)
+            else:
+                os.remove(rmv_path)
+    else:
+        print(f&#34;{dir_path} is not a directory; cannot remove contents!&#34;)
+
+
+class FileSystemSaveMode(enum.Enum):
+    &#34;&#34;&#34;
+    Enumeration of saving methodology
+    &#34;&#34;&#34;
+    MEM = 0   # save using memory
+    TEMP = 1  # save using temporary directory
+    DISK = 2  # save using path on disk
+
+    @staticmethod
+    def get_save_mode(use_temp: bool, use_disk: bool) -&gt; &#34;FileSystemSaveMode&#34;:
+        &#34;&#34;&#34;
+        :param use_temp: use temporary directory
+        :param use_disk: use path on disk
+        :return: the mode used to save (use_temp is evaluated before use_disk)
+        &#34;&#34;&#34;
+        if use_temp:
+            return FileSystemSaveMode.TEMP  # use_temp takes priority
+        elif use_disk:
+            return FileSystemSaveMode.DISK  # if here, use_temp is always false
+        return FileSystemSaveMode.MEM
+
+
 class FileSystemWriter:
     &#34;&#34;&#34;
     This class holds basic information about writing and reading objects from a file system
@@ -81,35 +123,107 @@ class FileSystemWriter:
 
     Properties:
         file_name: str, the name of the file (do not include extension)
-        file_ext: str, the extension used by the file (do not include the .).  Default &#34;NONE&#34;
+
+        file_ext: str, the extension used by the file (do not include the .)  Default &#34;NONE&#34;
+
         base_dir: str, the directory to save the file to.  Default &#34;.&#34; (current dir)
-        save_to_disk: bool, if True, save data to disk.  Default False
 
     Protected:
+        _save_mode: FileSystemSaveMode, determines how files get saved
+
         _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
     &#34;&#34;&#34;
 
-    def __init__(self, file_name: str, file_ext: str = &#34;none&#34;,
-                 base_dir: str = &#34;.&#34;, save_enabled: bool = False):
+    def __init__(self, file_name: str, file_ext: str = &#34;none&#34;, base_dir: str = &#34;.&#34;,
+                 save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM):
         &#34;&#34;&#34;
         initialize FileSystemWriter
 
         :param file_name: name of file
         :param file_ext: extension of file, default &#34;none&#34;
         :param base_dir: directory to save file to, default &#34;.&#34; (current dir)
-        :param save_enabled: if True, save to the file specified by, default False
+        :param save_mode: determines how to save files to system, default MEM (no save, use RAM)
         &#34;&#34;&#34;
         self.file_name: str = file_name
         self.file_extension: str = file_ext.lower()
-        self.save_to_disk: bool = save_enabled
         self.base_dir: str = base_dir
+        self._save_mode: FileSystemSaveMode = save_mode
         self._temp_dir = tempfile.TemporaryDirectory()
+
+    def is_use_temp(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: if writing to temp dir
+        &#34;&#34;&#34;
+        return self._save_mode == FileSystemSaveMode.TEMP
+
+    def set_use_temp(self, use_temp: bool):
+        &#34;&#34;&#34;
+        :param use_temp: if true, sets mode to use temp dir, otherwise no change
+        &#34;&#34;&#34;
+        if use_temp:
+            self._save_mode = FileSystemSaveMode.TEMP
+
+    def get_temp(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: path of temp directory
+        &#34;&#34;&#34;
+        return self._temp_dir.name
+
+    def is_use_disk(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: if writing to path on disk
+        &#34;&#34;&#34;
+        return self._save_mode == FileSystemSaveMode.DISK
+
+    def set_use_disk(self, use_disk: bool):
+        &#34;&#34;&#34;
+        :param use_disk: if true, sets mode to use the disk, otherwise no change
+        &#34;&#34;&#34;
+        if use_disk:
+            self._save_mode = FileSystemSaveMode.DISK
+
+    def is_use_mem(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: if writing data to memory
+        &#34;&#34;&#34;
+        return self._save_mode == FileSystemSaveMode.MEM
+
+    def set_use_mem(self, use_mem: bool):
+        &#34;&#34;&#34;
+        :param use_mem: if true, sets mode to use the system&#39;s RAM, otherwise no change
+        &#34;&#34;&#34;
+        if use_mem:
+            self._save_mode = FileSystemSaveMode.MEM
+
+    def is_save_disk(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: if writing data to disk (temp dir or user defined path) instead of using memory
+        &#34;&#34;&#34;
+        return self._save_mode != FileSystemSaveMode.MEM
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
-        :return: directory where file would be saved based on current value of self.save_to_disk
+        :return: directory where file would be saved based on save mode; returns empty string if saving to memory
         &#34;&#34;&#34;
-        return self.base_dir if self.save_to_disk else self._temp_dir.name
+        if self.is_use_disk():
+            return self.base_dir
+        elif self.is_use_temp():
+            return self._temp_dir.name
+        return &#34;&#34;
+
+    def set_save_mode(self, save_mode: FileSystemSaveMode):
+        &#34;&#34;&#34;
+        set the save mode
+
+        :param save_mode: updated save mode
+        &#34;&#34;&#34;
+        self._save_mode = save_mode
+
+    def save_mode(self) -&gt; FileSystemSaveMode:
+        &#34;&#34;&#34;
+        :return: the save mode
+        &#34;&#34;&#34;
+        return self._save_mode
 
     def full_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -132,6 +246,20 @@ class FileSystemWriter:
         self.file_name = name
         self.file_extension = ext
 
+    def set_name(self, name: str):
+        &#34;&#34;&#34;
+        set the name of the output file.
+        :param name: file name
+        &#34;&#34;&#34;
+        self.file_name = name
+
+    def set_extension(self, ext: str):
+        &#34;&#34;&#34;
+        set the extension of the output file.  Do not include the . for the extension
+        :param ext: file extension
+        &#34;&#34;&#34;
+        self.file_extension = ext
+
     def json_file_name(self) -&gt; str:
         &#34;&#34;&#34;
         :return: file name with .json extension
@@ -146,13 +274,17 @@ class FileSystemWriter:
 
     def create_dir(self):
         &#34;&#34;&#34;
-        if saving to disk, otherwise remove any files in the directory,
-        then create the directory if it doesn&#39;t exist
+        if saving to disk, remove the directory if it exists,
+        then create an empty directory to save things into
+        if saving to temp dir, remove any files in the temp dir
         &#34;&#34;&#34;
-        if self.save_to_disk:
+        if self.is_use_disk():
             if os.path.exists(self.save_dir()):
-                rmtree(self.save_dir())
-            os.makedirs(self.save_dir(), exist_ok=True)
+                remove_dir_contents(Path(self.save_dir()))
+            else:
+                os.makedirs(self.save_dir())
+        elif self.is_use_temp():
+            remove_dir_contents(Path(self._temp_dir.name))
 
     def __del__(self):
         &#34;&#34;&#34;
@@ -168,8 +300,25 @@ class FileSystemWriter:
             &#34;file_name&#34;: self.file_name,
             &#34;file_extension&#34;: self.file_extension,
             &#34;base_dir&#34;: self.base_dir,
-            &#34;save_to_disk&#34;: self.save_to_disk
+            &#34;save_mode&#34;: self._save_mode.name
         }
+
+    @staticmethod
+    def from_dict(data_dict: Dict) -&gt; &#34;FileSystemWriter&#34;:
+        &#34;&#34;&#34;
+        :param data_dict: dictionary to convert to FileSystemWriter
+        :return: FileSystemWriter from dict
+        &#34;&#34;&#34;
+        return FileSystemWriter(data_dict[&#34;file_name&#34;], data_dict[&#34;file_extension&#34;], data_dict[&#34;base_dir&#34;],
+                                FileSystemSaveMode[data_dict[&#34;save_mode&#34;]])
+
+
+def dict_to_json(dct: dict) -&gt; str:
+    &#34;&#34;&#34;
+    :param dct: dictionary to convert to json
+    :return: dictionary as json string
+    &#34;&#34;&#34;
+    return json.dumps(dct)
 
 
 def json_to_dict(json_str: str) -&gt; Dict:
@@ -237,6 +386,7 @@ class IndexEntry:
     date_time: datetime
     extension: str
     api_version: ApiVersion
+    file_size_bytes: int
 
     @staticmethod
     def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry&#34;]:
@@ -283,12 +433,14 @@ class IndexEntry:
         full_path: str
         try:
             full_path = str(path.resolve(strict=True))
+            file_size = os.path.getsize(full_path) * 8  # decompressed size estimate
         except FileNotFoundError:
             if strict:
                 return None
             full_path = path_str
+            file_size = 0
 
-        return IndexEntry(full_path, station_id, date_time, ext, api_version)
+        return IndexEntry(full_path, station_id, date_time, ext, api_version, file_size)
 
     @staticmethod
     def from_native(entry) -&gt; &#34;IndexEntry&#34;:
@@ -304,6 +456,7 @@ class IndexEntry:
             dt_us(entry.date_time),
             entry.extension,
             ApiVersion.from_str(entry.api_version),
+            os.path.getsize(entry.full_path) * 8,
         )
 
     def to_native(self):
@@ -806,6 +959,66 @@ class Index:
         :return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         &#34;&#34;&#34;
         return list(self.stream(read_filter))
+
+    def files_size(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: sum of file size in bytes of index
+        &#34;&#34;&#34;
+        return np.sum([entry.file_size_bytes for entry in self.entries])
+
+    def read_contents(self) -&gt; List[RedvoxPacketM]:
+        &#34;&#34;&#34;
+        read all the files in the index
+
+        :return: list of RedvoxPacketM, converted from API 900 if necessary
+        &#34;&#34;&#34;
+        result: List[RedvoxPacketM] = []
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_900})
+        ):
+            # noinspection Mypy
+            result.append(
+                ac.convert_api_900_to_1000_raw(packet_900)
+            )
+
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_1000})
+        ):
+            # noinspection Mypy
+            result.append(packet)
+
+        return result
+
+    def read_first_packet(self) -&gt; Optional[RedvoxPacketM]:
+        &#34;&#34;&#34;
+        read the first packet of the index
+
+        :return: single RedvoxPacketM, converted from API 900 if necessary or None if no packet to read
+        &#34;&#34;&#34;
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_1000})
+        ):
+            # noinspection Mypy
+            return packet
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_900})
+        ):
+            # noinspection Mypy
+            return ac.convert_api_900_to_1000_raw(packet_900)
+
+        return None
 
 
 # The following constants are used for identifying valid RedVox API 900 and API 1000 structured directory layouts.
@@ -1384,6 +1597,24 @@ def sort_unstructured_redvox_data(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="redvox.common.io.dict_to_json"><code class="name flex">
+<span>def <span class="ident">dict_to_json</span></span>(<span>dct: dict) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param dct: dictionary to convert to json
+:return: dictionary as json string</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dict_to_json(dct: dict) -&gt; str:
+    &#34;&#34;&#34;
+    :param dct: dictionary to convert to json
+    :return: dictionary as json string
+    &#34;&#34;&#34;
+    return json.dumps(dct)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.io.get_json_file"><code class="name flex">
 <span>def <span class="ident">get_json_file</span></span>(<span>file_dir: str) ‑> Optional[str]</span>
 </code></dt>
@@ -1409,7 +1640,7 @@ def sort_unstructured_redvox_data(
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured"><code class="name flex">
-<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Indexes both API 900 and API 1000 structured directory layouts.</p>
@@ -1440,7 +1671,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_1000"><code class="name flex">
-<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API M directory structure and identifies files that match the provided filter.</p>
@@ -1472,7 +1703,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_1000_py"><code class="name flex">
-<span>def <span class="ident">index_structured_api_1000_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_1000_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API M directory structure and identifies files that match the provided filter.</p>
@@ -1537,7 +1768,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_900"><code class="name flex">
-<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API 900 directory structure and identifies files that match the provided filter.</p>
@@ -1569,7 +1800,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_900_py"><code class="name flex">
-<span>def <span class="ident">index_structured_api_900_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_900_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API 900 directory structure and identifies files that match the provided filter.</p>
@@ -1630,7 +1861,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_py"><code class="name flex">
-<span>def <span class="ident">index_structured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Indexes both API 900 and API 1000 structured directory layouts.</p>
@@ -1703,7 +1934,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_unstructured"><code class="name flex">
-<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the list of file paths that match the given filter for unstructured data.</p>
@@ -1735,7 +1966,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_unstructured_py"><code class="name flex">
-<span>def <span class="ident">index_unstructured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_unstructured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the list of file paths that match the given filter for unstructured data.</p>
@@ -1847,8 +2078,35 @@ API 900 and API 1000.
     return json.loads(json_str)</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.io.remove_dir_contents"><code class="name flex">
+<span>def <span class="ident">remove_dir_contents</span></span>(<span>dir_path: pathlib.Path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>removes all contents of the directory specified by dir_path</p>
+<p>:param dir_path: path to directory to remove files from</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_dir_contents(dir_path: Path):
+    &#34;&#34;&#34;
+    removes all contents of the directory specified by dir_path
+
+    :param dir_path: path to directory to remove files from
+    &#34;&#34;&#34;
+    if dir_path.is_dir():
+        for entry in os.listdir(dir_path):
+            rmv_path = os.path.join(dir_path, entry)
+            if os.path.isdir(rmv_path):
+                rmtree(rmv_path)
+            else:
+                os.remove(rmv_path)
+    else:
+        print(f&#34;{dir_path} is not a directory; cannot remove contents!&#34;)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.io.sort_unstructured_redvox_data"><code class="name flex">
-<span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: Optional[str] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), copy: bool = True) ‑> bool</span>
+<span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: Optional[str] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), copy: bool = True) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>takes all redvox files in input_dir and sorts them into appropriate sub-directories</p>
@@ -1954,28 +2212,106 @@ is set to False, the files will instead by moved.</p>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="redvox.common.io.FileSystemSaveMode"><code class="flex name class">
+<span>class <span class="ident">FileSystemSaveMode</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Enumeration of saving methodology</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FileSystemSaveMode(enum.Enum):
+    &#34;&#34;&#34;
+    Enumeration of saving methodology
+    &#34;&#34;&#34;
+    MEM = 0   # save using memory
+    TEMP = 1  # save using temporary directory
+    DISK = 2  # save using path on disk
+
+    @staticmethod
+    def get_save_mode(use_temp: bool, use_disk: bool) -&gt; &#34;FileSystemSaveMode&#34;:
+        &#34;&#34;&#34;
+        :param use_temp: use temporary directory
+        :param use_disk: use path on disk
+        :return: the mode used to save (use_temp is evaluated before use_disk)
+        &#34;&#34;&#34;
+        if use_temp:
+            return FileSystemSaveMode.TEMP  # use_temp takes priority
+        elif use_disk:
+            return FileSystemSaveMode.DISK  # if here, use_temp is always false
+        return FileSystemSaveMode.MEM</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.io.FileSystemSaveMode.DISK"><code class="name">var <span class="ident">DISK</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.FileSystemSaveMode.MEM"><code class="name">var <span class="ident">MEM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.FileSystemSaveMode.TEMP"><code class="name">var <span class="ident">TEMP</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.io.FileSystemSaveMode.get_save_mode"><code class="name flex">
+<span>def <span class="ident">get_save_mode</span></span>(<span>use_temp: bool, use_disk: bool) ‑> <a title="redvox.common.io.FileSystemSaveMode" href="#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param use_temp: use temporary directory
+:param use_disk: use path on disk
+:return: the mode used to save (use_temp is evaluated before use_disk)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def get_save_mode(use_temp: bool, use_disk: bool) -&gt; &#34;FileSystemSaveMode&#34;:
+    &#34;&#34;&#34;
+    :param use_temp: use temporary directory
+    :param use_disk: use path on disk
+    :return: the mode used to save (use_temp is evaluated before use_disk)
+    &#34;&#34;&#34;
+    if use_temp:
+        return FileSystemSaveMode.TEMP  # use_temp takes priority
+    elif use_disk:
+        return FileSystemSaveMode.DISK  # if here, use_temp is always false
+    return FileSystemSaveMode.MEM</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="redvox.common.io.FileSystemWriter"><code class="flex name class">
 <span>class <span class="ident">FileSystemWriter</span></span>
-<span>(</span><span>file_name: str, file_ext: str = 'none', base_dir: str = '.', save_enabled: bool = False)</span>
+<span>(</span><span>file_name: str, file_ext: str = 'none', base_dir: str = '.', save_mode: <a title="redvox.common.io.FileSystemSaveMode" href="#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a> = FileSystemSaveMode.MEM)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This class holds basic information about writing and reading objects from a file system
 If user does not enable saving to disk, we use a temporary directory to store large files</p>
 <h2 id="properties">Properties</h2>
-<p>file_name: str, the name of the file (do not include extension)
-file_ext: str, the extension used by the file (do not include the .).
-Default "NONE"
-base_dir: str, the directory to save the file to.
-Default "." (current dir)
-save_to_disk: bool, if True, save data to disk.
-Default False</p>
+<p>file_name: str, the name of the file (do not include extension)</p>
+<p>file_ext: str, the extension used by the file (do not include the .)
+Default "NONE"</p>
+<p>base_dir: str, the directory to save the file to.
+Default "." (current dir)</p>
 <h2 id="protected">Protected</h2>
+<p>_save_mode: FileSystemSaveMode, determines how files get saved</p>
 <p>_temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk</p>
 <p>initialize FileSystemWriter</p>
 <p>:param file_name: name of file
 :param file_ext: extension of file, default "none"
 :param base_dir: directory to save file to, default "." (current dir)
-:param save_enabled: if True, save to the file specified by, default False</p></div>
+:param save_mode: determines how to save files to system, default MEM (no save, use RAM)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1987,35 +2323,107 @@ Default False</p>
 
     Properties:
         file_name: str, the name of the file (do not include extension)
-        file_ext: str, the extension used by the file (do not include the .).  Default &#34;NONE&#34;
+
+        file_ext: str, the extension used by the file (do not include the .)  Default &#34;NONE&#34;
+
         base_dir: str, the directory to save the file to.  Default &#34;.&#34; (current dir)
-        save_to_disk: bool, if True, save data to disk.  Default False
 
     Protected:
+        _save_mode: FileSystemSaveMode, determines how files get saved
+
         _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
     &#34;&#34;&#34;
 
-    def __init__(self, file_name: str, file_ext: str = &#34;none&#34;,
-                 base_dir: str = &#34;.&#34;, save_enabled: bool = False):
+    def __init__(self, file_name: str, file_ext: str = &#34;none&#34;, base_dir: str = &#34;.&#34;,
+                 save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM):
         &#34;&#34;&#34;
         initialize FileSystemWriter
 
         :param file_name: name of file
         :param file_ext: extension of file, default &#34;none&#34;
         :param base_dir: directory to save file to, default &#34;.&#34; (current dir)
-        :param save_enabled: if True, save to the file specified by, default False
+        :param save_mode: determines how to save files to system, default MEM (no save, use RAM)
         &#34;&#34;&#34;
         self.file_name: str = file_name
         self.file_extension: str = file_ext.lower()
-        self.save_to_disk: bool = save_enabled
         self.base_dir: str = base_dir
+        self._save_mode: FileSystemSaveMode = save_mode
         self._temp_dir = tempfile.TemporaryDirectory()
+
+    def is_use_temp(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: if writing to temp dir
+        &#34;&#34;&#34;
+        return self._save_mode == FileSystemSaveMode.TEMP
+
+    def set_use_temp(self, use_temp: bool):
+        &#34;&#34;&#34;
+        :param use_temp: if true, sets mode to use temp dir, otherwise no change
+        &#34;&#34;&#34;
+        if use_temp:
+            self._save_mode = FileSystemSaveMode.TEMP
+
+    def get_temp(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: path of temp directory
+        &#34;&#34;&#34;
+        return self._temp_dir.name
+
+    def is_use_disk(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: if writing to path on disk
+        &#34;&#34;&#34;
+        return self._save_mode == FileSystemSaveMode.DISK
+
+    def set_use_disk(self, use_disk: bool):
+        &#34;&#34;&#34;
+        :param use_disk: if true, sets mode to use the disk, otherwise no change
+        &#34;&#34;&#34;
+        if use_disk:
+            self._save_mode = FileSystemSaveMode.DISK
+
+    def is_use_mem(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: if writing data to memory
+        &#34;&#34;&#34;
+        return self._save_mode == FileSystemSaveMode.MEM
+
+    def set_use_mem(self, use_mem: bool):
+        &#34;&#34;&#34;
+        :param use_mem: if true, sets mode to use the system&#39;s RAM, otherwise no change
+        &#34;&#34;&#34;
+        if use_mem:
+            self._save_mode = FileSystemSaveMode.MEM
+
+    def is_save_disk(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: if writing data to disk (temp dir or user defined path) instead of using memory
+        &#34;&#34;&#34;
+        return self._save_mode != FileSystemSaveMode.MEM
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
-        :return: directory where file would be saved based on current value of self.save_to_disk
+        :return: directory where file would be saved based on save mode; returns empty string if saving to memory
         &#34;&#34;&#34;
-        return self.base_dir if self.save_to_disk else self._temp_dir.name
+        if self.is_use_disk():
+            return self.base_dir
+        elif self.is_use_temp():
+            return self._temp_dir.name
+        return &#34;&#34;
+
+    def set_save_mode(self, save_mode: FileSystemSaveMode):
+        &#34;&#34;&#34;
+        set the save mode
+
+        :param save_mode: updated save mode
+        &#34;&#34;&#34;
+        self._save_mode = save_mode
+
+    def save_mode(self) -&gt; FileSystemSaveMode:
+        &#34;&#34;&#34;
+        :return: the save mode
+        &#34;&#34;&#34;
+        return self._save_mode
 
     def full_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -2038,6 +2446,20 @@ Default False</p>
         self.file_name = name
         self.file_extension = ext
 
+    def set_name(self, name: str):
+        &#34;&#34;&#34;
+        set the name of the output file.
+        :param name: file name
+        &#34;&#34;&#34;
+        self.file_name = name
+
+    def set_extension(self, ext: str):
+        &#34;&#34;&#34;
+        set the extension of the output file.  Do not include the . for the extension
+        :param ext: file extension
+        &#34;&#34;&#34;
+        self.file_extension = ext
+
     def json_file_name(self) -&gt; str:
         &#34;&#34;&#34;
         :return: file name with .json extension
@@ -2052,13 +2474,17 @@ Default False</p>
 
     def create_dir(self):
         &#34;&#34;&#34;
-        if saving to disk, otherwise remove any files in the directory,
-        then create the directory if it doesn&#39;t exist
+        if saving to disk, remove the directory if it exists,
+        then create an empty directory to save things into
+        if saving to temp dir, remove any files in the temp dir
         &#34;&#34;&#34;
-        if self.save_to_disk:
+        if self.is_use_disk():
             if os.path.exists(self.save_dir()):
-                rmtree(self.save_dir())
-            os.makedirs(self.save_dir(), exist_ok=True)
+                remove_dir_contents(Path(self.save_dir()))
+            else:
+                os.makedirs(self.save_dir())
+        elif self.is_use_temp():
+            remove_dir_contents(Path(self._temp_dir.name))
 
     def __del__(self):
         &#34;&#34;&#34;
@@ -2074,13 +2500,45 @@ Default False</p>
             &#34;file_name&#34;: self.file_name,
             &#34;file_extension&#34;: self.file_extension,
             &#34;base_dir&#34;: self.base_dir,
-            &#34;save_to_disk&#34;: self.save_to_disk
-        }</code></pre>
+            &#34;save_mode&#34;: self._save_mode.name
+        }
+
+    @staticmethod
+    def from_dict(data_dict: Dict) -&gt; &#34;FileSystemWriter&#34;:
+        &#34;&#34;&#34;
+        :param data_dict: dictionary to convert to FileSystemWriter
+        :return: FileSystemWriter from dict
+        &#34;&#34;&#34;
+        return FileSystemWriter(data_dict[&#34;file_name&#34;], data_dict[&#34;file_extension&#34;], data_dict[&#34;base_dir&#34;],
+                                FileSystemSaveMode[data_dict[&#34;save_mode&#34;]])</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="redvox.common.data_window_io.DataWindowFileSystemWriter" href="data_window_io.html#redvox.common.data_window_io.DataWindowFileSystemWriter">DataWindowFileSystemWriter</a></li>
 </ul>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.io.FileSystemWriter.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>data_dict: Dict) ‑> <a title="redvox.common.io.FileSystemWriter" href="#redvox.common.io.FileSystemWriter">FileSystemWriter</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param data_dict: dictionary to convert to FileSystemWriter
+:return: FileSystemWriter from dict</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_dict(data_dict: Dict) -&gt; &#34;FileSystemWriter&#34;:
+    &#34;&#34;&#34;
+    :param data_dict: dictionary to convert to FileSystemWriter
+    :return: FileSystemWriter from dict
+    &#34;&#34;&#34;
+    return FileSystemWriter(data_dict[&#34;file_name&#34;], data_dict[&#34;file_extension&#34;], data_dict[&#34;base_dir&#34;],
+                            FileSystemSaveMode[data_dict[&#34;save_mode&#34;]])</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.io.FileSystemWriter.as_dict"><code class="name flex">
@@ -2100,7 +2558,7 @@ Default False</p>
         &#34;file_name&#34;: self.file_name,
         &#34;file_extension&#34;: self.file_extension,
         &#34;base_dir&#34;: self.base_dir,
-        &#34;save_to_disk&#34;: self.save_to_disk
+        &#34;save_mode&#34;: self._save_mode.name
     }</code></pre>
 </details>
 </dd>
@@ -2108,21 +2566,26 @@ Default False</p>
 <span>def <span class="ident">create_dir</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>if saving to disk, otherwise remove any files in the directory,
-then create the directory if it doesn't exist</p></div>
+<div class="desc"><p>if saving to disk, remove the directory if it exists,
+then create an empty directory to save things into
+if saving to temp dir, remove any files in the temp dir</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_dir(self):
     &#34;&#34;&#34;
-    if saving to disk, otherwise remove any files in the directory,
-    then create the directory if it doesn&#39;t exist
+    if saving to disk, remove the directory if it exists,
+    then create an empty directory to save things into
+    if saving to temp dir, remove any files in the temp dir
     &#34;&#34;&#34;
-    if self.save_to_disk:
+    if self.is_use_disk():
         if os.path.exists(self.save_dir()):
-            rmtree(self.save_dir())
-        os.makedirs(self.save_dir(), exist_ok=True)</code></pre>
+            remove_dir_contents(Path(self.save_dir()))
+        else:
+            os.makedirs(self.save_dir())
+    elif self.is_use_temp():
+        remove_dir_contents(Path(self._temp_dir.name))</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.FileSystemWriter.full_name"><code class="name flex">
@@ -2155,6 +2618,86 @@ then create the directory if it doesn't exist</p></div>
     :return: the full path to where the file would be written
     &#34;&#34;&#34;
     return os.path.join(self.save_dir(), self.full_name())</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.get_temp"><code class="name flex">
+<span>def <span class="ident">get_temp</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: path of temp directory</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_temp(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: path of temp directory
+    &#34;&#34;&#34;
+    return self._temp_dir.name</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.is_save_disk"><code class="name flex">
+<span>def <span class="ident">is_save_disk</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: if writing data to disk (temp dir or user defined path) instead of using memory</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_save_disk(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: if writing data to disk (temp dir or user defined path) instead of using memory
+    &#34;&#34;&#34;
+    return self._save_mode != FileSystemSaveMode.MEM</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.is_use_disk"><code class="name flex">
+<span>def <span class="ident">is_use_disk</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: if writing to path on disk</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_use_disk(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: if writing to path on disk
+    &#34;&#34;&#34;
+    return self._save_mode == FileSystemSaveMode.DISK</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.is_use_mem"><code class="name flex">
+<span>def <span class="ident">is_use_mem</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: if writing data to memory</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_use_mem(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: if writing data to memory
+    &#34;&#34;&#34;
+    return self._save_mode == FileSystemSaveMode.MEM</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.is_use_temp"><code class="name flex">
+<span>def <span class="ident">is_use_temp</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: if writing to temp dir</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_use_temp(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: if writing to temp dir
+    &#34;&#34;&#34;
+    return self._save_mode == FileSystemSaveMode.TEMP</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.FileSystemWriter.json_file_name"><code class="name flex">
@@ -2193,16 +2736,73 @@ then create the directory if it doesn't exist</p></div>
 <span>def <span class="ident">save_dir</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:return: directory where file would be saved based on current value of self.save_to_disk</p></div>
+<div class="desc"><p>:return: directory where file would be saved based on save mode; returns empty string if saving to memory</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def save_dir(self) -&gt; str:
     &#34;&#34;&#34;
-    :return: directory where file would be saved based on current value of self.save_to_disk
+    :return: directory where file would be saved based on save mode; returns empty string if saving to memory
     &#34;&#34;&#34;
-    return self.base_dir if self.save_to_disk else self._temp_dir.name</code></pre>
+    if self.is_use_disk():
+        return self.base_dir
+    elif self.is_use_temp():
+        return self._temp_dir.name
+    return &#34;&#34;</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.save_mode"><code class="name flex">
+<span>def <span class="ident">save_mode</span></span>(<span>self) ‑> <a title="redvox.common.io.FileSystemSaveMode" href="#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the save mode</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_mode(self) -&gt; FileSystemSaveMode:
+    &#34;&#34;&#34;
+    :return: the save mode
+    &#34;&#34;&#34;
+    return self._save_mode</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.set_extension"><code class="name flex">
+<span>def <span class="ident">set_extension</span></span>(<span>self, ext: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>set the extension of the output file.
+Do not include the . for the extension
+:param ext: file extension</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_extension(self, ext: str):
+    &#34;&#34;&#34;
+    set the extension of the output file.  Do not include the . for the extension
+    :param ext: file extension
+    &#34;&#34;&#34;
+    self.file_extension = ext</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.set_name"><code class="name flex">
+<span>def <span class="ident">set_name</span></span>(<span>self, name: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>set the name of the output file.
+:param name: file name</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_name(self, name: str):
+    &#34;&#34;&#34;
+    set the name of the output file.
+    :param name: file name
+    &#34;&#34;&#34;
+    self.file_name = name</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.FileSystemWriter.set_name_and_extension"><code class="name flex">
@@ -2225,6 +2825,76 @@ Do not include the . for the extension
     &#34;&#34;&#34;
     self.file_name = name
     self.file_extension = ext</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.set_save_mode"><code class="name flex">
+<span>def <span class="ident">set_save_mode</span></span>(<span>self, save_mode: <a title="redvox.common.io.FileSystemSaveMode" href="#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>set the save mode</p>
+<p>:param save_mode: updated save mode</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_save_mode(self, save_mode: FileSystemSaveMode):
+    &#34;&#34;&#34;
+    set the save mode
+
+    :param save_mode: updated save mode
+    &#34;&#34;&#34;
+    self._save_mode = save_mode</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.set_use_disk"><code class="name flex">
+<span>def <span class="ident">set_use_disk</span></span>(<span>self, use_disk: bool)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param use_disk: if true, sets mode to use the disk, otherwise no change</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_use_disk(self, use_disk: bool):
+    &#34;&#34;&#34;
+    :param use_disk: if true, sets mode to use the disk, otherwise no change
+    &#34;&#34;&#34;
+    if use_disk:
+        self._save_mode = FileSystemSaveMode.DISK</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.set_use_mem"><code class="name flex">
+<span>def <span class="ident">set_use_mem</span></span>(<span>self, use_mem: bool)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param use_mem: if true, sets mode to use the system's RAM, otherwise no change</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_use_mem(self, use_mem: bool):
+    &#34;&#34;&#34;
+    :param use_mem: if true, sets mode to use the system&#39;s RAM, otherwise no change
+    &#34;&#34;&#34;
+    if use_mem:
+        self._save_mode = FileSystemSaveMode.MEM</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.FileSystemWriter.set_use_temp"><code class="name flex">
+<span>def <span class="ident">set_use_temp</span></span>(<span>self, use_temp: bool)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param use_temp: if true, sets mode to use temp dir, otherwise no change</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_use_temp(self, use_temp: bool):
+    &#34;&#34;&#34;
+    :param use_temp: if true, sets mode to use temp dir, otherwise no change
+    &#34;&#34;&#34;
+    if use_temp:
+        self._save_mode = FileSystemSaveMode.TEMP</code></pre>
 </details>
 </dd>
 </dl>
@@ -2343,7 +3013,67 @@ class Index:
         :param read_filter: Additional filtering to specify which data should be read.
         :return: An list of WrappedRedvoxPacket and WrappedRedvoxPacketM instances.
         &#34;&#34;&#34;
-        return list(self.stream(read_filter))</code></pre>
+        return list(self.stream(read_filter))
+
+    def files_size(self) -&gt; float:
+        &#34;&#34;&#34;
+        :return: sum of file size in bytes of index
+        &#34;&#34;&#34;
+        return np.sum([entry.file_size_bytes for entry in self.entries])
+
+    def read_contents(self) -&gt; List[RedvoxPacketM]:
+        &#34;&#34;&#34;
+        read all the files in the index
+
+        :return: list of RedvoxPacketM, converted from API 900 if necessary
+        &#34;&#34;&#34;
+        result: List[RedvoxPacketM] = []
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_900})
+        ):
+            # noinspection Mypy
+            result.append(
+                ac.convert_api_900_to_1000_raw(packet_900)
+            )
+
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_1000})
+        ):
+            # noinspection Mypy
+            result.append(packet)
+
+        return result
+
+    def read_first_packet(self) -&gt; Optional[RedvoxPacketM]:
+        &#34;&#34;&#34;
+        read the first packet of the index
+
+        :return: single RedvoxPacketM, converted from API 900 if necessary or None if no packet to read
+        &#34;&#34;&#34;
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_1000})
+        ):
+            # noinspection Mypy
+            return packet
+
+        # Iterate over the API 900 packets in a memory efficient way
+        # and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in self.stream_raw(
+                ReadFilter.empty().with_api_versions({ApiVersion.API_900})
+        ):
+            # noinspection Mypy
+            return ac.convert_api_900_to_1000_raw(packet_900)
+
+        return None</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -2401,6 +3131,22 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
     self.entries.extend(entries)</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.io.Index.files_size"><code class="name flex">
+<span>def <span class="ident">files_size</span></span>(<span>self) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: sum of file size in bytes of index</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def files_size(self) -&gt; float:
+    &#34;&#34;&#34;
+    :return: sum of file size in bytes of index
+    &#34;&#34;&#34;
+    return np.sum([entry.file_size_bytes for entry in self.entries])</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.io.Index.get_index_for_station_id"><code class="name flex">
 <span>def <span class="ident">get_index_for_station_id</span></span>(<span>self, station_id: str) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
@@ -2420,7 +3166,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.read"><code class="name flex">
-<span>def <span class="ident">read</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> List[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">read</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> List[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, and wrap RedVox data pointed to by this index.</p>
@@ -2442,8 +3188,84 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
     return list(self.stream(read_filter))</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.io.Index.read_contents"><code class="name flex">
+<span>def <span class="ident">read_contents</span></span>(<span>self) ‑> List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>read all the files in the index</p>
+<p>:return: list of RedvoxPacketM, converted from API 900 if necessary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_contents(self) -&gt; List[RedvoxPacketM]:
+    &#34;&#34;&#34;
+    read all the files in the index
+
+    :return: list of RedvoxPacketM, converted from API 900 if necessary
+    &#34;&#34;&#34;
+    result: List[RedvoxPacketM] = []
+
+    # Iterate over the API 900 packets in a memory efficient way
+    # and convert to API 1000
+    # noinspection PyTypeChecker
+    for packet_900 in self.stream_raw(
+            ReadFilter.empty().with_api_versions({ApiVersion.API_900})
+    ):
+        # noinspection Mypy
+        result.append(
+            ac.convert_api_900_to_1000_raw(packet_900)
+        )
+
+    # Grab the API 1000 packets
+    # noinspection PyTypeChecker
+    for packet in self.stream_raw(
+            ReadFilter.empty().with_api_versions({ApiVersion.API_1000})
+    ):
+        # noinspection Mypy
+        result.append(packet)
+
+    return result</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.Index.read_first_packet"><code class="name flex">
+<span>def <span class="ident">read_first_packet</span></span>(<span>self) ‑> Optional[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>read the first packet of the index</p>
+<p>:return: single RedvoxPacketM, converted from API 900 if necessary or None if no packet to read</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_first_packet(self) -&gt; Optional[RedvoxPacketM]:
+    &#34;&#34;&#34;
+    read the first packet of the index
+
+    :return: single RedvoxPacketM, converted from API 900 if necessary or None if no packet to read
+    &#34;&#34;&#34;
+    # Grab the API 1000 packets
+    # noinspection PyTypeChecker
+    for packet in self.stream_raw(
+            ReadFilter.empty().with_api_versions({ApiVersion.API_1000})
+    ):
+        # noinspection Mypy
+        return packet
+
+    # Iterate over the API 900 packets in a memory efficient way
+    # and convert to API 1000
+    # noinspection PyTypeChecker
+    for packet_900 in self.stream_raw(
+            ReadFilter.empty().with_api_versions({ApiVersion.API_900})
+    ):
+        # noinspection Mypy
+        return ac.convert_api_900_to_1000_raw(packet_900)
+
+    return None</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.io.Index.read_raw"><code class="name flex">
-<span>def <span class="ident">read_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> List[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
+<span>def <span class="ident">read_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> List[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, and deserialize RedVox data pointed to by this index.</p>
@@ -2485,7 +3307,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.stream"><code class="name flex">
-<span>def <span class="ident">stream</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> Iterator[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">stream</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> Iterator[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.</p>
@@ -2510,7 +3332,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.stream_raw"><code class="name flex">
-<span>def <span class="ident">stream_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> Iterator[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
+<span>def <span class="ident">stream_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> Iterator[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, and then stream RedVox data pointed to by this index.</p>
@@ -2571,7 +3393,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </dd>
 <dt id="redvox.common.io.IndexEntry"><code class="flex name class">
 <span>class <span class="ident">IndexEntry</span></span>
-<span>(</span><span>full_path: str, station_id: str, date_time: datetime.datetime, extension: str, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>)</span>
+<span>(</span><span>full_path: str, station_id: str, date_time: datetime.datetime, extension: str, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>, file_size_bytes: int)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This class represents a single index entry. It extracts and encapsulated API agnostic fields that represent the
@@ -2592,6 +3414,7 @@ class IndexEntry:
     date_time: datetime
     extension: str
     api_version: ApiVersion
+    file_size_bytes: int
 
     @staticmethod
     def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry&#34;]:
@@ -2638,12 +3461,14 @@ class IndexEntry:
         full_path: str
         try:
             full_path = str(path.resolve(strict=True))
+            file_size = os.path.getsize(full_path) * 8  # decompressed size estimate
         except FileNotFoundError:
             if strict:
                 return None
             full_path = path_str
+            file_size = 0
 
-        return IndexEntry(full_path, station_id, date_time, ext, api_version)
+        return IndexEntry(full_path, station_id, date_time, ext, api_version, file_size)
 
     @staticmethod
     def from_native(entry) -&gt; &#34;IndexEntry&#34;:
@@ -2659,6 +3484,7 @@ class IndexEntry:
             dt_us(entry.date_time),
             entry.extension,
             ApiVersion.from_str(entry.api_version),
+            os.path.getsize(entry.full_path) * 8,
         )
 
     def to_native(self):
@@ -2734,6 +3560,10 @@ class IndexEntry:
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="redvox.common.io.IndexEntry.file_size_bytes"><code class="name">var <span class="ident">file_size_bytes</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="redvox.common.io.IndexEntry.full_path"><code class="name">var <span class="ident">full_path</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
@@ -2770,6 +3600,7 @@ def from_native(entry) -&gt; &#34;IndexEntry&#34;:
         dt_us(entry.date_time),
         entry.extension,
         ApiVersion.from_str(entry.api_version),
+        os.path.getsize(entry.full_path) * 8,
     )</code></pre>
 </details>
 </dd>
@@ -2831,12 +3662,14 @@ def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry
     full_path: str
     try:
         full_path = str(path.resolve(strict=True))
+        file_size = os.path.getsize(full_path) * 8  # decompressed size estimate
     except FileNotFoundError:
         if strict:
             return None
         full_path = path_str
+        file_size = 0
 
-    return IndexEntry(full_path, station_id, date_time, ext, api_version)</code></pre>
+    return IndexEntry(full_path, station_id, date_time, ext, api_version, file_size)</code></pre>
 </details>
 </dd>
 </dl>
@@ -4061,6 +4894,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="redvox.common.io.dict_to_json" href="#redvox.common.io.dict_to_json">dict_to_json</a></code></li>
 <li><code><a title="redvox.common.io.get_json_file" href="#redvox.common.io.get_json_file">get_json_file</a></code></li>
 <li><code><a title="redvox.common.io.index_structured" href="#redvox.common.io.index_structured">index_structured</a></code></li>
 <li><code><a title="redvox.common.io.index_structured_api_1000" href="#redvox.common.io.index_structured_api_1000">index_structured_api_1000</a></code></li>
@@ -4072,22 +4906,45 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 <li><code><a title="redvox.common.io.index_unstructured_py" href="#redvox.common.io.index_unstructured_py">index_unstructured_py</a></code></li>
 <li><code><a title="redvox.common.io.json_file_to_dict" href="#redvox.common.io.json_file_to_dict">json_file_to_dict</a></code></li>
 <li><code><a title="redvox.common.io.json_to_dict" href="#redvox.common.io.json_to_dict">json_to_dict</a></code></li>
+<li><code><a title="redvox.common.io.remove_dir_contents" href="#redvox.common.io.remove_dir_contents">remove_dir_contents</a></code></li>
 <li><code><a title="redvox.common.io.sort_unstructured_redvox_data" href="#redvox.common.io.sort_unstructured_redvox_data">sort_unstructured_redvox_data</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="redvox.common.io.FileSystemSaveMode" href="#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.io.FileSystemSaveMode.DISK" href="#redvox.common.io.FileSystemSaveMode.DISK">DISK</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemSaveMode.MEM" href="#redvox.common.io.FileSystemSaveMode.MEM">MEM</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemSaveMode.TEMP" href="#redvox.common.io.FileSystemSaveMode.TEMP">TEMP</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemSaveMode.get_save_mode" href="#redvox.common.io.FileSystemSaveMode.get_save_mode">get_save_mode</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="redvox.common.io.FileSystemWriter" href="#redvox.common.io.FileSystemWriter">FileSystemWriter</a></code></h4>
 <ul class="">
 <li><code><a title="redvox.common.io.FileSystemWriter.as_dict" href="#redvox.common.io.FileSystemWriter.as_dict">as_dict</a></code></li>
 <li><code><a title="redvox.common.io.FileSystemWriter.create_dir" href="#redvox.common.io.FileSystemWriter.create_dir">create_dir</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.from_dict" href="#redvox.common.io.FileSystemWriter.from_dict">from_dict</a></code></li>
 <li><code><a title="redvox.common.io.FileSystemWriter.full_name" href="#redvox.common.io.FileSystemWriter.full_name">full_name</a></code></li>
 <li><code><a title="redvox.common.io.FileSystemWriter.full_path" href="#redvox.common.io.FileSystemWriter.full_path">full_path</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.get_temp" href="#redvox.common.io.FileSystemWriter.get_temp">get_temp</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.is_save_disk" href="#redvox.common.io.FileSystemWriter.is_save_disk">is_save_disk</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.is_use_disk" href="#redvox.common.io.FileSystemWriter.is_use_disk">is_use_disk</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.is_use_mem" href="#redvox.common.io.FileSystemWriter.is_use_mem">is_use_mem</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.is_use_temp" href="#redvox.common.io.FileSystemWriter.is_use_temp">is_use_temp</a></code></li>
 <li><code><a title="redvox.common.io.FileSystemWriter.json_file_name" href="#redvox.common.io.FileSystemWriter.json_file_name">json_file_name</a></code></li>
 <li><code><a title="redvox.common.io.FileSystemWriter.json_path" href="#redvox.common.io.FileSystemWriter.json_path">json_path</a></code></li>
 <li><code><a title="redvox.common.io.FileSystemWriter.save_dir" href="#redvox.common.io.FileSystemWriter.save_dir">save_dir</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.save_mode" href="#redvox.common.io.FileSystemWriter.save_mode">save_mode</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_extension" href="#redvox.common.io.FileSystemWriter.set_extension">set_extension</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_name" href="#redvox.common.io.FileSystemWriter.set_name">set_name</a></code></li>
 <li><code><a title="redvox.common.io.FileSystemWriter.set_name_and_extension" href="#redvox.common.io.FileSystemWriter.set_name_and_extension">set_name_and_extension</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_save_mode" href="#redvox.common.io.FileSystemWriter.set_save_mode">set_save_mode</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_use_disk" href="#redvox.common.io.FileSystemWriter.set_use_disk">set_use_disk</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_use_mem" href="#redvox.common.io.FileSystemWriter.set_use_mem">set_use_mem</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_use_temp" href="#redvox.common.io.FileSystemWriter.set_use_temp">set_use_temp</a></code></li>
 </ul>
 </li>
 <li>
@@ -4095,9 +4952,12 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 <ul class="">
 <li><code><a title="redvox.common.io.Index.append" href="#redvox.common.io.Index.append">append</a></code></li>
 <li><code><a title="redvox.common.io.Index.entries" href="#redvox.common.io.Index.entries">entries</a></code></li>
+<li><code><a title="redvox.common.io.Index.files_size" href="#redvox.common.io.Index.files_size">files_size</a></code></li>
 <li><code><a title="redvox.common.io.Index.from_native" href="#redvox.common.io.Index.from_native">from_native</a></code></li>
 <li><code><a title="redvox.common.io.Index.get_index_for_station_id" href="#redvox.common.io.Index.get_index_for_station_id">get_index_for_station_id</a></code></li>
 <li><code><a title="redvox.common.io.Index.read" href="#redvox.common.io.Index.read">read</a></code></li>
+<li><code><a title="redvox.common.io.Index.read_contents" href="#redvox.common.io.Index.read_contents">read_contents</a></code></li>
+<li><code><a title="redvox.common.io.Index.read_first_packet" href="#redvox.common.io.Index.read_first_packet">read_first_packet</a></code></li>
 <li><code><a title="redvox.common.io.Index.read_raw" href="#redvox.common.io.Index.read_raw">read_raw</a></code></li>
 <li><code><a title="redvox.common.io.Index.sort" href="#redvox.common.io.Index.sort">sort</a></code></li>
 <li><code><a title="redvox.common.io.Index.stream" href="#redvox.common.io.Index.stream">stream</a></code></li>
@@ -4112,6 +4972,7 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 <li><code><a title="redvox.common.io.IndexEntry.api_version" href="#redvox.common.io.IndexEntry.api_version">api_version</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.date_time" href="#redvox.common.io.IndexEntry.date_time">date_time</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.extension" href="#redvox.common.io.IndexEntry.extension">extension</a></code></li>
+<li><code><a title="redvox.common.io.IndexEntry.file_size_bytes" href="#redvox.common.io.IndexEntry.file_size_bytes">file_size_bytes</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.from_native" href="#redvox.common.io.IndexEntry.from_native">from_native</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.from_path" href="#redvox.common.io.IndexEntry.from_path">from_path</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.full_path" href="#redvox.common.io.IndexEntry.full_path">full_path</a></code></li>

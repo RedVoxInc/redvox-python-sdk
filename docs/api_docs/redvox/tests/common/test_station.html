@@ -36,7 +36,7 @@ import contextlib
 import numpy as np
 
 import redvox.tests as tests
-from redvox.common import api_reader_dw
+from redvox.common import api_reader
 from redvox.common.io import ReadFilter
 from redvox.common.station import Station
 from redvox.common.sensor_data import SensorType
@@ -47,13 +47,13 @@ class StationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -&gt; None:
         with contextlib.redirect_stdout(None):
-            reader = api_reader_dw.ApiReaderDw(
+            reader = api_reader.ApiReader(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;}),
             )
             cls.apim_station = reader.get_station_by_id(&#34;0000000001&#34;)[0]
-            reader = api_reader_dw.ApiReaderDw(
+            reader = api_reader.ApiReader(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
@@ -159,17 +159,12 @@ class StationTest(unittest.TestCase):
         self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz(), 48000)
 
     def test_update_timestamps(self):
-        with contextlib.redirect_stdout(None):
-            updated_station = api_reader_dw.ApiReaderDw(
-                tests.TEST_DATA_DIR,
-                False,
-                ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
-            ).get_station_by_id(&#34;1637650010&#34;)[0]
-            self.assertEqual(updated_station.first_data_timestamp(),
-                             updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-            updated_station.update_timestamps()
-            self.assertNotEqual(updated_station.first_data_timestamp(),
-                                updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
+        updated_station = self.api900_station
+        self.assertEqual(updated_station.first_data_timestamp(),
+                         updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
+        updated_station.update_timestamps()
+        self.assertNotEqual(updated_station.first_data_timestamp(),
+                            updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
 </details>
 </section>
 <section>
@@ -222,13 +217,13 @@ not have a method with the specified name.</p></div>
     @classmethod
     def setUpClass(cls) -&gt; None:
         with contextlib.redirect_stdout(None):
-            reader = api_reader_dw.ApiReaderDw(
+            reader = api_reader.ApiReader(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;}),
             )
             cls.apim_station = reader.get_station_by_id(&#34;0000000001&#34;)[0]
-            reader = api_reader_dw.ApiReaderDw(
+            reader = api_reader.ApiReader(
                 tests.TEST_DATA_DIR,
                 False,
                 ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
@@ -334,17 +329,12 @@ not have a method with the specified name.</p></div>
         self.assertEqual(empty_apim_station.audio_sensor().sample_rate_hz(), 48000)
 
     def test_update_timestamps(self):
-        with contextlib.redirect_stdout(None):
-            updated_station = api_reader_dw.ApiReaderDw(
-                tests.TEST_DATA_DIR,
-                False,
-                ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
-            ).get_station_by_id(&#34;1637650010&#34;)[0]
-            self.assertEqual(updated_station.first_data_timestamp(),
-                             updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-            updated_station.update_timestamps()
-            self.assertNotEqual(updated_station.first_data_timestamp(),
-                                updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
+        updated_station = self.api900_station
+        self.assertEqual(updated_station.first_data_timestamp(),
+                         updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
+        updated_station.update_timestamps()
+        self.assertNotEqual(updated_station.first_data_timestamp(),
+                            updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -364,13 +354,13 @@ not have a method with the specified name.</p></div>
 <pre><code class="python">@classmethod
 def setUpClass(cls) -&gt; None:
     with contextlib.redirect_stdout(None):
-        reader = api_reader_dw.ApiReaderDw(
+        reader = api_reader.ApiReader(
             tests.TEST_DATA_DIR,
             False,
             ReadFilter(extensions={&#34;.rdvxm&#34;}, station_ids={&#34;0000000001&#34;}),
         )
         cls.apim_station = reader.get_station_by_id(&#34;0000000001&#34;)[0]
-        reader = api_reader_dw.ApiReaderDw(
+        reader = api_reader.ApiReader(
             tests.TEST_DATA_DIR,
             False,
             ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
@@ -579,17 +569,12 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_update_timestamps(self):
-    with contextlib.redirect_stdout(None):
-        updated_station = api_reader_dw.ApiReaderDw(
-            tests.TEST_DATA_DIR,
-            False,
-            ReadFilter(extensions={&#34;.rdvxz&#34;}, station_ids={&#34;1637650010&#34;}),
-        ).get_station_by_id(&#34;1637650010&#34;)[0]
-        self.assertEqual(updated_station.first_data_timestamp(),
-                         updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
-        updated_station.update_timestamps()
-        self.assertNotEqual(updated_station.first_data_timestamp(),
-                            updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
+    updated_station = self.api900_station
+    self.assertEqual(updated_station.first_data_timestamp(),
+                     updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])
+    updated_station.update_timestamps()
+    self.assertNotEqual(updated_station.first_data_timestamp(),
+                        updated_station.audio_sensor().get_data_channel(&#34;unaltered_timestamps&#34;)[0])</code></pre>
 </details>
 </dd>
 </dl>

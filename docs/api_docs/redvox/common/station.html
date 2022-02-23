@@ -41,10 +41,11 @@ import os
 from pathlib import Path
 
 import numpy as np
+import pyarrow.dataset as ds
 import pyarrow as pa
 
 from redvox.common import station_io as io
-from redvox.common.io import FileSystemWriter as Fsw
+from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode, Index
 from redvox.common import sensor_data as sd
 from redvox.common import station_utils as st_utils
 from redvox.common.timesync import TimeSync
@@ -52,8 +53,8 @@ from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import packet_to_pyarrow as ptp
 from redvox.common import gap_and_pad_utils as gpu
-from redvox.common.stats_helper import StatsContainer
 from redvox.common.date_time_utils import seconds_to_microseconds as s_to_us
+from redvox.common.event_stream import EventStreams
 
 
 class Station:
@@ -71,9 +72,9 @@ class Station:
 
         _packet_metadata: list of StationPacketMetadata that changes from packet to packet, default empty list
 
-        _id: str id of the station, default None
+        _id: str id of the station, default empty string
 
-        _uuid: str uuid of the station, default None
+        _uuid: str uuid of the station, default empty string
 
         _start_date: float of microseconds since epoch UTC when the station started recording, default np.nan
 
@@ -108,8 +109,9 @@ class Station:
             start_timestamp: float = np.nan,
             correct_timestamps: bool = False,
             use_model_correction: bool = True,
-            base_dir: str = &#34;&#34;,
-            save_data: bool = False
+            base_dir: str = &#34;.&#34;,
+            save_data: bool = False,
+            use_temp_dir: bool = False
     ):
         &#34;&#34;&#34;
         initialize Station
@@ -120,8 +122,9 @@ class Station:
         :param correct_timestamps: if True, correct all timestamps as soon as they can be, default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_dir: directory to save parquet files, default &#34;&#34; (current directory)
-        :param save_data: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :param base_dir: directory to save parquet files, default &#34;.&#34; (current directory)
+        :param save_data: if True, save the parquet files to base_dir, otherwise delete them.  default False
+        :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         &#34;&#34;&#34;
         self._id = station_id
         self._uuid = uuid
@@ -137,7 +140,14 @@ class Station:
         self._is_audio_scrambled = False
         self._timesync_data = TimeSync()
         self._is_timestamps_updated = False
-        self._fs_writer = Fsw(&#34;&#34;, &#34;&#34;, base_dir, save_data)
+        if save_data:
+            save_mode = FileSystemSaveMode.DISK
+        elif use_temp_dir:
+            save_mode = FileSystemSaveMode.TEMP
+        else:
+            save_mode = FileSystemSaveMode.MEM
+        self._fs_writer = Fsw(&#34;&#34;, &#34;&#34;, base_dir, save_mode)
+        self._event_data = EventStreams(save_mode=save_mode)
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
@@ -154,18 +164,63 @@ class Station:
         &#34;&#34;&#34;
         return [s.name for s in self._data]
 
+    def get_save_dir_sensor(self, sensor: sd.SensorType) -&gt; str:
+        &#34;&#34;&#34;
+        :param sensor: the type of sensor to get a save directory for
+        :return: the station&#39;s save dir with the sensor type name as a subdir
+        &#34;&#34;&#34;
+        return os.path.join(self.save_dir(), sensor.name)
+
+    def set_save_mode(self, new_save_mode: FileSystemSaveMode):
+        &#34;&#34;&#34;
+        sets the save mode of the Station
+
+        :param new_save_mode: FileSystemSaveMode to change to
+        &#34;&#34;&#34;
+        self._fs_writer.set_save_mode(new_save_mode)
+        self._event_data.set_save_mode(new_save_mode)
+        for s in self._data:
+            s.set_save_mode(new_save_mode)
+
     def set_save_data(self, save_on: bool = False):
         &#34;&#34;&#34;
         set the option to save the station
+
         :param save_on: if True, saves the station data, default False
         &#34;&#34;&#34;
         self._fs_writer.save_to_disk = save_on
+
+    def set_save_dir(self, new_dir: str, station_dir_name: Optional[str] = None):
+        &#34;&#34;&#34;
+        sets the save directory of a Station.  combines the new_dir and the station_name to form a directory called
+        new_dir/station_dir_name/
+
+        Uses the default [station_id]_[station_startdate] if no name is specified
+
+        :param new_dir: new base directory to use
+        :param station_dir_name: optional station directory to use
+        &#34;&#34;&#34;
+        if station_dir_name is None:
+            station_dir_name = self._get_id_key()
+        self._fs_writer.file_name = station_dir_name
+        if self._fs_writer.is_use_disk():
+            self._fs_writer.base_dir = os.path.join(new_dir)
+        else:
+            self._fs_writer.base_dir = os.path.join(self._fs_writer.get_temp())
+        for s in self._data:
+            s.move_pyarrow_dir(self.save_dir())
+        self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
+        self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
         :return: directory where files are being written to
         &#34;&#34;&#34;
-        return os.path.join(self._fs_writer.save_dir(), self._get_id_key())
+        if self._fs_writer.is_use_disk():
+            return os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
+        elif self._fs_writer.is_use_temp():
+            return os.path.join(self._fs_writer.get_temp(), self._get_id_key())
+        return &#34;.&#34;
 
     def save(self, file_name: Optional[str] = None) -&gt; Optional[Path]:
         &#34;&#34;&#34;
@@ -177,10 +232,12 @@ class Station:
         :return: Path to the saved file or None if not saved
         &#34;&#34;&#34;
         if self.is_save_to_disk():
+            self._fs_writer.create_dir()
             return self.to_json_file(file_name)
         return None
 
-    def load(self, in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
+    @staticmethod
+    def load(in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
         :param in_dir: structured directory with json metadata file to load
         :return: Station using data from files
@@ -189,53 +246,108 @@ class Station:
         if file is None:
             st = Station(&#34;LoadError&#34;)
             st.append_error(&#34;File to load Station not found.&#34;)
-            return self
+            return st
         else:
-            return self.from_json_file(in_dir, file)
+            return Station.from_json_file(in_dir, file)
+
+    @staticmethod
+    def create_from_indexes(indexes: List[Index],
+                            correct_timestamps: bool = False,
+                            use_model_correction: bool = True,
+                            base_out_dir: str = &#34;.&#34;,
+                            save_output: bool = False,
+                            use_temp_dir: bool = False) -&gt; &#34;Station&#34;:
+        &#34;&#34;&#34;
+        Use a list of Indexes to create a Station
+
+        :param indexes: List of indexes to use
+        :param correct_timestamps: if True, correct timestamps, default False
+        :param use_model_correction: if True, correct timestamps using offset model, default True
+        :param base_out_dir: directory to save output files to, if saving to disk.  default &#34;.&#34; (current directory)
+        :param save_output: if True, save output to disk, default False
+        :param use_temp_dir: if True, use a temporary directory, default False
+        :return: Station using data from the files in the list of indexes.
+        &#34;&#34;&#34;
+        station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
+                          base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
+        station.load_from_indexes(indexes)
+        return station
+
+    def load_from_indexes(self, indexes: List[Index]):
+        &#34;&#34;&#34;
+        fill station using data from a list of Indexes
+
+        :param indexes: List of indexes of the files to read
+        &#34;&#34;&#34;
+        first_pkt = indexes[0].read_first_packet()
+        self._load_metadata_from_packet(first_pkt)
+        self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
+        self._timesync_data.arrow_file = \
+            f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
+        all_summaries = ptp.AggregateSummary()
+        self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+        for idx in indexes:
+            pkts = idx.read_contents()
+            self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
+            self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
+            self._event_data.read_from_packets_list(pkts)
+            all_summaries.add_aggregate_summary(
+                ptp.stream_to_pyarrow(pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None))
+        all_summaries.merge_all_summaries()
+        self._set_pyarrow_sensors(all_summaries)
+        if self._correct_timestamps:
+            self.update_timestamps()
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
                             correct_timestamps: bool = False,
                             use_model_correction: bool = True,
-                            base_out_dir: str = &#34;&#34;,
-                            save_output: bool = False) -&gt; &#34;Station&#34;:
+                            base_out_dir: str = &#34;.&#34;,
+                            save_output: bool = False,
+                            use_temp_dir: bool = False) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
+        Use a list of Redvox packets to create a Station
+
         :param packets: API M redvox packets with data to load
         :param correct_timestamps: if True, correct timestamps as soon as possible.  Default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_out_dir: directory to save parquet files, default &#34;&#34; (current directory)
+        :param base_out_dir: directory to save parquet files, default &#34;.&#34; (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
-        :return: station using data from redvox packets.
+        :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
+        :return: Station using data from redvox packets.
         &#34;&#34;&#34;
         station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
-                          base_dir=base_out_dir, save_data=save_output)
+                          base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
         station.load_data_from_packets(packets)
         return station
 
     @staticmethod
     def create_from_metadata(packet: api_m.RedvoxPacketM,
                              use_model_correction: bool = True,
-                             base_out_dir: str = &#34;&#34;,
-                             save_output: bool = False) -&gt; &#34;Station&#34;:
+                             base_out_dir: str = &#34;.&#34;,
+                             save_output: bool = False,
+                             use_temp_dir: bool = False) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
         create a station using metadata from a packet.  There will be no sensor or timing data added.
 
         :param packet: API M redvox packet to load metadata from
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_out_dir: directory to save parquet files, default &#34;&#34; (current directory)
+        :param base_out_dir: directory to save parquet files, default &#34;.&#34; (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         :return: Station without any sensor or timing
         &#34;&#34;&#34;
         station = Station(use_model_correction=use_model_correction, base_dir=base_out_dir,
-                          save_data=save_output)
+                          save_data=save_output, use_temp_dir=use_temp_dir)
         station._load_metadata_from_packet(packet)
         return station
 
     def load_data_from_packets(self, packets: List[api_m.RedvoxPacketM]):
         &#34;&#34;&#34;
         fill station with data from packets
+
         :param packets: API M redvox packets with data to load
         &#34;&#34;&#34;
         if packets and st_utils.validate_station_key_list(packets, self._errors):
@@ -245,17 +357,15 @@ class Station:
                 st_utils.StationPacketMetadata(packet) for packet in packets
             ]
             self._timesync_data = TimeSync().from_raw_packets(packets)
-            if self._correct_timestamps:
-                self._start_date = self._timesync_data.offset_model().update_time(
-                    self._start_date, self._use_model_correction
-                )
-            self._fs_writer.file_name = self._get_id_key()
-            # self._fs_writer.create_dir()
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
-            file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
-            self._timesync_data.arrow_file = f&#34;timesync_{file_date}&#34;
-            self._set_pyarrow_sensors(
-                ptp.stream_to_pyarrow(packets, self.save_dir() if self._fs_writer.save_to_disk else None))
+            self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
+            summaries = ptp.stream_to_pyarrow(packets, self._fs_writer.get_temp() if self.is_save_to_disk() else None)
+            summaries.merge_all_summaries()
+            self._set_pyarrow_sensors(summaries)
+            if self._correct_timestamps:
+                self.update_timestamps()
+            self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+            self._event_data.read_from_packets_list(packets)
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         &#34;&#34;&#34;
@@ -367,6 +477,12 @@ class Station:
             return st_utils.StationKey(self._id, self._uuid, self._start_date)
         return None
 
+    def set_correct_timestamps(self):
+        &#34;&#34;&#34;
+        set the correction of timestamps to True.
+        &#34;&#34;&#34;
+        self._correct_timestamps = True
+
     def append_station(self, new_station: &#34;Station&#34;):
         &#34;&#34;&#34;
         append a new station to the current station; does nothing if keys do not match
@@ -378,11 +494,13 @@ class Station:
                 and new_station.get_key() == self.get_key()
                 and self._metadata.validate_metadata(new_station._metadata)
         ):
+            self._errors.extend_error(new_station.errors())
             self.append_station_data(new_station._data)
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
-            self.update_first_and_last_data_timestamps()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+            self._event_data.append_streams(new_station.event_data())
+            self.update_first_and_last_data_timestamps()
 
     def append_station_data(self, new_station_data: List[sd.SensorData]):
         &#34;&#34;&#34;
@@ -1151,6 +1269,20 @@ class Station:
         &#34;&#34;&#34;
         return self._gaps
 
+    def event_data(self) -&gt; EventStreams:
+        &#34;&#34;&#34;
+        :return: all EventStreams in the Station
+        &#34;&#34;&#34;
+        return self._event_data
+
+    def set_event_data(self, data: EventStreams):
+        &#34;&#34;&#34;
+        set the station&#39;s event data
+
+        :param data: EventStreams object to set
+        &#34;&#34;&#34;
+        self._event_data = data
+
     def _get_id_key(self) -&gt; str:
         &#34;&#34;&#34;
         :return: the station&#39;s id and start time as a string
@@ -1165,55 +1297,43 @@ class Station:
 
         :param sensor_summaries: summaries of sensor data that can be used to create sensors
         &#34;&#34;&#34;
-        self._gaps = sensor_summaries.audio_gaps
-        self._errors.extend_error(sensor_summaries.errors)
-        audo = sensor_summaries.get_audio()[0]
-        if audo:
-            # avoid converting packets into parquets for now; just load the data into memory and process
-            # if self.save_output:
-            #     self._data.append(sd.SensorDataPa.from_dir(
-            #         sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
-            #         sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
-            #         sample_interval_std_s=0., is_sample_rate_fixed=True)
-            #     )
-            # else:
-            #     self._data.append(sd.SensorDataPa(audo.name, audo.data(), audo.stype,
-            #                                       audo.srate_hz, 1/audo.srate_hz, 0., True))
-            self._data.append(sd.AudioSensor(audo.name, audo.data(), audo.srate_hz, 1 / audo.srate_hz, 0., True,
-                                             base_dir=audo.fdir, save_data=self._fs_writer.save_to_disk))
+        audio_summary = sensor_summaries.get_audio()
+        if audio_summary:
+            # fuse audio into a single result
+            first_audio = audio_summary[0]
+            self._gaps = sensor_summaries.gaps
+            self._data.append(sd.AudioSensor(first_audio.name, first_audio.data(), first_audio.srate_hz,
+                                             1 / first_audio.srate_hz, 0., True,
+                                             base_dir=self.get_save_dir_sensor(sd.SensorType.AUDIO),
+                                             save_data=self._fs_writer.is_save_disk()))
             self.update_first_and_last_data_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
-                stats = StatsContainer(snr.name)
-                # avoid converting packets into parquets for now; just load the data into memory and process
-                # if self.save_output:
-                #     data_table = ds.dataset(sdata[0].fdir, format=&#34;parquet&#34;, exclude_invalid_files=True).to_table()
-                # else:
-                #     data_table = sdata[0].data()
-                #     for i in range(1, len(sdata)):
-                #         data_table = pa.concat_tables([data_table, sdata[i].data()])
-                data_table = sdata[0].data()
-                for i in range(1, len(sdata)):
-                    data_table = pa.concat_tables([data_table, sdata[i].data()])
+                if self._fs_writer.is_save_disk():
+                    data_table = ds.dataset(sdata[0].fdir, format=&#34;parquet&#34;, exclude_invalid_files=True).to_table()
+                else:
+                    data_table = sdata[0].data()
+                    for i in range(1, len(sdata)):
+                        data_table = pa.concat_tables([data_table, sdata[i].data()])
                 if np.isnan(sdata[0].srate_hz):
-                    for sds in sdata:
-                        stats.add(sds.smint_s, sds.sstd_s, sds.scount)
+                    smnint = float(np.mean(np.diff(data_table[&#34;timestamps&#34;].to_numpy())))
                     d, g = gpu.fill_gaps(
                         data_table,
-                        sensor_summaries.audio_gaps,
-                        s_to_us(stats.mean_of_means()), True)
+                        self._gaps,
+                        smnint, True)
                     new_sensor = sd.SensorData(
-                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.save_to_disk,
+                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
-                        base_dir=sdata[0].fdir)
+                        base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 else:
                     d, g = gpu.fill_gaps(
                         data_table,
-                        sensor_summaries.audio_gaps,
+                        self._gaps,
                         s_to_us(sdata[0].smint_s), True)
                     new_sensor = sd.SensorData(
-                            sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.save_to_disk,
+                            sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
-                            sample_interval_std_s=0., is_sample_rate_fixed=True, base_dir=sdata[0].fdir)
+                            sample_interval_std_s=0., is_sample_rate_fixed=True,
+                            base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 self._data.append(new_sensor.class_from_type())
         else:
             self._errors.append(&#34;Audio Sensor expected, but does not exist.&#34;)
@@ -1320,6 +1440,8 @@ class Station:
         self._errors.print()
         for sen in self._data:
             sen.print_errors()
+        for ev in self._event_data.streams:
+            ev.print_errors()
 
     def audio_sample_rate_nominal_hz(self) -&gt; float:
         &#34;&#34;&#34;
@@ -1353,13 +1475,21 @@ class Station:
         &#34;&#34;&#34;
         :return: if station is saving data to disk
         &#34;&#34;&#34;
-        return self._fs_writer.save_to_disk
+        return self._fs_writer.is_save_disk()
 
     def fs_writer(self) -&gt; Fsw:
         &#34;&#34;&#34;
         :return: FileSystemWriter for station
         &#34;&#34;&#34;
         return self._fs_writer
+
+    def set_use_temp_dir(self, use_temp_dir: bool = False):
+        &#34;&#34;&#34;
+        :param use_temp_dir: if True, use temp dir to save data.  default False
+        &#34;&#34;&#34;
+        self._fs_writer.set_use_temp(use_temp_dir)
+        for snr in self._data:
+            snr.set_use_temp_dir(use_temp_dir)
 
     def update_timestamps(self) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
@@ -1368,12 +1498,17 @@ class Station:
         if self._is_timestamps_updated:
             self._errors.append(&#34;Timestamps already corrected!&#34;)
         else:
-            # if timestamps were not corrected on creation
-            if not self._correct_timestamps:
-                # self.timesync_data.update_timestamps(self.use_model_correction)
-                self._start_date = self._timesync_data.offset_model().update_time(
-                    self._start_date, self._use_model_correction
-                )
+            self._start_date = self._timesync_data.offset_model().update_time(
+                self._start_date, self._use_model_correction
+            )
+            if self._fs_writer.file_name != self._get_id_key():
+                if self._fs_writer.is_save_disk():
+                    old_name = self.save_dir()
+                    self.set_save_dir(self._fs_writer.base_dir)
+                    if old_name != &#34;.&#34; and os.path.exists(old_name):
+                        os.rename(old_name, self.save_dir())
+                else:
+                    self._fs_writer.file_name = self._get_id_key()
             for sensor in self._data:
                 sensor.update_data_timestamps(self._timesync_data.offset_model())
             for packet in self._packet_metadata:
@@ -1381,11 +1516,9 @@ class Station:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
+            self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
-            if self._fs_writer.file_name != self._get_id_key():
-                old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
-                self._fs_writer.file_name = self._get_id_key()
-                os.rename(old_name, self.save_dir())
+            self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
             self._is_timestamps_updated = True
         return self
 
@@ -1408,7 +1541,8 @@ class Station:
             &#34;packet_metadata&#34;: [p.as_dict() for p in self._packet_metadata],
             &#34;gaps&#34;: self._gaps,
             &#34;errors&#34;: self._errors.as_dict(),
-            &#34;sensors&#34;: [s.type().name for s in self._data]
+            &#34;sensors&#34;: [s.type().name for s in self._data],
+            &#34;event_data&#34;: self._event_data.list_for_dict()
         }
 
     def default_station_json_file_name(self) -&gt; str:
@@ -1449,6 +1583,8 @@ class Station:
         if &#34;id&#34; in json_data.keys() and &#34;start_date&#34; in json_data.keys():
             result = Station(json_data[&#34;id&#34;], json_data[&#34;uuid&#34;], json_data[&#34;start_date&#34;],
                              use_model_correction=json_data[&#34;use_model_correction&#34;])
+            result._fs_writer.file_name = json_data[&#34;base_dir&#34;]
+            result.set_save_mode(FileSystemSaveMode.DISK)
             result.set_audio_scrambled(json_data[&#34;is_audio_scrambled&#34;])
             result.set_timestamps_updated(json_data[&#34;is_timestamps_updated&#34;])
             result.set_audio_sample_rate_hz(json_data[&#34;audio_sample_rate_nominal_hz&#34;])
@@ -1461,6 +1597,7 @@ class Station:
                 result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
             ts_file_name = io.get_json_file(os.path.join(file_dir, &#34;timesync&#34;))
             result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, &#34;timesync&#34;, ts_file_name)))
+            result.set_event_data(EventStreams.from_dir(os.path.join(file_dir, &#34;events&#34;), json_data[&#34;event_data&#34;]))
             result.update_first_and_last_data_timestamps()
         else:
             result = Station()
@@ -1480,7 +1617,7 @@ class Station:
 <dl>
 <dt id="redvox.common.station.Station"><code class="flex name class">
 <span>class <span class="ident">Station</span></span>
-<span>(</span><span>station_id: str = '', uuid: str = '', start_timestamp: float = nan, correct_timestamps: bool = False, use_model_correction: bool = True, base_dir: str = '', save_data: bool = False)</span>
+<span>(</span><span>station_id: str = '', uuid: str = '', start_timestamp: float = nan, correct_timestamps: bool = False, use_model_correction: bool = True, base_dir: str = '.', save_data: bool = False, use_temp_dir: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>generic station for api-independent stuff; uses API M as the core data object since its quite versatile
@@ -1493,8 +1630,8 @@ In order for a list of packets to be a station, all of the packets must:
 <p>_data: list sensor data associated with the station, default empty dictionary</p>
 <p>_metadata: StationMetadata consistent across all packets, default empty StationMetadata</p>
 <p>_packet_metadata: list of StationPacketMetadata that changes from packet to packet, default empty list</p>
-<p>_id: str id of the station, default None</p>
-<p>_uuid: str uuid of the station, default None</p>
+<p>_id: str id of the station, default empty string</p>
+<p>_uuid: str uuid of the station, default empty string</p>
 <p>_start_date: float of microseconds since epoch UTC when the station started recording, default np.nan</p>
 <p>_first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan</p>
 <p>_last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan</p>
@@ -1518,8 +1655,10 @@ Times are not inclusive of the gap.</p>
 :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
 best offset (intercept value) otherwise.
 Default True
-:param base_dir: directory to save parquet files, default "" (current directory)
-:param save_data: if True, save the parquet files to base_out_dir, otherwise delete them.
+:param base_dir: directory to save parquet files, default "." (current directory)
+:param save_data: if True, save the parquet files to base_dir, otherwise delete them.
+default False
+:param use_temp_dir: if True, save the parquet files to a temp dir.
 default False</p></div>
 <details class="source">
 <summary>
@@ -1540,9 +1679,9 @@ default False</p></div>
 
         _packet_metadata: list of StationPacketMetadata that changes from packet to packet, default empty list
 
-        _id: str id of the station, default None
+        _id: str id of the station, default empty string
 
-        _uuid: str uuid of the station, default None
+        _uuid: str uuid of the station, default empty string
 
         _start_date: float of microseconds since epoch UTC when the station started recording, default np.nan
 
@@ -1577,8 +1716,9 @@ default False</p></div>
             start_timestamp: float = np.nan,
             correct_timestamps: bool = False,
             use_model_correction: bool = True,
-            base_dir: str = &#34;&#34;,
-            save_data: bool = False
+            base_dir: str = &#34;.&#34;,
+            save_data: bool = False,
+            use_temp_dir: bool = False
     ):
         &#34;&#34;&#34;
         initialize Station
@@ -1589,8 +1729,9 @@ default False</p></div>
         :param correct_timestamps: if True, correct all timestamps as soon as they can be, default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_dir: directory to save parquet files, default &#34;&#34; (current directory)
-        :param save_data: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :param base_dir: directory to save parquet files, default &#34;.&#34; (current directory)
+        :param save_data: if True, save the parquet files to base_dir, otherwise delete them.  default False
+        :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         &#34;&#34;&#34;
         self._id = station_id
         self._uuid = uuid
@@ -1606,7 +1747,14 @@ default False</p></div>
         self._is_audio_scrambled = False
         self._timesync_data = TimeSync()
         self._is_timestamps_updated = False
-        self._fs_writer = Fsw(&#34;&#34;, &#34;&#34;, base_dir, save_data)
+        if save_data:
+            save_mode = FileSystemSaveMode.DISK
+        elif use_temp_dir:
+            save_mode = FileSystemSaveMode.TEMP
+        else:
+            save_mode = FileSystemSaveMode.MEM
+        self._fs_writer = Fsw(&#34;&#34;, &#34;&#34;, base_dir, save_mode)
+        self._event_data = EventStreams(save_mode=save_mode)
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
@@ -1623,18 +1771,63 @@ default False</p></div>
         &#34;&#34;&#34;
         return [s.name for s in self._data]
 
+    def get_save_dir_sensor(self, sensor: sd.SensorType) -&gt; str:
+        &#34;&#34;&#34;
+        :param sensor: the type of sensor to get a save directory for
+        :return: the station&#39;s save dir with the sensor type name as a subdir
+        &#34;&#34;&#34;
+        return os.path.join(self.save_dir(), sensor.name)
+
+    def set_save_mode(self, new_save_mode: FileSystemSaveMode):
+        &#34;&#34;&#34;
+        sets the save mode of the Station
+
+        :param new_save_mode: FileSystemSaveMode to change to
+        &#34;&#34;&#34;
+        self._fs_writer.set_save_mode(new_save_mode)
+        self._event_data.set_save_mode(new_save_mode)
+        for s in self._data:
+            s.set_save_mode(new_save_mode)
+
     def set_save_data(self, save_on: bool = False):
         &#34;&#34;&#34;
         set the option to save the station
+
         :param save_on: if True, saves the station data, default False
         &#34;&#34;&#34;
         self._fs_writer.save_to_disk = save_on
+
+    def set_save_dir(self, new_dir: str, station_dir_name: Optional[str] = None):
+        &#34;&#34;&#34;
+        sets the save directory of a Station.  combines the new_dir and the station_name to form a directory called
+        new_dir/station_dir_name/
+
+        Uses the default [station_id]_[station_startdate] if no name is specified
+
+        :param new_dir: new base directory to use
+        :param station_dir_name: optional station directory to use
+        &#34;&#34;&#34;
+        if station_dir_name is None:
+            station_dir_name = self._get_id_key()
+        self._fs_writer.file_name = station_dir_name
+        if self._fs_writer.is_use_disk():
+            self._fs_writer.base_dir = os.path.join(new_dir)
+        else:
+            self._fs_writer.base_dir = os.path.join(self._fs_writer.get_temp())
+        for s in self._data:
+            s.move_pyarrow_dir(self.save_dir())
+        self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
+        self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
         :return: directory where files are being written to
         &#34;&#34;&#34;
-        return os.path.join(self._fs_writer.save_dir(), self._get_id_key())
+        if self._fs_writer.is_use_disk():
+            return os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
+        elif self._fs_writer.is_use_temp():
+            return os.path.join(self._fs_writer.get_temp(), self._get_id_key())
+        return &#34;.&#34;
 
     def save(self, file_name: Optional[str] = None) -&gt; Optional[Path]:
         &#34;&#34;&#34;
@@ -1646,10 +1839,12 @@ default False</p></div>
         :return: Path to the saved file or None if not saved
         &#34;&#34;&#34;
         if self.is_save_to_disk():
+            self._fs_writer.create_dir()
             return self.to_json_file(file_name)
         return None
 
-    def load(self, in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
+    @staticmethod
+    def load(in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
         :param in_dir: structured directory with json metadata file to load
         :return: Station using data from files
@@ -1658,53 +1853,108 @@ default False</p></div>
         if file is None:
             st = Station(&#34;LoadError&#34;)
             st.append_error(&#34;File to load Station not found.&#34;)
-            return self
+            return st
         else:
-            return self.from_json_file(in_dir, file)
+            return Station.from_json_file(in_dir, file)
+
+    @staticmethod
+    def create_from_indexes(indexes: List[Index],
+                            correct_timestamps: bool = False,
+                            use_model_correction: bool = True,
+                            base_out_dir: str = &#34;.&#34;,
+                            save_output: bool = False,
+                            use_temp_dir: bool = False) -&gt; &#34;Station&#34;:
+        &#34;&#34;&#34;
+        Use a list of Indexes to create a Station
+
+        :param indexes: List of indexes to use
+        :param correct_timestamps: if True, correct timestamps, default False
+        :param use_model_correction: if True, correct timestamps using offset model, default True
+        :param base_out_dir: directory to save output files to, if saving to disk.  default &#34;.&#34; (current directory)
+        :param save_output: if True, save output to disk, default False
+        :param use_temp_dir: if True, use a temporary directory, default False
+        :return: Station using data from the files in the list of indexes.
+        &#34;&#34;&#34;
+        station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
+                          base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
+        station.load_from_indexes(indexes)
+        return station
+
+    def load_from_indexes(self, indexes: List[Index]):
+        &#34;&#34;&#34;
+        fill station using data from a list of Indexes
+
+        :param indexes: List of indexes of the files to read
+        &#34;&#34;&#34;
+        first_pkt = indexes[0].read_first_packet()
+        self._load_metadata_from_packet(first_pkt)
+        self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
+        self._timesync_data.arrow_file = \
+            f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
+        all_summaries = ptp.AggregateSummary()
+        self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+        for idx in indexes:
+            pkts = idx.read_contents()
+            self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
+            self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
+            self._event_data.read_from_packets_list(pkts)
+            all_summaries.add_aggregate_summary(
+                ptp.stream_to_pyarrow(pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None))
+        all_summaries.merge_all_summaries()
+        self._set_pyarrow_sensors(all_summaries)
+        if self._correct_timestamps:
+            self.update_timestamps()
 
     @staticmethod
     def create_from_packets(packets: List[api_m.RedvoxPacketM],
                             correct_timestamps: bool = False,
                             use_model_correction: bool = True,
-                            base_out_dir: str = &#34;&#34;,
-                            save_output: bool = False) -&gt; &#34;Station&#34;:
+                            base_out_dir: str = &#34;.&#34;,
+                            save_output: bool = False,
+                            use_temp_dir: bool = False) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
+        Use a list of Redvox packets to create a Station
+
         :param packets: API M redvox packets with data to load
         :param correct_timestamps: if True, correct timestamps as soon as possible.  Default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_out_dir: directory to save parquet files, default &#34;&#34; (current directory)
+        :param base_out_dir: directory to save parquet files, default &#34;.&#34; (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
-        :return: station using data from redvox packets.
+        :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
+        :return: Station using data from redvox packets.
         &#34;&#34;&#34;
         station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
-                          base_dir=base_out_dir, save_data=save_output)
+                          base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
         station.load_data_from_packets(packets)
         return station
 
     @staticmethod
     def create_from_metadata(packet: api_m.RedvoxPacketM,
                              use_model_correction: bool = True,
-                             base_out_dir: str = &#34;&#34;,
-                             save_output: bool = False) -&gt; &#34;Station&#34;:
+                             base_out_dir: str = &#34;.&#34;,
+                             save_output: bool = False,
+                             use_temp_dir: bool = False) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
         create a station using metadata from a packet.  There will be no sensor or timing data added.
 
         :param packet: API M redvox packet to load metadata from
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                         best offset (intercept value) otherwise.  Default True
-        :param base_out_dir: directory to save parquet files, default &#34;&#34; (current directory)
+        :param base_out_dir: directory to save parquet files, default &#34;.&#34; (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+        :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
         :return: Station without any sensor or timing
         &#34;&#34;&#34;
         station = Station(use_model_correction=use_model_correction, base_dir=base_out_dir,
-                          save_data=save_output)
+                          save_data=save_output, use_temp_dir=use_temp_dir)
         station._load_metadata_from_packet(packet)
         return station
 
     def load_data_from_packets(self, packets: List[api_m.RedvoxPacketM]):
         &#34;&#34;&#34;
         fill station with data from packets
+
         :param packets: API M redvox packets with data to load
         &#34;&#34;&#34;
         if packets and st_utils.validate_station_key_list(packets, self._errors):
@@ -1714,17 +1964,15 @@ default False</p></div>
                 st_utils.StationPacketMetadata(packet) for packet in packets
             ]
             self._timesync_data = TimeSync().from_raw_packets(packets)
-            if self._correct_timestamps:
-                self._start_date = self._timesync_data.offset_model().update_time(
-                    self._start_date, self._use_model_correction
-                )
-            self._fs_writer.file_name = self._get_id_key()
-            # self._fs_writer.create_dir()
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
-            file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
-            self._timesync_data.arrow_file = f&#34;timesync_{file_date}&#34;
-            self._set_pyarrow_sensors(
-                ptp.stream_to_pyarrow(packets, self.save_dir() if self._fs_writer.save_to_disk else None))
+            self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
+            summaries = ptp.stream_to_pyarrow(packets, self._fs_writer.get_temp() if self.is_save_to_disk() else None)
+            summaries.merge_all_summaries()
+            self._set_pyarrow_sensors(summaries)
+            if self._correct_timestamps:
+                self.update_timestamps()
+            self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+            self._event_data.read_from_packets_list(packets)
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
         &#34;&#34;&#34;
@@ -1836,6 +2084,12 @@ default False</p></div>
             return st_utils.StationKey(self._id, self._uuid, self._start_date)
         return None
 
+    def set_correct_timestamps(self):
+        &#34;&#34;&#34;
+        set the correction of timestamps to True.
+        &#34;&#34;&#34;
+        self._correct_timestamps = True
+
     def append_station(self, new_station: &#34;Station&#34;):
         &#34;&#34;&#34;
         append a new station to the current station; does nothing if keys do not match
@@ -1847,11 +2101,13 @@ default False</p></div>
                 and new_station.get_key() == self.get_key()
                 and self._metadata.validate_metadata(new_station._metadata)
         ):
+            self._errors.extend_error(new_station.errors())
             self.append_station_data(new_station._data)
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
-            self.update_first_and_last_data_timestamps()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+            self._event_data.append_streams(new_station.event_data())
+            self.update_first_and_last_data_timestamps()
 
     def append_station_data(self, new_station_data: List[sd.SensorData]):
         &#34;&#34;&#34;
@@ -2620,6 +2876,20 @@ default False</p></div>
         &#34;&#34;&#34;
         return self._gaps
 
+    def event_data(self) -&gt; EventStreams:
+        &#34;&#34;&#34;
+        :return: all EventStreams in the Station
+        &#34;&#34;&#34;
+        return self._event_data
+
+    def set_event_data(self, data: EventStreams):
+        &#34;&#34;&#34;
+        set the station&#39;s event data
+
+        :param data: EventStreams object to set
+        &#34;&#34;&#34;
+        self._event_data = data
+
     def _get_id_key(self) -&gt; str:
         &#34;&#34;&#34;
         :return: the station&#39;s id and start time as a string
@@ -2634,55 +2904,43 @@ default False</p></div>
 
         :param sensor_summaries: summaries of sensor data that can be used to create sensors
         &#34;&#34;&#34;
-        self._gaps = sensor_summaries.audio_gaps
-        self._errors.extend_error(sensor_summaries.errors)
-        audo = sensor_summaries.get_audio()[0]
-        if audo:
-            # avoid converting packets into parquets for now; just load the data into memory and process
-            # if self.save_output:
-            #     self._data.append(sd.SensorDataPa.from_dir(
-            #         sensor_name=audo.name, data_path=audo.fdir, sensor_type=audo.stype,
-            #         sample_rate_hz=audo.srate_hz, sample_interval_s=1/audo.srate_hz,
-            #         sample_interval_std_s=0., is_sample_rate_fixed=True)
-            #     )
-            # else:
-            #     self._data.append(sd.SensorDataPa(audo.name, audo.data(), audo.stype,
-            #                                       audo.srate_hz, 1/audo.srate_hz, 0., True))
-            self._data.append(sd.AudioSensor(audo.name, audo.data(), audo.srate_hz, 1 / audo.srate_hz, 0., True,
-                                             base_dir=audo.fdir, save_data=self._fs_writer.save_to_disk))
+        audio_summary = sensor_summaries.get_audio()
+        if audio_summary:
+            # fuse audio into a single result
+            first_audio = audio_summary[0]
+            self._gaps = sensor_summaries.gaps
+            self._data.append(sd.AudioSensor(first_audio.name, first_audio.data(), first_audio.srate_hz,
+                                             1 / first_audio.srate_hz, 0., True,
+                                             base_dir=self.get_save_dir_sensor(sd.SensorType.AUDIO),
+                                             save_data=self._fs_writer.is_save_disk()))
             self.update_first_and_last_data_timestamps()
             for snr, sdata in sensor_summaries.get_non_audio().items():
-                stats = StatsContainer(snr.name)
-                # avoid converting packets into parquets for now; just load the data into memory and process
-                # if self.save_output:
-                #     data_table = ds.dataset(sdata[0].fdir, format=&#34;parquet&#34;, exclude_invalid_files=True).to_table()
-                # else:
-                #     data_table = sdata[0].data()
-                #     for i in range(1, len(sdata)):
-                #         data_table = pa.concat_tables([data_table, sdata[i].data()])
-                data_table = sdata[0].data()
-                for i in range(1, len(sdata)):
-                    data_table = pa.concat_tables([data_table, sdata[i].data()])
+                if self._fs_writer.is_save_disk():
+                    data_table = ds.dataset(sdata[0].fdir, format=&#34;parquet&#34;, exclude_invalid_files=True).to_table()
+                else:
+                    data_table = sdata[0].data()
+                    for i in range(1, len(sdata)):
+                        data_table = pa.concat_tables([data_table, sdata[i].data()])
                 if np.isnan(sdata[0].srate_hz):
-                    for sds in sdata:
-                        stats.add(sds.smint_s, sds.sstd_s, sds.scount)
+                    smnint = float(np.mean(np.diff(data_table[&#34;timestamps&#34;].to_numpy())))
                     d, g = gpu.fill_gaps(
                         data_table,
-                        sensor_summaries.audio_gaps,
-                        s_to_us(stats.mean_of_means()), True)
+                        self._gaps,
+                        smnint, True)
                     new_sensor = sd.SensorData(
-                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.save_to_disk,
+                        sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
-                        base_dir=sdata[0].fdir)
+                        base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 else:
                     d, g = gpu.fill_gaps(
                         data_table,
-                        sensor_summaries.audio_gaps,
+                        self._gaps,
                         s_to_us(sdata[0].smint_s), True)
                     new_sensor = sd.SensorData(
-                            sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.save_to_disk,
+                            sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
-                            sample_interval_std_s=0., is_sample_rate_fixed=True, base_dir=sdata[0].fdir)
+                            sample_interval_std_s=0., is_sample_rate_fixed=True,
+                            base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 self._data.append(new_sensor.class_from_type())
         else:
             self._errors.append(&#34;Audio Sensor expected, but does not exist.&#34;)
@@ -2789,6 +3047,8 @@ default False</p></div>
         self._errors.print()
         for sen in self._data:
             sen.print_errors()
+        for ev in self._event_data.streams:
+            ev.print_errors()
 
     def audio_sample_rate_nominal_hz(self) -&gt; float:
         &#34;&#34;&#34;
@@ -2822,13 +3082,21 @@ default False</p></div>
         &#34;&#34;&#34;
         :return: if station is saving data to disk
         &#34;&#34;&#34;
-        return self._fs_writer.save_to_disk
+        return self._fs_writer.is_save_disk()
 
     def fs_writer(self) -&gt; Fsw:
         &#34;&#34;&#34;
         :return: FileSystemWriter for station
         &#34;&#34;&#34;
         return self._fs_writer
+
+    def set_use_temp_dir(self, use_temp_dir: bool = False):
+        &#34;&#34;&#34;
+        :param use_temp_dir: if True, use temp dir to save data.  default False
+        &#34;&#34;&#34;
+        self._fs_writer.set_use_temp(use_temp_dir)
+        for snr in self._data:
+            snr.set_use_temp_dir(use_temp_dir)
 
     def update_timestamps(self) -&gt; &#34;Station&#34;:
         &#34;&#34;&#34;
@@ -2837,12 +3105,17 @@ default False</p></div>
         if self._is_timestamps_updated:
             self._errors.append(&#34;Timestamps already corrected!&#34;)
         else:
-            # if timestamps were not corrected on creation
-            if not self._correct_timestamps:
-                # self.timesync_data.update_timestamps(self.use_model_correction)
-                self._start_date = self._timesync_data.offset_model().update_time(
-                    self._start_date, self._use_model_correction
-                )
+            self._start_date = self._timesync_data.offset_model().update_time(
+                self._start_date, self._use_model_correction
+            )
+            if self._fs_writer.file_name != self._get_id_key():
+                if self._fs_writer.is_save_disk():
+                    old_name = self.save_dir()
+                    self.set_save_dir(self._fs_writer.base_dir)
+                    if old_name != &#34;.&#34; and os.path.exists(old_name):
+                        os.rename(old_name, self.save_dir())
+                else:
+                    self._fs_writer.file_name = self._get_id_key()
             for sensor in self._data:
                 sensor.update_data_timestamps(self._timesync_data.offset_model())
             for packet in self._packet_metadata:
@@ -2850,11 +3123,9 @@ default False</p></div>
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
+            self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
-            if self._fs_writer.file_name != self._get_id_key():
-                old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
-                self._fs_writer.file_name = self._get_id_key()
-                os.rename(old_name, self.save_dir())
+            self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
             self._is_timestamps_updated = True
         return self
 
@@ -2877,7 +3148,8 @@ default False</p></div>
             &#34;packet_metadata&#34;: [p.as_dict() for p in self._packet_metadata],
             &#34;gaps&#34;: self._gaps,
             &#34;errors&#34;: self._errors.as_dict(),
-            &#34;sensors&#34;: [s.type().name for s in self._data]
+            &#34;sensors&#34;: [s.type().name for s in self._data],
+            &#34;event_data&#34;: self._event_data.list_for_dict()
         }
 
     def default_station_json_file_name(self) -&gt; str:
@@ -2918,6 +3190,8 @@ default False</p></div>
         if &#34;id&#34; in json_data.keys() and &#34;start_date&#34; in json_data.keys():
             result = Station(json_data[&#34;id&#34;], json_data[&#34;uuid&#34;], json_data[&#34;start_date&#34;],
                              use_model_correction=json_data[&#34;use_model_correction&#34;])
+            result._fs_writer.file_name = json_data[&#34;base_dir&#34;]
+            result.set_save_mode(FileSystemSaveMode.DISK)
             result.set_audio_scrambled(json_data[&#34;is_audio_scrambled&#34;])
             result.set_timestamps_updated(json_data[&#34;is_timestamps_updated&#34;])
             result.set_audio_sample_rate_hz(json_data[&#34;audio_sample_rate_nominal_hz&#34;])
@@ -2930,6 +3204,7 @@ default False</p></div>
                 result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
             ts_file_name = io.get_json_file(os.path.join(file_dir, &#34;timesync&#34;))
             result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, &#34;timesync&#34;, ts_file_name)))
+            result.set_event_data(EventStreams.from_dir(os.path.join(file_dir, &#34;events&#34;), json_data[&#34;event_data&#34;]))
             result.update_first_and_last_data_timestamps()
         else:
             result = Station()
@@ -2939,8 +3214,49 @@ default False</p></div>
 </details>
 <h3>Static methods</h3>
 <dl>
+<dt id="redvox.common.station.Station.create_from_indexes"><code class="name flex">
+<span>def <span class="ident">create_from_indexes</span></span>(<span>indexes: List[<a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>], correct_timestamps: bool = False, use_model_correction: bool = True, base_out_dir: str = '.', save_output: bool = False, use_temp_dir: bool = False) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Use a list of Indexes to create a Station</p>
+<p>:param indexes: List of indexes to use
+:param correct_timestamps: if True, correct timestamps, default False
+:param use_model_correction: if True, correct timestamps using offset model, default True
+:param base_out_dir: directory to save output files to, if saving to disk.
+default "." (current directory)
+:param save_output: if True, save output to disk, default False
+:param use_temp_dir: if True, use a temporary directory, default False
+:return: Station using data from the files in the list of indexes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def create_from_indexes(indexes: List[Index],
+                        correct_timestamps: bool = False,
+                        use_model_correction: bool = True,
+                        base_out_dir: str = &#34;.&#34;,
+                        save_output: bool = False,
+                        use_temp_dir: bool = False) -&gt; &#34;Station&#34;:
+    &#34;&#34;&#34;
+    Use a list of Indexes to create a Station
+
+    :param indexes: List of indexes to use
+    :param correct_timestamps: if True, correct timestamps, default False
+    :param use_model_correction: if True, correct timestamps using offset model, default True
+    :param base_out_dir: directory to save output files to, if saving to disk.  default &#34;.&#34; (current directory)
+    :param save_output: if True, save output to disk, default False
+    :param use_temp_dir: if True, use a temporary directory, default False
+    :return: Station using data from the files in the list of indexes.
+    &#34;&#34;&#34;
+    station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
+                      base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
+    station.load_from_indexes(indexes)
+    return station</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.station.Station.create_from_metadata"><code class="name flex">
-<span>def <span class="ident">create_from_metadata</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, use_model_correction: bool = True, base_out_dir: str = '', save_output: bool = False) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">create_from_metadata</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, use_model_correction: bool = True, base_out_dir: str = '.', save_output: bool = False, use_temp_dir: bool = False) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>create a station using metadata from a packet.
@@ -2949,8 +3265,10 @@ There will be no sensor or timing data added.</p>
 :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
 best offset (intercept value) otherwise.
 Default True
-:param base_out_dir: directory to save parquet files, default "" (current directory)
+:param base_out_dir: directory to save parquet files, default "." (current directory)
 :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.
+default False
+:param use_temp_dir: if True, save the parquet files to a temp dir.
 default False
 :return: Station without any sensor or timing</p></div>
 <details class="source">
@@ -2960,38 +3278,43 @@ default False
 <pre><code class="python">@staticmethod
 def create_from_metadata(packet: api_m.RedvoxPacketM,
                          use_model_correction: bool = True,
-                         base_out_dir: str = &#34;&#34;,
-                         save_output: bool = False) -&gt; &#34;Station&#34;:
+                         base_out_dir: str = &#34;.&#34;,
+                         save_output: bool = False,
+                         use_temp_dir: bool = False) -&gt; &#34;Station&#34;:
     &#34;&#34;&#34;
     create a station using metadata from a packet.  There will be no sensor or timing data added.
 
     :param packet: API M redvox packet to load metadata from
     :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                     best offset (intercept value) otherwise.  Default True
-    :param base_out_dir: directory to save parquet files, default &#34;&#34; (current directory)
+    :param base_out_dir: directory to save parquet files, default &#34;.&#34; (current directory)
     :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
+    :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
     :return: Station without any sensor or timing
     &#34;&#34;&#34;
     station = Station(use_model_correction=use_model_correction, base_dir=base_out_dir,
-                      save_data=save_output)
+                      save_data=save_output, use_temp_dir=use_temp_dir)
     station._load_metadata_from_packet(packet)
     return station</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.create_from_packets"><code class="name flex">
-<span>def <span class="ident">create_from_packets</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], correct_timestamps: bool = False, use_model_correction: bool = True, base_out_dir: str = '', save_output: bool = False) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+<span>def <span class="ident">create_from_packets</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], correct_timestamps: bool = False, use_model_correction: bool = True, base_out_dir: str = '.', save_output: bool = False, use_temp_dir: bool = False) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>:param packets: API M redvox packets with data to load
+<div class="desc"><p>Use a list of Redvox packets to create a Station</p>
+<p>:param packets: API M redvox packets with data to load
 :param correct_timestamps: if True, correct timestamps as soon as possible.
 Default False
 :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
 best offset (intercept value) otherwise.
 Default True
-:param base_out_dir: directory to save parquet files, default "" (current directory)
+:param base_out_dir: directory to save parquet files, default "." (current directory)
 :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.
 default False
-:return: station using data from redvox packets.</p></div>
+:param use_temp_dir: if True, save the parquet files to a temp dir.
+default False
+:return: Station using data from redvox packets.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -3000,19 +3323,23 @@ default False
 def create_from_packets(packets: List[api_m.RedvoxPacketM],
                         correct_timestamps: bool = False,
                         use_model_correction: bool = True,
-                        base_out_dir: str = &#34;&#34;,
-                        save_output: bool = False) -&gt; &#34;Station&#34;:
+                        base_out_dir: str = &#34;.&#34;,
+                        save_output: bool = False,
+                        use_temp_dir: bool = False) -&gt; &#34;Station&#34;:
     &#34;&#34;&#34;
+    Use a list of Redvox packets to create a Station
+
     :param packets: API M redvox packets with data to load
     :param correct_timestamps: if True, correct timestamps as soon as possible.  Default False
     :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
                                     best offset (intercept value) otherwise.  Default True
-    :param base_out_dir: directory to save parquet files, default &#34;&#34; (current directory)
+    :param base_out_dir: directory to save parquet files, default &#34;.&#34; (current directory)
     :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
-    :return: station using data from redvox packets.
+    :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
+    :return: Station using data from redvox packets.
     &#34;&#34;&#34;
     station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
-                      base_dir=base_out_dir, save_data=save_output)
+                      base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
     station.load_data_from_packets(packets)
     return station</code></pre>
 </details>
@@ -3048,6 +3375,8 @@ def from_json_file(file_dir: str, file_name: Optional[str] = None) -&gt; &#34;St
     if &#34;id&#34; in json_data.keys() and &#34;start_date&#34; in json_data.keys():
         result = Station(json_data[&#34;id&#34;], json_data[&#34;uuid&#34;], json_data[&#34;start_date&#34;],
                          use_model_correction=json_data[&#34;use_model_correction&#34;])
+        result._fs_writer.file_name = json_data[&#34;base_dir&#34;]
+        result.set_save_mode(FileSystemSaveMode.DISK)
         result.set_audio_scrambled(json_data[&#34;is_audio_scrambled&#34;])
         result.set_timestamps_updated(json_data[&#34;is_timestamps_updated&#34;])
         result.set_audio_sample_rate_hz(json_data[&#34;audio_sample_rate_nominal_hz&#34;])
@@ -3060,12 +3389,38 @@ def from_json_file(file_dir: str, file_name: Optional[str] = None) -&gt; &#34;St
             result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
         ts_file_name = io.get_json_file(os.path.join(file_dir, &#34;timesync&#34;))
         result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, &#34;timesync&#34;, ts_file_name)))
+        result.set_event_data(EventStreams.from_dir(os.path.join(file_dir, &#34;events&#34;), json_data[&#34;event_data&#34;]))
         result.update_first_and_last_data_timestamps()
     else:
         result = Station()
         result.append_error(f&#34;Missing id and start date to identify station in {file_name}&#34;)
 
     return result</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.load"><code class="name flex">
+<span>def <span class="ident">load</span></span>(<span>in_dir: str = '') ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param in_dir: structured directory with json metadata file to load
+:return: Station using data from files</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def load(in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
+    &#34;&#34;&#34;
+    :param in_dir: structured directory with json metadata file to load
+    :return: Station using data from files
+    &#34;&#34;&#34;
+    file = io.get_json_file(in_dir)
+    if file is None:
+        st = Station(&#34;LoadError&#34;)
+        st.append_error(&#34;File to load Station not found.&#34;)
+        return st
+    else:
+        return Station.from_json_file(in_dir, file)</code></pre>
 </details>
 </dd>
 </dl>
@@ -3164,11 +3519,13 @@ def from_json_file(file_dir: str, file_name: Optional[str] = None) -&gt; &#34;St
             and new_station.get_key() == self.get_key()
             and self._metadata.validate_metadata(new_station._metadata)
     ):
+        self._errors.extend_error(new_station.errors())
         self.append_station_data(new_station._data)
         self._packet_metadata.extend(new_station._packet_metadata)
         self._sort_metadata_packets()
-        self.update_first_and_last_data_timestamps()
-        self._timesync_data.append_timesync_arrow(new_station._timesync_data)</code></pre>
+        self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+        self._event_data.append_streams(new_station.event_data())
+        self.update_first_and_last_data_timestamps()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.append_station_data"><code class="name flex">
@@ -3219,7 +3576,8 @@ def from_json_file(file_dir: str, file_name: Optional[str] = None) -&gt; &#34;St
         &#34;packet_metadata&#34;: [p.as_dict() for p in self._packet_metadata],
         &#34;gaps&#34;: self._gaps,
         &#34;errors&#34;: self._errors.as_dict(),
-        &#34;sensors&#34;: [s.type().name for s in self._data]
+        &#34;sensors&#34;: [s.type().name for s in self._data],
+        &#34;event_data&#34;: self._event_data.list_for_dict()
     }</code></pre>
 </details>
 </dd>
@@ -3381,6 +3739,22 @@ since epoch UTC</p></div>
     return self._errors</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.station.Station.event_data"><code class="name flex">
+<span>def <span class="ident">event_data</span></span>(<span>self) ‑> <a title="redvox.common.event_stream.EventStreams" href="event_stream.html#redvox.common.event_stream.EventStreams">EventStreams</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: all EventStreams in the Station</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def event_data(self) -&gt; EventStreams:
+    &#34;&#34;&#34;
+    :return: all EventStreams in the Station
+    &#34;&#34;&#34;
+    return self._event_data</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.station.Station.first_data_timestamp"><code class="name flex">
 <span>def <span class="ident">first_data_timestamp</span></span>(<span>self) ‑> float</span>
 </code></dt>
@@ -3487,6 +3861,24 @@ number of audio sensor's data points and the number of packets</p>
             [tsd.packet_end_mach_timestamp - tsd.packet_start_mach_timestamp for tsd in self._packet_metadata]
         )
     )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.get_save_dir_sensor"><code class="name flex">
+<span>def <span class="ident">get_save_dir_sensor</span></span>(<span>self, sensor: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param sensor: the type of sensor to get a save directory for
+:return: the station's save dir with the sensor type name as a subdir</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_save_dir_sensor(self, sensor: sd.SensorType) -&gt; str:
+    &#34;&#34;&#34;
+    :param sensor: the type of sensor to get a save directory for
+    :return: the station&#39;s save dir with the sensor type name as a subdir
+    &#34;&#34;&#34;
+    return os.path.join(self.save_dir(), sensor.name)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_sensor_by_type"><code class="name flex">
@@ -4341,7 +4733,7 @@ number of audio sensor's data points and the number of packets</p>
     &#34;&#34;&#34;
     :return: if station is saving data to disk
     &#34;&#34;&#34;
-    return self._fs_writer.save_to_disk</code></pre>
+    return self._fs_writer.is_save_disk()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.is_timestamps_updated"><code class="name flex">
@@ -4408,36 +4800,12 @@ number of audio sensor's data points and the number of packets</p>
     return self.get_sensor_by_type(sd.SensorType.LINEAR_ACCELERATION)</code></pre>
 </details>
 </dd>
-<dt id="redvox.common.station.Station.load"><code class="name flex">
-<span>def <span class="ident">load</span></span>(<span>self, in_dir: str = '') ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
-</code></dt>
-<dd>
-<div class="desc"><p>:param in_dir: structured directory with json metadata file to load
-:return: Station using data from files</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def load(self, in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
-    &#34;&#34;&#34;
-    :param in_dir: structured directory with json metadata file to load
-    :return: Station using data from files
-    &#34;&#34;&#34;
-    file = io.get_json_file(in_dir)
-    if file is None:
-        st = Station(&#34;LoadError&#34;)
-        st.append_error(&#34;File to load Station not found.&#34;)
-        return self
-    else:
-        return self.from_json_file(in_dir, file)</code></pre>
-</details>
-</dd>
 <dt id="redvox.common.station.Station.load_data_from_packets"><code class="name flex">
 <span>def <span class="ident">load_data_from_packets</span></span>(<span>self, packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>fill station with data from packets
-:param packets: API M redvox packets with data to load</p></div>
+<div class="desc"><p>fill station with data from packets</p>
+<p>:param packets: API M redvox packets with data to load</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -4445,6 +4813,7 @@ number of audio sensor's data points and the number of packets</p>
 <pre><code class="python">def load_data_from_packets(self, packets: List[api_m.RedvoxPacketM]):
     &#34;&#34;&#34;
     fill station with data from packets
+
     :param packets: API M redvox packets with data to load
     &#34;&#34;&#34;
     if packets and st_utils.validate_station_key_list(packets, self._errors):
@@ -4454,17 +4823,51 @@ number of audio sensor's data points and the number of packets</p>
             st_utils.StationPacketMetadata(packet) for packet in packets
         ]
         self._timesync_data = TimeSync().from_raw_packets(packets)
-        if self._correct_timestamps:
-            self._start_date = self._timesync_data.offset_model().update_time(
-                self._start_date, self._use_model_correction
-            )
-        self._fs_writer.file_name = self._get_id_key()
-        # self._fs_writer.create_dir()
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
-        file_date = int(self._start_date) if self._start_date and not np.isnan(self._start_date) else 0
-        self._timesync_data.arrow_file = f&#34;timesync_{file_date}&#34;
-        self._set_pyarrow_sensors(
-            ptp.stream_to_pyarrow(packets, self.save_dir() if self._fs_writer.save_to_disk else None))</code></pre>
+        self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
+        summaries = ptp.stream_to_pyarrow(packets, self._fs_writer.get_temp() if self.is_save_to_disk() else None)
+        summaries.merge_all_summaries()
+        self._set_pyarrow_sensors(summaries)
+        if self._correct_timestamps:
+            self.update_timestamps()
+        self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+        self._event_data.read_from_packets_list(packets)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.load_from_indexes"><code class="name flex">
+<span>def <span class="ident">load_from_indexes</span></span>(<span>self, indexes: List[<a title="redvox.common.io.Index" href="io.html#redvox.common.io.Index">Index</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>fill station using data from a list of Indexes</p>
+<p>:param indexes: List of indexes of the files to read</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_from_indexes(self, indexes: List[Index]):
+    &#34;&#34;&#34;
+    fill station using data from a list of Indexes
+
+    :param indexes: List of indexes of the files to read
+    &#34;&#34;&#34;
+    first_pkt = indexes[0].read_first_packet()
+    self._load_metadata_from_packet(first_pkt)
+    self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
+    self._timesync_data.arrow_file = \
+        f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
+    all_summaries = ptp.AggregateSummary()
+    self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+    for idx in indexes:
+        pkts = idx.read_contents()
+        self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
+        self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
+        self._event_data.read_from_packets_list(pkts)
+        all_summaries.add_aggregate_summary(
+            ptp.stream_to_pyarrow(pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None))
+    all_summaries.merge_all_summaries()
+    self._set_pyarrow_sensors(all_summaries)
+    if self._correct_timestamps:
+        self.update_timestamps()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.location_sensor"><code class="name flex">
@@ -4578,7 +4981,9 @@ number of audio sensor's data points and the number of packets</p>
     &#34;&#34;&#34;
     self._errors.print()
     for sen in self._data:
-        sen.print_errors()</code></pre>
+        sen.print_errors()
+    for ev in self._event_data.streams:
+        ev.print_errors()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.proximity_sensor"><code class="name flex">
@@ -4655,6 +5060,7 @@ If None, a default file name is created using this format:
     :return: Path to the saved file or None if not saved
     &#34;&#34;&#34;
     if self.is_save_to_disk():
+        self._fs_writer.create_dir()
         return self.to_json_file(file_name)
     return None</code></pre>
 </details>
@@ -4672,7 +5078,11 @@ If None, a default file name is created using this format:
     &#34;&#34;&#34;
     :return: directory where files are being written to
     &#34;&#34;&#34;
-    return os.path.join(self._fs_writer.save_dir(), self._get_id_key())</code></pre>
+    if self._fs_writer.is_use_disk():
+        return os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
+    elif self._fs_writer.is_use_temp():
+        return os.path.join(self._fs_writer.get_temp(), self._get_id_key())
+    return &#34;.&#34;</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_accelerometer_sensor"><code class="name flex">
@@ -4871,6 +5281,22 @@ If None, a default file name is created using this format:
     return self</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.station.Station.set_correct_timestamps"><code class="name flex">
+<span>def <span class="ident">set_correct_timestamps</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>set the correction of timestamps to True.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_correct_timestamps(self):
+    &#34;&#34;&#34;
+    set the correction of timestamps to True.
+    &#34;&#34;&#34;
+    self._correct_timestamps = True</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.station.Station.set_errors"><code class="name flex">
 <span>def <span class="ident">set_errors</span></span>(<span>self, errors: <a title="redvox.common.errors.RedVoxExceptions" href="errors.html#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a>)</span>
 </code></dt>
@@ -4888,6 +5314,25 @@ If None, a default file name is created using this format:
     :param errors: errors to set
     &#34;&#34;&#34;
     self._errors = errors</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_event_data"><code class="name flex">
+<span>def <span class="ident">set_event_data</span></span>(<span>self, data: <a title="redvox.common.event_stream.EventStreams" href="event_stream.html#redvox.common.event_stream.EventStreams">EventStreams</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>set the station's event data</p>
+<p>:param data: EventStreams object to set</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_event_data(self, data: EventStreams):
+    &#34;&#34;&#34;
+    set the station&#39;s event data
+
+    :param data: EventStreams object to set
+    &#34;&#34;&#34;
+    self._event_data = data</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_gaps"><code class="name flex">
@@ -5345,8 +5790,8 @@ If None, a default file name is created using this format:
 <span>def <span class="ident">set_save_data</span></span>(<span>self, save_on: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>set the option to save the station
-:param save_on: if True, saves the station data, default False</p></div>
+<div class="desc"><p>set the option to save the station</p>
+<p>:param save_on: if True, saves the station data, default False</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -5354,9 +5799,69 @@ If None, a default file name is created using this format:
 <pre><code class="python">def set_save_data(self, save_on: bool = False):
     &#34;&#34;&#34;
     set the option to save the station
+
     :param save_on: if True, saves the station data, default False
     &#34;&#34;&#34;
     self._fs_writer.save_to_disk = save_on</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_save_dir"><code class="name flex">
+<span>def <span class="ident">set_save_dir</span></span>(<span>self, new_dir: str, station_dir_name: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the save directory of a Station.
+combines the new_dir and the station_name to form a directory called
+new_dir/station_dir_name/</p>
+<p>Uses the default [station_id]_[station_startdate] if no name is specified</p>
+<p>:param new_dir: new base directory to use
+:param station_dir_name: optional station directory to use</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_save_dir(self, new_dir: str, station_dir_name: Optional[str] = None):
+    &#34;&#34;&#34;
+    sets the save directory of a Station.  combines the new_dir and the station_name to form a directory called
+    new_dir/station_dir_name/
+
+    Uses the default [station_id]_[station_startdate] if no name is specified
+
+    :param new_dir: new base directory to use
+    :param station_dir_name: optional station directory to use
+    &#34;&#34;&#34;
+    if station_dir_name is None:
+        station_dir_name = self._get_id_key()
+    self._fs_writer.file_name = station_dir_name
+    if self._fs_writer.is_use_disk():
+        self._fs_writer.base_dir = os.path.join(new_dir)
+    else:
+        self._fs_writer.base_dir = os.path.join(self._fs_writer.get_temp())
+    for s in self._data:
+        s.move_pyarrow_dir(self.save_dir())
+    self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
+    self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_save_mode"><code class="name flex">
+<span>def <span class="ident">set_save_mode</span></span>(<span>self, new_save_mode: <a title="redvox.common.io.FileSystemSaveMode" href="io.html#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>sets the save mode of the Station</p>
+<p>:param new_save_mode: FileSystemSaveMode to change to</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_save_mode(self, new_save_mode: FileSystemSaveMode):
+    &#34;&#34;&#34;
+    sets the save mode of the Station
+
+    :param new_save_mode: FileSystemSaveMode to change to
+    &#34;&#34;&#34;
+    self._fs_writer.set_save_mode(new_save_mode)
+    self._event_data.set_save_mode(new_save_mode)
+    for s in self._data:
+        s.set_save_mode(new_save_mode)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_start_date"><code class="name flex">
@@ -5417,6 +5922,25 @@ If None, a default file name is created using this format:
     :param timesync: timesync data
     &#34;&#34;&#34;
     self._timesync_data = timesync</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.set_use_temp_dir"><code class="name flex">
+<span>def <span class="ident">set_use_temp_dir</span></span>(<span>self, use_temp_dir: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param use_temp_dir: if True, use temp dir to save data.
+default False</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_use_temp_dir(self, use_temp_dir: bool = False):
+    &#34;&#34;&#34;
+    :param use_temp_dir: if True, use temp dir to save data.  default False
+    &#34;&#34;&#34;
+    self._fs_writer.set_use_temp(use_temp_dir)
+    for snr in self._data:
+        snr.set_use_temp_dir(use_temp_dir)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_uuid"><code class="name flex">
@@ -5534,12 +6058,17 @@ If None, a default file name is created using this format:
     if self._is_timestamps_updated:
         self._errors.append(&#34;Timestamps already corrected!&#34;)
     else:
-        # if timestamps were not corrected on creation
-        if not self._correct_timestamps:
-            # self.timesync_data.update_timestamps(self.use_model_correction)
-            self._start_date = self._timesync_data.offset_model().update_time(
-                self._start_date, self._use_model_correction
-            )
+        self._start_date = self._timesync_data.offset_model().update_time(
+            self._start_date, self._use_model_correction
+        )
+        if self._fs_writer.file_name != self._get_id_key():
+            if self._fs_writer.is_save_disk():
+                old_name = self.save_dir()
+                self.set_save_dir(self._fs_writer.base_dir)
+                if old_name != &#34;.&#34; and os.path.exists(old_name):
+                    os.rename(old_name, self.save_dir())
+            else:
+                self._fs_writer.file_name = self._get_id_key()
         for sensor in self._data:
             sensor.update_data_timestamps(self._timesync_data.offset_model())
         for packet in self._packet_metadata:
@@ -5547,11 +6076,9 @@ If None, a default file name is created using this format:
         for g in range(len(self._gaps)):
             self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                              self._timesync_data.offset_model().update_time(self._gaps[g][1]))
+        self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
         self.update_first_and_last_data_timestamps()
-        if self._fs_writer.file_name != self._get_id_key():
-            old_name = os.path.join(self._fs_writer.save_dir(), self._fs_writer.file_name)
-            self._fs_writer.file_name = self._get_id_key()
-            os.rename(old_name, self.save_dir())
+        self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
         self._is_timestamps_updated = True
     return self</code></pre>
 </details>
@@ -5622,11 +6149,13 @@ If None, a default file name is created using this format:
 <li><code><a title="redvox.common.station.Station.best_location_sensor" href="#redvox.common.station.Station.best_location_sensor">best_location_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.check_key" href="#redvox.common.station.Station.check_key">check_key</a></code></li>
 <li><code><a title="redvox.common.station.Station.compressed_audio_sensor" href="#redvox.common.station.Station.compressed_audio_sensor">compressed_audio_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.create_from_indexes" href="#redvox.common.station.Station.create_from_indexes">create_from_indexes</a></code></li>
 <li><code><a title="redvox.common.station.Station.create_from_metadata" href="#redvox.common.station.Station.create_from_metadata">create_from_metadata</a></code></li>
 <li><code><a title="redvox.common.station.Station.create_from_packets" href="#redvox.common.station.Station.create_from_packets">create_from_packets</a></code></li>
 <li><code><a title="redvox.common.station.Station.data" href="#redvox.common.station.Station.data">data</a></code></li>
 <li><code><a title="redvox.common.station.Station.default_station_json_file_name" href="#redvox.common.station.Station.default_station_json_file_name">default_station_json_file_name</a></code></li>
 <li><code><a title="redvox.common.station.Station.errors" href="#redvox.common.station.Station.errors">errors</a></code></li>
+<li><code><a title="redvox.common.station.Station.event_data" href="#redvox.common.station.Station.event_data">event_data</a></code></li>
 <li><code><a title="redvox.common.station.Station.first_data_timestamp" href="#redvox.common.station.Station.first_data_timestamp">first_data_timestamp</a></code></li>
 <li><code><a title="redvox.common.station.Station.from_json_file" href="#redvox.common.station.Station.from_json_file">from_json_file</a></code></li>
 <li><code><a title="redvox.common.station.Station.fs_writer" href="#redvox.common.station.Station.fs_writer">fs_writer</a></code></li>
@@ -5634,6 +6163,7 @@ If None, a default file name is created using this format:
 <li><code><a title="redvox.common.station.Station.get_key" href="#redvox.common.station.Station.get_key">get_key</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_mean_packet_audio_samples" href="#redvox.common.station.Station.get_mean_packet_audio_samples">get_mean_packet_audio_samples</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_mean_packet_duration" href="#redvox.common.station.Station.get_mean_packet_duration">get_mean_packet_duration</a></code></li>
+<li><code><a title="redvox.common.station.Station.get_save_dir_sensor" href="#redvox.common.station.Station.get_save_dir_sensor">get_save_dir_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_sensor_by_type" href="#redvox.common.station.Station.get_sensor_by_type">get_sensor_by_type</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_sensors" href="#redvox.common.station.Station.get_sensors">get_sensors</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_station_sensor_types" href="#redvox.common.station.Station.get_station_sensor_types">get_station_sensor_types</a></code></li>
@@ -5692,6 +6222,7 @@ If None, a default file name is created using this format:
 <li><code><a title="redvox.common.station.Station.linear_acceleration_sensor" href="#redvox.common.station.Station.linear_acceleration_sensor">linear_acceleration_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.load" href="#redvox.common.station.Station.load">load</a></code></li>
 <li><code><a title="redvox.common.station.Station.load_data_from_packets" href="#redvox.common.station.Station.load_data_from_packets">load_data_from_packets</a></code></li>
+<li><code><a title="redvox.common.station.Station.load_from_indexes" href="#redvox.common.station.Station.load_from_indexes">load_from_indexes</a></code></li>
 <li><code><a title="redvox.common.station.Station.location_sensor" href="#redvox.common.station.Station.location_sensor">location_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.magnetometer_sensor" href="#redvox.common.station.Station.magnetometer_sensor">magnetometer_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.metadata" href="#redvox.common.station.Station.metadata">metadata</a></code></li>
@@ -5712,7 +6243,9 @@ If None, a default file name is created using this format:
 <li><code><a title="redvox.common.station.Station.set_barometer_sensor" href="#redvox.common.station.Station.set_barometer_sensor">set_barometer_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_best_location_sensor" href="#redvox.common.station.Station.set_best_location_sensor">set_best_location_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_compressed_audio_sensor" href="#redvox.common.station.Station.set_compressed_audio_sensor">set_compressed_audio_sensor</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_correct_timestamps" href="#redvox.common.station.Station.set_correct_timestamps">set_correct_timestamps</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_errors" href="#redvox.common.station.Station.set_errors">set_errors</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_event_data" href="#redvox.common.station.Station.set_event_data">set_event_data</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_gaps" href="#redvox.common.station.Station.set_gaps">set_gaps</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_gravity_sensor" href="#redvox.common.station.Station.set_gravity_sensor">set_gravity_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_gyroscope_sensor" href="#redvox.common.station.Station.set_gyroscope_sensor">set_gyroscope_sensor</a></code></li>
@@ -5732,9 +6265,12 @@ If None, a default file name is created using this format:
 <li><code><a title="redvox.common.station.Station.set_relative_humidity_sensor" href="#redvox.common.station.Station.set_relative_humidity_sensor">set_relative_humidity_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_rotation_vector_sensor" href="#redvox.common.station.Station.set_rotation_vector_sensor">set_rotation_vector_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_save_data" href="#redvox.common.station.Station.set_save_data">set_save_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_save_dir" href="#redvox.common.station.Station.set_save_dir">set_save_dir</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_save_mode" href="#redvox.common.station.Station.set_save_mode">set_save_mode</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_start_date" href="#redvox.common.station.Station.set_start_date">set_start_date</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_timestamps_updated" href="#redvox.common.station.Station.set_timestamps_updated">set_timestamps_updated</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_timesync_data" href="#redvox.common.station.Station.set_timesync_data">set_timesync_data</a></code></li>
+<li><code><a title="redvox.common.station.Station.set_use_temp_dir" href="#redvox.common.station.Station.set_use_temp_dir">set_use_temp_dir</a></code></li>
 <li><code><a title="redvox.common.station.Station.set_uuid" href="#redvox.common.station.Station.set_uuid">set_uuid</a></code></li>
 <li><code><a title="redvox.common.station.Station.start_date" href="#redvox.common.station.Station.start_date">start_date</a></code></li>
 <li><code><a title="redvox.common.station.Station.timesync_data" href="#redvox.common.station.Station.timesync_data">timesync_data</a></code></li>

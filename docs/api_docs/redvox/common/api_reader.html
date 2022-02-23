@@ -33,15 +33,13 @@ Data files can be either API 900 or API 1000 data formats</p>
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 &#34;&#34;&#34;
-from typing import List, Optional, Tuple
+from typing import List, Optional
 from datetime import timedelta
 import multiprocessing
 import multiprocessing.pool
-from itertools import repeat
-from multiprocessing import cpu_count, Manager, Process, Queue
-import queue
 
 import pyarrow as pa
+import psutil
 
 import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
@@ -50,7 +48,6 @@ from redvox.common import api_conversions as ac
 from redvox.common import io
 from redvox.common import file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
-from redvox.common.station_old import Station as StationOld
 from redvox.common.station import Station
 from redvox.common.errors import RedVoxExceptions
 
@@ -64,18 +61,27 @@ meta_py_stct = pa.struct([(&#34;api&#34;, pa.float64()), (&#34;sub_api&#34;, pa.
                           ])
 
 
+PERCENT_FREE_MEM_USE = .8  # Percentage of total free memory to use when creating stations (1. is 100%)
+
+
 class ApiReader:
     &#34;&#34;&#34;
     Reads data from api 900 or api 1000 format, converting all data read into RedvoxPacketM for
-        ease of comparison and use.
+    ease of comparison and use.
+
     Properties:
         filter: io.ReadFilter with the station ids, start and end time, start and end time padding, and
-                types of files to read
+        types of files to read
+
         base_dir: str of the directory containing all the files to read
+
         structured_dir: bool, if True, the base_dir contains a specific directory structure used by the
-                        respective api formats.  If False, base_dir only has the data files.  Default False.
+        respective api formats.  If False, base_dir only has the data files.  Default False.
+
         files_index: io.Index of the files that match the filter that are in base_dir
+
         index_summary: io.IndexSummary of the filtered data
+
         debug: bool, if True, output additional information during function execution.  Default False.
     &#34;&#34;&#34;
 
@@ -112,6 +118,20 @@ class ApiReader:
         self.errors = RedVoxExceptions(&#34;APIReader&#34;)
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
+        mem_split_factor = 1
+        if len(self.files_index) &gt; 0:
+            if settings.is_parallelism_enabled():
+                mem_split_factor = len(self.files_index)
+            self.chunk_limit = psutil.virtual_memory().available * PERCENT_FREE_MEM_USE / mem_split_factor
+            max_file_size = max([fe.file_size_bytes for fi in self.files_index for fe in fi.entries])
+            if max_file_size &gt; self.chunk_limit:
+                raise MemoryError(f&#34;System requires {max_file_size} bytes of memory to process a file but only has &#34;
+                                  f&#34;{self.chunk_limit} available.  Please free or add more RAM.&#34;)
+            if debug:
+                print(f&#34;{mem_split_factor} stations each have {int(self.chunk_limit)} bytes for loading files in &#34;
+                      f&#34;memory.&#34;)
+        else:
+            self.chunk_limit = 0
 
         if debug:
             self.errors.print()
@@ -260,6 +280,28 @@ class ApiReader:
 
         return list(results.values())
 
+    def _split_workload(self, findex: io.Index) -&gt; List[io.Index]:
+        &#34;&#34;&#34;
+        takes an index and splits it into chunks based on a size limit
+        while running_total + next_file_size &lt; limit, adds files to a chunk (Index)
+        if limit is exceeded, adds the chunk and puts the next file into a new chunk
+
+        :param findex: index of files to split
+        :return: list of Index to process
+        &#34;&#34;&#34;
+        packet_list = []
+        chunk_queue = 0
+        chunk_list = []
+        for f in findex.entries:
+            chunk_queue += f.file_size_bytes
+            if chunk_queue &gt; self.chunk_limit:
+                packet_list.append(io.Index(chunk_list))
+                chunk_queue = 0
+                chunk_list = []
+            chunk_list.append(f)
+        packet_list.append(io.Index(chunk_list))
+        return packet_list
+
     @staticmethod
     def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
         &#34;&#34;&#34;
@@ -323,31 +365,31 @@ class ApiReader:
 
         return result
 
-    def _stations_by_index(self, findex: io.Index) -&gt; StationOld:
+    def _station_by_index(self, findex: io.Index) -&gt; Station:
         &#34;&#34;&#34;
         :param findex: index with files to build a station with
         :return: Station built from files in findex
         &#34;&#34;&#34;
-        return StationOld(self.read_files_in_index(findex))
+        return Station.create_from_packets(self.read_files_in_index(findex))
 
-    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[StationOld]:
+    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[Station]:
         &#34;&#34;&#34;
         :param pool: optional multiprocessing pool
         :return: List of all stations in the ApiReader
         &#34;&#34;&#34;
         return list(maybe_parallel_map(pool,
-                                       self._stations_by_index,
+                                       self._station_by_index,
                                        self.files_index,
                                        chunk_size=1
                                        )
                     )
 
-    def get_station_by_id(self, get_id: str) -&gt; Optional[List[StationOld]]:
+    def get_station_by_id(self, get_id: str) -&gt; Optional[List[Station]]:
         &#34;&#34;&#34;
         :param get_id: the id to filter on
         :return: list of all stations with the requested id or None if id can&#39;t be found
         &#34;&#34;&#34;
-        result = [s for s in self.get_stations() if s.id == get_id]
+        result = [s for s in self.get_stations() if s.id() == get_id]
         if len(result) &lt; 1:
             return None
         return result</code></pre>
@@ -371,15 +413,15 @@ class ApiReader:
 ease of comparison and use.</p>
 <h2 id="properties">Properties</h2>
 <p>filter: io.ReadFilter with the station ids, start and end time, start and end time padding, and
-types of files to read
-base_dir: str of the directory containing all the files to read
-structured_dir: bool, if True, the base_dir contains a specific directory structure used by the
+types of files to read</p>
+<p>base_dir: str of the directory containing all the files to read</p>
+<p>structured_dir: bool, if True, the base_dir contains a specific directory structure used by the
 respective api formats.
 If False, base_dir only has the data files.
-Default False.
-files_index: io.Index of the files that match the filter that are in base_dir
-index_summary: io.IndexSummary of the filtered data
-debug: bool, if True, output additional information during function execution.
+Default False.</p>
+<p>files_index: io.Index of the files that match the filter that are in base_dir</p>
+<p>index_summary: io.IndexSummary of the filtered data</p>
+<p>debug: bool, if True, output additional information during function execution.
 Default False.</p>
 <p>Initialize the ApiReader object</p>
 <p>:param base_dir: directory containing the files to read
@@ -398,15 +440,21 @@ Default False.</p></div>
 <pre><code class="python">class ApiReader:
     &#34;&#34;&#34;
     Reads data from api 900 or api 1000 format, converting all data read into RedvoxPacketM for
-        ease of comparison and use.
+    ease of comparison and use.
+
     Properties:
         filter: io.ReadFilter with the station ids, start and end time, start and end time padding, and
-                types of files to read
+        types of files to read
+
         base_dir: str of the directory containing all the files to read
+
         structured_dir: bool, if True, the base_dir contains a specific directory structure used by the
-                        respective api formats.  If False, base_dir only has the data files.  Default False.
+        respective api formats.  If False, base_dir only has the data files.  Default False.
+
         files_index: io.Index of the files that match the filter that are in base_dir
+
         index_summary: io.IndexSummary of the filtered data
+
         debug: bool, if True, output additional information during function execution.  Default False.
     &#34;&#34;&#34;
 
@@ -443,6 +491,20 @@ Default False.</p></div>
         self.errors = RedVoxExceptions(&#34;APIReader&#34;)
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
+        mem_split_factor = 1
+        if len(self.files_index) &gt; 0:
+            if settings.is_parallelism_enabled():
+                mem_split_factor = len(self.files_index)
+            self.chunk_limit = psutil.virtual_memory().available * PERCENT_FREE_MEM_USE / mem_split_factor
+            max_file_size = max([fe.file_size_bytes for fi in self.files_index for fe in fi.entries])
+            if max_file_size &gt; self.chunk_limit:
+                raise MemoryError(f&#34;System requires {max_file_size} bytes of memory to process a file but only has &#34;
+                                  f&#34;{self.chunk_limit} available.  Please free or add more RAM.&#34;)
+            if debug:
+                print(f&#34;{mem_split_factor} stations each have {int(self.chunk_limit)} bytes for loading files in &#34;
+                      f&#34;memory.&#34;)
+        else:
+            self.chunk_limit = 0
 
         if debug:
             self.errors.print()
@@ -591,6 +653,28 @@ Default False.</p></div>
 
         return list(results.values())
 
+    def _split_workload(self, findex: io.Index) -&gt; List[io.Index]:
+        &#34;&#34;&#34;
+        takes an index and splits it into chunks based on a size limit
+        while running_total + next_file_size &lt; limit, adds files to a chunk (Index)
+        if limit is exceeded, adds the chunk and puts the next file into a new chunk
+
+        :param findex: index of files to split
+        :return: list of Index to process
+        &#34;&#34;&#34;
+        packet_list = []
+        chunk_queue = 0
+        chunk_list = []
+        for f in findex.entries:
+            chunk_queue += f.file_size_bytes
+            if chunk_queue &gt; self.chunk_limit:
+                packet_list.append(io.Index(chunk_list))
+                chunk_queue = 0
+                chunk_list = []
+            chunk_list.append(f)
+        packet_list.append(io.Index(chunk_list))
+        return packet_list
+
     @staticmethod
     def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
         &#34;&#34;&#34;
@@ -654,31 +738,31 @@ Default False.</p></div>
 
         return result
 
-    def _stations_by_index(self, findex: io.Index) -&gt; StationOld:
+    def _station_by_index(self, findex: io.Index) -&gt; Station:
         &#34;&#34;&#34;
         :param findex: index with files to build a station with
         :return: Station built from files in findex
         &#34;&#34;&#34;
-        return StationOld(self.read_files_in_index(findex))
+        return Station.create_from_packets(self.read_files_in_index(findex))
 
-    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[StationOld]:
+    def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[Station]:
         &#34;&#34;&#34;
         :param pool: optional multiprocessing pool
         :return: List of all stations in the ApiReader
         &#34;&#34;&#34;
         return list(maybe_parallel_map(pool,
-                                       self._stations_by_index,
+                                       self._station_by_index,
                                        self.files_index,
                                        chunk_size=1
                                        )
                     )
 
-    def get_station_by_id(self, get_id: str) -&gt; Optional[List[StationOld]]:
+    def get_station_by_id(self, get_id: str) -&gt; Optional[List[Station]]:
         &#34;&#34;&#34;
         :param get_id: the id to filter on
         :return: list of all stations with the requested id or None if id can&#39;t be found
         &#34;&#34;&#34;
-        result = [s for s in self.get_stations() if s.id == get_id]
+        result = [s for s in self.get_stations() if s.id() == get_id]
         if len(result) &lt; 1:
             return None
         return result</code></pre>
@@ -734,7 +818,7 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 <h3>Methods</h3>
 <dl>
 <dt id="redvox.common.api_reader.ApiReader.get_station_by_id"><code class="name flex">
-<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> Optional[List[<a title="redvox.common.station_old.Station" href="station_old.html#redvox.common.station_old.Station">Station</a>]]</span>
+<span>def <span class="ident">get_station_by_id</span></span>(<span>self, get_id: str) ‑> Optional[List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param get_id: the id to filter on
@@ -743,19 +827,19 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_station_by_id(self, get_id: str) -&gt; Optional[List[StationOld]]:
+<pre><code class="python">def get_station_by_id(self, get_id: str) -&gt; Optional[List[Station]]:
     &#34;&#34;&#34;
     :param get_id: the id to filter on
     :return: list of all stations with the requested id or None if id can&#39;t be found
     &#34;&#34;&#34;
-    result = [s for s in self.get_stations() if s.id == get_id]
+    result = [s for s in self.get_stations() if s.id() == get_id]
     if len(result) &lt; 1:
         return None
     return result</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.api_reader.ApiReader.get_stations"><code class="name flex">
-<span>def <span class="ident">get_stations</span></span>(<span>self, pool: Optional[multiprocessing.pool.Pool] = None) ‑> List[<a title="redvox.common.station_old.Station" href="station_old.html#redvox.common.station_old.Station">Station</a>]</span>
+<span>def <span class="ident">get_stations</span></span>(<span>self, pool: Optional[multiprocessing.pool.Pool] = None) ‑> List[<a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>:param pool: optional multiprocessing pool
@@ -764,13 +848,13 @@ def read_files_in_index(indexf: io.Index) -&gt; List[api_m.RedvoxPacketM]:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[StationOld]:
+<pre><code class="python">def get_stations(self, pool: Optional[multiprocessing.pool.Pool] = None) -&gt; List[Station]:
     &#34;&#34;&#34;
     :param pool: optional multiprocessing pool
     :return: List of all stations in the ApiReader
     &#34;&#34;&#34;
     return list(maybe_parallel_map(pool,
-                                   self._stations_by_index,
+                                   self._station_by_index,
                                    self.files_index,
                                    chunk_size=1
                                    )
