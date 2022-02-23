@@ -1468,7 +1468,6 @@ class Station:
                 self._start_date, self._use_model_correction
             )
             if self._fs_writer.file_name != self._get_id_key():
-                update_dir = True
                 if self._fs_writer.is_save_disk():
                     old_name = self.save_dir()
                     self.set_save_dir(self._fs_writer.base_dir)
@@ -1477,8 +1476,6 @@ class Station:
                 else:
                     self._fs_writer.file_name = self._get_id_key()
             for sensor in self._data:
-                if update_dir:
-                    sensor.move_pyarrow_dir(self.save_dir())
                 sensor.update_data_timestamps(self._timesync_data.offset_model())
             for packet in self._packet_metadata:
                 packet.update_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
