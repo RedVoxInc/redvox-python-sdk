@@ -95,7 +95,7 @@ _[Table of Contents](#table-of-contents)_
 
 ### Station Creation
 
-This is an example of creating a Station.  It is recommended to use [DataWindow](../datawindow)
+This is an example of creating a Station.  It is recommended to use [DataWindow](..)
 
 ```python
 from redvox.common.station import Station
