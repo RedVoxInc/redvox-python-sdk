@@ -225,7 +225,7 @@ class Station:
                             save_output: bool = False,
                             use_temp_dir: bool = False) -> "Station":
         """
-        Use a list of Indexes to create a station
+        Use a list of Indexes to create a Station
 
         :param indexes: List of indexes to use
         :param correct_timestamps: if True, correct timestamps, default False
@@ -233,7 +233,7 @@ class Station:
         :param base_out_dir: directory to save output files to, if saving to disk.  default "." (current directory)
         :param save_output: if True, save output to disk, default False
         :param use_temp_dir: if True, use a temporary directory, default False
-        :return:
+        :return: Station using data from the files in the list of indexes.
         """
         station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
                           base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
@@ -273,6 +273,8 @@ class Station:
                             save_output: bool = False,
                             use_temp_dir: bool = False) -> "Station":
         """
+        Use a list of Redvox packets to create a Station
+
         :param packets: API M redvox packets with data to load
         :param correct_timestamps: if True, correct timestamps as soon as possible.  Default False
         :param use_model_correction: if True, use OffsetModel functions for time correction, add OffsetModel
@@ -280,7 +282,7 @@ class Station:
         :param base_out_dir: directory to save parquet files, default "." (current directory)
         :param save_output: if True, save the parquet files to base_out_dir, otherwise delete them.  default False
         :param use_temp_dir: if True, save the parquet files to a temp dir.  default False
-        :return: station using data from redvox packets.
+        :return: Station using data from redvox packets.
         """
         station = Station(correct_timestamps=correct_timestamps, use_model_correction=use_model_correction,
                           base_dir=base_out_dir, save_data=save_output, use_temp_dir=use_temp_dir)
@@ -1463,7 +1465,6 @@ class Station:
         if self._is_timestamps_updated:
             self._errors.append("Timestamps already corrected!")
         else:
-            update_dir = False
             self._start_date = self._timesync_data.offset_model().update_time(
                 self._start_date, self._use_model_correction
             )

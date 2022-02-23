@@ -95,7 +95,8 @@ _[Table of Contents](#table-of-contents)_
 
 ### Station Creation
 
-This is an example of creating a Station.  It is recommended to use [DataWindow](..)
+This is an example of creating a Station without any data.  It is recommended to use [DataWindow](..) when you have data 
+to create a Station.
 
 ```python
 from redvox.common.station import Station
@@ -497,7 +498,6 @@ These are the protected properties of EventStream.  You will need functions to a
   Default is {"string": [], "numeric": [], "boolean": [], "byte": []}
 * `_errors`: RedVoxExceptions that keep track of any errors that occur while reading the Events.  This is set by the SDK
 
-
 These are the methods used to access the EventStream's data:
 
 1. `data(self) -> pa.Table`: Returns all Events as a pyarrow Table
@@ -543,7 +543,8 @@ _[Table of Contents](#table-of-contents)_
 
 Use one of these functions to create a SensorData object:
 
-1. ```
+1. Initialization function:
+   ```
    __init__(self,
             sensor_name: str,
             sensor_data: Optional[pa.Table] = None,
@@ -562,8 +563,6 @@ Use one of these functions to create a SensorData object:
             use_temp_dir: bool = False
     )
    ```
-   Initialization function.
-   
    _Example:_
    ```python
    import pyarrow as pa
@@ -574,7 +573,9 @@ Use one of these functions to create a SensorData object:
    
    the_sensor = SensorData("my_sensor", data_table, audio_type)
    ```
-2. ```
+   
+2. Return a SensorData object using a directory as the data source:
+   ```
     from_dir(sensor_name: str,
              data_path: str,
              sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
@@ -588,9 +589,9 @@ Use one of these functions to create a SensorData object:
              save_data: bool = False,
              use_temp_dir: bool = False):
    ```
-   Return a SensorData object using a directory as the data source.
-
-3. ```
+   
+3. Return a SensorData object using a dictionary as the data source:
+   ```
    from_dict(sensor_name: str,
              sensor_data: Dict,
              sensor_type: SensorType = SensorType.UNKNOWN_SENSOR,
@@ -605,32 +606,31 @@ Use one of these functions to create a SensorData object:
              arrow_dir: str = "",
              use_temp_dir: bool = False):
    ```
-   Return a SensorData object using a dictionary as the data source.
-
+   
 ### Sensor Data Properties
 
 This is the publicly accessible property of the SensorData class: 
 
-1. `name`: string; name of sensor
+* `name`: string; name of sensor
    
 ### Sensor Data Protected Properties
 
 These are the protected properties of the SensorData class.  These values are set during initialization of SensorData.
 You must use a function to return or update the values.  We do not recommend updating or editing these properties without using their accessor functions.
 
-1. `_type`: SensorType; enumerated type of sensor
-2. `_data`: Pyarrow table of the sensor data; always has timestamps as the first column, the other columns are the data fields.
-3. `_sample_rate_hz`: float; sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
-4. `_sample_interval_s`: float; mean duration in seconds between samples, default np.nan, usually 1/sample_rate
-5. `_sample_interval_std_s`: float; standard deviation in seconds between samples, default np.nan
-6. `_is_sample_rate_fixed`: boolean; True if sample rate is expected to be constant, default False
-7. `_timestamps_altered`: boolean; True if timestamps in the sensor have been altered from their original values, default False
-8. `_use_offset_model`: boolean; if True, uses an offset model to correct timestamps, default False
-9. `_fs_writer`: FileSystemWriter; stores the information used to save the data to disk.  Defaults to not saving and
-   using the current directory.
-10. `_gaps`: List of paired tuples; the timestamps of data points on the edge of data gaps.  Any point between the timestamps
-    is not valid and exists purely to maintain sample rate.
-11. `_errors`: RedVoxExceptions of the sensor data; contains a list of all errors encountered by the sensor.  This is set by the SDK.
+* `_type`: SensorType; enumerated type of sensor
+* `_data`: Pyarrow table of the sensor data; always has timestamps as the first column, the other columns are the data fields.
+* `_sample_rate_hz`: float; sample rate in Hz of the sensor, default np.nan, usually 1/sample_interval_s
+* `_sample_interval_s`: float; mean duration in seconds between samples, default np.nan, usually 1/sample_rate
+* `_sample_interval_std_s`: float; standard deviation in seconds between samples, default np.nan
+* `_is_sample_rate_fixed`: boolean; True if sample rate is expected to be constant, default False
+* `_timestamps_altered`: boolean; True if timestamps in the sensor have been altered from their original values, default False
+* `_use_offset_model`: boolean; if True, uses an offset model to correct timestamps, default False
+* `_fs_writer`: FileSystemWriter; stores the information used to save the data to disk.  Defaults to not saving and
+  using the current directory.
+* `_gaps`: List of paired tuples; the timestamps of data points on the edge of data gaps.  Any point between the timestamps
+  is not valid and exists purely to maintain sample rate.
+* `_errors`: RedVoxExceptions of the sensor data; contains a list of all errors encountered by the sensor.  This is set by the SDK.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -664,9 +664,10 @@ _[Table of Contents](#table-of-contents)_
 These functions set the values of SensorData properties:
 
 1. `set_file_name(new_file: Optional[str] = None)`: Set the name of the parquet file that contains the data.
-   Do NOT include the extension.  If you call this function without giving a `new_file`, it uses the default form.
-2. `set_save_dir(new_dir: Optional[str] = None)`: Set the directory containing the parquet file.
-   If you call this function without giving a `new_dir`, it uses the current directory.
+   Do NOT include the extension.  If you call this function without giving a `new_file`, it uses the default form: 
+   `[type]_[first_timestamp]` where type is the type of the sensor and first_timestamp is the first timestamp of the data.
+2. `set_save_dir(new_dir: str = ".")`: Set the directory containing the parquet file.
+   If you call this function without giving a `new_dir`, it uses `"."` (the current directory).
 3. `set_save_to_disk(save: bool)`: Sets the save mode to disk.  If `True`, files will be saved to disk.
 
 _[Table of Contents](#table-of-contents)_

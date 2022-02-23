@@ -78,6 +78,7 @@ class DataWindowTest(unittest.TestCase):
             )
         )
         self.assertIsNone(dw_invalid.get_station("does_not_exist"))
+        self.assertIsNone(dw_invalid.first_station())
 
     def test_dw_first_station(self):
         dw_test = dw.DataWindow(

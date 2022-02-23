@@ -102,7 +102,7 @@ class DataWindowFileSystemWriter(FileSystemWriter):
         os.chdir(base_dir)
         super().__init__(file_name, file_ext, ".",
                          FileSystemSaveMode.DISK
-                         if DataWindowOutputType.str_to_type(file_ext) == DataWindowOutputType.PARQUET
+                         if DataWindowOutputType.str_to_type(file_ext) != DataWindowOutputType.NONE
                          else FileSystemSaveMode.MEM)
         self.make_run_me = make_run_me
 

@@ -647,7 +647,12 @@ class DataWindow:
         :return: first station matching params; if no params given, gets first station in list.
                     returns None if no station with given station_id exists.
         """
-        if station_id:
+        if len(self._stations) < 1:
+            self._errors.append(f"Attempted to get a station, but there are no stations in the data window!")
+            if self.debug:
+                print(f"Attempted to get a station, but there are no stations in the data window!")
+            return None
+        elif station_id:
             result = [s for s in self._stations if s.get_key().check_key(station_id, None, None)]
             if len(result) > 0:
                 return result[0]
@@ -655,8 +660,7 @@ class DataWindow:
             if self.debug:
                 print(f"Attempted to get station {station_id}, but that station is not in this data window!")
             return None
-        else:
-            return self._stations[0]
+        return self._stations[0]
 
     def get_station(self, station_id: str, station_uuid: Optional[str] = None,
                     start_timestamp: Optional[float] = None) -> Optional[List[Station]]:
@@ -677,9 +681,9 @@ class DataWindow:
             print(f"Attempted to get station {station_id}, but that station is not in this data window!")
         return None
 
-    def _add_sensor_to_window(self, station: Station):
+    # def _add_sensor_to_window(self, station: Station):
         # set the window start and end if they were specified, otherwise use the bounds of the data
-        self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
+        # self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         """
@@ -739,7 +743,7 @@ class DataWindow:
             #     if self.debug:
             #         print("station processed: ", st.id())
         for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
-            self._add_sensor_to_window(st)
+            self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
             if self.debug:
                 print("station processed: ", st.id())
 

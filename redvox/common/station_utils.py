@@ -329,22 +329,24 @@ class StationPacketMetadata:
     A container for all the packet metadata that isn't consistent across all packets
 
     Properties:
-        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
+        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC,
+        default np.nan
 
-        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
+        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC,
+        default np.nan
 
-        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
+        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC, default np.nan
 
-        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
+        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC, default np.nan
 
         server_packet_received_timestamp: float, timestamp from server when packet was received in
         microseconds since epoch UTC
 
-        timing_info_score: float, quality of timing information
+        timing_info_score: float, quality of timing information, default np.nan
 
-        timing_score_method: TimingScoreMethod, method used to determine timing score
+        timing_score_method: TimingScoreMethod, method used to determine timing score, default "UNKNOWN"
 
-        other_metadata: dict, str: str of other metadata from the packet
+        other_metadata: dict, str: str of other metadata from the packet, default empty list
     """
 
     def __init__(self, packet: Optional[api_m.RedvoxPacketM] = None):
