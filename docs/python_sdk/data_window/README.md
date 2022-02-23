@@ -18,7 +18,7 @@ If you wish to learn more about the low-level class used to construct DataWindow
     + [Strongly Recommended DataWindow Parameters](#strongly-recommended-datawindow-parameters)
     + [Optional DataWindow Parameters](#optional-datawindow-parameters)
   * [Event Origin](#event-origin)
-  * [DataWindowConfig](#datawindow-config)
+  * [DataWindowConfig](#datawindowconfig)
     + [Required Config Parameter](#required-config-parameter)
     + [Strongly Recommended Config Parameters](#strongly-recommended-config-parameters)
     + [Optional Config Parameters](#optional-config-parameters)
@@ -76,14 +76,14 @@ We strongly recommend setting these parameters when creating a DataWindow.
 If these parameters are not set, the given default values will be used.
 
 `event_name`: a string that identifies the DataWindow.  We recommend using descriptive names.  Default is `"dw"`.  If there 
-is data in the DataWindow and event_name is still `dw`, it will be updated to `dw_[start_date]_[num_stations]`, 
+is data in the DataWindow and event_name is still `"dw"`, it will be updated to `"dw_[start_date]_[num_stations]"`, 
 where `[start_date]` is the first timestamp of the data and `[num_stations]` is the number of stations in the DataWindow 
 
 `event_origin`: Optional EventOrigin object that describes the origin point of the event of interest.  Default is `None`.
 Using the default will create an empty EventOrigin.  See the section on [EventOrigin](#event-origin) for more details.
 
 `config`: Optional DataWindowConfig object that describes the parameters of the DataWindow.  Default is `None`.  If there is no
-DataWindowConfig, no data will be collected.  See the section on [DataWindowConfig](#datawindow-config) for more details.
+DataWindowConfig, no data will be collected.  See the section on [DataWindowConfig](#datawindowconfig) for more details.
 
 `output_dir`: a string that identifies the directory to save the DataWindow to.  Default `"."`, or current directory.
 
@@ -91,10 +91,13 @@ DataWindowConfig, no data will be collected.  See the section on [DataWindowConf
 Default is `"NONE"` (no saving).
 
 #### Optional DataWindow Parameters
-This parameter does not have to be set when creating a DataWindow.
+These parameters do not have to be set when creating a DataWindow.
+
+`make_runme`: a boolean value that controls the creation of a simple runme.py file when saving data to disk. 
+If `True`, the file will be created.  The default value is `False`.
 
 `debug`: a boolean value that controls the output level of DataWindow.  If `True`, DataWindow will output more information
-when an error occurs.  The default value is `False`.
+as it runs and when an error occurs.  The default value is `False`.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -103,7 +106,7 @@ This class defines the location of a source of data.
 
 All parameters for this class are optional.
 
-`provider`: a string that identifies the source of the location data (i.e. "GPS" or "NETWORK"), default is "UNKNOWN"
+`provider`: a string that identifies the source of the location data (i.e. "GPS" or "NETWORK"), default is `"UNKNOWN"`
 
 `lat`: a float value of the latitude in degrees, default is np.nan
 
@@ -121,11 +124,11 @@ All parameters for this class are optional.
 
 _[Table of Contents](#table-of-contents)_
 
-### DataWindow Config
+### DataWindowConfig
 This class defines the dimensions of a DataWindow
 
 #### Required Config Parameter
-This field is required for any non-empty DataWindowConfig.
+This field is required to create a DataWindowConfig.
 
 `input_dir`: a string representing the path to the data that will be read into the DataWindow.  Absolute paths are preferred.
 
@@ -189,7 +192,7 @@ All timestamps used in DataWindow are in [UTC](https://www.timeanddate.com/time/
 _[Table of Contents](#table-of-contents)_
 
 #### Optional Config Parameters
-These parameters do not have to be set when creating a DataWindow.  Default values for each will be given.
+These parameters do not have to be set when creating a DataWindowConfig.  Default values for each will be given.
 
 First, please note that your data must be stored in one of two ways:
 1. `Unstructured`: All files exist directly in the `input_dir`.
@@ -367,31 +370,34 @@ station_list = datawindow.stations()  # All stations as a list
 first_station = datawindow.first_station()  # The first station in the list
 first_with_id = datawindow.first_station(station_id)  # The first station that matches the station_id
 # A list of stations identified by station_id and optionally by uuid and start timestamp as well
-stations = datawindow.get_station(station_id)
+stations_with_id = datawindow.get_station(station_id)
 specific_stations = datawindow.get_station(station_id, station_uuid, station_start_timestamp)
 ```
 
-We recommend using the datawindow.stations() to get all the Station objects and datawindow.get_station() to get specific Stations.
+We recommend using `datawindow.stations()` to get all the Station objects and `datawindow.get_station()` to get specific Stations.
 
 Each Station contains data from the sensors, as well as some metadata about the Station.
 
-Refer to the [Station](station) documentation or the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station.html) for more information about how to use Station objects.
+Refer to the [Station](station) documentation or the [Station API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/station.html) 
+for more information about how to use Station objects.
 
 Continuing with the example, we will look at the audio sensor of our station in this example:
 
 ```python
-station = station_list[0]
+from redvox.common.station import Station
+
+station: Station = station_list[0]
 audio_sensor = station.audio_sensor()
-print(audio_sensor.sample_rate_hz)          # sample rate in hz
-print(audio_sensor.is_sample_rate_fixed)    # is sample rate constant
-print(audio_sensor.sample_interval_s)       # sample interval in seconds
-print(audio_sensor.sample_interval_std_s)   # sample interval std dev
-print(audio_sensor.data_timestamps())       # data timestamps as numpy array
-print(audio_sensor.first_data_timestamp())  # first data timestamp
-print(audio_sensor.last_data_timestamp())   # last data timestamp
-print(audio_sensor.samples())               # the data as an ndarray
-print(audio_sensor.num_samples())           # the number of data samples
-print(audio_sensor.data_channels())         # the names of the dataframe columns
+print(audio_sensor.sample_rate_hz())         # sample rate in hz
+print(audio_sensor.is_sample_rate_fixed())   # is sample rate constant
+print(audio_sensor.sample_interval_s())      # sample interval in seconds
+print(audio_sensor.sample_interval_std_s())  # sample interval std dev
+print(audio_sensor.data_timestamps())        # data timestamps as numpy array
+print(audio_sensor.first_data_timestamp())   # first data timestamp
+print(audio_sensor.last_data_timestamp())    # last data timestamp
+print(audio_sensor.samples())                # the data as an ndarray
+print(audio_sensor.num_samples())            # the number of data samples
+print(audio_sensor.data_channels())          # the names of the dataframe columns
 ```
 
 As a reminder, all timestamps are in [UTC](https://www.timeanddate.com/time/aboututc.html).
@@ -442,8 +448,8 @@ This is the list of all properties you can access from DataWindow. Many of the v
 Some properties do not have the same name as the initialization parameters.  Defaults for values will be given if
 applicable.  All timestamps are in UTC.
 
-* `event_name`: string, identifier for the event.  Default "dw".  Note that when creating a DataWindow, any "dw" event 
-  names will be updated to `dw_[start_date]_[num_stations]`, where `[start_date]` is the first timestamp of 
+* `event_name`: string, identifier for the event.  Default `"dw"`.  Note that when creating a DataWindow, any `"dw"` 
+  event names will be updated to `dw_[start_date]_[num_stations]`, where `[start_date]` is the first timestamp of 
   the data and `[num_stations]` is the number of stations in the DataWindow
 * `event_origin`: EventOrigin, class containing position data for the event source.  Default empty EventOrigin
 * `debug`: boolean, if True, outputs additional information during run time.  Default `False`
@@ -465,7 +471,7 @@ This property is set via the initialization parameters and cannot be changed wit
 This is a list of all properties you can access from EventOrigin.  These values are set via the initialization parameters.
 Defaults for values will be given.
 
-* `provider`: string, source of the location data (i.e. GPS or NETWORK).  Default UNKNOWN
+* `provider`: string, source of the location data (i.e. "GPS" or "NETWORK").  Default `"UNKNOWN"`
 * `latitude`: float, best estimate of latitude in degrees.  Default np.nan
 * `latitude_std`: float, standard deviation of best estimate of latitude.  Default np.nan
 * `longitude`: float, best estimate of longitude in degrees, default np.nan
@@ -481,25 +487,26 @@ Defaults for values will be given if applicable.  All timestamps are in [UTC](ht
 _It is not recommended to set or change the properties of DataWindowConfig after the DataWindow is created._
 
 * `input_directory`: string, directory that contains the files to read data from.  Required parameter.
-* `structured_layout`: bool, if True, the input_directory contains specially named and organized directories of data.  Default True
+* `structured_layout`: bool, if `True`, the input_directory contains specially named and organized directories of data.  Default `True`
 * `station_ids`: optional set of strings, representing the station ids to filter on. If empty or `None`, get any ids found in the input directory.  Default `None`
-* `extensions`: optional set of strings, representing file extensions to filter on. If `None`, gets as much data as it can in the input directory.  Default `None`
-* `api_versions`: optional set of ApiVersions, representing api versions to filter on. If `None`, get as much data as it can in the input directory.  Default `None`
+* `extensions`: optional set of strings, representing file extensions to filter on. If empty or `None`, gets as much data as it can in the input directory.  Default `None`
+* `api_versions`: optional set of ApiVersions, representing api versions to filter on. If empty or `None`, get as much data as it can in the input directory.  Default `None`
 * `start_datetime`: optional datetime, start datetime of the window. If `None`, uses the first timestamp of the filtered data.  Default `None`
 * `end_datetime`: optional datetime, non-inclusive end datetime of the window. If `None`, uses the last timestamp of the filtered data.  Default `None`
 * `start_buffer_td`: timedelta, the amount of time to include before the start_datetime when filtering data. Default 2 minutes
 * `end_buffer_td`: timedelta, the amount of time to include after the end_datetime when filtering data. Default 2 minutes
 * `drop_time_s`: float, the minimum amount of seconds between data files that would indicate a gap. Default .2 seconds
-* `apply_correction`: bool, if True, update the timestamps in the data based on best station offset.  Default True
-* `use_model_correction`: bool, if True, use the offset model's correction functions, otherwise use the best offset.  Default True
+* `apply_correction`: bool, if `True`, update the timestamps in the data based on best station offset.  Default `True`
+* `use_model_correction`: bool, if `True`, use the offset model's correction functions, otherwise use the best offset.  Default `True`
 * `copy_edge_points`: enumeration of DataPointCreationMode, determines how new values are created in the station data.
-  Valid values are NAN, COPY, and INTERPOLATE.  Default COPY
+  Valid values are `DataPointCreationMode.NAN`, `DataPointCreationMode.COPY`, and `DataPointCreationMode.INTERPOLATE`. 
+  Default `DataPointCreationMode.COPY`
 
 _[Table of Contents](#table-of-contents)_
 
 ### DataWindow Functions
 
-1. `stations() -> List[StationPa]`
+1. `stations() -> List[Station]`
 
 Returns a list of all the Stations in the DataWindow.
 
@@ -508,7 +515,7 @@ Returns a list of all the Stations in the DataWindow.
 Returns a list of Stations with ID == station_id and if given, UUID == station_uuid and start date == start_timestamp,
 or `None` if the station doesn't exist.
 
-station_uuid and start_timestamp are optional; the station_id will often be enough to get a result.
+Note: station_uuid and start_timestamp are optional; the station_id will often be enough to get a result.
 
 _Examples:_
 ```python
@@ -520,7 +527,7 @@ assertIsNone(not_station)
 3. `first_station(station_id: Optional[str] = None) -> Optional[StationPa]`
 
 Returns the first Station with ID == station_id if given or just the first Station in the list of stations.
-If a station_id is given and no station matches, returns `None`.
+Returns `None` if no the datawindow has no stations or no station matches the given station_id.
 
 _Examples:_
 ```python
@@ -560,8 +567,8 @@ Returns the DataWindowConfig object that stores the information about loading th
 
 11. `set_out_type(new_out_type: str)`
 
-Sets the output type of the DataWindow to the parameter `new_out_type`.  Accepted values are: "NONE", "PARQUET", "LZ4". 
-Invalid values become "NONE".
+Sets the output type of the DataWindow to the parameter `new_out_type`.  Accepted values are: `"NONE", "PARQUET", "LZ4"`. 
+Invalid values become `"NONE"`.
 
 12. `print_errors()`
 
@@ -605,7 +612,7 @@ DataWindow uses several methods in the Redvox SDK to gather the files needed to 
 
 If the user specified a structured directory, we look for directories specifically named `api900` and/or `api1000` 
 either as part of the input directory or within the input directory. Next, we read through the sub-directories of the 
-api directory, which are organized by year, month, day and for api1000 data, by hour as well. 
+api directory, which are organized by year, month, and day.  For api1000 data there is another sub-directory for hour. 
 
 If the user specified an unstructured directory, we are looking at all files within the input directory.
 
@@ -644,37 +651,36 @@ All timestamps are in [UTC](https://www.timeanddate.com/time/aboututc.html).
 Once the data is retrieved, it must be aggregated and prepared for the user.
 
 1. If there is sufficient RAM, all data files are completely read into memory.  If RAM is not enough, the files will
-   be written to a directory on the file system.  The directory is specified by the DataWindow parameters if saving is
-   enabled, otherwise it is a temporary directory.
+   be written to a temporary directory on the file system.
 
 2. The data files are organized into Station objects.  Files are put into a station if and only if each of these values 
-   are equal across each file: station id, station uuid, station start timestamp and station metadata.
-   * Any change in the station's information will create a new Station object to represent that change.
+   are equal across each file: station id, station uuid, station start date (timestamp) and station metadata.
+   * Any change in any of the station's id, uuid, start date, or metadata will create a new Station object to represent that change.
    
 3. As part of the creation of Station objects, an attempt is made to fill any recognizable gaps in their sensors.
 
-4. If apply_correction is True, all timestamps in the Station will be updated as the last step of its creation.
-
-* Any errors encountered while creating the Station object will be recorded and can be displayed to the user via the `print_errors()` function.
+Note: Any errors encountered while creating the Station object will be recorded and can be displayed to the user via the `print_errors()` function.
 
 ### Data Preparation
 
 The data is now organized by Station.  This process will be performed on all Stations in the DataWindow.
 
-1. Remove any Audio data points outside the request window.
+1. If apply_correction is `True`, all timestamps in the Station will be updated.
 
-2. Create Audio data points with NaN data values and timestamps based on the Audio sample rate such that the entire Audio record fills 
+2. Remove any Audio data points outside the request window.
+
+3. Create Audio data points with NaN data values and timestamps based on the Audio sample rate such that the entire Audio record fills 
    the request window and there are no points greater than 2 sample intervals apart or data points outside the window.
 
-3. Remove data points from each non-audio sensor that are outside the request window.
+4. Remove data points from each non-audio sensor that are outside the request window.
 
-4. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
+5. Create two rows in each sensor's dataframe with timestamps equal to the start and end timestamps of the trimmed audio sensor.
    * The copy_edge_points parameter determines which data values of these fabricated points will contain.
     
-5. Update the Station metadata.
+6. Update the Station metadata.
    * Timesync data for a Station is unaltered from the data gathered, even if portions of it exist outside the window.
    
-6. Update the DataWindow metadata to match the data.
+7. Update the DataWindow metadata to match the data.
 
 ### DataWindow Complete
 
@@ -698,22 +704,24 @@ Update the variables to match your environment before running.
 
 Quick Start:
 ```python
-from redvox.common.data_window import DataWindow
+from redvox.common.data_window import DataWindow, DataWindowConfig
 
 input_dir: str = "/path/to/api_dir"
 # for Windows, delete the above line and use the line below instead:
 # input_dir: str = "C:\\path\\to\\api_dir
 
 if __name__ == "__main__":
-    datawindow = DataWindow(input_dir=input_dir)
+    my_config = DataWindowConfig(input_dir=input_dir)
+    
+    datawindow = DataWindow(event_name="quick_start", config=my_config)
 
-    station = datawindow.stations[0]
+    station = datawindow.first_station()
     
     print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
-          f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz}\n"
-          f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed}\n"
-          f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s}\n"
-          f"mic sample interval std dev: {station.audio_sensor().sample_interval_std_s}\n"
+          f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz()}\n"
+          f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed()}\n"
+          f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s()}\n"
+          f"mic sample interval std dev: {station.audio_sensor().sample_interval_std_s()}\n"
           f"the data timestamps as a numpy array:\n {station.audio_sensor().data_timestamps()}\n"
           f"the first data timestamp: {station.audio_sensor().first_data_timestamp()}\n"
           f"the last data timestamp:  {station.audio_sensor().last_data_timestamp()}\n"
@@ -765,10 +773,10 @@ datawindow = DataWindow(config=config)
 station = datawindow.first_station(target_station)
 
 print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
-      f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz}\n"
-      f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed}\n"
-      f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s}\n"
-      f"mic sample interval std dev: {station.audio_sensor().sample_interval_std_s}\n"
+      f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz()}\n"
+      f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed()}\n"
+      f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s()}\n"
+      f"mic sample interval std dev: {station.audio_sensor().sample_interval_std_s()}\n"
       f"the data timestamps as a numpy array:\n {station.audio_sensor().data_timestamps()}\n"
       f"the first data timestamp: {station.audio_sensor().first_data_timestamp()}\n"
       f"the last data timestamp:  {station.audio_sensor().last_data_timestamp()}\n"
@@ -808,10 +816,10 @@ datawindow = DataWindow.from_config_file(config_dir)
 station = datawindow.first_station(target_station)
 
 print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
-      f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz}\n"
-      f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed}\n"
-      f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s}\n"
-      f"mic sample interval std dev: {station.audio_sensor().sample_interval_std_s}\n"
+      f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz()}\n"
+      f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed()}\n"
+      f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s()}\n"
+      f"mic sample interval std dev: {station.audio_sensor().sample_interval_std_s()}\n"
       f"the data timestamps as a numpy array:\n {station.audio_sensor().data_timestamps()}\n"
       f"the first data timestamp: {station.audio_sensor().first_data_timestamp()}\n"
       f"the last data timestamp:  {station.audio_sensor().last_data_timestamp()}\n"
@@ -825,7 +833,7 @@ plt.plot(station.audio_sensor().data_timestamps() -
          station.audio_sensor().first_data_timestamp(),
          samples)
 plt.title(f"{station.id}")
-plt.xlabel(f"microseconds from {datawindow.start_datetime}")
+plt.xlabel(f"microseconds from {datawindow.start_date()}")
 plt.show()
 ```
 
@@ -850,12 +858,11 @@ datawindow = DataWindow(event_name=my_event_name,
 ```
 
 * Check the value of `input_dir` in the DataWindowConfig for any errors, and that the files within the directory are in 
-one of two formats (structured or unstructured) described in the [DataWindow Config](#datawindow-config) section.
+one of two formats (structured or unstructured) described in the [DataWindowConfig](#datawindowconfig) section.
 Use the appropriate value for the `structured` parameter of DataWindowConfig.
 
 * When working with structured directories, ensure that all API 1000 (API M) files are in a directory called `api1000` 
-and all API 900 files are in a directory called `api900`.  API 1000 files normally end in `.rdvxm` and API 900 files
-normally end in `.rdvxz`
+and all API 900 files are in a directory called `api900`.  API 1000 files end in `.rdvxm` and API 900 files end in `.rdvxz`
 
 * Adjust the start and end datetime values of DataWindow, as described in the 
 [Strongly Recommended Config Parameters](#strongly-recommended-config-parameters) section.
