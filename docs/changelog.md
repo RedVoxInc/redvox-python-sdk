@@ -6,6 +6,7 @@
 * Updated automatic file writing functions to use temporary directory when available memory is insufficient
 * Updated json loading functions
 * Updated json writing functions
+* Fixed various bugs when saving and loading data to disk
 
 ### 3.1.5rc3 (2022-2-10)
 
