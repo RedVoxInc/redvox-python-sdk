@@ -105,6 +105,13 @@ class AudioWithGaps:
         ptable = pa.Table.from_pydict(dict(zip(AUDIO_DF_COLUMNS, result_array)))
         return pc.take(ptable, pc.sort_indices(ptable, sort_keys=[("timestamps", "ascending")]))
 
+    def add_error(self, error: str):
+        """
+        add an error to the result
+        :param error: error message to add
+        """
+        self.errors.append(error)
+
 
 def calc_evenly_sampled_timestamps(
         start: float, samples: int, sample_interval_micros: float

@@ -133,6 +133,13 @@ class AudioWithGaps:
         ptable = pa.Table.from_pydict(dict(zip(AUDIO_DF_COLUMNS, result_array)))
         return pc.take(ptable, pc.sort_indices(ptable, sort_keys=[(&#34;timestamps&#34;, &#34;ascending&#34;)]))
 
+    def add_error(self, error: str):
+        &#34;&#34;&#34;
+        add an error to the result
+        :param error: error message to add
+        &#34;&#34;&#34;
+        self.errors.append(error)
+
 
 def calc_evenly_sampled_timestamps(
         start: float, samples: int, sample_interval_micros: float
@@ -939,7 +946,14 @@ class AudioWithGaps:
             result_array[1].extend(gap_array[0])
             result_array[2].extend(gap_array[1])
         ptable = pa.Table.from_pydict(dict(zip(AUDIO_DF_COLUMNS, result_array)))
-        return pc.take(ptable, pc.sort_indices(ptable, sort_keys=[(&#34;timestamps&#34;, &#34;ascending&#34;)]))</code></pre>
+        return pc.take(ptable, pc.sort_indices(ptable, sort_keys=[(&#34;timestamps&#34;, &#34;ascending&#34;)]))
+
+    def add_error(self, error: str):
+        &#34;&#34;&#34;
+        add an error to the result
+        :param error: error message to add
+        &#34;&#34;&#34;
+        self.errors.append(error)</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -1047,6 +1061,24 @@ def schema(cls: Type[A],
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="redvox.common.gap_and_pad_utils.AudioWithGaps.add_error"><code class="name flex">
+<span>def <span class="ident">add_error</span></span>(<span>self, error: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>add an error to the result
+:param error: error message to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_error(self, error: str):
+    &#34;&#34;&#34;
+    add an error to the result
+    :param error: error message to add
+    &#34;&#34;&#34;
+    self.errors.append(error)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.gap_and_pad_utils.AudioWithGaps.create_timestamps"><code class="name flex">
 <span>def <span class="ident">create_timestamps</span></span>(<span>self) ‑> pyarrow.lib.Table</span>
 </code></dt>
@@ -1410,6 +1442,7 @@ def schema(cls: Type[A],
 <li>
 <h4><code><a title="redvox.common.gap_and_pad_utils.AudioWithGaps" href="#redvox.common.gap_and_pad_utils.AudioWithGaps">AudioWithGaps</a></code></h4>
 <ul class="">
+<li><code><a title="redvox.common.gap_and_pad_utils.AudioWithGaps.add_error" href="#redvox.common.gap_and_pad_utils.AudioWithGaps.add_error">add_error</a></code></li>
 <li><code><a title="redvox.common.gap_and_pad_utils.AudioWithGaps.create_timestamps" href="#redvox.common.gap_and_pad_utils.AudioWithGaps.create_timestamps">create_timestamps</a></code></li>
 <li><code><a title="redvox.common.gap_and_pad_utils.AudioWithGaps.errors" href="#redvox.common.gap_and_pad_utils.AudioWithGaps.errors">errors</a></code></li>
 <li><code><a title="redvox.common.gap_and_pad_utils.AudioWithGaps.from_dict" href="#redvox.common.gap_and_pad_utils.AudioWithGaps.from_dict">from_dict</a></code></li>

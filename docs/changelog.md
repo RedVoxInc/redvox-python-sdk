@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.1.6
+
+* Fixed bug when reading data
+
 ### 3.1.5
 
 * Official Release 3.1.5
