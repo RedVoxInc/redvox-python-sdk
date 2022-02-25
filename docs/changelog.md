@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.1.6rc
+
+* Fixed bug when reading data and the Event metadata changes from nothing to something
+
 ### 3.1.6
 
 * Fixed bug when reading data

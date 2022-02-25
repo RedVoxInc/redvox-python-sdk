@@ -302,7 +302,7 @@ class EventStream:
         if key not in self._schema.keys():
             self._errors.append("Attempted to add an unknown key to the EventStream schema.\n"
                                 f"You must use one of {self._schema.keys()}.")
-        else:
+        elif value not in self._schema[key]:
             self._schema[key].append(value)
 
     def add(self, other_stream: es.EventStream):
@@ -476,6 +476,12 @@ class EventStream:
         if self._data is not None:
             pq.write_table(self._data, self.full_path())
 
+    def has_data(self) -> bool:
+        """
+        :return: True if EventStream contains at least one data point
+        """
+        return self.data().num_rows > 0
+
     def data(self) -> pa.Table:
         """
         :return: the data as a pyarrow table
@@ -579,9 +585,10 @@ class EventStreams:
         :param packet: packet to read data from
         """
         for st in packet.event_streams:
-            if st.name in self.get_stream_names():
+            if st.name in self.get_stream_names() and self.get_stream(st.name).has_data():
                 self.get_stream(st.name).add_raw(st)
             else:
+                self.remove_stream(st.name)
                 self.streams.append(EventStream(save_mode=self.save_mode, base_dir=self.base_dir).read_raw(st))
 
     def read_from_packets_list(self, packets: List[RedvoxPacketM]):
@@ -613,6 +620,14 @@ class EventStreams:
         """
         for s in other_streams.streams:
             self.append(s)
+
+    def remove_stream(self, stream_name: str):
+        """
+        remove the first stream with the same stream_name
+
+        :param stream_name: name of stream to remove
+        """
+        self.streams = [s for s in self.streams if s.name != stream_name]
 
     def get_stream(self, stream_name: str) -> Optional[EventStream]:
         """
