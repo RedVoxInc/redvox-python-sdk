@@ -786,7 +786,7 @@ class DataWindow:
         and creates an error message for each id requested but has no data
         if there are no stations, creates a single error message declaring no data found
         """
-        if len(self._stations) < 1:
+        if len(self._stations) < 1 and self._config.station_ids:
             if len(self._config.station_ids) > 1:
                 add_ids = f"for all stations {self._config.station_ids} "
             else:
