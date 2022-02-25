@@ -793,7 +793,7 @@ class DataWindow:
                 add_ids = ""
             self._errors.append(f"No data matching criteria {add_ids}in {self._config.input_dir}"
                                 f"\nPlease adjust parameters of DataWindow")
-        elif len(self.station_ids()) > 0 and self._config.station_ids:
+        elif len(self._stations) > 0 and self._config.station_ids:
             for ids in self._config.station_ids:
                 if ids.zfill(10) not in [i.id() for i in self._stations]:
                     self._errors.append(
