@@ -1,11 +1,8 @@
 ## Changelog
 
-### 3.1.6rc1 (2022-2-24)
+### 3.1.7 (2022-2-24)
 
 * Fixed bug when validating ids of an empty data window
-
-### 3.1.6rc0 (2022-2-24)
-
 * Fixed bug when reading data and the Event metadata changes from nothing to something
 
 ### 3.1.6 (2022-2-24)
