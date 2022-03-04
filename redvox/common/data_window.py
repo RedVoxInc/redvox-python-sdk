@@ -87,6 +87,12 @@ class EventOrigin:
         self.altitude_std = alt_std
         self.event_radius_m = event_radius_m
 
+    def __repr__(self):
+        return str(self.as_dict())
+
+    def __str__(self):
+        return str(self.as_dict())
+
     def as_dict(self) -> Dict:
         """
         :return: self as dict
@@ -181,39 +187,36 @@ class DataWindowConfig:
         self.use_model_correction = use_model_correction
         self.copy_edge_points = copy_edge_points
 
-    # def __repr__(self):
-    #     return dw_io.dict_to_json({
-    #         "input_dir": self.input_dir,
-    #         "structured_layout": self.structured_layout,
-    #         "start_datetime": self.start_datetime.__repr__(),
-    #         "end_datetime": self.end_datetime.__repr__(),
-    #         "start_buffer_td": self.start_buffer_td.__repr__(),
-    #         "end_buffer_td": self.end_buffer_td.__repr__(),
-    #         "drop_time_s": self.drop_time_s,
-    #         "station_ids": list(self.station_ids) if self.station_ids else [],
-    #         "extensions": list(self.extensions) if self.extensions else [],
-    #         "api_versions": [a_v.value for a_v in self.api_versions] if self.api_versions else [],
-    #         "apply_correction": self.apply_correction,
-    #         "use_model_correction": self.use_model_correction,
-    #         "copy_edge_points": self.copy_edge_points.value
-    #     })
-    #
-    # def __str__(self):
-    #     return dw_io.dict_to_json({
-    #         "input_dir": self.input_dir,
-    #         "structured_layout": self.structured_layout,
-    #         "start_datetime": self.start_datetime.strftime("%Y %B %d %I:%M:%S.%f") if self.start_datetime else None,
-    #         "end_datetime": self.end_datetime.strftime("%Y %B %d %I:%M:%S.%f") if self.end_datetime else None,
-    #         "start_buffer_td (in s)": self.start_buffer_td.total_seconds(),
-    #         "end_buffer_td (in s)": self.end_buffer_td.total_seconds(),
-    #         "drop_time_s": self.drop_time_s,
-    #         "station_ids": list(self.station_ids) if self.station_ids else [],
-    #         "extensions": list(self.extensions) if self.extensions else [],
-    #         "api_versions": [a_v.value for a_v in self.api_versions] if self.api_versions else [],
-    #         "apply_correction": self.apply_correction,
-    #         "use_model_correction": self.use_model_correction,
-    #         "copy_edge_points": self.copy_edge_points.name
-    #     })
+    def __repr__(self):
+        return f"input_dir: {self.input_dir}, " \
+               f"structured_layout: {self.structured_layout}, " \
+               f"start_datetime: {self.start_datetime.__repr__()}, " \
+               f"end_datetime: {self.end_datetime.__repr__()}, " \
+               f"start_buffer_td: {self.start_buffer_td.__repr__()}, " \
+               f"end_buffer_td: {self.end_buffer_td.__repr__()}, " \
+               f"drop_time_s: {self.drop_time_s}, " \
+               f"station_ids: {list(self.station_ids) if self.station_ids else []}, " \
+               f"extensions: {list(self.extensions) if self.extensions else []}, " \
+               f"api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, " \
+               f"apply_correction: {self.apply_correction}, " \
+               f"use_model_correction: {self.use_model_correction}, " \
+               f"copy_edge_points: {self.copy_edge_points.value}"
+
+    def __str__(self):
+        return f"input_dir: {self.input_dir}, " \
+               f"structured_layout: {self.structured_layout}, " \
+               f"start_datetime: " \
+               f"{self.start_datetime.strftime('%Y-%m-%dT%H:%M:%S.%fZ') if self.start_datetime else None}, " \
+               f"end_datetime: {self.end_datetime.strftime('%Y-%m-%dT%H:%M:%S.%fZ') if self.end_datetime else None}, " \
+               f"start_buffer_td (in s): {self.start_buffer_td.total_seconds()}, " \
+               f"end_buffer_td (in s): {self.end_buffer_td.total_seconds()}, " \
+               f"drop_time_s: {self.drop_time_s}, " \
+               f"station_ids: {list(self.station_ids) if self.station_ids else []}, " \
+               f"extensions: {list(self.extensions) if self.extensions else []}, " \
+               f"api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, " \
+               f"apply_correction: {self.apply_correction}, " \
+               f"use_model_correction: {self.use_model_correction}, " \
+               f"copy_edge_points: {self.copy_edge_points.name}"
 
     def as_dict(self) -> Dict:
         return {"input_dir": self.input_dir,
@@ -312,36 +315,26 @@ class DataWindow:
         if self.debug:
             self.print_errors()
 
-    # def __repr__(self):
-    #     # todo: use representations for the datetime and timedelta objects
-    #     # todo: use the dictionary function
-    #     return dw_io.dict_to_json({
-    #         "event_name": self.event_name,
-    #         "event_origin": repr(self.event_origin),
-    #         "config": repr(self._config),
-    #         "base_dir": self.save_dir(),
-    #         "out_type": self._fs_writer.file_extension,
-    #         "make_runme": self._fs_writer.make_run_me,
-    #         "sdk_version": self._sdk_version,
-    #         "errors": repr(self._errors),
-    #         "debug": self.debug
-    #     })
-    #
-    # def __str__(self):
-    #     # todo: use representations for the datetime and timedelta objects
-    #     # todo: use the dictionary function
-    #     return dw_io.dict_to_json(
-    #         {"event_name": self.event_name,
-    #          "event_origin": str(self.event_origin),
-    #          "config": str(self._config),
-    #          "base_dir": self.save_dir(),
-    #          "stations": [s.default_station_json_file_name() for s in self._stations],
-    #          "out_type": self._fs_writer.file_extension,
-    #          "make_runme": self._fs_writer.make_run_me,
-    #          "sdk_version": self._sdk_version,
-    #          "errors": str(self._errors),
-    #          "debug": self.debug
-    #          })
+    def __repr__(self):
+        return f"event_name: {self.event_name}, " \
+               f"event_origin: {self.event_origin.__repr__()}, " \
+               f"config: {self._config.__repr__()}, " \
+               f"output_dir: {os.path.abspath(self.save_dir())}, " \
+               f"out_type: {self._fs_writer.file_extension}, " \
+               f"make_runme: {self._fs_writer.make_run_me}, " \
+               f"sdk_version: {self._sdk_version}, " \
+               f"debug: {self.debug}"
+
+    def __str__(self):
+        return f"event_name: {self.event_name}, " \
+               f"event_origin: {self.event_origin.__str__()}, " \
+               f"config: {self._config.__str__()}, " \
+               f"output_dir: {os.path.abspath(self.save_dir())}, " \
+               f"out_type: {self._fs_writer.file_extension}, " \
+               f"make_runme: {self._fs_writer.make_run_me}, " \
+               f"sdk_version: {self._sdk_version}, " \
+               f"debug: {self.debug}"
+        # "stations": [s.__str__() for s in self._stations],
 
     def save_dir(self) -> str:
         """

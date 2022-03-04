@@ -92,7 +92,7 @@ class ApiReader:
             if settings.is_parallelism_enabled():
                 mem_split_factor = len(self.files_index)
             self.chunk_limit = psutil.virtual_memory().available * PERCENT_FREE_MEM_USE / mem_split_factor
-            max_file_size = max([fe.file_size_bytes for fi in self.files_index for fe in fi.entries])
+            max_file_size = max([fe.decompressed_file_size_bytes * 8. for fi in self.files_index for fe in fi.entries])
             if max_file_size > self.chunk_limit:
                 raise MemoryError(f"System requires {max_file_size} bytes of memory to process a file but only has "
                                   f"{self.chunk_limit} available.  Please free or add more RAM.")
@@ -262,7 +262,7 @@ class ApiReader:
         chunk_queue = 0
         chunk_list = []
         for f in findex.entries:
-            chunk_queue += f.file_size_bytes
+            chunk_queue += f.decompressed_file_size_bytes
             if chunk_queue > self.chunk_limit:
                 packet_list.append(io.Index(chunk_list))
                 chunk_queue = 0

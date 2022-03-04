@@ -246,6 +246,29 @@ class SensorData:
         if show_errors:
             self.print_errors()
 
+    def __repr__(self):
+        return f"name: {self.name}, " \
+               f"type: {self._type.value}, " \
+               f"num_samples: {self.num_samples()}, " \
+               f"sample_rate_hz: {self._sample_rate_hz}, " \
+               f"sample_interval_s: {self._sample_interval_s}, " \
+               f"sample_interval_std_s: {self._sample_interval_std_s}, " \
+               f"is_sample_rate_fixed: {self._is_sample_rate_fixed}, " \
+               f"timestamps_altered: {self._timestamps_altered}, " \
+               f"use_offset_model: {self._use_offset_model}, " \
+               f"gaps: {[g for g in self._gaps]}"
+
+    def __str__(self):
+        return f"name: {self.name}, " \
+               f"type: {self._type.name}, " \
+               f"num_samples: {self.num_samples()}, " \
+               f"sample_rate_hz: {self._sample_rate_hz}, " \
+               f"sample_interval_s: {self._sample_interval_s}, " \
+               f"sample_interval_std_s: {self._sample_interval_std_s}, " \
+               f"is_sample_rate_fixed: {self._is_sample_rate_fixed}, " \
+               f"timestamps_altered: {self._timestamps_altered}, " \
+               f"use_offset_model: {self._use_offset_model}"
+
     @staticmethod
     def from_dir(
             sensor_name: str,
