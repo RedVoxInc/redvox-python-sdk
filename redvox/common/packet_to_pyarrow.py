@@ -474,14 +474,10 @@ def load_apim_image(packet: RedvoxPacketM) -> Optional[PyarrowSummary]:
     if srupa.__has_sensor(packet, srupa.__IMAGE_FIELD_NAME):
         image_sensor: RedvoxPacketM.Sensors.Image = packet.sensors.image
         timestamps = image_sensor.timestamps.timestamps
-        additional_inputs = packet.station_information.app_settings.additional_input_sensors
-        if RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_SECOND in additional_inputs:
+        if len(timestamps) > 1:
             sample_rate = 1.
-        # elif RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_PACKET in additional_inputs:
         else:
             sample_rate = 1 / srupa.__packet_duration_s(packet)
-        # else:
-        #   sample_rate = np.nan
         return PyarrowSummary(
             image_sensor.sensor_description, srupa.SensorType.IMAGE, np.nan, sample_rate, "",
             len(timestamps), 1./sample_rate, 0., srupa.apim_image_to_pyarrow(image_sensor)
@@ -549,13 +545,10 @@ def load_apim_health(packet: RedvoxPacketM) -> Optional[PyarrowSummary]:
         packet.station_information.station_metrics
     )
     timestamps = metrics.timestamps.timestamps
-    rate = packet.station_information.app_settings.metrics_rate
-    if rate == RedvoxPacketM.StationInformation.MetricsRate.ONCE_PER_SECOND:
+    if len(timestamps) > 1:
         sample_rate = 1
-    elif rate == RedvoxPacketM.StationInformation.MetricsRate.ONCE_PER_PACKET:
-        sample_rate = 1 / srupa.__packet_duration_s(packet)
     else:
-        sample_rate = np.nan
+        sample_rate = 1 / srupa.__packet_duration_s(packet)
     if len(timestamps) > 0:
         return PyarrowSummary(
             "station health", srupa.SensorType.STATION_HEALTH, np.nan, sample_rate, "",
@@ -657,8 +650,6 @@ def load_xyz(
             m_intv = srupa.__packet_duration_s(packet)
             intv_std = 0.
         if len(t) > 0:
-            # read packet.station_information.app_settings.additional_input_sensors for fast sensors
-            # rename if needed
             return PyarrowSummary(
                 sensor.sensor_description, sensor_type, np.nan, np.nan, "",
                 len(t), m_intv, intv_std, srupa.read_apim_xyz_sensor(sensor, field_name)

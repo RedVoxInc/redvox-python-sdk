@@ -20,8 +20,7 @@ from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import packet_to_pyarrow as ptp
 from redvox.common import gap_and_pad_utils as gpu
-from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc,\
-    seconds_to_microseconds as s_to_us
+from redvox.common.date_time_utils import seconds_to_microseconds as s_to_us
 from redvox.common.event_stream import EventStreams
 
 
@@ -119,37 +118,6 @@ class Station:
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
-
-    def __repr__(self):
-        return f"id: {self._id}, " \
-               f"uuid: {self._uuid}, " \
-               f"start_date: {self._start_date}, " \
-               f"use_model_correction: {self._use_model_correction}, " \
-               f"is_timestamps_updated: {self._is_timestamps_updated}, " \
-               f"metadata: {self._metadata.__repr__()}, " \
-               f"packet_metadata: {[p.__repr__() for p in self._packet_metadata]}, " \
-               f"audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, " \
-               f"is_audio_scrambled: {self._is_audio_scrambled}, " \
-               f"timesync: {self._timesync_data.__repr__()}, " \
-               f"event_data: {self._event_data.__repr__()}, " \
-               f"gaps: {[g for g in self._gaps]}"
-        # "data": [d.__repr__() for d in self._data],
-
-    def __str__(self):
-        return f"id: {self._id}, " \
-               f"uuid: {self._uuid}, " \
-               f"start_date: " \
-               f"{datetime_from_epoch_microseconds_utc(self._start_date).strftime('%Y-%m-%dT%H:%M:%S.%fZ')}, " \
-               f"use_model_correction: {self._use_model_correction}, " \
-               f"is_timestamps_updated: {self._is_timestamps_updated}, " \
-               f"metadata: {self._metadata.__str__()}, " \
-               f"audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, " \
-               f"is_audio_scrambled: {self._is_audio_scrambled}, " \
-               f"timesync: {self._timesync_data.__str__()}, " \
-               f"event_data: {self._event_data.__str__()}, " \
-               f"gaps: {[g for g in self._gaps]}"
-        # "packet_metadata": [p.__str__() for p in self._packet_metadata],
-        # "data": [d.__str__() for d in self._data]
 
     def data(self) -> List[sd.SensorData]:
         """
@@ -1303,7 +1271,6 @@ class Station:
             self._gaps = sensor_summaries.gaps
             self._data.append(sd.AudioSensor(first_audio.name, first_audio.data(), first_audio.srate_hz,
                                              1 / first_audio.srate_hz, 0., True,
-                                             use_offset_model_for_correction=self._use_model_correction,
                                              base_dir=self.get_save_dir_sensor(sd.SensorType.AUDIO),
                                              save_data=self._fs_writer.is_save_disk()))
             self.update_first_and_last_data_timestamps()
@@ -1323,7 +1290,6 @@ class Station:
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
-                        use_offset_model_for_correction=self._use_model_correction,
                         base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 else:
                     d, g = gpu.fill_gaps(
@@ -1334,7 +1300,6 @@ class Station:
                             sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
                             sample_interval_std_s=0., is_sample_rate_fixed=True,
-                            use_offset_model_for_correction=self._use_model_correction,
                             base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 self._data.append(new_sensor.class_from_type())
         else:

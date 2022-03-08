@@ -24,12 +24,6 @@ class RedVoxExceptions:
         self._errors: List[RedVoxError] = []
         self._num_errors: int = 0
 
-    def __repr__(self):
-        return str(self.as_dict())
-
-    def __str__(self):
-        return str(self.as_dict())
-
     def get(self) -> List[RedVoxError]:
         """
         :return: the list of errors
