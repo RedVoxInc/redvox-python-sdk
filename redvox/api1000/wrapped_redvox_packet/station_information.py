@@ -198,8 +198,9 @@ class AppSettings(
             audio_sampling_rate, [AudioSamplingRate]
         )
 
-        self.get_proto().audio_sampling_rate = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
-            audio_sampling_rate.name
+        self.get_proto().audio_sampling_rate = \
+            redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSamplingRate.Value(
+                audio_sampling_rate.name
         )
         return self
 
@@ -237,8 +238,9 @@ class AppSettings(
             audio_source_tuning, [AudioSourceTuning]
         )
 
-        self.get_proto().audio_source_tuning = redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
-            audio_source_tuning.name
+        self.get_proto().audio_source_tuning = \
+            redvox_api_m_pb2.RedvoxPacketM.StationInformation.AppSettings.AudioSourceTuning.Value(
+                audio_source_tuning.name
         )
         return self
 

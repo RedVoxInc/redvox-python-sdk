@@ -139,7 +139,6 @@ class StationKey:
         return self.check_key(other_key.id, other_key.uuid, other_key.start_timestamp_micros)
 
 
-# todo add event streams?
 class StationMetadata:
     """
     A container for all the packet metadata consistent across all packets
@@ -192,6 +191,32 @@ class StationMetadata:
             self.is_private = False
             self.packet_duration_s = np.nan
             self.station_description = ""
+
+    def __repr__(self):
+        return f"app: {self.app}, " \
+               f"api: {self.api}, " \
+               f"sub_api: {self.sub_api}, " \
+               f"make: {self.make}, " \
+               f"model: {self.model}, " \
+               f"os: {self.os.value}, " \
+               f"os_version: {self.os_version}, " \
+               f"app_version: {self.app_version}, " \
+               f"is_private: {self.is_private}, " \
+               f"packet_duration_s: {self.packet_duration_s}, " \
+               f"station_description: {self.station_description}"
+
+    def __str__(self):
+        return f"app: {self.app}, " \
+               f"api: {self.api}, " \
+               f"sub_api: {self.sub_api}, " \
+               f"make: {self.make}, " \
+               f"model: {self.model}, " \
+               f"os: {self.os.name}, " \
+               f"os_version: {self.os_version}, " \
+               f"app_version: {self.app_version}, " \
+               f"is_private: {self.is_private}, " \
+               f"packet_duration_s: {self.packet_duration_s}, " \
+               f"station_description: {self.station_description}"
 
     def validate_metadata(self, other_metadata: "StationMetadata") -> bool:
         """
@@ -380,6 +405,24 @@ class StationPacketMetadata:
             self.server_packet_receive_timestamp = np.nan
             self.timing_info_score = np.nan
             self.timing_score_method = TimingScoreMethod["UNKNOWN"]
+
+    def __repr__(self):
+        return f"packet_start_mach_timestamp: {self.packet_start_mach_timestamp}, " \
+               f"packet_end_mach_timestamp: {self.packet_end_mach_timestamp}, " \
+               f"packet_start_os_timestamp: {self.packet_start_os_timestamp}, " \
+               f"packet_end_os_timestamp: {self.packet_end_os_timestamp}, " \
+               f"server_packet_receive_timestamp: {self.server_packet_receive_timestamp}, " \
+               f"timing_info_score: {self.timing_info_score}, " \
+               f"timing_score_method: {self.timing_score_method.value}"
+
+    def __str__(self):
+        return f"packet_start_mach_timestamp: {self.packet_start_mach_timestamp}, " \
+               f"packet_end_mach_timestamp: {self.packet_end_mach_timestamp}, " \
+               f"packet_start_os_timestamp: {self.packet_start_os_timestamp}, " \
+               f"packet_end_os_timestamp: {self.packet_end_os_timestamp}, " \
+               f"server_packet_receive_timestamp: {self.server_packet_receive_timestamp}, " \
+               f"timing_info_score: {self.timing_info_score}, " \
+               f"timing_score_method: {self.timing_score_method.name}"
 
     def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """

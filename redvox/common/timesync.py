@@ -134,6 +134,24 @@ class TimeSync:
             ])
             self._stats_from_exchanges()
 
+    def __repr__(self):
+        return f"best_latency_index: {self._best_latency_index}, " \
+               f"best_latency: {self._best_latency}, " \
+               f"mean_latency: {self._mean_latency}, " \
+               f"latency_std: {self._latency_std}, " \
+               f"best_offset: {self._best_offset}, " \
+               f"mean_offset: {self._mean_offset}, " \
+               f"offset_std: {self._offset_std}"
+
+    def __str__(self):
+        return f"best_latency_index: {self._best_latency_index}, " \
+               f"best_latency: {self._best_latency}, " \
+               f"mean_latency: {self._mean_latency}, " \
+               f"latency_std: {self._latency_std}, " \
+               f"best_offset: {self._best_offset}, " \
+               f"mean_offset: {self._mean_offset}, " \
+               f"offset_std: {self._offset_std}"
+
     def as_dict(self) -> dict:
         """
         :return: TimeSync as a dictionary

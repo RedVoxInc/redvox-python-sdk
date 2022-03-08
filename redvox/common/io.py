@@ -121,6 +121,18 @@ class FileSystemWriter:
         self._save_mode: FileSystemSaveMode = save_mode
         self._temp_dir = tempfile.TemporaryDirectory()
 
+    def __repr__(self):
+        return f"file_name: {self.file_name}, " \
+               f"extension: {self.file_extension}, " \
+               f"base_dir: {self.base_dir}, " \
+               f"save_mode: {self._save_mode.value}"
+
+    def __str__(self):
+        return f"file_name: {self.file_name}, " \
+               f"extension: {self.file_extension}, " \
+               f"base_dir: {self.base_dir}, " \
+               f"save_mode: {self._save_mode.name}"
+
     def is_use_temp(self) -> bool:
         """
         :return: if writing to temp dir
@@ -357,7 +369,8 @@ class IndexEntry:
     date_time: datetime
     extension: str
     api_version: ApiVersion
-    file_size_bytes: int
+    compressed_file_size_bytes: int
+    decompressed_file_size_bytes: int
 
     @staticmethod
     def from_path(path_str: str, strict: bool = True) -> Optional["IndexEntry"]:
@@ -404,14 +417,16 @@ class IndexEntry:
         full_path: str
         try:
             full_path = str(path.resolve(strict=True))
-            file_size = os.path.getsize(full_path) * 8  # decompressed size estimate
+            compressed = os.path.getsize(full_path)
+            decompressed = compressed  # todo: find decompressed value
         except FileNotFoundError:
             if strict:
                 return None
             full_path = path_str
-            file_size = 0
+            compressed = 0
+            decompressed = 0
 
-        return IndexEntry(full_path, station_id, date_time, ext, api_version, file_size)
+        return IndexEntry(full_path, station_id, date_time, ext, api_version, compressed, decompressed)
 
     @staticmethod
     def from_native(entry) -> "IndexEntry":
@@ -421,13 +436,16 @@ class IndexEntry:
         :param entry: A native index entry.
         :return: A python index entry.
         """
+        # todo: read frame size
+        compressed = os.path.getsize(entry.full_path)
         return IndexEntry(
             entry.full_path,
             entry.station_id,
             dt_us(entry.date_time),
             entry.extension,
             ApiVersion.from_str(entry.api_version),
-            os.path.getsize(entry.full_path) * 8,
+            compressed,
+            compressed  # todo: find decompressed value
         )
 
     def to_native(self):
@@ -438,7 +456,7 @@ class IndexEntry:
             self.station_id,
             us_dt(self.date_time),
             self.extension,
-            self.api_version.value,
+            self.api_version.value
         )
         return entry
 
@@ -935,7 +953,7 @@ class Index:
         """
         :return: sum of file size in bytes of index
         """
-        return np.sum([entry.file_size_bytes for entry in self.entries])
+        return np.sum([entry.decompressed_file_size_bytes for entry in self.entries])
 
     def read_contents(self) -> List[RedvoxPacketM]:
         """

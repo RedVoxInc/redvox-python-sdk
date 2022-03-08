@@ -51,6 +51,17 @@ class EventStream:
         if schema is not None:
             self.set_schema(schema)
 
+    def __repr__(self):
+        return f"name: {self.name}, " \
+               f"schema: {self._schema}, " \
+               f"save_mode: {self._fs_writer.save_mode().value}, " \
+               f"is_timestamps_corrected: {self._is_timestamps_corrected}"
+
+    def __str__(self):
+        return f"name: {self.name}, " \
+               f"schema: {self._schema}, " \
+               f"is_timestamps_corrected: {self._is_timestamps_corrected}"
+
     def as_dict(self) -> dict:
         """
         :return: EventStream as a dictionary
@@ -391,10 +402,15 @@ class EventStream:
         :param use_model_function: if True, use the model's slope function to update the timestamps.
                                     otherwise uses the best offset (model's intercept value).  Default False
         """
-        if self._data is not None and self._data.num_rows > 0:
+        if self._is_timestamps_corrected:
+            self._errors.append("Timestamps already corrected!")
+        elif self._data is not None and self._data.num_rows > 0:
             timestamps = pa.array(offset_model.update_timestamps(self._data["timestamps"].to_numpy(),
                                                                  use_model_function))
             self._data.set_column(0, "timestamps", timestamps)
+            self._is_timestamps_corrected = True
+        else:
+            self._errors.append("No timestamps to correct!")
 
     def default_json_file_name(self) -> str:
         """
@@ -571,6 +587,14 @@ class EventStreams:
     save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM
     base_dir: str = "."
     debug: bool = False
+
+    def __repr__(self):
+        return f"streams: {[s.__repr__() for s in self.streams]}, " \
+               f"save_mode: {self.save_mode.value}, " \
+               f"debug: {self.debug}"
+
+    def __str__(self):
+        return str([s.__str__() for s in self.streams])
 
     def list_for_dict(self) -> list:
         """
