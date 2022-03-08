@@ -139,7 +139,6 @@ class StationKey:
         return self.check_key(other_key.id, other_key.uuid, other_key.start_timestamp_micros)
 
 
-# todo add event streams?
 class StationMetadata:
     """
     A container for all the packet metadata consistent across all packets
