@@ -167,3 +167,9 @@ class ApiReaderTest(unittest.TestCase):
             self.assertEqual(result, 2)
             final_result += result
         self.assertEqual(final_result, 4)
+
+    def test_file_size(self):
+        reader = api_reader.ApiReader(self.input_dir)
+        for i in reader.index_summary.station_summaries.values():
+            for s in i.values():
+                self.assertTrue(s.single_packet_decompressed_size_bytes > 0)

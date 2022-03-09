@@ -29,6 +29,7 @@ from typing import (
 import lz4.frame
 
 from redvox.api900.reader import read_rdvxz_file, read_buffer
+from redvox.api900.reader_utils import calculate_uncompressed_size
 from redvox.common import api_conversions as ac
 from redvox.api1000.common.common import check_type
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
@@ -466,7 +467,7 @@ class IndexEntry:
                     header = lz4.frame.get_frame_info(fp.read())
                     self.decompressed_file_size_bytes = header["content_size"]
                 elif self.api_version == ApiVersion.API_900:
-                    self.decompressed_file_size_bytes = len(fp.read())
+                    self.decompressed_file_size_bytes = calculate_uncompressed_size(fp.read())
         return self
 
     def read(self) -> Optional[Union[WrappedRedvoxPacketM, "WrappedRedvoxPacket"]]:
