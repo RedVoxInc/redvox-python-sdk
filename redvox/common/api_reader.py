@@ -85,13 +85,10 @@ class ApiReader:
         self.structured_dir = structured_dir
         self.debug = debug
         self.errors = RedVoxExceptions("APIReader")
-        # todo: compute accurate decompressed file size, somehow
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
-        mem_split_factor = 1
         if len(self.files_index) > 0:
-            if settings.is_parallelism_enabled():
-                mem_split_factor = len(self.files_index)
+            mem_split_factor = len(self.files_index) if settings.is_parallelism_enabled() else 1
             self.chunk_limit = psutil.virtual_memory().available * PERCENT_FREE_MEM_USE / mem_split_factor
             max_file_size = max([fe.decompressed_file_size_bytes for fi in self.files_index for fe in fi.entries])
             if max_file_size > self.chunk_limit:

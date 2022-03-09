@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.1.8 (2022-3-??)
+
+* Added str and repr for DataWindow, Station, and other related objects
+* Added file-size checking functionality when loading data from compressed files
+
 ### 3.1.7 (2022-2-24)
 
 * Fixed bug when validating ids of an empty data window

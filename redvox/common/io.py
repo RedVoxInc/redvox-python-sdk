@@ -369,8 +369,8 @@ class IndexEntry:
     date_time: datetime
     extension: str
     api_version: ApiVersion
-    compressed_file_size_bytes: int
-    decompressed_file_size_bytes: int
+    compressed_file_size_bytes: int = 0
+    decompressed_file_size_bytes: int = 0
 
     @staticmethod
     def from_path(path_str: str, strict: bool = True) -> Optional["IndexEntry"]:
@@ -417,16 +417,12 @@ class IndexEntry:
         full_path: str
         try:
             full_path = str(path.resolve(strict=True))
-            compressed = os.path.getsize(full_path)
-            decompressed = compressed  # todo: find decompressed value
         except FileNotFoundError:
             if strict:
                 return None
             full_path = path_str
-            compressed = 0
-            decompressed = 0
 
-        return IndexEntry(full_path, station_id, date_time, ext, api_version, compressed, decompressed)
+        return IndexEntry(full_path, station_id, date_time, ext, api_version)._set_compressed_decompressed_lz4_size()
 
     @staticmethod
     def from_native(entry) -> "IndexEntry":
@@ -436,17 +432,13 @@ class IndexEntry:
         :param entry: A native index entry.
         :return: A python index entry.
         """
-        # todo: read frame size
-        compressed = os.path.getsize(entry.full_path)
         return IndexEntry(
             entry.full_path,
             entry.station_id,
             dt_us(entry.date_time),
             entry.extension,
-            ApiVersion.from_str(entry.api_version),
-            compressed,
-            compressed  # todo: find decompressed value
-        )
+            ApiVersion.from_str(entry.api_version)
+        )._set_compressed_decompressed_lz4_size()
 
     def to_native(self):
         import redvox_native
@@ -459,6 +451,23 @@ class IndexEntry:
             self.api_version.value
         )
         return entry
+
+    def _set_compressed_decompressed_lz4_size(self):
+        """
+        set the compressed and decompressed file size in bytes of an lz4 file being read by the IndexEntry.
+        default is 0 for both file sizes
+
+        :return: updated self
+        """
+        if os.path.exists(self.full_path):
+            self.compressed_file_size_bytes = os.path.getsize(self.full_path)
+            with open(self.full_path, "rb") as fp:
+                if self.api_version == ApiVersion.API_1000:
+                    header = lz4.frame.get_frame_info(fp.read())
+                    self.decompressed_file_size_bytes = header["content_size"]
+                elif self.api_version == ApiVersion.API_900:
+                    self.decompressed_file_size_bytes = len(fp.read())
+        return self
 
     def read(self) -> Optional[Union[WrappedRedvoxPacketM, "WrappedRedvoxPacket"]]:
         """
@@ -713,6 +722,7 @@ class IndexStationSummary:
     total_packets: int
     first_packet: datetime
     last_packet: datetime
+    single_packet_decompressed_size_bytes: int
 
     @staticmethod
     def from_entry(entry: IndexEntry) -> "IndexStationSummary":
@@ -728,6 +738,7 @@ class IndexStationSummary:
             1,
             first_packet=entry.date_time,
             last_packet=entry.date_time,
+            single_packet_decompressed_size_bytes=entry.decompressed_file_size_bytes
         )
 
     def update(self, entry: IndexEntry) -> None:
@@ -862,7 +873,7 @@ class Index:
         entries: List[IndexEntry] = list(
             map(IndexEntry.from_native, index_native.entries)
         )
-        return Index(entries)
+        return Index(entries)._set_decompressed_file_size()
 
     def to_native(self):
         import redvox_native
@@ -870,6 +881,35 @@ class Index:
         native_index = redvox_native.Index()
         native_index.entries = list(map(IndexEntry.to_native, self.entries))
         return native_index
+
+    def max_decompressed_file_size(self) -> int:
+        """
+        :return: the maximum decompressed file size in the entries
+        """
+        return max([fi.decompressed_file_size_bytes for fi in self.entries]) if len(self.entries) > 0 else np.nan
+
+    def get_decompressed_file_size(self) -> int:
+        """
+        :return: the decompressed size of the first file in the list of entries
+        """
+        if len(self.entries) == 0:
+            return np.nan
+        if self.entries[0].decompressed_file_size_bytes == 0 and os.path.exists(self.entries[0].full_path):
+            with lz4.frame.open(self.entries[0].full_path, 'rb') as fr:
+                return len(fr.read())
+        return self.entries[0].decompressed_file_size_bytes
+
+    def _set_decompressed_file_size(self) -> "Index":
+        """
+        updates the decompressed size of all entries if the maximum decompressed size is 0, otherwise makes no changes
+
+        :return: updated self
+        """
+        if self.max_decompressed_file_size() == 0:
+            new_size = self.get_decompressed_file_size()
+            for ie in self.entries:
+                ie.decompressed_file_size_bytes = new_size
+        return self
 
     def sort(self) -> None:
         """
@@ -887,6 +927,7 @@ class Index:
         :param entries: Entries to append.
         """
         self.entries.extend(entries)
+        self._set_decompressed_file_size()
 
     def summarize(self) -> IndexSummary:
         """
@@ -953,7 +994,7 @@ class Index:
         """
         :return: sum of file size in bytes of index
         """
-        return np.sum([entry.decompressed_file_size_bytes for entry in self.entries])
+        return float(np.sum([entry.decompressed_file_size_bytes for entry in self.entries]))
 
     def read_contents(self) -> List[RedvoxPacketM]:
         """
