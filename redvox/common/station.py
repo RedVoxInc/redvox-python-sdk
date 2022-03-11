@@ -1543,8 +1543,8 @@ class Station:
             "packet_metadata": [p.as_dict() for p in self._packet_metadata],
             "gaps": self._gaps,
             "errors": self._errors.as_dict(),
-            "sensors": [s.type().name for s in self._data],
-            "event_data": self._event_data.list_for_dict()
+            "sensors": [s.type().name for s in self._data]
+            # "event_data": self._event_data.as_dict()
         }
 
     def default_station_json_file_name(self) -> str:
@@ -1599,7 +1599,8 @@ class Station:
                 result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
             ts_file_name = io.get_json_file(os.path.join(file_dir, "timesync"))
             result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, "timesync", ts_file_name)))
-            result.set_event_data(EventStreams.from_dir(os.path.join(file_dir, "events"), json_data["event_data"]))
+            ev_file_name = io.get_json_file(os.path.join(file_dir, "events"))
+            result.set_event_data(EventStreams.from_json_file(os.path.join(file_dir, "events"), ev_file_name))
             result.update_first_and_last_data_timestamps()
         else:
             result = Station()

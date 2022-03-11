@@ -8,26 +8,33 @@ class EventStreamTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.input_dir = tests.TEST_DATA_DIR
-        cls.eventstream = es.EventStream("testevent")
-        cls.realstream = es.EventStream("testreal")
-
-    def test_schema(self):
-        self.assertEqual(self.eventstream.get_schema(), {"string": [], "numeric": [], "boolean": [], "byte": []})
-        self.assertEqual(self.eventstream.get_string_schema(), [])
-        self.assertEqual(self.eventstream.get_numeric_schema(), [])
-        self.assertEqual(self.eventstream.get_boolean_schema(), [])
-        self.assertEqual(self.eventstream.get_byte_schema(), [])
+        cls.eventstream = es.Event(0, "testevent")
+        cls.realstream = es.Event(0, "testreal")
 
     def test_get_values(self):
-        self.assertEqual(self.eventstream.get_string_values().to_pydict(), {})
-        self.assertEqual(self.eventstream.get_numeric_values().to_pydict(), {})
-        self.assertEqual(self.eventstream.get_boolean_values().to_pydict(), {})
-        self.assertEqual(self.eventstream.get_byte_values().to_pydict(), {})
+        self.assertEqual(self.eventstream.get_string_values(), {})
+        self.assertEqual(self.eventstream.get_numeric_values(), {})
+        self.assertEqual(self.eventstream.get_boolean_values(), {})
+        self.assertEqual(self.eventstream.get_byte_values(), {})
 
     def test_get_columns(self):
         self.assertEqual(len(self.eventstream.get_string_column("fail")), 0)
-        self.assertTrue(self.eventstream.errors().get_num_errors() > 0)
+
+    def test_get_classification(self):
+        self.assertEqual(len(self.eventstream.get_classification(0)), 0)
+
+    def test_get_string_item(self):
+        self.assertEqual(self.eventstream.get_string_item("fail"), None)
+
+    def test_get_numeric_item(self):
+        self.assertEqual(self.eventstream.get_numeric_item("fail"), None)
+
+    def test_get_boolean_item(self):
+        self.assertEqual(self.eventstream.get_boolean_item("fail"), None)
+
+    def test_get_byte_item(self):
+        self.assertEqual(self.eventstream.get_byte_item("fail"), None)
 
     def test_get_timestamps(self):
-        self.assertEqual(len(self.eventstream.timestamps()), 0)
-        self.assertEqual(len(self.eventstream.unaltered_timestamps()), 0)
+        self.assertEqual(self.eventstream.get_timestamp(), 0)
+        self.assertEqual(self.eventstream.get_uncorrected_timestamp(), 0)

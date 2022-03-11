@@ -49,7 +49,7 @@ def to_json_file(station: "Station",
 
     # ev_dir = os.path.join(station.save_dir(), "events")
     os.makedirs(station.event_data().base_dir, exist_ok=True)
-    station.event_data().save_streams()
+    station.event_data().to_json_file()
 
     file_path: Path = Path(station.save_dir()).joinpath(station.fs_writer().json_file_name())
     with open(file_path, "w") as f_p:
