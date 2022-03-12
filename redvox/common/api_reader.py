@@ -95,8 +95,12 @@ class ApiReader:
                 raise MemoryError(f"System requires {max_file_size} bytes of memory to process a file but only has "
                                   f"{self.chunk_limit} available.  Please free or add more RAM.")
             if debug:
-                print(f"{mem_split_factor} stations each have {int(self.chunk_limit)} bytes for loading files in "
-                      f"memory.")
+                if mem_split_factor == 1:
+                    print(f"{len(self.files_index)} stations have {int(self.chunk_limit)} "
+                          f"bytes for loading files in memory.")
+                else:
+                    print(f"{mem_split_factor} stations each have "
+                          f"{int(self.chunk_limit)} bytes for loading files in memory.")
         else:
             self.chunk_limit = 0
 

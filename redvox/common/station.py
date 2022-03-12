@@ -115,7 +115,7 @@ class Station:
         else:
             save_mode = FileSystemSaveMode.MEM
         self._fs_writer = Fsw("", "", base_dir, save_mode)
-        self._event_data = EventStreams(save_mode=save_mode)
+        self._event_data = EventStreams()
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
@@ -1315,7 +1315,8 @@ class Station:
                     for i in range(1, len(sdata)):
                         data_table = pa.concat_tables([data_table, sdata[i].data()])
                 if np.isnan(sdata[0].srate_hz):
-                    smnint = float(np.mean(np.diff(data_table["timestamps"].to_numpy())))
+                    timestamps = data_table["timestamps"].to_numpy()
+                    smnint = float(np.mean(np.diff(timestamps))) if len(timestamps) > 1 else np.nan
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,

@@ -7,6 +7,7 @@ from glob import glob
 import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
+import pyarrow.compute as pc
 from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 
@@ -261,33 +262,41 @@ class AggregateSummary:
                     smrs_dict[smry.stype] = [smry]
         self.summaries = self.get_audio()
         for styp, smrys in smrs_dict.items():
-            first_summary = smrys.pop(0)
-            tbl = first_summary.data()
-            combined_mint = np.mean([smrs.smint_s for smrs in smrys])
-            combined_std = np.mean([smrs.sstd_s for smrs in smrys])
-            if not first_summary.check_data():
-                os.makedirs(first_summary.fdir, exist_ok=True)
-            for smrs in smrys:
-                tbl = pa.concat_tables([tbl, smrs.data()])
+            if len(smrys) > 0:
+                combined_mint = np.mean([smrs.smint_s for smrs in smrys])
+                combined_std = np.mean([smrs.sstd_s for smrs in smrys])
+                first_summary = smrys.pop(0)
+                tbl = first_summary.data()
                 if not first_summary.check_data():
-                    os.remove(smrs.file_name())
-            if first_summary.check_data():
-                first_summary._data = tbl
-            else:
-                pq.write_table(tbl, first_summary.file_name())
-            mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl["timestamps"].to_numpy()))))
-            stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl["timestamps"].to_numpy()))))
-            if not combined_mint + combined_std > mnint > combined_mint - combined_std:
-                self.errors.append(f"Mean interval s of combined {styp.name} sensor does not match the "
-                                   f"compilation of individual mean interval s per packet.  Will use compilation of "
-                                   f"individual values.")
-                mnint = combined_mint
-                stdint = combined_std
-            single_smry = PyarrowSummary(first_summary.name, styp, first_summary.start,
-                                         1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
-                                         first_summary.data() if first_summary.check_data() else None
-                                         )
-            self.summaries.append(single_smry)
+                    os.makedirs(first_summary.fdir, exist_ok=True)
+                for smrs in smrys:
+                    tbl = pa.concat_tables([tbl, smrs.data()])
+                    if not first_summary.check_data():
+                        os.remove(smrs.file_name())
+                if first_summary.check_data():
+                    first_summary._data = tbl
+                else:
+                    pq.write_table(tbl, first_summary.file_name())
+                # sort data by timestamps
+                tbl = pc.take(tbl, pc.sort_indices(tbl, sort_keys=[("timestamps", "ascending")]))
+                timestamps = tbl["timestamps"].to_numpy()
+                if len(timestamps) > 1:
+                    mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+                    stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+                else:
+                    mnint = np.nan
+                    stdint = np.nan
+                if not combined_mint + combined_std > mnint > combined_mint - combined_std:
+                    self.errors.append(f"Mean interval s of combined {styp.name} sensor does not match the "
+                                       f"compilation of individual mean interval s per packet.  Will use compilation "
+                                       f"of individual values.")
+                    mnint = combined_mint
+                    stdint = combined_std
+                single_smry = PyarrowSummary(first_summary.name, styp, first_summary.start,
+                                             1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                                             first_summary.data() if first_summary.check_data() else None
+                                             )
+                self.summaries.append(single_smry)
 
     def merge_summaries_of_type(self, stype: SensorType):
         """

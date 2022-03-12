@@ -91,7 +91,7 @@ class Event:
         return f"name: {self.name}, " \
                f"timestamp: {self._timestamp}, " \
                f"uncorrected_timestamp: {self._uncorrected_timestamp}, " \
-               f"schema: {self.get_schema()}"
+               f"schema: {self.__schema_as_str()}"
 
     def as_dict(self) -> dict:
         """
@@ -112,6 +112,14 @@ class Event:
                 EventDataTypes.BOOLEAN.name: self.get_boolean_values(),
                 EventDataTypes.BYTE.name: self.get_byte_values()
                 }
+
+    def __schema_as_str(self) -> str:
+        result = ""
+        for f in self._data.keys():
+            result += f"{f.name}: {list(self._data[f].keys())}"
+            if f != EventDataTypes.BYTE:
+                result += ", "
+        return result
 
     @staticmethod
     def __get_items(payload: Mapping[str]):
@@ -593,33 +601,22 @@ class EventStream:
         sample_rate_std_hz: float; std deviation of the sample rate.  Default 0.0
 
         metadata: Dict[str, str]; metadata as dict of strings.  Default empty dict
-
-        save_mode: FileSystemSaveMode; controls how data is saved.  Default FileSystemSaveMode.MEM
-
-        base_dir: string; directory where data will be saved to, if saving is enabled.  Default "."
-
-        debug: bool; if True, output additional information during runtime.  Default False
     """
     name: str = "stream"
     events: List[Event] = field(default_factory=lambda: [])
     sample_rate_hz: float = np.nan
     sample_rate_std_hz: float = 0.0
     metadata: Dict[str, str] = field(default_factory=lambda: {})
-    save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM
-    base_dir: str = "."
-    debug: bool = False
 
     def __repr__(self):
         return f"name: {self.name}, " \
                f"events: {[s.__repr__() for s in self.events]}, " \
                f"sample_rate_hz: {self.sample_rate_hz}, " \
-               f"sample_rate_std_hz: {self.sample_rate_std_hz}, " \
-               f"save_mode: {self.save_mode.value}, " \
-               f"debug: {self.debug}"
+               f"sample_rate_std_hz: {self.sample_rate_std_hz}"
 
     def __str__(self):
         return f"name: {self.name}, " \
-               f"{[s.__str__() for s in self.events]}, " \
+               f"events: {[s.__str__() for s in self.events]}, " \
                f"sample_rate_hz: {self.sample_rate_hz}, " \
                f"sample_rate_std_hz: {self.sample_rate_std_hz}"
 
@@ -632,8 +629,7 @@ class EventStream:
             "events": [e.as_dict() for e in self.events],
             "sample_rate_hz": self.sample_rate_hz,
             "sample_rate_std_hz": self.sample_rate_std_hz,
-            "metadata": self.metadata,
-            "base_dir": self.base_dir
+            "metadata": self.metadata
         }
 
     def has_data(self):
@@ -644,53 +640,57 @@ class EventStream:
 
     def get_event(self, index: int = 0) -> Optional[Event]:
         """
-        :param index: index of event to get; default 0 (first event)
-        :return: Event at the index, or None if the event doesn't exist
+        :param index: index of event to get.  Use non-negative values only.  Default 0 (first event)
+        :return: Event at the index, or None if the event/index doesn't exist
         """
-        if index > len(self.events) or index < 0:
+        if index >= len(self.events) or index < 0:
             return None
         return self.events[index]
 
     @staticmethod
     def from_eventstream(stream: RedvoxPacketM.EventStream,
                          save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
-                         base_dir: str = ".",
-                         debug: bool = False) -> 'EventStream':
+                         base_dir: str = ".") -> 'EventStream':
         """
         convert a Redvox Api1000 Packet EventStream into its sdk version
 
         :param stream: Redvox Api1000 Packet EventStream to read data from
-        :param save_mode: FileSystemSaveMode that determines how data is saved.
+        :param save_mode: FileSystemSaveMode that determines how Event data is saved.
                             Default FileSystemSaveMode.MEM (use RAM).  Other options are DISK (save to directory)
                             and TEMP (save to temporary directory)
-        :param base_dir: the location of the parquet file that holds the data.  Not used if save_data is False.
+        :param base_dir: the location of the parquet file that holds the Event data.  Not used if save_data is False.
                             Default current directory (".")
-        :param debug: if True, output additional information during run time.  Default False
         :return: EventStream (sdk version)
         """
         result = EventStream(stream.name, sample_rate_hz=stream.timestamps.mean_sample_rate,
                              sample_rate_std_hz=stream.timestamps.stdev_sample_rate,
-                             metadata=dict(stream.metadata),
-                             save_mode=save_mode,
-                             base_dir=base_dir,
-                             debug=debug
+                             metadata=dict(stream.metadata)
                              )
-        result.add_events(stream)
+        result.add_events(stream,
+                          save_mode=save_mode,
+                          base_dir=base_dir)
         return result
 
-    def add_events(self, stream: RedvoxPacketM.EventStream):
+    def add_events(self, stream: RedvoxPacketM.EventStream,
+                   save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
+                   base_dir: str = "."):
         """
         add events from a Redvox Api1000 Packet EventStream with the same name.
         Does nothing if names do not match
 
         :param stream: stream of events to add
+        :param save_mode: FileSystemSaveMode that determines how Event data is saved.
+                            Default FileSystemSaveMode.MEM (use RAM).  Other options are DISK (save to directory)
+                            and TEMP (save to temporary directory)
+        :param base_dir: the location of the parquet file that holds the Event data.  Not used if save_data is False.
+                            Default current directory (".")
         """
         if self.name == stream.name:
             timestamps = stream.timestamps.timestamps
             events = stream.events
             for i in range(len(timestamps)):
-                self.events.append(Event(timestamps[i], save_mode=self.save_mode,
-                                         base_dir=self.base_dir).read_raw(events[i]))
+                self.events.append(Event(timestamps[i], save_mode=save_mode,
+                                         base_dir=base_dir).read_raw(events[i]))
 
     def sort_events(self, asc: bool = True):
         """
@@ -713,7 +713,8 @@ class EventStream:
         note: use the function set_save_dir() to change where events are saved
         """
         for e in self.events:
-            e.to_json_file()
+            if e.is_save_to_disk():
+                e.to_json_file()
 
     def set_save_dir(self, new_dir: str):
         """
@@ -721,7 +722,6 @@ class EventStream:
 
         :param new_dir: new directory path
         """
-        self.base_dir = new_dir
         for e in self.events:
             e.set_save_dir(new_dir)
 
@@ -753,8 +753,7 @@ class EventStream:
         """
         if "name" in json_dict.keys():
             result = EventStream(json_dict["name"], [Event.from_json_dict(e) for e in json_dict["events"]],
-                                 json_dict["sample_rate_hz"], json_dict["sample_rate_std_hz"], json_dict["metadata"],
-                                 FileSystemSaveMode.DISK)
+                                 json_dict["sample_rate_hz"], json_dict["sample_rate_std_hz"], json_dict["metadata"])
         else:
             result = EventStream("Empty Stream; no name for identification")
         return result
@@ -763,15 +762,15 @@ class EventStream:
     def from_json_file(file_dir: str, file_name: str) -> "EventStream":
         """
         :param file_dir: full path to containing directory for the file
-        :param file_name: name of fileto load data from
+        :param file_name: name of file to load data from
         :return: EventStream from json file
         """
         json_data = io.json_file_to_dict(os.path.join(file_dir, f"{file_name}"))
         if "name" in json_data.keys():
             result = EventStream(json_data["name"], json_data["events"], json_data["sample_rate_hz"],
-                                 json_data["sample_rate_std_hz"], json_data["metadata"],
-                                 FileSystemSaveMode.DISK,
-                                 file_dir)
+                                 json_data["sample_rate_std_hz"], json_data["metadata"])
+            result.set_save_mode(FileSystemSaveMode.DISK)
+            result.set_save_dir(file_dir)
         else:
             result = EventStream("Empty Stream; no name for identification")
         return result
@@ -806,20 +805,13 @@ class EventStreams:
     Properties:
         streams: List[EventStream]; list of all EventStream.  Default empty list
 
-        save_mode: FileSystemSaveMode; controls how data is saved.  Default FileSystemSaveMode.MEM
-
-        base_dir: string; directory where data will be saved to, if saving is enabled.  Default "."
-
         debug: bool; if True, output additional information during runtime.  Default False
     """
     streams: List[EventStream] = field(default_factory=lambda: [])
-    save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM
-    base_dir: str = "."
     debug: bool = False
 
     def __repr__(self):
         return f"streams: {[s.__repr__() for s in self.streams]}, " \
-               f"save_mode: {self.save_mode.value}, " \
                f"debug: {self.debug}"
 
     def __str__(self):
@@ -906,7 +898,6 @@ class EventStreams:
 
         :param new_dir: new directory path
         """
-        self.base_dir = new_dir
         for s in self.streams:
             s.set_save_dir(new_dir)
 
@@ -939,8 +930,8 @@ class EventStreams:
         """
         json_data = io.json_file_to_dict(os.path.join(file_dir, f"{file_name}"))
         if "streams" in json_data.keys():
-            result = EventStreams([EventStream.from_json_dict(s) for s in json_data["streams"]],
-                                  FileSystemSaveMode.DISK)
+            result = EventStreams([EventStream.from_json_dict(s) for s in json_data["streams"]])
+            result.set_save_mode(FileSystemSaveMode.DISK)
             result.set_save_dir(file_dir)
         else:
             result = EventStreams()

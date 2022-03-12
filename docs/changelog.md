@@ -1,9 +1,10 @@
 ## Changelog
 
-### 3.1.8 (2022-3-??)
+### 3.1.8 (2022-3-14)
 
 * Added str and repr for DataWindow, Station, and other related objects
 * Added file-size checking functionality when loading data from compressed files
+* Updated Event functions to operate on multiple classifications per event
 
 ### 3.1.7 (2022-2-24)
 
