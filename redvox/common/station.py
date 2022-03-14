@@ -284,7 +284,7 @@ class Station:
         self._timesync_data.arrow_file = \
             f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
         all_summaries = ptp.AggregateSummary()
-        self._event_data.base_dir = os.path.join(self.save_dir(), "events")
+        self._event_data.set_save_dir(os.path.join(self.save_dir(), "events"))
         for idx in indexes:
             pkts = idx.read_contents()
             self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
@@ -363,7 +363,7 @@ class Station:
             self._set_pyarrow_sensors(summaries)
             if self._correct_timestamps:
                 self.update_timestamps()
-            self._event_data.base_dir = os.path.join(self.save_dir(), "events")
+            self._event_data.set_save_dir(os.path.join(self.save_dir(), "events"))
             self._event_data.read_from_packets_list(packets)
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
@@ -1281,6 +1281,12 @@ class Station:
         :param data: EventStreams object to set
         """
         self._event_data = data
+
+    def get_event_data_dir(self) -> str:
+        """
+        :return: the station's event data directory
+        """
+        return os.path.join(self.save_dir(), "events")
 
     def _get_id_key(self) -> str:
         """

@@ -54,11 +54,13 @@ def eventstream_to_json(event_stream: "EventStream", ) -> str:
 
 
 def eventstream_to_json_file(event_stream: "EventStream",
+                             file_dir: str = ".",
                              file_name: Optional[str] = None) -> Path:
     """
     saves the EventStream as json and data in the same directory.
 
     :param event_stream: EventStream to save
+    :param file_dir: the directory to save the file into.  default current directory (".")
     :param file_name: the optional base file name.  Do not include a file extension.
                         If None, uses the default eventstream_[eventstream.name].json
     :return: path to json file
@@ -69,7 +71,7 @@ def eventstream_to_json_file(event_stream: "EventStream",
         else f"eventstream_{event_stream.name}"
     )
 
-    file_path: Path = Path(os.path.join(event_stream.base_dir, f"{_file_name}.json"))
+    file_path: Path = Path(os.path.join(file_dir, f"{_file_name}.json"))
     with open(file_path, "w") as f_p:
         f_p.write(eventstream_to_json(event_stream))
         return file_path.resolve(False)
@@ -83,11 +85,13 @@ def eventstreams_to_json(event_streams: "EventStreams", ) -> str:
 
 
 def eventstreams_to_json_file(event_streams: "EventStreams",
+                              file_dir: str = ".",
                               file_name: Optional[str] = None) -> Path:
     """
     saves the EventStreams as json and data in the same directory.
 
     :param event_streams: EventStreams to save
+    :param file_dir: the directory to save the file into.  default current directory (".")
     :param file_name: the optional base file name.  Do not include a file extension.
                         If None, uses the default eventstreams.json
     :return: path to json file
@@ -98,7 +102,7 @@ def eventstreams_to_json_file(event_streams: "EventStreams",
         else "eventstreams"
     )
 
-    file_path: Path = Path(os.path.join(event_streams.base_dir, f"{_file_name}.json"))
+    file_path: Path = Path(os.path.join(file_dir, f"{_file_name}.json"))
     with open(file_path, "w") as f_p:
         f_p.write(eventstreams_to_json(event_streams))
         return file_path.resolve(False)

@@ -775,16 +775,17 @@ class EventStream:
             result = EventStream("Empty Stream; no name for identification")
         return result
 
-    def to_json_file(self, file_name: Optional[str] = None) -> Path:
+    def to_json_file(self, file_dir: str = ".", file_name: Optional[str] = None) -> Path:
         """
         saves the EventStream as a json file
 
+        :param file_dir: the directory to save the file into.  default current directory (".")
         :param file_name: the optional base file name.  Do not include a file extension.
                             If None, a default file name is created using this format:
                             eventstream_[eventstream.name].json
         :return: path to json file
         """
-        return io.eventstream_to_json_file(self, file_name)
+        return io.eventstream_to_json_file(self, file_dir, file_name)
 
     def print_errors(self):
         """
@@ -937,13 +938,14 @@ class EventStreams:
             result = EventStreams()
         return result
 
-    def to_json_file(self, file_name: Optional[str] = None) -> Path:
+    def to_json_file(self, file_dir: str = ".", file_name: Optional[str] = None) -> Path:
         """
         saves the EventStream as a json file
 
+        :param file_dir: the directory to save the file into.  default current directory (".")
         :param file_name: the optional base file name.  Do not include a file extension.
                             If None, a default file name is created using this format:
                             eventstreams.json
         :return: path to json file
         """
-        return io.eventstreams_to_json_file(self, file_name)
+        return io.eventstreams_to_json_file(self, file_dir, file_name)
