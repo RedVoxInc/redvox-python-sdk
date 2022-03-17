@@ -94,7 +94,7 @@ class PyarrowSummary:
 
         sstd: float, std dev of sample rate in seconds
 
-        data: optional data as a Pyarrow Table
+        _data: optional data as a Pyarrow Table
     """
     name: str
     stype: srupa.SensorType
