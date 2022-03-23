@@ -243,6 +243,11 @@ def offset_weighted_linear_regression(
 
     if all(np.isnan(latencies)):
         return 0.0, 0.0, 0.0
+    else:
+        # remove nan values for sklearn sake
+        times = times[~np.isnan(latencies)]
+        offsets = offsets[~np.isnan(latencies)]
+        latencies = latencies[~np.isnan(latencies)]
 
     # Compute the weights for the linear regression by the latencies
     latencies_ms = latencies / 1e3
@@ -311,7 +316,7 @@ def get_binned_df(
         n_smallest = select_df.nsmallest(n_samples, "latencies")
 
         # append the n_smallest entries
-        binned_df = binned_df.append(n_smallest)
+        binned_df = pd.concat([binned_df, n_smallest])
 
     # Sort the binned_df by time
     binned_df = binned_df.sort_values(by=["times"])

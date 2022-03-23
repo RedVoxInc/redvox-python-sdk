@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.1.9 (2022-3-23)
+
+* Fixed error when loading nan latencies in offset model
+* Updated numpy (1.22.0), scipy (1.8.0), and pandas (1.4.1) requirements
+
 ### 3.1.8 (2022-3-14)
 
 * Added str and repr for DataWindow, Station, and other related objects
