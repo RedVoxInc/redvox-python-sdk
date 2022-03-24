@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.1.10 (2022-3-23)
+
+* numpy dependency to 1.21 for compatibility purposes
+
 ### 3.1.9 (2022-3-23)
 
 * Fixed error when loading nan latencies in offset model
