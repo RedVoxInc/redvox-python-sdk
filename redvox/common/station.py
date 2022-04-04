@@ -136,10 +136,12 @@ class Station:
         # "data": [d.__repr__() for d in self._data],
 
     def __str__(self):
+        start_date = np.nan if np.isnan(self._start_date) \
+            else datetime_from_epoch_microseconds_utc(self._start_date).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         return f"id: {self._id}, " \
                f"uuid: {self._uuid}, " \
                f"start_date: " \
-               f"{datetime_from_epoch_microseconds_utc(self._start_date).strftime('%Y-%m-%dT%H:%M:%S.%fZ')}, " \
+               f"{start_date}, " \
                f"use_model_correction: {self._use_model_correction}, " \
                f"is_timestamps_updated: {self._is_timestamps_updated}, " \
                f"metadata: {self._metadata.__str__()}, " \
@@ -1506,7 +1508,7 @@ class Station:
         """
         if self._is_timestamps_updated:
             self._errors.append("Timestamps already corrected!")
-        else:
+        elif self._correct_timestamps:
             self._start_date = self._timesync_data.offset_model().update_time(
                 self._start_date, self._use_model_correction
             )
@@ -1529,6 +1531,8 @@ class Station:
             self.update_first_and_last_data_timestamps()
             self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
             self._is_timestamps_updated = True
+        else:
+            self._errors.append("Attempted to correct timestamps, but correction not enabled.")
         return self
 
     def as_dict(self) -> dict:

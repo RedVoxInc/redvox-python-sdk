@@ -257,8 +257,8 @@ def fill_audio_gaps2(
                 num_samples = samples_in_packet * (num_packets + 1)
             else:
                 num_samples = np.max([np.floor((fractional_packet + num_packets) * samples_in_packet), 1])
-            start_ts = last_data_timestamp + (num_samples * sample_interval_micros) + sample_interval_micros
-            gaps.append((last_data_timestamp, start_ts))
+            gaps.append((last_data_timestamp,
+                         last_data_timestamp + (num_samples * sample_interval_micros) + sample_interval_micros))
         elif last_timestamp_diff < -gap_lower_limit * packet_length:
             result.add_error(f"Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} "
                              f"is before last timestamp of previous "

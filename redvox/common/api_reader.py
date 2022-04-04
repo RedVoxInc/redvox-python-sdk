@@ -3,7 +3,7 @@ Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 """
 from typing import List, Optional
-from datetime import timedelta
+from datetime import timedelta, datetime
 import multiprocessing
 import multiprocessing.pool
 
@@ -12,10 +12,9 @@ import psutil
 
 import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
-from redvox.common import offset_model
-from redvox.common import api_conversions as ac
-from redvox.common import io
-from redvox.common import file_statistics as fs
+from redvox.common import offset_model, io,\
+    api_conversions as ac,\
+    file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.errors import RedVoxExceptions
@@ -167,6 +166,29 @@ class ApiReader:
             _pool.close()
         return index
 
+    def _redo_index(self, station_ids: set, new_start: datetime, new_end: datetime):
+        """
+        Redo the index for files using new start and end dates.  removes any buffer time at the start and end of the
+        new query.  Returns the updated index or None
+
+        :param station_ids: set of ids to get
+        :param new_start: new start time to get data from
+        :param new_end: new end time to get data from
+        :return: Updated index or None
+        """
+        diff_s = diff_e = timedelta(seconds=0)
+        new_index = self._apply_filter(io.ReadFilter()
+                                       .with_start_dt(new_start)
+                                       .with_end_dt(new_end)
+                                       .with_extensions(self.filter.extensions)
+                                       .with_api_versions(self.filter.api_versions)
+                                       .with_station_ids(station_ids)
+                                       .with_start_dt_buf(diff_s)
+                                       .with_end_dt_buf(diff_e))
+        if len(new_index.entries) > 0:
+            return new_index
+        return None
+
     def _check_station_stats(
             self,
             station_index: io.Index,
@@ -197,43 +219,29 @@ class ApiReader:
         if timing_offsets is None:
             return [station_index]
 
-        diff_s = diff_e = timedelta(seconds=0)
-
         # if our filtered files do not encompass the request even when the packet times are updated
         # try getting 1.5 times the difference of the expected start/end and the start/end of the data
         insufficient_str = ""
-        if self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt:
+        if (self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt) or \
+                (self.filter.end_dt and timing_offsets.adjusted_start >= self.filter.end_dt):
             insufficient_str += f" {self.filter.start_dt} (start)"
-            # diff_s = self.filter.start_dt_buf + 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
             new_end = self.filter.start_dt - self.filter.start_dt_buf
             new_start = new_end - 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
-            new_index = self._apply_filter(io.ReadFilter()
-                                           .with_start_dt(new_start)
-                                           .with_end_dt(new_end)
-                                           .with_extensions(self.filter.extensions)
-                                           .with_api_versions(self.filter.api_versions)
-                                           .with_station_ids(set(station_index.summarize().station_ids()))
-                                           .with_start_dt_buf(diff_s)
-                                           .with_end_dt_buf(diff_e))
-            if len(new_index.entries) > 0:
+            new_index = self._redo_index(set(station_index.summarize().station_ids()), new_start, new_end)
+            if new_index:
                 station_index.append(new_index.entries)
                 stats.extend(fs.extract_stats(new_index))
-        if self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt:
+
+        if (self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt) or \
+                (self.filter.start_dt and timing_offsets.adjusted_end <= self.filter.start_dt):
             insufficient_str += f" {self.filter.end_dt} (end)"
-            # diff_e = self.filter.end_dt_buf + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
             new_start = self.filter.end_dt + self.filter.end_dt_buf
             new_end = new_start + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
-            new_index = self._apply_filter(io.ReadFilter()
-                                           .with_start_dt(new_start)
-                                           .with_end_dt(new_end)
-                                           .with_extensions(self.filter.extensions)
-                                           .with_api_versions(self.filter.api_versions)
-                                           .with_station_ids(set(station_index.summarize().station_ids()))
-                                           .with_start_dt_buf(diff_s)
-                                           .with_end_dt_buf(diff_e))
-            if len(new_index.entries) > 0:
+            new_index = self._redo_index(set(station_index.summarize().station_ids()), new_start, new_end)
+            if new_index:
                 station_index.append(new_index.entries)
                 stats.extend(fs.extract_stats(new_index))
+
         if len(insufficient_str) > 0:
             self.errors.append(f"Data for {station_index.summarize().station_ids()} exists, "
                                f"but not at:{insufficient_str}")

@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.1.11 (2022-??-??)
+
+* fixed error when printing Stations with np.nan as start date
+* fixed DataWindow automatically correcting Station timestamps when correction flag is set to False
+* updated data checking function to recognize retrieved data that was completely outside the requested period
+
 ### 3.1.10 (2022-3-23)
 
 * numpy dependency to 1.21 for compatibility purposes

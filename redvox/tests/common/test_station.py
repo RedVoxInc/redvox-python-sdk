@@ -133,6 +133,7 @@ class StationTest(unittest.TestCase):
         updated_station = self.api900_station
         self.assertEqual(updated_station.first_data_timestamp(),
                          updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
+        updated_station.set_correct_timestamps()
         updated_station.update_timestamps()
         self.assertNotEqual(updated_station.first_data_timestamp(),
                             updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])

@@ -716,7 +716,7 @@ class DataWindow:
                           dw_save_mode=self._fs_writer.save_mode(),
                           debug=self.debug, pool=_pool)
 
-        self._errors.extend_error(a_r.errors)
+        # self._errors.extend_error(a_r.errors)
 
         if self._fs_writer.is_use_mem() and a_r.dw_save_mode != self._fs_writer.save_mode():
             if self.debug:
@@ -729,12 +729,7 @@ class DataWindow:
         sts = a_r.get_stations()
         if self.debug:
             print("num stations loaded: ", len(sts))
-        # if self._config.apply_correction:
-            # for st in maybe_parallel_map(_pool, Station.update_timestamps,
-            #                              iter(sts), chunk_size=1):
-            #     self._add_sensor_to_window(st)
-            #     if self.debug:
-            #         print("station processed: ", st.id())
+
         for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
             self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
             if self.debug:
