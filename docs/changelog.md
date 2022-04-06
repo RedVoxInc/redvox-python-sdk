@@ -2,6 +2,7 @@
 
 ### 3.1.11 (2022-4-6)
 
+* support for Python 3.7 ended; scipy and pandas versions require Python 3.8 and higher
 * fixed error when printing Stations with np.nan as start date
 * fixed DataWindow automatically correcting Station timestamps when correction flag is set to False
 * updated data checking function to recognize retrieved data that was completely outside the requested period

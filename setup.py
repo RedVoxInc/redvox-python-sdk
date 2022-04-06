@@ -46,4 +46,4 @@ setup(name=redvox.NAME,
                 'redvox-cli=redvox.cli.cli:main',
             ]
       },
-      python_requires=">=3.7")
+      python_requires=">=3.8")
