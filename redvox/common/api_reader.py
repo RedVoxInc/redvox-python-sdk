@@ -93,6 +93,8 @@ class ApiReader:
             if max_file_size > self.chunk_limit:
                 raise MemoryError(f"System requires {max_file_size} bytes of memory to process a file but only has "
                                   f"{self.chunk_limit} available.  Please free or add more RAM.")
+            elif max_file_size * sum([len(fi.entries) for fi in self.files_index]) > self.chunk_limit:
+                raise MemoryError("TOO MUCH DATA DAWG")
             if debug:
                 if mem_split_factor == 1:
                     print(f"{len(self.files_index)} stations have {int(self.chunk_limit)} "

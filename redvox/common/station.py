@@ -280,8 +280,7 @@ class Station:
 
         :param indexes: List of indexes of the files to read
         """
-        first_pkt = indexes[0].read_first_packet()
-        self._load_metadata_from_packet(first_pkt)
+        self._load_metadata_from_packet(indexes[0].read_first_packet())
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
         self._timesync_data.arrow_file = \
             f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"

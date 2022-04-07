@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.1.12 (2022-4-7)
+
+* Fixed a bug when filling gaps in audio data
+
 ### 3.1.11 (2022-4-6)
 
 * support for Python 3.7 ended; scipy and pandas versions require Python 3.8 and higher
