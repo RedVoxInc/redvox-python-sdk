@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.1.13 (2022-4-??)
+
+* Fixed a bug when requesting data close to a change in Station start date
+
 ### 3.1.12 (2022-4-7)
 
 * Fixed a bug when filling gaps in audio data

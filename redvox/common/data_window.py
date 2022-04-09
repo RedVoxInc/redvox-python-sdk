@@ -764,9 +764,9 @@ class DataWindow:
         remove = []
         for s in self._stations:
             if not s.has_audio_sensor():
-                remove.append(s.id())
+                remove.append(s.get_key())
         if len(remove) > 0:
-            self._stations = [s for s in self._stations if s.id() not in remove]
+            self._stations = [s for s in self._stations if s.get_key() not in remove]
 
     def _check_valid_ids(self):
         """
@@ -811,18 +811,19 @@ class DataWindow:
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
-        for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
-            self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
-                                station.audio_sensor().last_data_timestamp())
-        # recalculate metadata
-        station.update_first_and_last_data_timestamps()
-        station.set_packet_metadata([meta for meta in station.packet_metadata()
-                                     if meta.packet_start_mach_timestamp < station.last_data_timestamp() and
-                                     meta.packet_end_mach_timestamp >= station.first_data_timestamp()])
-        if self._fs_writer.is_save_disk():
-            station.set_save_mode(io.FileSystemSaveMode.DISK)
-            station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
-        self._stations.append(station)
+        if station.has_audio_data():
+            for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
+                self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
+                                    station.audio_sensor().last_data_timestamp())
+            # recalculate metadata
+            station.update_first_and_last_data_timestamps()
+            station.set_packet_metadata([meta for meta in station.packet_metadata()
+                                         if meta.packet_start_mach_timestamp < station.last_data_timestamp() and
+                                         meta.packet_end_mach_timestamp >= station.first_data_timestamp()])
+            if self._fs_writer.is_save_disk():
+                station.set_save_mode(io.FileSystemSaveMode.DISK)
+                station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
+            self._stations.append(station)
 
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
@@ -855,9 +856,12 @@ class DataWindow:
             # check if all the samples have been cut off
             is_audio = sensor.type() == SensorType.AUDIO
             if end_index <= start_index:
+                self._errors.append(
+                    f"Data window for {station_id} {'Audio' if is_audio else sensor.type().name} "
+                    f"sensor has truncated all data points"
+                )
                 if is_audio:
-                    self._errors.append(f"Data window for {station_id} "
-                                        f"Audio sensor has truncated all data points")
+                    sensor.empty_data_table()
                 elif last_before_start is not None and first_after_end is None:
                     first_entry = sensor.pyarrow_table().slice(last_before_start, 1).to_pydict()
                     first_entry["timestamps"] = [start_date_timestamp]
@@ -870,11 +874,6 @@ class DataWindow:
                     sensor.write_pyarrow_table(
                         sensor.interpolate(start_date_timestamp, last_before_start, 1,
                                            self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
-                else:
-                    self._errors.append(
-                        f"Data window for {station_id} {sensor.type().name} "
-                        f"sensor has truncated all data points"
-                    )
             else:
                 _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
                 # if sensor is audio or location, we want nan'd edge points

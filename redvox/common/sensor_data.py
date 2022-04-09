@@ -499,6 +499,17 @@ class SensorData:
         else:
             self._data = table
 
+    def empty_data_table(self):
+        """
+        CAUTION: REMOVES ALL DATA AND COLUMNS FROM THE TABLE
+        """
+        tbl = pa.Table.from_pydict({"timestamps": []})
+        if self._fs_writer.is_save_disk():
+            pq.write_table(tbl, self.full_path())
+            self._data = None
+        else:
+            self._data = tbl
+
     def move_pyarrow_dir(self, new_dir: str) -> Path:
         """
         Move the sensor's pyarrow files to a new directory
