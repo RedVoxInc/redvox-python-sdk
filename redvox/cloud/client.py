@@ -400,14 +400,14 @@ class CloudClient:
         chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
     ) -> Iterator[Optional[metadata_api.GeoMetadataResp]]:
         """
-        Requests RedVox packet metadata.
+        Requests RedVox packet metadata from geo bounds.
         :param start_ts_s: Start epoch of request window.
         :param end_ts_s: End epoch of request window.
         :param bounding_box: A bounding box given by the SW and NE coordinates. Mutually exclusive with bounding_circle.
         :param bounding_circle: A bounding circle given by a center point and radius in meter. Mutually exclusive with bounding_box.
         :param metadata_to_include: A list of metadata fields to include (see: redvox.cloud.metadata.AvailableMetadata)
         :param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
-        :return: A metadata result containing the requested metadata or None on error.
+        :return: A geo metadata result containing the requested metadata or None on error.
         """
         if end_ts_s <= start_ts_s:
             raise cloud_errors.CloudApiError("start_ts_s must be < end_ts_s")

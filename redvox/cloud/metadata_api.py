@@ -576,6 +576,10 @@ def request_station_statuses(
 @dataclass_json
 @dataclass
 class LatLng:
+    """
+    Represents a latitude and longitude as decimal degrees.
+    """
+
     lat: float
     lng: float
 
@@ -583,6 +587,11 @@ class LatLng:
 @dataclass_json
 @dataclass
 class BoundingBox:
+    """
+    Defines a bounding box given the South West and North East
+    coordinates.
+    """
+
     sw_lat_lng: LatLng
     ne_lat_lng: LatLng
 
@@ -590,6 +599,11 @@ class BoundingBox:
 @dataclass_json
 @dataclass
 class BoundingCircle:
+    """
+    Defines a bounding circle from a given center coordinate and a
+    radius in meters.
+    """
+
     center: LatLng
     radius: float
 
@@ -597,6 +611,11 @@ class BoundingCircle:
 @dataclass_json
 @dataclass
 class GeoMetadataReq:
+    """
+    A geo metadata request. Note that bounding_box and bounding_circle
+    are mutually exclusive.
+    """
+
     auth_token: str
     start_ts_s: int
     end_ts_s: int
@@ -608,7 +627,7 @@ class GeoMetadataReq:
 @dataclass
 class GeoMetadataResp:
     """
-    A metadata response for API M.
+    A geo metadata response for API M.
     """
 
     err: Optional[str]
@@ -638,12 +657,12 @@ def request_geo_metadata(
     timeout: Optional[float] = None,
 ) -> Optional[GeoMetadataResp]:
     """
-    Requests generic metadata from the cloud API.
+    Requests generic metadata from the cloud API using geo bounds.
     :param redvox_config: An instance of the API config.
-    :param geo_metadata_req: An instance of a metadata request.
+    :param geo_metadata_req: An instance of a geo metadata request.
     :param session: An (optional) session for re-using an HTTP client.
     :param timeout: An (optional) timeout.
-    :return: A metadata response on successful call or None if there is an error.
+    :return: A geo metadata response on successful call or None if there is an error.
     """
     # noinspection Mypy
     handle_resp: Callable[
