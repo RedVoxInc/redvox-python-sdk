@@ -1,6 +1,6 @@
 ## Changelog
 
-### 3.1.13 (2022-4-??)
+### 3.1.13 (2022-4-13)
 
 * Fixed a bug when requesting data close to a change in Station start date
 
