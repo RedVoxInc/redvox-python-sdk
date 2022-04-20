@@ -20,3 +20,10 @@ class RoutesV1:
     DATA_RANGE_REQ_M: str = "/api/v1/data/range/m"
     DATA_REPORT_REQ: str = "/api/v1/data/report"
     STATION_STATS: str = "/api/v1/metadata/stats"
+
+
+class RoutesV2:
+    """
+    Route definitions for version 2 of the RedVox Cloud API.
+    """
+    GEO_METADATA_REQ: str = "/api/v2/metadata/geo"

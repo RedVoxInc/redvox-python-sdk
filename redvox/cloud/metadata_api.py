@@ -12,7 +12,7 @@ from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPac
 
 from redvox.cloud.api import post_req
 from redvox.cloud.config import RedVoxConfig
-from redvox.cloud.routes import RoutesV1
+from redvox.cloud.routes import RoutesV1, RoutesV2
 
 
 @dataclass_json
@@ -567,6 +567,92 @@ def request_station_statuses(
         redvox_config,
         RoutesV1.STATION_STATUS_TIMELINE,
         station_status_req,
+        handle_resp,
+        session,
+        timeout,
+    )
+
+
+@dataclass_json
+@dataclass
+class LatLng:
+    lat: float
+    lng: float
+
+
+@dataclass_json
+@dataclass
+class BoundingBox:
+    sw_lat_lng: LatLng
+    ne_lat_lng: LatLng
+
+
+@dataclass_json
+@dataclass
+class BoundingCircle:
+    center: LatLng
+    radius: float
+
+
+@dataclass_json
+@dataclass
+class GeoMetadataReq:
+    auth_token: str
+    start_ts_s: int
+    end_ts_s: int
+    bounding_box: Optional[BoundingBox]
+    bounding_circle: Optional[BoundingCircle]
+    fields: List[str]
+
+
+@dataclass
+class GeoMetadataResp:
+    """
+    A metadata response for API M.
+    """
+
+    err: Optional[str]
+    db_packets: Optional[List[DbPacket]]
+
+    @staticmethod
+    def from_json(json_dict: Dict) -> "GeoMetadataResp":
+        """
+        Converts a JSON dictionary into a response.
+        :param json_dict: Dictionary to use for conversion.
+        :return: The converted response.
+        """
+        db_packets: Optional[List[DbPacket]] = None
+
+        if "db_packets" in json_dict:
+            packets: Optional[List[Dict]] = json_dict["db_packets"]
+            if packets is not None and len(packets) > 0:
+                db_packets = list(map(DbPacket.from_dict, packets))
+
+        return GeoMetadataResp(err=_get("err", json_dict), db_packets=db_packets)
+
+
+def request_geo_metadata(
+    redvox_config: RedVoxConfig,
+    geo_metadata_req: GeoMetadataReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> Optional[GeoMetadataResp]:
+    """
+    Requests generic metadata from the cloud API.
+    :param redvox_config: An instance of the API config.
+    :param geo_metadata_req: An instance of a metadata request.
+    :param session: An (optional) session for re-using an HTTP client.
+    :param timeout: An (optional) timeout.
+    :return: A metadata response on successful call or None if there is an error.
+    """
+    # noinspection Mypy
+    handle_resp: Callable[
+        [requests.Response], GeoMetadataResp
+    ] = lambda resp: GeoMetadataResp.from_json(resp.json())
+    return post_req(
+        redvox_config,
+        RoutesV2.GEO_METADATA_REQ,
+        geo_metadata_req,
         handle_resp,
         session,
         timeout,
