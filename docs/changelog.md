@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.2.0 (2022-4-20)
+
+* Updated cloud HTTP client: Added support for geo-based cloud metadata queries
+
 ### 3.1.13 (2022-4-13)
 
 * Fixed a bug when requesting data close to a change in Station start date
