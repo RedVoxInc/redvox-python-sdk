@@ -1,0 +1,2772 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>redvox.common.packet_to_pyarrow API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.common.packet_to_pyarrow</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from typing import Optional, Dict, Callable, List, Tuple
+import os
+from pathlib import Path
+from itertools import repeat
+from glob import glob
+
+import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
+import pyarrow.compute as pc
+from dataclasses import dataclass, field
+from dataclasses_json import dataclass_json
+
+from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
+from redvox.common import sensor_reader_utils as srupa
+from redvox.common import date_time_utils as dtu
+from redvox.common import gap_and_pad_utils as gpu
+from redvox.common.sensor_data import SensorType
+from redvox.common.errors import RedVoxExceptions
+
+
+# Maps a sensor type to a function that can extract that sensor for a particular packet.
+__SENSOR_NAME_TO_SENSOR_FN: Dict[
+    str,
+    Optional[
+        Callable[
+            [RedvoxPacketM],
+            srupa.SensorData,
+        ]
+    ],
+] = {
+    &#34;health&#34;: None,
+    &#34;accelerometer&#34;: lambda packet: packet.sensors.accelerometer,
+    &#34;ambient_temperature&#34;: lambda packet: packet.sensors.ambient_temperature,
+    &#34;audio&#34;: lambda packet: packet.sensors.audio,
+    &#34;compressed_audio&#34;: lambda packet: packet.sensors.compressed_audio,
+    &#34;gravity&#34;: lambda packet: packet.sensors.gravity,
+    &#34;gyroscope&#34;: lambda packet: packet.sensors.gyroscope,
+    &#34;image&#34;: lambda packet: packet.sensors.image,
+    &#34;light&#34;: lambda packet: packet.sensors.light,
+    &#34;linear_acceleration&#34;: lambda packet: packet.sensors.linear_acceleration,
+    &#34;location&#34;: lambda packet: packet.sensors.location,
+    &#34;best_location&#34;: lambda packet: packet.sensors.location,
+    &#34;magnetometer&#34;: lambda packet: packet.sensors.magnetometer,
+    &#34;orientation&#34;: lambda packet: packet.sensors.orientation,
+    &#34;pressure&#34;: lambda packet: packet.sensors.pressure,
+    &#34;proximity&#34;: lambda packet: packet.sensors.proximity,
+    &#34;relative_humidity&#34;: lambda packet: packet.sensors.relative_humidity,
+    &#34;rotation_vector&#34;: lambda packet: packet.sensors.rotation_vector,
+    &#34;infrared&#34;: lambda packet: packet.sensors.proximity,
+}
+
+
+packet_schema = pa.schema([(&#34;packet_start_mach_timestamp&#34;, pa.float64()),
+                           (&#34;packet_end_mach_timestamp&#34;, pa.float64()),
+                           (&#34;packet_start_os_timestamp&#34;, pa.float64()),
+                           (&#34;packet_end_os_timestamp&#34;, pa.float64()),
+                           (&#34;timing_info_score&#34;, pa.int64())
+                           ])
+
+sensor_schema = pa.schema([(&#34;description&#34;, pa.string()),
+                           (&#34;first_timestamp&#34;, pa.float64())
+                           ])
+
+station_schema = pa.schema([(&#34;id&#34;, pa.string()), (&#34;uuid&#34;, pa.string()),
+                            (&#34;start_time&#34;, pa.float64()), (&#34;api&#34;, pa.float64()),
+                            (&#34;sub_api&#34;, pa.float64()), (&#34;make&#34;, pa.string()),
+                            (&#34;model&#34;, pa.string()), (&#34;os&#34;, pa.int64()), (&#34;os_version&#34;, pa.string()),
+                            (&#34;app&#34;, pa.string()), (&#34;app_version&#34;, pa.string()),
+                            (&#34;is_private&#34;, pa.bool_()), (&#34;packet_duration_s&#34;, pa.float64()),
+                            (&#34;station_description&#34;, pa.string())])
+
+
+@dataclass_json
+@dataclass
+class PyarrowSummary:
+    &#34;&#34;&#34;
+    Summary of a sensor using Pyarrow Tables or parquet files to store the data
+
+    Properties:
+        name: str, name of sensor
+
+        stype: SensorType, sensor type of summary
+
+        start: float, start timestamp in microseconds since epoch utc of sensor
+
+        srate: float, sample rate in Hz
+
+        fdir: str, directory where parquet files can be found
+
+        scount: int, number of samples to read
+
+        smint: float, mean interval of sample rate in seconds
+
+        sstd: float, std dev of sample rate in seconds
+
+        _data: optional data as a Pyarrow Table
+    &#34;&#34;&#34;
+    name: str
+    stype: srupa.SensorType
+    start: float
+    srate_hz: float
+    fdir: str
+    scount: int
+    smint_s: float = np.nan
+    sstd_s: float = np.nan
+    _data: Optional[pa.Table] = None
+
+    def to_dict(self) -&gt; dict:
+        &#34;&#34;&#34;
+        :return: dictionary representation of the data
+        &#34;&#34;&#34;
+        return {
+            &#34;name&#34;: self.name,
+            &#34;stype&#34;: self.stype.name,
+            &#34;start&#34;: self.start,
+            &#34;srate_hz&#34;: self.srate_hz,
+            &#34;fdir&#34;: self.fdir,
+            &#34;smint_s&#34;: self.smint_s,
+            &#34;sstd_s&#34;: self.sstd_s,
+            &#34;scount&#34;: self.scount
+        }
+
+    def file_name(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: full path and file name of where the file should exist
+        &#34;&#34;&#34;
+        return os.path.join(self.fdir, f&#34;{self.stype.name}_{int(self.start)}.parquet&#34;)
+
+    def fdir_stem(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: the name of the parent directory of the file
+        &#34;&#34;&#34;
+        return Path(self.fdir).stem
+
+    def clean_fdir(self):
+        &#34;&#34;&#34;
+        remove all parquets in the self.fdir
+        &#34;&#34;&#34;
+        for f in glob(os.path.join(self.fdir, &#34;*.parquet&#34;)):
+            os.remove(f)
+
+    def write_data(self, clean_dir: bool = False) -&gt; str:
+        &#34;&#34;&#34;
+        write the data being summarized to disk, then remove the data from the object
+
+        :param clean_dir: if True, remove any files in the dir before writing the data, default False
+        :return: the path to the file where the data exists or empty string if data wasn&#39;t written
+        &#34;&#34;&#34;
+        if self.check_data():
+            os.makedirs(self.fdir, exist_ok=True)
+            if clean_dir:
+                self.clean_fdir()
+            pq.write_table(self._data, self.file_name())
+            self._data = None
+            return self.file_name()
+        return &#34;&#34;
+
+    def check_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: True if data exists as a property (also means not written to disk)
+        &#34;&#34;&#34;
+        return True if self._data else False
+
+    def data(self) -&gt; Optional[pa.Table]:
+        &#34;&#34;&#34;
+        :return: the data as a Pyarrow Table
+        &#34;&#34;&#34;
+        if self.check_data():
+            return self._data
+        if os.path.exists(self.file_name()):
+            return pq.read_table(self.file_name())
+        return pa.Table.from_pydict({})
+
+
+@dataclass_json
+@dataclass
+class AggregateSummary:
+    &#34;&#34;&#34;
+    aggregate of summaries
+
+    properties:
+        summaries: the summaries of sensors
+        gaps: gaps in audio data as a list of tuples of start and end time
+    &#34;&#34;&#34;
+    summaries: List[PyarrowSummary] = field(default_factory=lambda: [])
+    gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
+    errors: RedVoxExceptions = RedVoxExceptions(&#34;AggregateSummary&#34;)
+
+    def to_dict(self) -&gt; dict:
+        &#34;&#34;&#34;
+        :return: dictionary representation of all summaries
+        &#34;&#34;&#34;
+        result = {}
+        for ps in self.summaries:
+            result[ps.stype.name] = ps.to_dict()
+        return result
+
+    @staticmethod
+    def from_dict(summary_dict: dict) -&gt; &#34;AggregateSummary&#34;:
+        &#34;&#34;&#34;
+        :param summary_dict: dictionary to load data from
+        :return: AggregateSummary from a dictionary
+        &#34;&#34;&#34;
+        result = AggregateSummary()
+        for v in summary_dict.values():
+            result.summaries.append(PyarrowSummary(v[&#34;name&#34;], SensorType[v[&#34;stype&#34;]], v[&#34;start&#34;], v[&#34;srate_hz&#34;],
+                                                   v[&#34;fdir&#34;], v[&#34;scount&#34;], v[&#34;smint_s&#34;], v[&#34;sstd_s&#34;]))
+        return result
+
+    def add_aggregate_summary(self, agg_sum: &#39;AggregateSummary&#39;):
+        &#34;&#34;&#34;
+        adds another aggregate summary to this one
+
+        :param agg_sum: another aggregate summary to add
+        &#34;&#34;&#34;
+        self.summaries.extend(agg_sum.summaries)
+
+    def add_summary(self, pya_sum: PyarrowSummary):
+        &#34;&#34;&#34;
+        adds a summary to the aggregate
+
+        :param pya_sum: the summary to add
+        &#34;&#34;&#34;
+        self.summaries.append(pya_sum)
+
+    def merge_audio_summaries(self):
+        &#34;&#34;&#34;
+        combines and replaces all Audio summaries into a single summary; also adds any gaps in the data
+        &#34;&#34;&#34;
+        pckt_info = []
+        audio_lst = self.get_audio()
+        frst_audio = audio_lst[0]
+        use_mem = frst_audio.check_data()
+        for adl in audio_lst:
+            pckt_info.append((int(adl.start), adl.data()))
+
+        audio_data = gpu.fill_audio_gaps2(pckt_info,
+                                          dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
+                                          )
+        tbl = audio_data.create_timestamps()
+        frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
+                                    frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
+                                    tbl)
+        if not use_mem:
+            frst_audio.write_data(True)
+
+        self.gaps = audio_data.gaps
+        self.summaries = self.get_non_audio_list()
+        self.add_summary(frst_audio)
+
+    def merge_non_audio_summaries(self):
+        &#34;&#34;&#34;
+        combines and replaces all summaries per type except for audio summaries
+        &#34;&#34;&#34;
+        smrs_dict = {}
+        for smry in self.summaries:
+            if smry.stype != SensorType.AUDIO:
+                if smry.stype in smrs_dict.keys():
+                    smrs_dict[smry.stype].append(smry)
+                else:
+                    smrs_dict[smry.stype] = [smry]
+        self.summaries = self.get_audio()
+        for styp, smrys in smrs_dict.items():
+            if len(smrys) &gt; 0:
+                combined_mint = np.mean([smrs.smint_s for smrs in smrys])
+                combined_std = np.mean([smrs.sstd_s for smrs in smrys])
+                first_summary = smrys.pop(0)
+                tbl = first_summary.data()
+                if not first_summary.check_data():
+                    os.makedirs(first_summary.fdir, exist_ok=True)
+                for smrs in smrys:
+                    tbl = pa.concat_tables([tbl, smrs.data()])
+                    if not first_summary.check_data():
+                        os.remove(smrs.file_name())
+                if first_summary.check_data():
+                    first_summary._data = tbl
+                else:
+                    pq.write_table(tbl, first_summary.file_name())
+                # sort data by timestamps
+                tbl = pc.take(tbl, pc.sort_indices(tbl, sort_keys=[(&#34;timestamps&#34;, &#34;ascending&#34;)]))
+                timestamps = tbl[&#34;timestamps&#34;].to_numpy()
+                if len(timestamps) &gt; 1:
+                    mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+                    stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+                else:
+                    mnint = np.nan
+                    stdint = np.nan
+                if not combined_mint + combined_std &gt; mnint &gt; combined_mint - combined_std:
+                    self.errors.append(f&#34;Mean interval s of combined {styp.name} sensor does not match the &#34;
+                                       f&#34;compilation of individual mean interval s per packet.  Will use compilation &#34;
+                                       f&#34;of individual values.&#34;)
+                    mnint = combined_mint
+                    stdint = combined_std
+                single_smry = PyarrowSummary(first_summary.name, styp, first_summary.start,
+                                             1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                                             first_summary.data() if first_summary.check_data() else None
+                                             )
+                self.summaries.append(single_smry)
+
+    def merge_summaries_of_type(self, stype: SensorType):
+        &#34;&#34;&#34;
+        combines and replaces multiple summaries of one SensorType into a single one
+
+        *caution: using this on an audio sensor may cause data validation issues*
+
+        :param stype: the type of sensor to combine
+        &#34;&#34;&#34;
+        smrs = []
+        other_smrs = []
+        for smry in self.summaries:
+            if smry.stype == stype:
+                smrs.append(smry)
+            else:
+                other_smrs.append(smry)
+        first_summary = smrs.pop(0)
+        tbl = first_summary.data()
+        if not first_summary.check_data():
+            os.makedirs(first_summary.fdir, exist_ok=True)
+        for smrys in smrs:
+            tbl = pa.concat_tables([first_summary.data(), smrys.data()])
+            if first_summary.check_data():
+                first_summary._data = tbl
+            else:
+                pq.write_table(tbl, first_summary.file_name())
+                os.remove(smrys.file_name())
+        mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
+        stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
+        single_smry = PyarrowSummary(first_summary.name, first_summary.stype, first_summary.start,
+                                     1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                                     first_summary.data() if first_summary.check_data() else None
+                                     )
+        self.summaries = other_smrs
+        self.summaries.append(single_smry)
+
+    def merge_all_summaries(self):
+        &#34;&#34;&#34;
+        merge all PyarrowSummary with the same sensor type into single PyarrowSummary per type
+        &#34;&#34;&#34;
+        self.merge_audio_summaries()
+        self.merge_non_audio_summaries()
+
+    def get_audio(self) -&gt; List[PyarrowSummary]:
+        &#34;&#34;&#34;
+        :return: a list of PyarrowSummary of only Audio data
+        &#34;&#34;&#34;
+        return [s for s in self.summaries if s.stype == srupa.SensorType.AUDIO]
+
+    def get_non_audio(self) -&gt; Dict[srupa.SensorType, List[PyarrowSummary]]:
+        &#34;&#34;&#34;
+        :return: a dictionary of non-Audio SensorType: PyarrowSummary
+        &#34;&#34;&#34;
+        result = {}
+        for k in self.sensor_types():
+            if k != srupa.SensorType.AUDIO:
+                result[k] = [s for s in self.summaries if s.stype == k]
+        return result
+
+    def get_non_audio_list(self) -&gt; List[PyarrowSummary]:
+        &#34;&#34;&#34;
+        :return: a list of all non-Audio PyarrowSummary
+        &#34;&#34;&#34;
+        return [s for s in self.summaries if s.stype != srupa.SensorType.AUDIO]
+
+    def get_sensor(self, stype: srupa.SensorType) -&gt; List[PyarrowSummary]:
+        &#34;&#34;&#34;
+        :param stype: type of sensor to find
+        :return: a list of all PyarrowSummary of the specified type
+        &#34;&#34;&#34;
+        return [s for s in self.summaries if s.stype == stype]
+
+    def sensor_types(self) -&gt; List[srupa.SensorType]:
+        &#34;&#34;&#34;
+        :return: a list of sensor types in self.summaries
+        &#34;&#34;&#34;
+        result = []
+        for s in self.summaries:
+            if s.stype not in result:
+                result.append(s.stype)
+        return result
+
+
+def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = None) -&gt; AggregateSummary:
+    &#34;&#34;&#34;
+    stream the packets to parquet files for later processing.
+
+    :param packets: redvox packets to convert
+    :param out_dir: optional directory to write the pyarrow files to; if None, don&#39;t write files.  default None
+    :return: summary of the sensors, their data and their file locations if possible
+    &#34;&#34;&#34;
+    summary = AggregateSummary()
+    for k in map(packet_to_pyarrow, packets, repeat(out_dir)):
+        for t in k.summaries:
+            summary.add_summary(t)
+
+    return summary
+
+
+def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -&gt; AggregateSummary:
+    &#34;&#34;&#34;
+    gets non-audio sensor information by writing it into folders with the sensor names to the out_dir
+
+    :param packet: packet to extract data from
+    :param out_dir: optional directory to write the pyarrow files to; if None, don&#39;t write files.  default None
+    :return: sensor type: sensor name, start_timestamp, sample rate (if fixed, np.nan otherwise)
+    &#34;&#34;&#34;
+    result = AggregateSummary()
+    packet_start = int(packet.timing_information.packet_start_mach_timestamp)
+    funcs = [
+        load_apim_audio,
+        load_apim_compressed_audio,
+        load_apim_image,
+        load_apim_health,
+        load_apim_best_location,
+        load_apim_location,
+        load_apim_pressure,
+        load_apim_light,
+        load_apim_ambient_temp,
+        load_apim_rel_humidity,
+        load_apim_proximity,
+        load_apim_accelerometer,
+        load_apim_gyroscope,
+        load_apim_magnetometer,
+        load_apim_gravity,
+        load_apim_linear_accel,
+        load_apim_orientation,
+        load_apim_rotation_vector,
+    ]
+    sensors = map(lambda fn: fn(packet), funcs)
+    for data in sensors:
+        if data:
+            data.start = packet_start
+            if out_dir:
+                data.fdir = os.path.join(out_dir, f&#34;{data.stype.name}_SUMMARY&#34;)
+                data.write_data()
+            result.add_summary(data)
+    return result
+
+
+def load_apim_audio(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load audio data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: audio sensor type, name,  data and sample rate
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__AUDIO_FIELD_NAME):
+        audio_sensor: RedvoxPacketM.Sensors.Audio = packet.sensors.audio
+        return PyarrowSummary(
+            audio_sensor.sensor_description, srupa.SensorType.AUDIO, np.nan, audio_sensor.sample_rate, &#34;&#34;,
+            int(audio_sensor.samples.value_statistics.count), 1./audio_sensor.sample_rate, 0.,
+            pa.Table.from_pydict({&#34;microphone&#34;: np.array(audio_sensor.samples.values)})
+        )
+    return None
+
+
+def load_apim_compressed_audio(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load compressed audio data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: compressed audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__COMPRESSED_AUDIO_FIELD_NAME):
+        comp_audio: RedvoxPacketM.Sensors.CompressedAudio = (
+            packet.sensors.compressed_audio
+        )
+        return PyarrowSummary(
+            comp_audio.sensor_description, srupa.SensorType.COMPRESSED_AUDIO, np.nan,
+            comp_audio.sample_rate, &#34;&#34;, np.nan, 1./comp_audio.sample_rate, 0.,
+            srupa.apim_compressed_audio_to_pyarrow(comp_audio)
+        )
+    return None
+
+
+def load_apim_image(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load image data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: image sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__IMAGE_FIELD_NAME):
+        image_sensor: RedvoxPacketM.Sensors.Image = packet.sensors.image
+        timestamps = image_sensor.timestamps.timestamps
+        additional_inputs = packet.station_information.app_settings.additional_input_sensors
+        if RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_SECOND in additional_inputs:
+            sample_rate = 1.
+        # elif RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_PACKET in additional_inputs:
+        else:
+            sample_rate = 1 / srupa.__packet_duration_s(packet)
+        # else:
+        #   sample_rate = np.nan
+        return PyarrowSummary(
+            image_sensor.sensor_description, srupa.SensorType.IMAGE, np.nan, sample_rate, &#34;&#34;,
+            len(timestamps), 1./sample_rate, 0., srupa.apim_image_to_pyarrow(image_sensor)
+        )
+    return None
+
+
+def load_apim_location(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load location data from a single packet
+
+    :param packet: packet with data to load
+    :return: location sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__LOCATION_FIELD_NAME):
+        loc: RedvoxPacketM.Sensors.Location = packet.sensors.location
+        timestamps = loc.timestamps.timestamps
+        if len(timestamps) &gt; 0:
+            if len(timestamps) &gt; 1:
+                m_intv = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+                intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+            else:
+                m_intv = srupa.__packet_duration_s(packet)
+                intv_std = 0.
+            return PyarrowSummary(
+                loc.sensor_description, srupa.SensorType.LOCATION, np.nan, np.nan, &#34;&#34;,
+                len(timestamps), m_intv, intv_std, srupa.apim_location_to_pyarrow(loc)
+            )
+    return None
+
+
+def load_apim_best_location(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load best location data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: best location sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__LOCATION_FIELD_NAME):
+        loc: RedvoxPacketM.Sensors.Location = packet.sensors.location
+        if loc.HasField(&#34;last_best_location&#34;) or loc.HasField(&#34;overall_best_location&#34;):
+            best_loc: RedvoxPacketM.Sensors.Location.BestLocation
+            if loc.HasField(&#34;last_best_location&#34;):
+                best_loc = loc.last_best_location
+            else:
+                best_loc = loc.overall_best_location
+            packet_len_s = srupa.__packet_duration_s(packet)
+            return PyarrowSummary(
+                loc.sensor_description, srupa.SensorType.BEST_LOCATION, np.nan,
+                1./packet_len_s, &#34;&#34;, 1, packet_len_s, 0.,
+                srupa.apim_best_location_to_pyarrow(best_loc,
+                                                    packet.timing_information.packet_start_mach_timestamp),
+            )
+    return None
+
+
+def load_apim_health(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load station health data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: station health data if it exists, None otherwise
+    &#34;&#34;&#34;
+    metrics: RedvoxPacketM.StationInformation.StationMetrics = (
+        packet.station_information.station_metrics
+    )
+    timestamps = metrics.timestamps.timestamps
+    rate = packet.station_information.app_settings.metrics_rate
+    if rate == RedvoxPacketM.StationInformation.MetricsRate.ONCE_PER_SECOND:
+        sample_rate = 1
+    elif rate == RedvoxPacketM.StationInformation.MetricsRate.ONCE_PER_PACKET:
+        sample_rate = 1 / srupa.__packet_duration_s(packet)
+    else:
+        sample_rate = np.nan
+    if len(timestamps) &gt; 0:
+        return PyarrowSummary(
+            &#34;station health&#34;, srupa.SensorType.STATION_HEALTH, np.nan, sample_rate, &#34;&#34;,
+            len(timestamps), 1./sample_rate, 0., srupa.apim_health_to_pyarrow(metrics)
+        )
+    return None
+
+
+def load_single(
+        packet: RedvoxPacketM,
+        sensor_type: srupa.SensorType,
+) -&gt; Optional[PyarrowSummary]:
+    field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
+    sensor_fn: Optional[
+        Callable[[RedvoxPacketM], srupa.Sensor]
+    ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
+        sensor = sensor_fn(packet)
+        t = sensor.timestamps.timestamps
+        if len(t) &gt; 1:
+            m_intv = dtu.microseconds_to_seconds(float(np.mean(np.diff(t))))
+            intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
+        else:
+            m_intv = srupa.__packet_duration_s(packet)
+            intv_std = 0.
+        if len(t) &gt; 0:
+            return PyarrowSummary(
+                sensor.sensor_description, sensor_type, np.nan, np.nan, &#34;&#34;,
+                len(t), m_intv, intv_std, srupa.read_apim_single_sensor(sensor, field_name)
+            )
+    return None
+
+
+def load_apim_pressure(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load pressure data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: pressure sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.PRESSURE)
+
+
+def load_apim_light(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load light data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: light sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.LIGHT)
+
+
+def load_apim_proximity(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load proximity data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: proximity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.PROXIMITY)
+
+
+def load_apim_ambient_temp(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load ambient temperature data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: ambient temperature sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.AMBIENT_TEMPERATURE)
+
+
+def load_apim_rel_humidity(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load relative humidity data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: relative humidity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.RELATIVE_HUMIDITY)
+
+
+def load_xyz(
+        packet: RedvoxPacketM,
+        sensor_type: srupa.SensorType,
+) -&gt; Optional[PyarrowSummary]:
+    field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
+    sensor_fn: Optional[
+        Callable[[RedvoxPacketM], srupa.Sensor]
+    ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
+        sensor = sensor_fn(packet)
+        t = sensor.timestamps.timestamps
+        if len(t) &gt; 1:
+            m_intv = dtu.microseconds_to_seconds(float(np.mean(np.diff(t))))
+            intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
+        else:
+            m_intv = srupa.__packet_duration_s(packet)
+            intv_std = 0.
+        if len(t) &gt; 0:
+            # read packet.station_information.app_settings.additional_input_sensors for fast sensors
+            # rename if needed
+            return PyarrowSummary(
+                sensor.sensor_description, sensor_type, np.nan, np.nan, &#34;&#34;,
+                len(t), m_intv, intv_std, srupa.read_apim_xyz_sensor(sensor, field_name)
+            )
+    return None
+
+
+def load_apim_accelerometer(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load accelerometer data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: accelerometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.ACCELEROMETER)
+
+
+def load_apim_magnetometer(packet: RedvoxPacketM,) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load magnetometer data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: magnetometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.MAGNETOMETER)
+
+
+def load_apim_gyroscope(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load gyroscope data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: gyroscope sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.GYROSCOPE)
+
+
+def load_apim_gravity(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load gravity data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: gravity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.GRAVITY)
+
+
+def load_apim_orientation(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load orientation data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: orientation sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.ORIENTATION)
+
+
+def load_apim_linear_accel(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load linear acceleration data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: linear acceleration sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.LINEAR_ACCELERATION)
+
+
+def load_apim_rotation_vector(packet: RedvoxPacketM,) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load rotation vector data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: rotation vector sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.ROTATION_VECTOR)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_accelerometer"><code class="name flex">
+<span>def <span class="ident">load_apim_accelerometer</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load accelerometer data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: accelerometer sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_accelerometer(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load accelerometer data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: accelerometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.ACCELEROMETER)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_ambient_temp"><code class="name flex">
+<span>def <span class="ident">load_apim_ambient_temp</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load ambient temperature data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: ambient temperature sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_ambient_temp(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load ambient temperature data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: ambient temperature sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.AMBIENT_TEMPERATURE)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_audio"><code class="name flex">
+<span>def <span class="ident">load_apim_audio</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load audio data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: audio sensor type, name,
+data and sample rate</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_audio(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load audio data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: audio sensor type, name,  data and sample rate
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__AUDIO_FIELD_NAME):
+        audio_sensor: RedvoxPacketM.Sensors.Audio = packet.sensors.audio
+        return PyarrowSummary(
+            audio_sensor.sensor_description, srupa.SensorType.AUDIO, np.nan, audio_sensor.sample_rate, &#34;&#34;,
+            int(audio_sensor.samples.value_statistics.count), 1./audio_sensor.sample_rate, 0.,
+            pa.Table.from_pydict({&#34;microphone&#34;: np.array(audio_sensor.samples.values)})
+        )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_best_location"><code class="name flex">
+<span>def <span class="ident">load_apim_best_location</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load best location data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: best location sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_best_location(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load best location data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: best location sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__LOCATION_FIELD_NAME):
+        loc: RedvoxPacketM.Sensors.Location = packet.sensors.location
+        if loc.HasField(&#34;last_best_location&#34;) or loc.HasField(&#34;overall_best_location&#34;):
+            best_loc: RedvoxPacketM.Sensors.Location.BestLocation
+            if loc.HasField(&#34;last_best_location&#34;):
+                best_loc = loc.last_best_location
+            else:
+                best_loc = loc.overall_best_location
+            packet_len_s = srupa.__packet_duration_s(packet)
+            return PyarrowSummary(
+                loc.sensor_description, srupa.SensorType.BEST_LOCATION, np.nan,
+                1./packet_len_s, &#34;&#34;, 1, packet_len_s, 0.,
+                srupa.apim_best_location_to_pyarrow(best_loc,
+                                                    packet.timing_information.packet_start_mach_timestamp),
+            )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_compressed_audio"><code class="name flex">
+<span>def <span class="ident">load_apim_compressed_audio</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load compressed audio data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: compressed audio sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_compressed_audio(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load compressed audio data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: compressed audio sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__COMPRESSED_AUDIO_FIELD_NAME):
+        comp_audio: RedvoxPacketM.Sensors.CompressedAudio = (
+            packet.sensors.compressed_audio
+        )
+        return PyarrowSummary(
+            comp_audio.sensor_description, srupa.SensorType.COMPRESSED_AUDIO, np.nan,
+            comp_audio.sample_rate, &#34;&#34;, np.nan, 1./comp_audio.sample_rate, 0.,
+            srupa.apim_compressed_audio_to_pyarrow(comp_audio)
+        )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_gravity"><code class="name flex">
+<span>def <span class="ident">load_apim_gravity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load gravity data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: gravity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_gravity(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load gravity data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: gravity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.GRAVITY)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_gyroscope"><code class="name flex">
+<span>def <span class="ident">load_apim_gyroscope</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load gyroscope data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: gyroscope sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_gyroscope(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load gyroscope data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: gyroscope sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.GYROSCOPE)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_health"><code class="name flex">
+<span>def <span class="ident">load_apim_health</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load station health data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: station health data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_health(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load station health data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: station health data if it exists, None otherwise
+    &#34;&#34;&#34;
+    metrics: RedvoxPacketM.StationInformation.StationMetrics = (
+        packet.station_information.station_metrics
+    )
+    timestamps = metrics.timestamps.timestamps
+    rate = packet.station_information.app_settings.metrics_rate
+    if rate == RedvoxPacketM.StationInformation.MetricsRate.ONCE_PER_SECOND:
+        sample_rate = 1
+    elif rate == RedvoxPacketM.StationInformation.MetricsRate.ONCE_PER_PACKET:
+        sample_rate = 1 / srupa.__packet_duration_s(packet)
+    else:
+        sample_rate = np.nan
+    if len(timestamps) &gt; 0:
+        return PyarrowSummary(
+            &#34;station health&#34;, srupa.SensorType.STATION_HEALTH, np.nan, sample_rate, &#34;&#34;,
+            len(timestamps), 1./sample_rate, 0., srupa.apim_health_to_pyarrow(metrics)
+        )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_image"><code class="name flex">
+<span>def <span class="ident">load_apim_image</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load image data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: image sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_image(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load image data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: image sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__IMAGE_FIELD_NAME):
+        image_sensor: RedvoxPacketM.Sensors.Image = packet.sensors.image
+        timestamps = image_sensor.timestamps.timestamps
+        additional_inputs = packet.station_information.app_settings.additional_input_sensors
+        if RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_SECOND in additional_inputs:
+            sample_rate = 1.
+        # elif RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_PACKET in additional_inputs:
+        else:
+            sample_rate = 1 / srupa.__packet_duration_s(packet)
+        # else:
+        #   sample_rate = np.nan
+        return PyarrowSummary(
+            image_sensor.sensor_description, srupa.SensorType.IMAGE, np.nan, sample_rate, &#34;&#34;,
+            len(timestamps), 1./sample_rate, 0., srupa.apim_image_to_pyarrow(image_sensor)
+        )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_light"><code class="name flex">
+<span>def <span class="ident">load_apim_light</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load light data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: light sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_light(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load light data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: light sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.LIGHT)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_linear_accel"><code class="name flex">
+<span>def <span class="ident">load_apim_linear_accel</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load linear acceleration data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: linear acceleration sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_linear_accel(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load linear acceleration data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: linear acceleration sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.LINEAR_ACCELERATION)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_location"><code class="name flex">
+<span>def <span class="ident">load_apim_location</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load location data from a single packet</p>
+<p>:param packet: packet with data to load
+:return: location sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_location(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load location data from a single packet
+
+    :param packet: packet with data to load
+    :return: location sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    if srupa.__has_sensor(packet, srupa.__LOCATION_FIELD_NAME):
+        loc: RedvoxPacketM.Sensors.Location = packet.sensors.location
+        timestamps = loc.timestamps.timestamps
+        if len(timestamps) &gt; 0:
+            if len(timestamps) &gt; 1:
+                m_intv = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+                intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+            else:
+                m_intv = srupa.__packet_duration_s(packet)
+                intv_std = 0.
+            return PyarrowSummary(
+                loc.sensor_description, srupa.SensorType.LOCATION, np.nan, np.nan, &#34;&#34;,
+                len(timestamps), m_intv, intv_std, srupa.apim_location_to_pyarrow(loc)
+            )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_magnetometer"><code class="name flex">
+<span>def <span class="ident">load_apim_magnetometer</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load magnetometer data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: magnetometer sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_magnetometer(packet: RedvoxPacketM,) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load magnetometer data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: magnetometer sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.MAGNETOMETER)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_orientation"><code class="name flex">
+<span>def <span class="ident">load_apim_orientation</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load orientation data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: orientation sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_orientation(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load orientation data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: orientation sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.ORIENTATION)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_pressure"><code class="name flex">
+<span>def <span class="ident">load_apim_pressure</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load pressure data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: pressure sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_pressure(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load pressure data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: pressure sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.PRESSURE)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_proximity"><code class="name flex">
+<span>def <span class="ident">load_apim_proximity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load proximity data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: proximity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_proximity(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load proximity data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: proximity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.PROXIMITY)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_rel_humidity"><code class="name flex">
+<span>def <span class="ident">load_apim_rel_humidity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load relative humidity data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: relative humidity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_rel_humidity(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load relative humidity data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: relative humidity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_single(packet, srupa.SensorType.RELATIVE_HUMIDITY)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_rotation_vector"><code class="name flex">
+<span>def <span class="ident">load_apim_rotation_vector</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load rotation vector data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: rotation vector sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_rotation_vector(packet: RedvoxPacketM,) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load rotation vector data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: rotation vector sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.ROTATION_VECTOR)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_single"><code class="name flex">
+<span>def <span class="ident">load_single</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_single(
+        packet: RedvoxPacketM,
+        sensor_type: srupa.SensorType,
+) -&gt; Optional[PyarrowSummary]:
+    field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
+    sensor_fn: Optional[
+        Callable[[RedvoxPacketM], srupa.Sensor]
+    ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
+        sensor = sensor_fn(packet)
+        t = sensor.timestamps.timestamps
+        if len(t) &gt; 1:
+            m_intv = dtu.microseconds_to_seconds(float(np.mean(np.diff(t))))
+            intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
+        else:
+            m_intv = srupa.__packet_duration_s(packet)
+            intv_std = 0.
+        if len(t) &gt; 0:
+            return PyarrowSummary(
+                sensor.sensor_description, sensor_type, np.nan, np.nan, &#34;&#34;,
+                len(t), m_intv, intv_std, srupa.read_apim_single_sensor(sensor, field_name)
+            )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_xyz"><code class="name flex">
+<span>def <span class="ident">load_xyz</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, sensor_type: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_xyz(
+        packet: RedvoxPacketM,
+        sensor_type: srupa.SensorType,
+) -&gt; Optional[PyarrowSummary]:
+    field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
+    sensor_fn: Optional[
+        Callable[[RedvoxPacketM], srupa.Sensor]
+    ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
+        sensor = sensor_fn(packet)
+        t = sensor.timestamps.timestamps
+        if len(t) &gt; 1:
+            m_intv = dtu.microseconds_to_seconds(float(np.mean(np.diff(t))))
+            intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
+        else:
+            m_intv = srupa.__packet_duration_s(packet)
+            intv_std = 0.
+        if len(t) &gt; 0:
+            # read packet.station_information.app_settings.additional_input_sensors for fast sensors
+            # rename if needed
+            return PyarrowSummary(
+                sensor.sensor_description, sensor_type, np.nan, np.nan, &#34;&#34;,
+                len(t), m_intv, intv_std, srupa.read_apim_xyz_sensor(sensor, field_name)
+            )
+    return None</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.packet_to_pyarrow"><code class="name flex">
+<span>def <span class="ident">packet_to_pyarrow</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, out_dir: Optional[str] = None) ‑> <a title="redvox.common.packet_to_pyarrow.AggregateSummary" href="#redvox.common.packet_to_pyarrow.AggregateSummary">AggregateSummary</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>gets non-audio sensor information by writing it into folders with the sensor names to the out_dir</p>
+<p>:param packet: packet to extract data from
+:param out_dir: optional directory to write the pyarrow files to; if None, don't write files.
+default None
+:return: sensor type: sensor name, start_timestamp, sample rate (if fixed, np.nan otherwise)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -&gt; AggregateSummary:
+    &#34;&#34;&#34;
+    gets non-audio sensor information by writing it into folders with the sensor names to the out_dir
+
+    :param packet: packet to extract data from
+    :param out_dir: optional directory to write the pyarrow files to; if None, don&#39;t write files.  default None
+    :return: sensor type: sensor name, start_timestamp, sample rate (if fixed, np.nan otherwise)
+    &#34;&#34;&#34;
+    result = AggregateSummary()
+    packet_start = int(packet.timing_information.packet_start_mach_timestamp)
+    funcs = [
+        load_apim_audio,
+        load_apim_compressed_audio,
+        load_apim_image,
+        load_apim_health,
+        load_apim_best_location,
+        load_apim_location,
+        load_apim_pressure,
+        load_apim_light,
+        load_apim_ambient_temp,
+        load_apim_rel_humidity,
+        load_apim_proximity,
+        load_apim_accelerometer,
+        load_apim_gyroscope,
+        load_apim_magnetometer,
+        load_apim_gravity,
+        load_apim_linear_accel,
+        load_apim_orientation,
+        load_apim_rotation_vector,
+    ]
+    sensors = map(lambda fn: fn(packet), funcs)
+    for data in sensors:
+        if data:
+            data.start = packet_start
+            if out_dir:
+                data.fdir = os.path.join(out_dir, f&#34;{data.stype.name}_SUMMARY&#34;)
+                data.write_data()
+            result.add_summary(data)
+    return result</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.stream_to_pyarrow"><code class="name flex">
+<span>def <span class="ident">stream_to_pyarrow</span></span>(<span>packets: List[src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM], out_dir: Optional[str] = None) ‑> <a title="redvox.common.packet_to_pyarrow.AggregateSummary" href="#redvox.common.packet_to_pyarrow.AggregateSummary">AggregateSummary</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>stream the packets to parquet files for later processing.</p>
+<p>:param packets: redvox packets to convert
+:param out_dir: optional directory to write the pyarrow files to; if None, don't write files.
+default None
+:return: summary of the sensors, their data and their file locations if possible</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = None) -&gt; AggregateSummary:
+    &#34;&#34;&#34;
+    stream the packets to parquet files for later processing.
+
+    :param packets: redvox packets to convert
+    :param out_dir: optional directory to write the pyarrow files to; if None, don&#39;t write files.  default None
+    :return: summary of the sensors, their data and their file locations if possible
+    &#34;&#34;&#34;
+    summary = AggregateSummary()
+    for k in map(packet_to_pyarrow, packets, repeat(out_dir)):
+        for t in k.summaries:
+            summary.add_summary(t)
+
+    return summary</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary"><code class="flex name class">
+<span>class <span class="ident">AggregateSummary</span></span>
+<span>(</span><span>summaries: List[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>] = &lt;factory&gt;, gaps: List[Tuple[float, float]] = &lt;factory&gt;, errors: <a title="redvox.common.errors.RedVoxExceptions" href="errors.html#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a> = {'obj_class': 'AggregateSummary'})</span>
+</code></dt>
+<dd>
+<div class="desc"><p>aggregate of summaries</p>
+<p>properties:
+summaries: the summaries of sensors
+gaps: gaps in audio data as a list of tuples of start and end time</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass_json
+@dataclass
+class AggregateSummary:
+    &#34;&#34;&#34;
+    aggregate of summaries
+
+    properties:
+        summaries: the summaries of sensors
+        gaps: gaps in audio data as a list of tuples of start and end time
+    &#34;&#34;&#34;
+    summaries: List[PyarrowSummary] = field(default_factory=lambda: [])
+    gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
+    errors: RedVoxExceptions = RedVoxExceptions(&#34;AggregateSummary&#34;)
+
+    def to_dict(self) -&gt; dict:
+        &#34;&#34;&#34;
+        :return: dictionary representation of all summaries
+        &#34;&#34;&#34;
+        result = {}
+        for ps in self.summaries:
+            result[ps.stype.name] = ps.to_dict()
+        return result
+
+    @staticmethod
+    def from_dict(summary_dict: dict) -&gt; &#34;AggregateSummary&#34;:
+        &#34;&#34;&#34;
+        :param summary_dict: dictionary to load data from
+        :return: AggregateSummary from a dictionary
+        &#34;&#34;&#34;
+        result = AggregateSummary()
+        for v in summary_dict.values():
+            result.summaries.append(PyarrowSummary(v[&#34;name&#34;], SensorType[v[&#34;stype&#34;]], v[&#34;start&#34;], v[&#34;srate_hz&#34;],
+                                                   v[&#34;fdir&#34;], v[&#34;scount&#34;], v[&#34;smint_s&#34;], v[&#34;sstd_s&#34;]))
+        return result
+
+    def add_aggregate_summary(self, agg_sum: &#39;AggregateSummary&#39;):
+        &#34;&#34;&#34;
+        adds another aggregate summary to this one
+
+        :param agg_sum: another aggregate summary to add
+        &#34;&#34;&#34;
+        self.summaries.extend(agg_sum.summaries)
+
+    def add_summary(self, pya_sum: PyarrowSummary):
+        &#34;&#34;&#34;
+        adds a summary to the aggregate
+
+        :param pya_sum: the summary to add
+        &#34;&#34;&#34;
+        self.summaries.append(pya_sum)
+
+    def merge_audio_summaries(self):
+        &#34;&#34;&#34;
+        combines and replaces all Audio summaries into a single summary; also adds any gaps in the data
+        &#34;&#34;&#34;
+        pckt_info = []
+        audio_lst = self.get_audio()
+        frst_audio = audio_lst[0]
+        use_mem = frst_audio.check_data()
+        for adl in audio_lst:
+            pckt_info.append((int(adl.start), adl.data()))
+
+        audio_data = gpu.fill_audio_gaps2(pckt_info,
+                                          dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
+                                          )
+        tbl = audio_data.create_timestamps()
+        frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
+                                    frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
+                                    tbl)
+        if not use_mem:
+            frst_audio.write_data(True)
+
+        self.gaps = audio_data.gaps
+        self.summaries = self.get_non_audio_list()
+        self.add_summary(frst_audio)
+
+    def merge_non_audio_summaries(self):
+        &#34;&#34;&#34;
+        combines and replaces all summaries per type except for audio summaries
+        &#34;&#34;&#34;
+        smrs_dict = {}
+        for smry in self.summaries:
+            if smry.stype != SensorType.AUDIO:
+                if smry.stype in smrs_dict.keys():
+                    smrs_dict[smry.stype].append(smry)
+                else:
+                    smrs_dict[smry.stype] = [smry]
+        self.summaries = self.get_audio()
+        for styp, smrys in smrs_dict.items():
+            if len(smrys) &gt; 0:
+                combined_mint = np.mean([smrs.smint_s for smrs in smrys])
+                combined_std = np.mean([smrs.sstd_s for smrs in smrys])
+                first_summary = smrys.pop(0)
+                tbl = first_summary.data()
+                if not first_summary.check_data():
+                    os.makedirs(first_summary.fdir, exist_ok=True)
+                for smrs in smrys:
+                    tbl = pa.concat_tables([tbl, smrs.data()])
+                    if not first_summary.check_data():
+                        os.remove(smrs.file_name())
+                if first_summary.check_data():
+                    first_summary._data = tbl
+                else:
+                    pq.write_table(tbl, first_summary.file_name())
+                # sort data by timestamps
+                tbl = pc.take(tbl, pc.sort_indices(tbl, sort_keys=[(&#34;timestamps&#34;, &#34;ascending&#34;)]))
+                timestamps = tbl[&#34;timestamps&#34;].to_numpy()
+                if len(timestamps) &gt; 1:
+                    mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+                    stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+                else:
+                    mnint = np.nan
+                    stdint = np.nan
+                if not combined_mint + combined_std &gt; mnint &gt; combined_mint - combined_std:
+                    self.errors.append(f&#34;Mean interval s of combined {styp.name} sensor does not match the &#34;
+                                       f&#34;compilation of individual mean interval s per packet.  Will use compilation &#34;
+                                       f&#34;of individual values.&#34;)
+                    mnint = combined_mint
+                    stdint = combined_std
+                single_smry = PyarrowSummary(first_summary.name, styp, first_summary.start,
+                                             1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                                             first_summary.data() if first_summary.check_data() else None
+                                             )
+                self.summaries.append(single_smry)
+
+    def merge_summaries_of_type(self, stype: SensorType):
+        &#34;&#34;&#34;
+        combines and replaces multiple summaries of one SensorType into a single one
+
+        *caution: using this on an audio sensor may cause data validation issues*
+
+        :param stype: the type of sensor to combine
+        &#34;&#34;&#34;
+        smrs = []
+        other_smrs = []
+        for smry in self.summaries:
+            if smry.stype == stype:
+                smrs.append(smry)
+            else:
+                other_smrs.append(smry)
+        first_summary = smrs.pop(0)
+        tbl = first_summary.data()
+        if not first_summary.check_data():
+            os.makedirs(first_summary.fdir, exist_ok=True)
+        for smrys in smrs:
+            tbl = pa.concat_tables([first_summary.data(), smrys.data()])
+            if first_summary.check_data():
+                first_summary._data = tbl
+            else:
+                pq.write_table(tbl, first_summary.file_name())
+                os.remove(smrys.file_name())
+        mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
+        stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
+        single_smry = PyarrowSummary(first_summary.name, first_summary.stype, first_summary.start,
+                                     1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                                     first_summary.data() if first_summary.check_data() else None
+                                     )
+        self.summaries = other_smrs
+        self.summaries.append(single_smry)
+
+    def merge_all_summaries(self):
+        &#34;&#34;&#34;
+        merge all PyarrowSummary with the same sensor type into single PyarrowSummary per type
+        &#34;&#34;&#34;
+        self.merge_audio_summaries()
+        self.merge_non_audio_summaries()
+
+    def get_audio(self) -&gt; List[PyarrowSummary]:
+        &#34;&#34;&#34;
+        :return: a list of PyarrowSummary of only Audio data
+        &#34;&#34;&#34;
+        return [s for s in self.summaries if s.stype == srupa.SensorType.AUDIO]
+
+    def get_non_audio(self) -&gt; Dict[srupa.SensorType, List[PyarrowSummary]]:
+        &#34;&#34;&#34;
+        :return: a dictionary of non-Audio SensorType: PyarrowSummary
+        &#34;&#34;&#34;
+        result = {}
+        for k in self.sensor_types():
+            if k != srupa.SensorType.AUDIO:
+                result[k] = [s for s in self.summaries if s.stype == k]
+        return result
+
+    def get_non_audio_list(self) -&gt; List[PyarrowSummary]:
+        &#34;&#34;&#34;
+        :return: a list of all non-Audio PyarrowSummary
+        &#34;&#34;&#34;
+        return [s for s in self.summaries if s.stype != srupa.SensorType.AUDIO]
+
+    def get_sensor(self, stype: srupa.SensorType) -&gt; List[PyarrowSummary]:
+        &#34;&#34;&#34;
+        :param stype: type of sensor to find
+        :return: a list of all PyarrowSummary of the specified type
+        &#34;&#34;&#34;
+        return [s for s in self.summaries if s.stype == stype]
+
+    def sensor_types(self) -&gt; List[srupa.SensorType]:
+        &#34;&#34;&#34;
+        :return: a list of sensor types in self.summaries
+        &#34;&#34;&#34;
+        result = []
+        for s in self.summaries:
+            if s.stype not in result:
+                result.append(s.stype)
+        return result</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.errors"><code class="name">var <span class="ident">errors</span> : <a title="redvox.common.errors.RedVoxExceptions" href="errors.html#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.gaps"><code class="name">var <span class="ident">gaps</span> : List[Tuple[float, float]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.summaries"><code class="name">var <span class="ident">summaries</span> : List[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, ForwardRef(None)], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.add_aggregate_summary"><code class="name flex">
+<span>def <span class="ident">add_aggregate_summary</span></span>(<span>self, agg_sum: <a title="redvox.common.packet_to_pyarrow.AggregateSummary" href="#redvox.common.packet_to_pyarrow.AggregateSummary">AggregateSummary</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>adds another aggregate summary to this one</p>
+<p>:param agg_sum: another aggregate summary to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_aggregate_summary(self, agg_sum: &#39;AggregateSummary&#39;):
+    &#34;&#34;&#34;
+    adds another aggregate summary to this one
+
+    :param agg_sum: another aggregate summary to add
+    &#34;&#34;&#34;
+    self.summaries.extend(agg_sum.summaries)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.add_summary"><code class="name flex">
+<span>def <span class="ident">add_summary</span></span>(<span>self, pya_sum: <a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>adds a summary to the aggregate</p>
+<p>:param pya_sum: the summary to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_summary(self, pya_sum: PyarrowSummary):
+    &#34;&#34;&#34;
+    adds a summary to the aggregate
+
+    :param pya_sum: the summary to add
+    &#34;&#34;&#34;
+    self.summaries.append(pya_sum)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.get_audio"><code class="name flex">
+<span>def <span class="ident">get_audio</span></span>(<span>self) ‑> List[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: a list of PyarrowSummary of only Audio data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_audio(self) -&gt; List[PyarrowSummary]:
+    &#34;&#34;&#34;
+    :return: a list of PyarrowSummary of only Audio data
+    &#34;&#34;&#34;
+    return [s for s in self.summaries if s.stype == srupa.SensorType.AUDIO]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.get_non_audio"><code class="name flex">
+<span>def <span class="ident">get_non_audio</span></span>(<span>self) ‑> Dict[<a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, List[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: a dictionary of non-Audio SensorType: PyarrowSummary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_non_audio(self) -&gt; Dict[srupa.SensorType, List[PyarrowSummary]]:
+    &#34;&#34;&#34;
+    :return: a dictionary of non-Audio SensorType: PyarrowSummary
+    &#34;&#34;&#34;
+    result = {}
+    for k in self.sensor_types():
+        if k != srupa.SensorType.AUDIO:
+            result[k] = [s for s in self.summaries if s.stype == k]
+    return result</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.get_non_audio_list"><code class="name flex">
+<span>def <span class="ident">get_non_audio_list</span></span>(<span>self) ‑> List[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: a list of all non-Audio PyarrowSummary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_non_audio_list(self) -&gt; List[PyarrowSummary]:
+    &#34;&#34;&#34;
+    :return: a list of all non-Audio PyarrowSummary
+    &#34;&#34;&#34;
+    return [s for s in self.summaries if s.stype != srupa.SensorType.AUDIO]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.get_sensor"><code class="name flex">
+<span>def <span class="ident">get_sensor</span></span>(<span>self, stype: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>) ‑> List[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param stype: type of sensor to find
+:return: a list of all PyarrowSummary of the specified type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_sensor(self, stype: srupa.SensorType) -&gt; List[PyarrowSummary]:
+    &#34;&#34;&#34;
+    :param stype: type of sensor to find
+    :return: a list of all PyarrowSummary of the specified type
+    &#34;&#34;&#34;
+    return [s for s in self.summaries if s.stype == stype]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.merge_all_summaries"><code class="name flex">
+<span>def <span class="ident">merge_all_summaries</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>merge all PyarrowSummary with the same sensor type into single PyarrowSummary per type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def merge_all_summaries(self):
+    &#34;&#34;&#34;
+    merge all PyarrowSummary with the same sensor type into single PyarrowSummary per type
+    &#34;&#34;&#34;
+    self.merge_audio_summaries()
+    self.merge_non_audio_summaries()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.merge_audio_summaries"><code class="name flex">
+<span>def <span class="ident">merge_audio_summaries</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>combines and replaces all Audio summaries into a single summary; also adds any gaps in the data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def merge_audio_summaries(self):
+    &#34;&#34;&#34;
+    combines and replaces all Audio summaries into a single summary; also adds any gaps in the data
+    &#34;&#34;&#34;
+    pckt_info = []
+    audio_lst = self.get_audio()
+    frst_audio = audio_lst[0]
+    use_mem = frst_audio.check_data()
+    for adl in audio_lst:
+        pckt_info.append((int(adl.start), adl.data()))
+
+    audio_data = gpu.fill_audio_gaps2(pckt_info,
+                                      dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
+                                      )
+    tbl = audio_data.create_timestamps()
+    frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
+                                frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
+                                tbl)
+    if not use_mem:
+        frst_audio.write_data(True)
+
+    self.gaps = audio_data.gaps
+    self.summaries = self.get_non_audio_list()
+    self.add_summary(frst_audio)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.merge_non_audio_summaries"><code class="name flex">
+<span>def <span class="ident">merge_non_audio_summaries</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>combines and replaces all summaries per type except for audio summaries</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def merge_non_audio_summaries(self):
+    &#34;&#34;&#34;
+    combines and replaces all summaries per type except for audio summaries
+    &#34;&#34;&#34;
+    smrs_dict = {}
+    for smry in self.summaries:
+        if smry.stype != SensorType.AUDIO:
+            if smry.stype in smrs_dict.keys():
+                smrs_dict[smry.stype].append(smry)
+            else:
+                smrs_dict[smry.stype] = [smry]
+    self.summaries = self.get_audio()
+    for styp, smrys in smrs_dict.items():
+        if len(smrys) &gt; 0:
+            combined_mint = np.mean([smrs.smint_s for smrs in smrys])
+            combined_std = np.mean([smrs.sstd_s for smrs in smrys])
+            first_summary = smrys.pop(0)
+            tbl = first_summary.data()
+            if not first_summary.check_data():
+                os.makedirs(first_summary.fdir, exist_ok=True)
+            for smrs in smrys:
+                tbl = pa.concat_tables([tbl, smrs.data()])
+                if not first_summary.check_data():
+                    os.remove(smrs.file_name())
+            if first_summary.check_data():
+                first_summary._data = tbl
+            else:
+                pq.write_table(tbl, first_summary.file_name())
+            # sort data by timestamps
+            tbl = pc.take(tbl, pc.sort_indices(tbl, sort_keys=[(&#34;timestamps&#34;, &#34;ascending&#34;)]))
+            timestamps = tbl[&#34;timestamps&#34;].to_numpy()
+            if len(timestamps) &gt; 1:
+                mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+                stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
+            else:
+                mnint = np.nan
+                stdint = np.nan
+            if not combined_mint + combined_std &gt; mnint &gt; combined_mint - combined_std:
+                self.errors.append(f&#34;Mean interval s of combined {styp.name} sensor does not match the &#34;
+                                   f&#34;compilation of individual mean interval s per packet.  Will use compilation &#34;
+                                   f&#34;of individual values.&#34;)
+                mnint = combined_mint
+                stdint = combined_std
+            single_smry = PyarrowSummary(first_summary.name, styp, first_summary.start,
+                                         1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                                         first_summary.data() if first_summary.check_data() else None
+                                         )
+            self.summaries.append(single_smry)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.merge_summaries_of_type"><code class="name flex">
+<span>def <span class="ident">merge_summaries_of_type</span></span>(<span>self, stype: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>combines and replaces multiple summaries of one SensorType into a single one</p>
+<p><em>caution: using this on an audio sensor may cause data validation issues</em></p>
+<p>:param stype: the type of sensor to combine</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def merge_summaries_of_type(self, stype: SensorType):
+    &#34;&#34;&#34;
+    combines and replaces multiple summaries of one SensorType into a single one
+
+    *caution: using this on an audio sensor may cause data validation issues*
+
+    :param stype: the type of sensor to combine
+    &#34;&#34;&#34;
+    smrs = []
+    other_smrs = []
+    for smry in self.summaries:
+        if smry.stype == stype:
+            smrs.append(smry)
+        else:
+            other_smrs.append(smry)
+    first_summary = smrs.pop(0)
+    tbl = first_summary.data()
+    if not first_summary.check_data():
+        os.makedirs(first_summary.fdir, exist_ok=True)
+    for smrys in smrs:
+        tbl = pa.concat_tables([first_summary.data(), smrys.data()])
+        if first_summary.check_data():
+            first_summary._data = tbl
+        else:
+            pq.write_table(tbl, first_summary.file_name())
+            os.remove(smrys.file_name())
+    mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
+    stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
+    single_smry = PyarrowSummary(first_summary.name, first_summary.stype, first_summary.start,
+                                 1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
+                                 first_summary.data() if first_summary.check_data() else None
+                                 )
+    self.summaries = other_smrs
+    self.summaries.append(single_smry)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.sensor_types"><code class="name flex">
+<span>def <span class="ident">sensor_types</span></span>(<span>self) ‑> List[<a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: a list of sensor types in self.summaries</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sensor_types(self) -&gt; List[srupa.SensorType]:
+    &#34;&#34;&#34;
+    :return: a list of sensor types in self.summaries
+    &#34;&#34;&#34;
+    result = []
+    for s in self.summaries:
+        if s.stype not in result:
+            result.append(s.stype)
+    return result</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, ForwardRef(None)]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.AggregateSummary.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, ForwardRef(None)] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(encode_json=False),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary"><code class="flex name class">
+<span>class <span class="ident">PyarrowSummary</span></span>
+<span>(</span><span>name: str, stype: <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, start: float, srate_hz: float, fdir: str, scount: int, smint_s: float = nan, sstd_s: float = nan)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Summary of a sensor using Pyarrow Tables or parquet files to store the data</p>
+<h2 id="properties">Properties</h2>
+<p>name: str, name of sensor</p>
+<p>stype: SensorType, sensor type of summary</p>
+<p>start: float, start timestamp in microseconds since epoch utc of sensor</p>
+<p>srate: float, sample rate in Hz</p>
+<p>fdir: str, directory where parquet files can be found</p>
+<p>scount: int, number of samples to read</p>
+<p>smint: float, mean interval of sample rate in seconds</p>
+<p>sstd: float, std dev of sample rate in seconds</p>
+<p>_data: optional data as a Pyarrow Table</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass_json
+@dataclass
+class PyarrowSummary:
+    &#34;&#34;&#34;
+    Summary of a sensor using Pyarrow Tables or parquet files to store the data
+
+    Properties:
+        name: str, name of sensor
+
+        stype: SensorType, sensor type of summary
+
+        start: float, start timestamp in microseconds since epoch utc of sensor
+
+        srate: float, sample rate in Hz
+
+        fdir: str, directory where parquet files can be found
+
+        scount: int, number of samples to read
+
+        smint: float, mean interval of sample rate in seconds
+
+        sstd: float, std dev of sample rate in seconds
+
+        _data: optional data as a Pyarrow Table
+    &#34;&#34;&#34;
+    name: str
+    stype: srupa.SensorType
+    start: float
+    srate_hz: float
+    fdir: str
+    scount: int
+    smint_s: float = np.nan
+    sstd_s: float = np.nan
+    _data: Optional[pa.Table] = None
+
+    def to_dict(self) -&gt; dict:
+        &#34;&#34;&#34;
+        :return: dictionary representation of the data
+        &#34;&#34;&#34;
+        return {
+            &#34;name&#34;: self.name,
+            &#34;stype&#34;: self.stype.name,
+            &#34;start&#34;: self.start,
+            &#34;srate_hz&#34;: self.srate_hz,
+            &#34;fdir&#34;: self.fdir,
+            &#34;smint_s&#34;: self.smint_s,
+            &#34;sstd_s&#34;: self.sstd_s,
+            &#34;scount&#34;: self.scount
+        }
+
+    def file_name(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: full path and file name of where the file should exist
+        &#34;&#34;&#34;
+        return os.path.join(self.fdir, f&#34;{self.stype.name}_{int(self.start)}.parquet&#34;)
+
+    def fdir_stem(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: the name of the parent directory of the file
+        &#34;&#34;&#34;
+        return Path(self.fdir).stem
+
+    def clean_fdir(self):
+        &#34;&#34;&#34;
+        remove all parquets in the self.fdir
+        &#34;&#34;&#34;
+        for f in glob(os.path.join(self.fdir, &#34;*.parquet&#34;)):
+            os.remove(f)
+
+    def write_data(self, clean_dir: bool = False) -&gt; str:
+        &#34;&#34;&#34;
+        write the data being summarized to disk, then remove the data from the object
+
+        :param clean_dir: if True, remove any files in the dir before writing the data, default False
+        :return: the path to the file where the data exists or empty string if data wasn&#39;t written
+        &#34;&#34;&#34;
+        if self.check_data():
+            os.makedirs(self.fdir, exist_ok=True)
+            if clean_dir:
+                self.clean_fdir()
+            pq.write_table(self._data, self.file_name())
+            self._data = None
+            return self.file_name()
+        return &#34;&#34;
+
+    def check_data(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: True if data exists as a property (also means not written to disk)
+        &#34;&#34;&#34;
+        return True if self._data else False
+
+    def data(self) -&gt; Optional[pa.Table]:
+        &#34;&#34;&#34;
+        :return: the data as a Pyarrow Table
+        &#34;&#34;&#34;
+        if self.check_data():
+            return self._data
+        if os.path.exists(self.file_name()):
+            return pq.read_table(self.file_name())
+        return pa.Table.from_pydict({})</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.fdir"><code class="name">var <span class="ident">fdir</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.scount"><code class="name">var <span class="ident">scount</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.smint_s"><code class="name">var <span class="ident">smint_s</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.srate_hz"><code class="name">var <span class="ident">srate_hz</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.sstd_s"><code class="name">var <span class="ident">sstd_s</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.start"><code class="name">var <span class="ident">start</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.stype"><code class="name">var <span class="ident">stype</span> : <a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, ForwardRef(None)], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.check_data"><code class="name flex">
+<span>def <span class="ident">check_data</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: True if data exists as a property (also means not written to disk)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_data(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: True if data exists as a property (also means not written to disk)
+    &#34;&#34;&#34;
+    return True if self._data else False</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.clean_fdir"><code class="name flex">
+<span>def <span class="ident">clean_fdir</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>remove all parquets in the self.fdir</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def clean_fdir(self):
+    &#34;&#34;&#34;
+    remove all parquets in the self.fdir
+    &#34;&#34;&#34;
+    for f in glob(os.path.join(self.fdir, &#34;*.parquet&#34;)):
+        os.remove(f)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.data"><code class="name flex">
+<span>def <span class="ident">data</span></span>(<span>self) ‑> Optional[pyarrow.lib.Table]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the data as a Pyarrow Table</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data(self) -&gt; Optional[pa.Table]:
+    &#34;&#34;&#34;
+    :return: the data as a Pyarrow Table
+    &#34;&#34;&#34;
+    if self.check_data():
+        return self._data
+    if os.path.exists(self.file_name()):
+        return pq.read_table(self.file_name())
+    return pa.Table.from_pydict({})</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.fdir_stem"><code class="name flex">
+<span>def <span class="ident">fdir_stem</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the name of the parent directory of the file</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fdir_stem(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: the name of the parent directory of the file
+    &#34;&#34;&#34;
+    return Path(self.fdir).stem</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.file_name"><code class="name flex">
+<span>def <span class="ident">file_name</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: full path and file name of where the file should exist</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def file_name(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: full path and file name of where the file should exist
+    &#34;&#34;&#34;
+    return os.path.join(self.fdir, f&#34;{self.stype.name}_{int(self.start)}.parquet&#34;)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, ForwardRef(None)]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, ForwardRef(None)] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(encode_json=False),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.PyarrowSummary.write_data"><code class="name flex">
+<span>def <span class="ident">write_data</span></span>(<span>self, clean_dir: bool = False) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>write the data being summarized to disk, then remove the data from the object</p>
+<p>:param clean_dir: if True, remove any files in the dir before writing the data, default False
+:return: the path to the file where the data exists or empty string if data wasn't written</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def write_data(self, clean_dir: bool = False) -&gt; str:
+    &#34;&#34;&#34;
+    write the data being summarized to disk, then remove the data from the object
+
+    :param clean_dir: if True, remove any files in the dir before writing the data, default False
+    :return: the path to the file where the data exists or empty string if data wasn&#39;t written
+    &#34;&#34;&#34;
+    if self.check_data():
+        os.makedirs(self.fdir, exist_ok=True)
+        if clean_dir:
+            self.clean_fdir()
+        pq.write_table(self._data, self.file_name())
+        self._data = None
+        return self.file_name()
+    return &#34;&#34;</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM"><code class="flex name class">
+<span>class <span class="ident">RedvoxPacketM</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>google.protobuf.pyext._message.CMessage</li>
+<li>google.protobuf.message.Message</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.DoubleSamplePayload"><code class="name">var <span class="ident">DoubleSamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.EventStream"><code class="name">var <span class="ident">EventStream</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.Sensors"><code class="name">var <span class="ident">Sensors</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.StationInformation"><code class="name">var <span class="ident">StationInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.SummaryStatistics"><code class="name">var <span class="ident">SummaryStatistics</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingInformation"><code class="name">var <span class="ident">TimingInformation</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingPayload"><code class="name">var <span class="ident">TimingPayload</span></code></dt>
+<dd>
+<div class="desc"><p>A ProtocolMessage</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.api</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.event_streams</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.metadata</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sensors</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.station_information</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sub_api</p></div>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
+<dd>
+<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.timing_information</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.common" href="index.html">redvox.common</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_accelerometer" href="#redvox.common.packet_to_pyarrow.load_apim_accelerometer">load_apim_accelerometer</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_ambient_temp" href="#redvox.common.packet_to_pyarrow.load_apim_ambient_temp">load_apim_ambient_temp</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_audio" href="#redvox.common.packet_to_pyarrow.load_apim_audio">load_apim_audio</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_best_location" href="#redvox.common.packet_to_pyarrow.load_apim_best_location">load_apim_best_location</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_compressed_audio" href="#redvox.common.packet_to_pyarrow.load_apim_compressed_audio">load_apim_compressed_audio</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_gravity" href="#redvox.common.packet_to_pyarrow.load_apim_gravity">load_apim_gravity</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_gyroscope" href="#redvox.common.packet_to_pyarrow.load_apim_gyroscope">load_apim_gyroscope</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_health" href="#redvox.common.packet_to_pyarrow.load_apim_health">load_apim_health</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_image" href="#redvox.common.packet_to_pyarrow.load_apim_image">load_apim_image</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_light" href="#redvox.common.packet_to_pyarrow.load_apim_light">load_apim_light</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_linear_accel" href="#redvox.common.packet_to_pyarrow.load_apim_linear_accel">load_apim_linear_accel</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_location" href="#redvox.common.packet_to_pyarrow.load_apim_location">load_apim_location</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_magnetometer" href="#redvox.common.packet_to_pyarrow.load_apim_magnetometer">load_apim_magnetometer</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_orientation" href="#redvox.common.packet_to_pyarrow.load_apim_orientation">load_apim_orientation</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_pressure" href="#redvox.common.packet_to_pyarrow.load_apim_pressure">load_apim_pressure</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_proximity" href="#redvox.common.packet_to_pyarrow.load_apim_proximity">load_apim_proximity</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_rel_humidity" href="#redvox.common.packet_to_pyarrow.load_apim_rel_humidity">load_apim_rel_humidity</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_rotation_vector" href="#redvox.common.packet_to_pyarrow.load_apim_rotation_vector">load_apim_rotation_vector</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_single" href="#redvox.common.packet_to_pyarrow.load_single">load_single</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_xyz" href="#redvox.common.packet_to_pyarrow.load_xyz">load_xyz</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.packet_to_pyarrow" href="#redvox.common.packet_to_pyarrow.packet_to_pyarrow">packet_to_pyarrow</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.stream_to_pyarrow" href="#redvox.common.packet_to_pyarrow.stream_to_pyarrow">stream_to_pyarrow</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary" href="#redvox.common.packet_to_pyarrow.AggregateSummary">AggregateSummary</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.add_aggregate_summary" href="#redvox.common.packet_to_pyarrow.AggregateSummary.add_aggregate_summary">add_aggregate_summary</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.add_summary" href="#redvox.common.packet_to_pyarrow.AggregateSummary.add_summary">add_summary</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.errors" href="#redvox.common.packet_to_pyarrow.AggregateSummary.errors">errors</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.from_dict" href="#redvox.common.packet_to_pyarrow.AggregateSummary.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.from_json" href="#redvox.common.packet_to_pyarrow.AggregateSummary.from_json">from_json</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.gaps" href="#redvox.common.packet_to_pyarrow.AggregateSummary.gaps">gaps</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.get_audio" href="#redvox.common.packet_to_pyarrow.AggregateSummary.get_audio">get_audio</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.get_non_audio" href="#redvox.common.packet_to_pyarrow.AggregateSummary.get_non_audio">get_non_audio</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.get_non_audio_list" href="#redvox.common.packet_to_pyarrow.AggregateSummary.get_non_audio_list">get_non_audio_list</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.get_sensor" href="#redvox.common.packet_to_pyarrow.AggregateSummary.get_sensor">get_sensor</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.merge_all_summaries" href="#redvox.common.packet_to_pyarrow.AggregateSummary.merge_all_summaries">merge_all_summaries</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.merge_audio_summaries" href="#redvox.common.packet_to_pyarrow.AggregateSummary.merge_audio_summaries">merge_audio_summaries</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.merge_non_audio_summaries" href="#redvox.common.packet_to_pyarrow.AggregateSummary.merge_non_audio_summaries">merge_non_audio_summaries</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.merge_summaries_of_type" href="#redvox.common.packet_to_pyarrow.AggregateSummary.merge_summaries_of_type">merge_summaries_of_type</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.schema" href="#redvox.common.packet_to_pyarrow.AggregateSummary.schema">schema</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.sensor_types" href="#redvox.common.packet_to_pyarrow.AggregateSummary.sensor_types">sensor_types</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.summaries" href="#redvox.common.packet_to_pyarrow.AggregateSummary.summaries">summaries</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.to_dict" href="#redvox.common.packet_to_pyarrow.AggregateSummary.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.AggregateSummary.to_json" href="#redvox.common.packet_to_pyarrow.AggregateSummary.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.check_data" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.check_data">check_data</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.clean_fdir" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.clean_fdir">clean_fdir</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.data" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.data">data</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.fdir" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.fdir">fdir</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.fdir_stem" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.fdir_stem">fdir_stem</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.file_name" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.file_name">file_name</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.from_dict" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.from_json" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.from_json">from_json</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.name" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.name">name</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.schema" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.schema">schema</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.scount" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.scount">scount</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.smint_s" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.smint_s">smint_s</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.srate_hz" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.srate_hz">srate_hz</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.sstd_s" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.sstd_s">sstd_s</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.start" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.start">start</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.stype" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.stype">stype</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.to_dict" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.to_json" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.to_json">to_json</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.PyarrowSummary.write_data" href="#redvox.common.packet_to_pyarrow.PyarrowSummary.write_data">write_data</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM">RedvoxPacketM</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.BYTE" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.BYTE">BYTE</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.CENTIMETERS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIBEL" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DESCRIPTOR" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DoubleSamplePayload" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.EventStream" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.EventStream">EventStream</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.KILOPASCAL" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.LUX" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.LUX">LUX</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS">METERS</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROAMPERES" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROTESLA" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.MetadataEntry" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.PCM" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.PCM">PCM</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.PERCENTAGE" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.SamplePayload" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.Sensors" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.Sensors">Sensors</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.StationInformation" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.SummaryStatistics" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingInformation" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingPayload" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.UNITLESS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.UNKNOWN" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.Unit" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.Unit">Unit</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.api" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.api">api</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.event_streams" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.event_streams">event_streams</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.metadata" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.metadata">metadata</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.sensors" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.sensors">sensors</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.station_information" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.station_information">station_information</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.sub_api" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.sub_api">sub_api</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.timing_information" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.timing_information">timing_information</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

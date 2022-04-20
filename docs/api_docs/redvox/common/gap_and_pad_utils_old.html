@@ -1,0 +1,1312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>redvox.common.gap_and_pad_utils_old API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.common.gap_and_pad_utils_old</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from typing import List, Tuple, Optional
+import enum
+from math import modf
+from dataclasses import dataclass, field
+
+from dataclasses_json import dataclass_json
+import pandas as pd
+import numpy as np
+
+from redvox.common import date_time_utils as dtu
+from redvox.common.errors import RedVoxExceptions, RedVoxError
+from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
+from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
+from redvox.api1000.wrapped_redvox_packet.station_information import NetworkType, PowerState, CellServiceState
+
+# default maximum number of points required to brute force calculating gap timestamps
+DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
+# percent of packet duration/sample rate required for gap to be considered a whole unit
+DEFAULT_GAP_UPPER_LIMIT: float = 0.8
+# percent of packet duration/sample rate required for gap to be considered nothing
+DEFAULT_GAP_LOWER_LIMIT: float = 0.02
+# columns for audio dataframe
+AUDIO_DF_COLUMNS = [&#34;timestamps&#34;, &#34;unaltered_timestamps&#34;, &#34;microphone&#34;]
+# columns that cannot be interpolated
+NON_INTERPOLATED_COLUMNS = [&#34;compressed_audio&#34;, &#34;image&#34;]
+# columns that are not numeric but can be interpolated
+NON_NUMERIC_COLUMNS = [&#34;location_provider&#34;, &#34;image_codec&#34;, &#34;audio_codec&#34;,
+                       &#34;network_type&#34;, &#34;power_state&#34;, &#34;cell_service&#34;]
+
+
+# noinspection Mypy,DuplicatedCode
+class DataPointCreationMode(enum.Enum):
+    &#34;&#34;&#34;
+    Type of data point to create
+    &#34;&#34;&#34;
+
+    NAN: int = 0
+    COPY: int = 1
+    INTERPOLATE: int = 2
+
+    @staticmethod
+    def list_names() -&gt; List[str]:
+        return [n.name for n in DataPointCreationMode]
+
+
+@dataclass_json()
+@dataclass
+class GapPadResult:
+    &#34;&#34;&#34;
+    The result of filling gaps or padding a time series
+    &#34;&#34;&#34;
+    result_df: Optional[pd.DataFrame] = None
+    gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
+    errors: RedVoxExceptions = field(default_factory=lambda: RedVoxExceptions(&#34;GapPadResult&#34;))
+
+    def add_error(self, error: str):
+        &#34;&#34;&#34;
+        add an error to the result
+        :param error: error message to add
+        &#34;&#34;&#34;
+        self.errors.append(error)
+
+
+def calc_evenly_sampled_timestamps(
+        start: float, samples: int, sample_interval_micros: float
+) -&gt; np.array:
+    &#34;&#34;&#34;
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+
+    :param start: float, start timestamp in microseconds
+    :param samples: int, number of samples
+    :param sample_interval_micros: float, sample interval in microseconds
+    :return: np.array with number of samples timestamps, evenly spaced starting at start
+    &#34;&#34;&#34;
+    return start + (np.arange(0, samples) * sample_interval_micros)
+
+
+def check_gap_list(gaps: List[Tuple[float, float]], start_timestamp: float = None,
+                   end_timestamp: float = None) -&gt; List[Tuple[float, float]]:
+    &#34;&#34;&#34;
+    removes any gaps where end time &lt;= start time, consolidates overlapping gaps, and ensures that no gap
+    starts or ends before start_timestamp and starts or ends after end_timestamp.  All timestamps are in
+    microseconds since epoch UTC
+
+    :param gaps: list of gaps to check
+    :param start_timestamp: lowest possible timestamp for a gap to start at
+    :param end_timestamp: lowest possible timestamp for a gap to end at
+    :return: list of correct, valid gaps
+    &#34;&#34;&#34;
+    return_gaps: List[Tuple[float, float]] = []
+    for gap in gaps:
+        if start_timestamp:
+            gap = (np.max([start_timestamp, gap[0]]), np.max([start_timestamp, gap[1]]))
+        if end_timestamp:
+            gap = (np.min([end_timestamp, gap[0]]), np.min([end_timestamp, gap[1]]))
+        if gap[0] &lt; gap[1]:
+            if len(return_gaps) &lt; 1:
+                return_gaps.append(gap)
+            for a, r_g in enumerate(return_gaps):
+                if (gap[0] &lt; r_g[0] and gap[1] &lt; r_g[0]) or (gap[0] &gt; r_g[1] and gap[1] &gt; r_g[1]):
+                    return_gaps.append(gap)
+                    break
+                else:
+                    if gap[0] &lt; r_g[0] &lt; gap[1]:
+                        r_g = (gap[0], r_g[1])
+                    if gap[0] &lt; r_g[1] &lt; gap[1]:
+                        r_g = (r_g[0], gap[1])
+                    return_gaps[a] = r_g
+    return return_gaps
+
+
+def pad_data(
+        expected_start: float,
+        expected_end: float,
+        data_df: pd.DataFrame,
+        sample_interval_micros: float,
+) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Pad the start and end of the dataframe with np.nan
+
+    :param expected_start: timestamp indicating start time of the data to pad from
+    :param expected_end: timestamp indicating end time of the data to pad from
+    :param data_df: dataframe with timestamps as column &#34;timestamps&#34;
+    :param sample_interval_micros: constant sample interval in microseconds
+    :return: dataframe padded with np.nans in front and back to meet full size of expected start and end
+    &#34;&#34;&#34;
+    # extract the necessary information to pad the data
+    data_time_stamps = data_df[&#34;timestamps&#34;].to_numpy()
+    first_data_timestamp = data_time_stamps[0]
+    last_data_timestamp = data_time_stamps[-1]
+    result_df = data_df.copy()
+    result_before_update_length = len(result_df) - 1
+    # FRONT/END GAP FILL!  calculate the samples missing based on inputs
+    if expected_start &lt; first_data_timestamp:
+        start_diff = first_data_timestamp - expected_start
+        num_missing_samples = int(start_diff / sample_interval_micros)
+        if num_missing_samples &gt; 0:
+            # add the gap data to the result dataframe
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                0,
+                sample_interval_micros,
+                num_missing_samples,
+                True
+            )
+    if expected_end &gt; last_data_timestamp:
+        last_diff = expected_end - last_data_timestamp
+        num_missing_samples = int(last_diff / sample_interval_micros)
+        if num_missing_samples &gt; 0:
+            # add the gap data to the result dataframe
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                result_before_update_length,
+                sample_interval_micros,
+                num_missing_samples
+            )
+    return result_df.sort_values(&#34;timestamps&#34;, ignore_index=True)
+
+
+def fill_gaps(
+        data_df: pd.DataFrame,
+        gaps: List[Tuple[float, float]],
+        sample_interval_micros: float,
+        copy: bool = False
+) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    fills gaps in the dataframe with np.nan or interpolated values by interpolating timestamps based on the
+    calculated sample interval
+
+    :param data_df: dataframe with timestamps as column &#34;timestamps&#34;
+    :param gaps: list of tuples of known non-inclusive start and end timestamps of the gaps
+    :param sample_interval_micros: known sample interval of the data points
+    :param copy: if True, copy the data points, otherwise interpolate from edges, default False
+    :return: dataframe without gaps
+    &#34;&#34;&#34;
+    # extract the necessary information to compute gap size and gap timestamps
+    data_time_stamps = data_df[&#34;timestamps&#34;].to_numpy()
+    if len(data_time_stamps) &gt; 1:
+        result_df = data_df.copy()
+        data_duration = data_time_stamps[-1] - data_time_stamps[0]
+        expected_samples = (np.floor(data_duration / sample_interval_micros)
+                            + (1 if data_duration % sample_interval_micros &gt;=
+                               sample_interval_micros * DEFAULT_GAP_UPPER_LIMIT else 0)) + 1
+        if expected_samples &gt; len(data_time_stamps):
+            if copy:
+                pcm = DataPointCreationMode[&#34;COPY&#34;]
+            else:
+                pcm = DataPointCreationMode[&#34;NAN&#34;]
+            # make it safe to alter the gap values
+            my_gaps = check_gap_list(gaps, data_time_stamps[0], data_time_stamps[-1])
+            for gap in my_gaps:
+                # if timestamps are around gaps, we have to update the values
+                before_start = np.argwhere([t &lt;= gap[0] for t in data_time_stamps])
+                after_end = np.argwhere([t &gt;= gap[1] for t in data_time_stamps])
+                if len(before_start) &gt; 0:
+                    before_start = before_start[-1][0]
+                    # sim = gap[0] - data_time_stamps[before_start]
+                    # result_df = add_data_points_to_df(result_df, before_start, sim, point_creation_mode=pcm)
+                    gap = (data_time_stamps[before_start], gap[1])
+                else:
+                    before_start = None
+                if len(after_end) &gt; 0:
+                    after_end = after_end[0][0]
+                    # sim = gap[1] - data_time_stamps[after_end]
+                    gap = (gap[0], data_time_stamps[after_end])
+                else:
+                    after_end = None
+                num_new_points = int((gap[1] - gap[0]) / sample_interval_micros) - 1
+                if before_start is not None:
+                    result_df = add_data_points_to_df(result_df, before_start, sample_interval_micros,
+                                                      num_new_points, pcm)
+                elif after_end is not None:
+                    result_df = add_data_points_to_df(result_df, after_end, -sample_interval_micros,
+                                                      num_new_points, pcm)
+        return result_df.sort_values(&#34;timestamps&#34;, ignore_index=True)
+    return data_df
+
+
+def fill_audio_gaps(
+        packet_data: List[Tuple[float, np.array]],
+        sample_interval_micros: float,
+        gap_upper_limit: float = DEFAULT_GAP_UPPER_LIMIT,
+        gap_lower_limit: float = DEFAULT_GAP_LOWER_LIMIT
+) -&gt; GapPadResult:
+    &#34;&#34;&#34;
+    fills gaps in the dataframe with np.nan by interpolating timestamps based on the expected sample interval
+      * ignores gaps with duration less than or equal to packet length * gap_lower_limit
+      * converts gaps with duration greater than or equal to packet length * gap_upper_limit into a multiple of
+        packet length
+
+    :param packet_data: list of tuples, each tuple containing two pieces of packet information:
+        * packet_start_timestamps: float of packet start timestamp in microseconds
+        * audio_data: array of data points
+    :param sample_interval_micros: sample interval in microseconds
+    :param gap_upper_limit: percentage of packet length required to confirm gap is at least 1 packet,
+                            default DEFAULT_GAP_UPPER_LIMIT
+    :param gap_lower_limit: percentage of packet length required to disregard gap, default DEFAULT_GAP_LOWER_LIMIT
+    :return: dataframe without gaps and the list of timestamps of the non-inclusive start and end of the gaps
+    &#34;&#34;&#34;
+    result_array = [[], [], []]
+    last_data_timestamp: Optional[float] = None
+    gaps = []
+    for packet in packet_data:
+        samples_in_packet = len(packet[1])
+        start_ts = packet[0]
+        packet_length = sample_interval_micros * samples_in_packet
+        if last_data_timestamp:
+            last_data_timestamp += sample_interval_micros
+            # check if start_ts is close to the last timestamp in data_timestamps
+            last_timestamp_diff = start_ts - last_data_timestamp
+            if last_timestamp_diff &gt; gap_lower_limit * packet_length:
+                fractional_packet, num_packets = modf(last_timestamp_diff /
+                                                      (samples_in_packet * sample_interval_micros))
+                if fractional_packet &gt;= gap_upper_limit:
+                    num_samples = samples_in_packet * (num_packets + 1)
+                else:
+                    num_samples = np.max([np.floor((fractional_packet + num_packets) * samples_in_packet), 1])
+                gap_ts = calc_evenly_sampled_timestamps(last_data_timestamp, num_samples, sample_interval_micros)
+                gap_array = [gap_ts, np.full(len(gap_ts), np.nan)]
+                start_ts = gap_ts[-1] + sample_interval_micros
+                gaps.append((last_data_timestamp, start_ts))
+                result_array[0].extend(gap_array[0])
+                result_array[1].extend(gap_array[0])
+                result_array[2].extend(gap_array[1])
+            elif last_timestamp_diff &lt; -gap_lower_limit * packet_length:
+                result = GapPadResult()
+                result.add_error(f&#34;Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} &#34;
+                                 f&#34;is before last timestamp of previous &#34;
+                                 f&#34;packet: {dtu.microseconds_to_seconds(last_data_timestamp)}&#34;)
+                return result
+        estimated_ts = calc_evenly_sampled_timestamps(start_ts, samples_in_packet, sample_interval_micros)
+        last_data_timestamp = estimated_ts[-1]
+        result_array[0].extend(estimated_ts)
+        result_array[1].extend(estimated_ts)
+        result_array[2].extend(packet[1])
+    return GapPadResult(pd.DataFrame(np.transpose(result_array), columns=AUDIO_DF_COLUMNS), gaps)
+
+
+def add_data_points_to_df(dataframe: pd.DataFrame,
+                          start_index: int,
+                          sample_interval_micros: float,
+                          num_samples_to_add: int = 1,
+                          point_creation_mode: DataPointCreationMode = DataPointCreationMode.COPY,
+                          ) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    adds data points to the end of the dataframe, starting from the index specified.
+        Note:
+            * dataframe must not be empty
+            * start_index must be non-negative and less than the length of dataframe
+            * num_samples_to_add must be greater than 0
+            * points are added onto the end and the result is not sorted
+        Options for point_creation_mode are:
+            * NAN: default values and nans
+            * COPY: copies of the start data point
+            * INTERPOLATE: interpolated values between start data point and adjacent point
+
+    :param dataframe: dataframe to add dataless timestamps to
+    :param start_index: index of the dataframe to use as starting point for creating new values
+    :param sample_interval_micros: sample interval in microseconds of the timestamps; use negative values to
+                                    add points before the start_index
+    :param num_samples_to_add: the number of timestamps to create, default 1
+    :param point_creation_mode: the mode of point creation to use
+    :return: updated dataframe with synthetic data points
+    &#34;&#34;&#34;
+    if len(dataframe) &gt; start_index and len(dataframe) &gt; 0 and num_samples_to_add &gt; 0:
+        start_timestamp = dataframe[&#34;timestamps&#34;].iloc[start_index]
+        t = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+        # interpolate mode only uses the first created timestamp
+        if point_creation_mode == DataPointCreationMode.COPY:
+            empty_df = dataframe.iloc[start_index].copy()
+            for column_index in dataframe.columns:
+                if column_index in NON_INTERPOLATED_COLUMNS:
+                    empty_df[column_index] = np.nan
+            empty_df[&#34;timestamps&#34;] = t[0]
+        elif point_creation_mode == DataPointCreationMode.INTERPOLATE:
+            start_point = dataframe.iloc[start_index]
+            numeric_start = start_point[[col for col in dataframe.columns
+                                         if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_start = start_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
+            end_point = dataframe.iloc[start_index + (1 if sample_interval_micros &gt; 0 else -1)]
+            numeric_end = end_point[[col for col in dataframe.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_end = end_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
+            if np.abs(start_point[&#34;timestamps&#34;] - t[0]) &lt;= np.abs(end_point[&#34;timestamps&#34;] - t[0]):
+                non_numeric_diff = non_numeric_start
+            else:
+                non_numeric_diff = non_numeric_end
+            numeric_diff = numeric_end - numeric_start
+            numeric_diff = \
+                (numeric_diff / numeric_diff[&#34;timestamps&#34;]) * \
+                (t - numeric_start) + numeric_start
+            empty_df = pd.concat([numeric_diff, non_numeric_diff])
+        else:
+            empty_df = pd.DataFrame(np.full([num_samples_to_add, len(dataframe.columns)], np.nan),
+                                    columns=dataframe.columns)
+            for column_index in dataframe.columns:
+                if column_index == &#34;timestamps&#34;:
+                    empty_df[column_index] = t
+                elif column_index == &#34;location_provider&#34;:
+                    empty_df[column_index] = [LocationProvider[&#34;UNKNOWN&#34;].value for i in range(num_samples_to_add)]
+                elif column_index == &#34;image_codec&#34;:
+                    empty_df[column_index] = [ImageCodec[&#34;UNKNOWN&#34;].value for i in range(num_samples_to_add)]
+                elif column_index == &#34;audio_codec&#34;:
+                    empty_df[column_index] = [AudioCodec[&#34;UNKNOWN&#34;].value for i in range(num_samples_to_add)]
+                elif column_index == &#34;network_type&#34;:
+                    empty_df[column_index] = [NetworkType[&#34;UNKNOWN_NETWORK&#34;].value for i in range(num_samples_to_add)]
+                elif column_index == &#34;power_state&#34;:
+                    empty_df[column_index] = [PowerState[&#34;UNKNOWN_POWER_STATE&#34;].value
+                                              for i in range(num_samples_to_add)]
+                elif column_index == &#34;cell_service&#34;:
+                    empty_df[column_index] = [CellServiceState[&#34;UNKNOWN&#34;].value for i in range(num_samples_to_add)]
+        dataframe = dataframe.append(empty_df, ignore_index=True)
+
+    return dataframe
+
+
+def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
+                                  start_index: int,
+                                  sample_interval_micros: float,
+                                  num_samples_to_add: int,
+                                  add_to_start: bool = False,
+                                  copy: bool = True,
+                                  ) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    adds dataless timestamps directly to a dataframe that already contains data
+      Note:
+        * dataframe must not be empty
+        * start_index must be non-negative and less than the length of dataframe
+        * num_samples_to_add must be greater than 0
+        * the points are added onto the end and the result is not sorted
+
+    :param dataframe: dataframe to add dataless timestamps to
+    :param start_index: index of the dataframe to use as starting point for creating new values
+    :param sample_interval_micros: sample interval in microseconds of the timestamps
+    :param num_samples_to_add: the number of timestamps to create
+    :param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
+    :param copy: if True, copy the value of the start point when creating new points, default True
+    :return: updated dataframe with synthetic data points
+    &#34;&#34;&#34;
+    if len(dataframe) &gt; start_index and len(dataframe) &gt; 0 and num_samples_to_add &gt; 0:
+        start_timestamp = dataframe[&#34;timestamps&#34;].iloc[start_index]
+        dataframe = dataframe.append(
+            create_dataless_timestamps_df(start_timestamp, sample_interval_micros,
+                                          dataframe.columns, num_samples_to_add, add_to_start),
+            ignore_index=True)
+    return dataframe
+
+
+def create_dataless_timestamps_df(
+        start_timestamp: float,
+        sample_interval_micros: float,
+        columns: pd.Index,
+        num_samples_to_add: int,
+        add_to_start: bool = False,
+) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
+    the first timestamp created is 1 sample_interval_s from the start_timestamp
+
+    :param start_timestamp: timestamp in microseconds since epoch UTC to start calculating other timestamps from
+    :param sample_interval_micros: fixed sample interval in microseconds since epoch UTC
+    :param columns: dataframe the non-timestamp columns of the dataframe
+    :param num_samples_to_add: the number of timestamps to create
+    :param add_to_start: if True, subtracts sample_interval_s from start_timestamp, default False
+    :return: dataframe with timestamps and no data
+    &#34;&#34;&#34;
+    empty_df = pd.DataFrame(np.full([num_samples_to_add, len(columns)], np.nan), columns=columns)
+    enum_samples = {
+        &#34;location_provider&#34;: LocationProvider[&#34;UNKNOWN&#34;].value,
+        &#34;image_codec&#34;: ImageCodec[&#34;UNKNOWN&#34;].value,
+        &#34;audio_codec&#34;: AudioCodec[&#34;UNKNOWN&#34;].value,
+        &#34;network_type&#34;: NetworkType[&#34;UNKNOWN_NETWORK&#34;].value,
+        &#34;power_state&#34;: PowerState[&#34;UNKNOWN_POWER_STATE&#34;].value,
+        &#34;cell_service&#34;: CellServiceState[&#34;UNKNOWN&#34;].value
+    }
+    if num_samples_to_add &gt; 0:
+        if add_to_start:
+            sample_interval_micros = -sample_interval_micros
+        t = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+        for column_index in columns:
+            if column_index == &#34;timestamps&#34;:
+                empty_df[column_index] = t
+            elif column_index in enum_samples.keys():
+                empty_df[column_index] = [enum_samples[column_index] for i in range(num_samples_to_add)]
+            # elif column_index == &#34;location_provider&#34;:
+            #     empty_df[column_index] = [LocationProvider.UNKNOWN for i in range(num_samples_to_add)]
+            # elif column_index == &#34;image_codec&#34;:
+            #     empty_df[column_index] = [ImageCodec.UNKNOWN for i in range(num_samples_to_add)]
+            # elif column_index == &#34;audio_codec&#34;:
+            #     empty_df[column_index] = [AudioCodec.UNKNOWN for i in range(num_samples_to_add)]
+            # elif column_index == &#34;network_type&#34;:
+            #     empty_df[column_index] = [NetworkType.UNKNOWN_NETWORK for i in range(num_samples_to_add)]
+            # elif column_index == &#34;power_state&#34;:
+            #     empty_df[column_index] = [PowerState.UNKNOWN_POWER_STATE for i in range(num_samples_to_add)]
+            # elif column_index == &#34;cell_service&#34;:
+            #     empty_df[column_index] = [CellServiceState.UNKNOWN for i in range(num_samples_to_add)]
+    return empty_df</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.common.gap_and_pad_utils_old.add_data_points_to_df"><code class="name flex">
+<span>def <span class="ident">add_data_points_to_df</span></span>(<span>dataframe: pandas.core.frame.DataFrame, start_index: int, sample_interval_micros: float, num_samples_to_add: int = 1, point_creation_mode: <a title="redvox.common.gap_and_pad_utils_old.DataPointCreationMode" href="#redvox.common.gap_and_pad_utils_old.DataPointCreationMode">DataPointCreationMode</a> = DataPointCreationMode.COPY) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>adds data points to the end of the dataframe, starting from the index specified.
+Note:
+* dataframe must not be empty
+* start_index must be non-negative and less than the length of dataframe
+* num_samples_to_add must be greater than 0
+* points are added onto the end and the result is not sorted
+Options for point_creation_mode are:
+* NAN: default values and nans
+* COPY: copies of the start data point
+* INTERPOLATE: interpolated values between start data point and adjacent point</p>
+<p>:param dataframe: dataframe to add dataless timestamps to
+:param start_index: index of the dataframe to use as starting point for creating new values
+:param sample_interval_micros: sample interval in microseconds of the timestamps; use negative values to
+add points before the start_index
+:param num_samples_to_add: the number of timestamps to create, default 1
+:param point_creation_mode: the mode of point creation to use
+:return: updated dataframe with synthetic data points</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_data_points_to_df(dataframe: pd.DataFrame,
+                          start_index: int,
+                          sample_interval_micros: float,
+                          num_samples_to_add: int = 1,
+                          point_creation_mode: DataPointCreationMode = DataPointCreationMode.COPY,
+                          ) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    adds data points to the end of the dataframe, starting from the index specified.
+        Note:
+            * dataframe must not be empty
+            * start_index must be non-negative and less than the length of dataframe
+            * num_samples_to_add must be greater than 0
+            * points are added onto the end and the result is not sorted
+        Options for point_creation_mode are:
+            * NAN: default values and nans
+            * COPY: copies of the start data point
+            * INTERPOLATE: interpolated values between start data point and adjacent point
+
+    :param dataframe: dataframe to add dataless timestamps to
+    :param start_index: index of the dataframe to use as starting point for creating new values
+    :param sample_interval_micros: sample interval in microseconds of the timestamps; use negative values to
+                                    add points before the start_index
+    :param num_samples_to_add: the number of timestamps to create, default 1
+    :param point_creation_mode: the mode of point creation to use
+    :return: updated dataframe with synthetic data points
+    &#34;&#34;&#34;
+    if len(dataframe) &gt; start_index and len(dataframe) &gt; 0 and num_samples_to_add &gt; 0:
+        start_timestamp = dataframe[&#34;timestamps&#34;].iloc[start_index]
+        t = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+        # interpolate mode only uses the first created timestamp
+        if point_creation_mode == DataPointCreationMode.COPY:
+            empty_df = dataframe.iloc[start_index].copy()
+            for column_index in dataframe.columns:
+                if column_index in NON_INTERPOLATED_COLUMNS:
+                    empty_df[column_index] = np.nan
+            empty_df[&#34;timestamps&#34;] = t[0]
+        elif point_creation_mode == DataPointCreationMode.INTERPOLATE:
+            start_point = dataframe.iloc[start_index]
+            numeric_start = start_point[[col for col in dataframe.columns
+                                         if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_start = start_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
+            end_point = dataframe.iloc[start_index + (1 if sample_interval_micros &gt; 0 else -1)]
+            numeric_end = end_point[[col for col in dataframe.columns
+                                     if col not in NON_INTERPOLATED_COLUMNS + NON_NUMERIC_COLUMNS]]
+            non_numeric_end = end_point[[col for col in dataframe.columns if col in NON_NUMERIC_COLUMNS]]
+            if np.abs(start_point[&#34;timestamps&#34;] - t[0]) &lt;= np.abs(end_point[&#34;timestamps&#34;] - t[0]):
+                non_numeric_diff = non_numeric_start
+            else:
+                non_numeric_diff = non_numeric_end
+            numeric_diff = numeric_end - numeric_start
+            numeric_diff = \
+                (numeric_diff / numeric_diff[&#34;timestamps&#34;]) * \
+                (t - numeric_start) + numeric_start
+            empty_df = pd.concat([numeric_diff, non_numeric_diff])
+        else:
+            empty_df = pd.DataFrame(np.full([num_samples_to_add, len(dataframe.columns)], np.nan),
+                                    columns=dataframe.columns)
+            for column_index in dataframe.columns:
+                if column_index == &#34;timestamps&#34;:
+                    empty_df[column_index] = t
+                elif column_index == &#34;location_provider&#34;:
+                    empty_df[column_index] = [LocationProvider[&#34;UNKNOWN&#34;].value for i in range(num_samples_to_add)]
+                elif column_index == &#34;image_codec&#34;:
+                    empty_df[column_index] = [ImageCodec[&#34;UNKNOWN&#34;].value for i in range(num_samples_to_add)]
+                elif column_index == &#34;audio_codec&#34;:
+                    empty_df[column_index] = [AudioCodec[&#34;UNKNOWN&#34;].value for i in range(num_samples_to_add)]
+                elif column_index == &#34;network_type&#34;:
+                    empty_df[column_index] = [NetworkType[&#34;UNKNOWN_NETWORK&#34;].value for i in range(num_samples_to_add)]
+                elif column_index == &#34;power_state&#34;:
+                    empty_df[column_index] = [PowerState[&#34;UNKNOWN_POWER_STATE&#34;].value
+                                              for i in range(num_samples_to_add)]
+                elif column_index == &#34;cell_service&#34;:
+                    empty_df[column_index] = [CellServiceState[&#34;UNKNOWN&#34;].value for i in range(num_samples_to_add)]
+        dataframe = dataframe.append(empty_df, ignore_index=True)
+
+    return dataframe</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.add_dataless_timestamps_to_df"><code class="name flex">
+<span>def <span class="ident">add_dataless_timestamps_to_df</span></span>(<span>dataframe: pandas.core.frame.DataFrame, start_index: int, sample_interval_micros: float, num_samples_to_add: int, add_to_start: bool = False, copy: bool = True) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>adds dataless timestamps directly to a dataframe that already contains data
+Note:
+* dataframe must not be empty
+* start_index must be non-negative and less than the length of dataframe
+* num_samples_to_add must be greater than 0
+* the points are added onto the end and the result is not sorted</p>
+<p>:param dataframe: dataframe to add dataless timestamps to
+:param start_index: index of the dataframe to use as starting point for creating new values
+:param sample_interval_micros: sample interval in microseconds of the timestamps
+:param num_samples_to_add: the number of timestamps to create
+:param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
+:param copy: if True, copy the value of the start point when creating new points, default True
+:return: updated dataframe with synthetic data points</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_dataless_timestamps_to_df(dataframe: pd.DataFrame,
+                                  start_index: int,
+                                  sample_interval_micros: float,
+                                  num_samples_to_add: int,
+                                  add_to_start: bool = False,
+                                  copy: bool = True,
+                                  ) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    adds dataless timestamps directly to a dataframe that already contains data
+      Note:
+        * dataframe must not be empty
+        * start_index must be non-negative and less than the length of dataframe
+        * num_samples_to_add must be greater than 0
+        * the points are added onto the end and the result is not sorted
+
+    :param dataframe: dataframe to add dataless timestamps to
+    :param start_index: index of the dataframe to use as starting point for creating new values
+    :param sample_interval_micros: sample interval in microseconds of the timestamps
+    :param num_samples_to_add: the number of timestamps to create
+    :param add_to_start: if True, subtracts sample_interval_micros from start_timestamp, default False
+    :param copy: if True, copy the value of the start point when creating new points, default True
+    :return: updated dataframe with synthetic data points
+    &#34;&#34;&#34;
+    if len(dataframe) &gt; start_index and len(dataframe) &gt; 0 and num_samples_to_add &gt; 0:
+        start_timestamp = dataframe[&#34;timestamps&#34;].iloc[start_index]
+        dataframe = dataframe.append(
+            create_dataless_timestamps_df(start_timestamp, sample_interval_micros,
+                                          dataframe.columns, num_samples_to_add, add_to_start),
+            ignore_index=True)
+    return dataframe</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.calc_evenly_sampled_timestamps"><code class="name flex">
+<span>def <span class="ident">calc_evenly_sampled_timestamps</span></span>(<span>start: float, samples: int, sample_interval_micros: float) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>given a start time, calculates samples amount of evenly spaced timestamps at rate_hz</p>
+<p>:param start: float, start timestamp in microseconds
+:param samples: int, number of samples
+:param sample_interval_micros: float, sample interval in microseconds
+:return: np.array with number of samples timestamps, evenly spaced starting at start</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calc_evenly_sampled_timestamps(
+        start: float, samples: int, sample_interval_micros: float
+) -&gt; np.array:
+    &#34;&#34;&#34;
+    given a start time, calculates samples amount of evenly spaced timestamps at rate_hz
+
+    :param start: float, start timestamp in microseconds
+    :param samples: int, number of samples
+    :param sample_interval_micros: float, sample interval in microseconds
+    :return: np.array with number of samples timestamps, evenly spaced starting at start
+    &#34;&#34;&#34;
+    return start + (np.arange(0, samples) * sample_interval_micros)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.check_gap_list"><code class="name flex">
+<span>def <span class="ident">check_gap_list</span></span>(<span>gaps: List[Tuple[float, float]], start_timestamp: float = None, end_timestamp: float = None) ‑> List[Tuple[float, float]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>removes any gaps where end time &lt;= start time, consolidates overlapping gaps, and ensures that no gap
+starts or ends before start_timestamp and starts or ends after end_timestamp.
+All timestamps are in
+microseconds since epoch UTC</p>
+<p>:param gaps: list of gaps to check
+:param start_timestamp: lowest possible timestamp for a gap to start at
+:param end_timestamp: lowest possible timestamp for a gap to end at
+:return: list of correct, valid gaps</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_gap_list(gaps: List[Tuple[float, float]], start_timestamp: float = None,
+                   end_timestamp: float = None) -&gt; List[Tuple[float, float]]:
+    &#34;&#34;&#34;
+    removes any gaps where end time &lt;= start time, consolidates overlapping gaps, and ensures that no gap
+    starts or ends before start_timestamp and starts or ends after end_timestamp.  All timestamps are in
+    microseconds since epoch UTC
+
+    :param gaps: list of gaps to check
+    :param start_timestamp: lowest possible timestamp for a gap to start at
+    :param end_timestamp: lowest possible timestamp for a gap to end at
+    :return: list of correct, valid gaps
+    &#34;&#34;&#34;
+    return_gaps: List[Tuple[float, float]] = []
+    for gap in gaps:
+        if start_timestamp:
+            gap = (np.max([start_timestamp, gap[0]]), np.max([start_timestamp, gap[1]]))
+        if end_timestamp:
+            gap = (np.min([end_timestamp, gap[0]]), np.min([end_timestamp, gap[1]]))
+        if gap[0] &lt; gap[1]:
+            if len(return_gaps) &lt; 1:
+                return_gaps.append(gap)
+            for a, r_g in enumerate(return_gaps):
+                if (gap[0] &lt; r_g[0] and gap[1] &lt; r_g[0]) or (gap[0] &gt; r_g[1] and gap[1] &gt; r_g[1]):
+                    return_gaps.append(gap)
+                    break
+                else:
+                    if gap[0] &lt; r_g[0] &lt; gap[1]:
+                        r_g = (gap[0], r_g[1])
+                    if gap[0] &lt; r_g[1] &lt; gap[1]:
+                        r_g = (r_g[0], gap[1])
+                    return_gaps[a] = r_g
+    return return_gaps</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.create_dataless_timestamps_df"><code class="name flex">
+<span>def <span class="ident">create_dataless_timestamps_df</span></span>(<span>start_timestamp: float, sample_interval_micros: float, columns: pandas.core.indexes.base.Index, num_samples_to_add: int, add_to_start: bool = False) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
+the first timestamp created is 1 sample_interval_s from the start_timestamp</p>
+<p>:param start_timestamp: timestamp in microseconds since epoch UTC to start calculating other timestamps from
+:param sample_interval_micros: fixed sample interval in microseconds since epoch UTC
+:param columns: dataframe the non-timestamp columns of the dataframe
+:param num_samples_to_add: the number of timestamps to create
+:param add_to_start: if True, subtracts sample_interval_s from start_timestamp, default False
+:return: dataframe with timestamps and no data</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_dataless_timestamps_df(
+        start_timestamp: float,
+        sample_interval_micros: float,
+        columns: pd.Index,
+        num_samples_to_add: int,
+        add_to_start: bool = False,
+) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Creates an empty dataframe with num_samples_to_add timestamps, using columns as the columns
+    the first timestamp created is 1 sample_interval_s from the start_timestamp
+
+    :param start_timestamp: timestamp in microseconds since epoch UTC to start calculating other timestamps from
+    :param sample_interval_micros: fixed sample interval in microseconds since epoch UTC
+    :param columns: dataframe the non-timestamp columns of the dataframe
+    :param num_samples_to_add: the number of timestamps to create
+    :param add_to_start: if True, subtracts sample_interval_s from start_timestamp, default False
+    :return: dataframe with timestamps and no data
+    &#34;&#34;&#34;
+    empty_df = pd.DataFrame(np.full([num_samples_to_add, len(columns)], np.nan), columns=columns)
+    enum_samples = {
+        &#34;location_provider&#34;: LocationProvider[&#34;UNKNOWN&#34;].value,
+        &#34;image_codec&#34;: ImageCodec[&#34;UNKNOWN&#34;].value,
+        &#34;audio_codec&#34;: AudioCodec[&#34;UNKNOWN&#34;].value,
+        &#34;network_type&#34;: NetworkType[&#34;UNKNOWN_NETWORK&#34;].value,
+        &#34;power_state&#34;: PowerState[&#34;UNKNOWN_POWER_STATE&#34;].value,
+        &#34;cell_service&#34;: CellServiceState[&#34;UNKNOWN&#34;].value
+    }
+    if num_samples_to_add &gt; 0:
+        if add_to_start:
+            sample_interval_micros = -sample_interval_micros
+        t = start_timestamp + np.arange(1, num_samples_to_add + 1) * sample_interval_micros
+        for column_index in columns:
+            if column_index == &#34;timestamps&#34;:
+                empty_df[column_index] = t
+            elif column_index in enum_samples.keys():
+                empty_df[column_index] = [enum_samples[column_index] for i in range(num_samples_to_add)]
+            # elif column_index == &#34;location_provider&#34;:
+            #     empty_df[column_index] = [LocationProvider.UNKNOWN for i in range(num_samples_to_add)]
+            # elif column_index == &#34;image_codec&#34;:
+            #     empty_df[column_index] = [ImageCodec.UNKNOWN for i in range(num_samples_to_add)]
+            # elif column_index == &#34;audio_codec&#34;:
+            #     empty_df[column_index] = [AudioCodec.UNKNOWN for i in range(num_samples_to_add)]
+            # elif column_index == &#34;network_type&#34;:
+            #     empty_df[column_index] = [NetworkType.UNKNOWN_NETWORK for i in range(num_samples_to_add)]
+            # elif column_index == &#34;power_state&#34;:
+            #     empty_df[column_index] = [PowerState.UNKNOWN_POWER_STATE for i in range(num_samples_to_add)]
+            # elif column_index == &#34;cell_service&#34;:
+            #     empty_df[column_index] = [CellServiceState.UNKNOWN for i in range(num_samples_to_add)]
+    return empty_df</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.fill_audio_gaps"><code class="name flex">
+<span>def <span class="ident">fill_audio_gaps</span></span>(<span>packet_data: List[Tuple[float, <built-in function array>]], sample_interval_micros: float, gap_upper_limit: float = 0.8, gap_lower_limit: float = 0.02) ‑> <a title="redvox.common.gap_and_pad_utils_old.GapPadResult" href="#redvox.common.gap_and_pad_utils_old.GapPadResult">GapPadResult</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>fills gaps in the dataframe with np.nan by interpolating timestamps based on the expected sample interval
+* ignores gaps with duration less than or equal to packet length * gap_lower_limit
+* converts gaps with duration greater than or equal to packet length * gap_upper_limit into a multiple of
+packet length</p>
+<p>:param packet_data: list of tuples, each tuple containing two pieces of packet information:
+* packet_start_timestamps: float of packet start timestamp in microseconds
+* audio_data: array of data points
+:param sample_interval_micros: sample interval in microseconds
+:param gap_upper_limit: percentage of packet length required to confirm gap is at least 1 packet,
+default DEFAULT_GAP_UPPER_LIMIT
+:param gap_lower_limit: percentage of packet length required to disregard gap, default DEFAULT_GAP_LOWER_LIMIT
+:return: dataframe without gaps and the list of timestamps of the non-inclusive start and end of the gaps</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fill_audio_gaps(
+        packet_data: List[Tuple[float, np.array]],
+        sample_interval_micros: float,
+        gap_upper_limit: float = DEFAULT_GAP_UPPER_LIMIT,
+        gap_lower_limit: float = DEFAULT_GAP_LOWER_LIMIT
+) -&gt; GapPadResult:
+    &#34;&#34;&#34;
+    fills gaps in the dataframe with np.nan by interpolating timestamps based on the expected sample interval
+      * ignores gaps with duration less than or equal to packet length * gap_lower_limit
+      * converts gaps with duration greater than or equal to packet length * gap_upper_limit into a multiple of
+        packet length
+
+    :param packet_data: list of tuples, each tuple containing two pieces of packet information:
+        * packet_start_timestamps: float of packet start timestamp in microseconds
+        * audio_data: array of data points
+    :param sample_interval_micros: sample interval in microseconds
+    :param gap_upper_limit: percentage of packet length required to confirm gap is at least 1 packet,
+                            default DEFAULT_GAP_UPPER_LIMIT
+    :param gap_lower_limit: percentage of packet length required to disregard gap, default DEFAULT_GAP_LOWER_LIMIT
+    :return: dataframe without gaps and the list of timestamps of the non-inclusive start and end of the gaps
+    &#34;&#34;&#34;
+    result_array = [[], [], []]
+    last_data_timestamp: Optional[float] = None
+    gaps = []
+    for packet in packet_data:
+        samples_in_packet = len(packet[1])
+        start_ts = packet[0]
+        packet_length = sample_interval_micros * samples_in_packet
+        if last_data_timestamp:
+            last_data_timestamp += sample_interval_micros
+            # check if start_ts is close to the last timestamp in data_timestamps
+            last_timestamp_diff = start_ts - last_data_timestamp
+            if last_timestamp_diff &gt; gap_lower_limit * packet_length:
+                fractional_packet, num_packets = modf(last_timestamp_diff /
+                                                      (samples_in_packet * sample_interval_micros))
+                if fractional_packet &gt;= gap_upper_limit:
+                    num_samples = samples_in_packet * (num_packets + 1)
+                else:
+                    num_samples = np.max([np.floor((fractional_packet + num_packets) * samples_in_packet), 1])
+                gap_ts = calc_evenly_sampled_timestamps(last_data_timestamp, num_samples, sample_interval_micros)
+                gap_array = [gap_ts, np.full(len(gap_ts), np.nan)]
+                start_ts = gap_ts[-1] + sample_interval_micros
+                gaps.append((last_data_timestamp, start_ts))
+                result_array[0].extend(gap_array[0])
+                result_array[1].extend(gap_array[0])
+                result_array[2].extend(gap_array[1])
+            elif last_timestamp_diff &lt; -gap_lower_limit * packet_length:
+                result = GapPadResult()
+                result.add_error(f&#34;Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} &#34;
+                                 f&#34;is before last timestamp of previous &#34;
+                                 f&#34;packet: {dtu.microseconds_to_seconds(last_data_timestamp)}&#34;)
+                return result
+        estimated_ts = calc_evenly_sampled_timestamps(start_ts, samples_in_packet, sample_interval_micros)
+        last_data_timestamp = estimated_ts[-1]
+        result_array[0].extend(estimated_ts)
+        result_array[1].extend(estimated_ts)
+        result_array[2].extend(packet[1])
+    return GapPadResult(pd.DataFrame(np.transpose(result_array), columns=AUDIO_DF_COLUMNS), gaps)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.fill_gaps"><code class="name flex">
+<span>def <span class="ident">fill_gaps</span></span>(<span>data_df: pandas.core.frame.DataFrame, gaps: List[Tuple[float, float]], sample_interval_micros: float, copy: bool = False) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>fills gaps in the dataframe with np.nan or interpolated values by interpolating timestamps based on the
+calculated sample interval</p>
+<p>:param data_df: dataframe with timestamps as column "timestamps"
+:param gaps: list of tuples of known non-inclusive start and end timestamps of the gaps
+:param sample_interval_micros: known sample interval of the data points
+:param copy: if True, copy the data points, otherwise interpolate from edges, default False
+:return: dataframe without gaps</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fill_gaps(
+        data_df: pd.DataFrame,
+        gaps: List[Tuple[float, float]],
+        sample_interval_micros: float,
+        copy: bool = False
+) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    fills gaps in the dataframe with np.nan or interpolated values by interpolating timestamps based on the
+    calculated sample interval
+
+    :param data_df: dataframe with timestamps as column &#34;timestamps&#34;
+    :param gaps: list of tuples of known non-inclusive start and end timestamps of the gaps
+    :param sample_interval_micros: known sample interval of the data points
+    :param copy: if True, copy the data points, otherwise interpolate from edges, default False
+    :return: dataframe without gaps
+    &#34;&#34;&#34;
+    # extract the necessary information to compute gap size and gap timestamps
+    data_time_stamps = data_df[&#34;timestamps&#34;].to_numpy()
+    if len(data_time_stamps) &gt; 1:
+        result_df = data_df.copy()
+        data_duration = data_time_stamps[-1] - data_time_stamps[0]
+        expected_samples = (np.floor(data_duration / sample_interval_micros)
+                            + (1 if data_duration % sample_interval_micros &gt;=
+                               sample_interval_micros * DEFAULT_GAP_UPPER_LIMIT else 0)) + 1
+        if expected_samples &gt; len(data_time_stamps):
+            if copy:
+                pcm = DataPointCreationMode[&#34;COPY&#34;]
+            else:
+                pcm = DataPointCreationMode[&#34;NAN&#34;]
+            # make it safe to alter the gap values
+            my_gaps = check_gap_list(gaps, data_time_stamps[0], data_time_stamps[-1])
+            for gap in my_gaps:
+                # if timestamps are around gaps, we have to update the values
+                before_start = np.argwhere([t &lt;= gap[0] for t in data_time_stamps])
+                after_end = np.argwhere([t &gt;= gap[1] for t in data_time_stamps])
+                if len(before_start) &gt; 0:
+                    before_start = before_start[-1][0]
+                    # sim = gap[0] - data_time_stamps[before_start]
+                    # result_df = add_data_points_to_df(result_df, before_start, sim, point_creation_mode=pcm)
+                    gap = (data_time_stamps[before_start], gap[1])
+                else:
+                    before_start = None
+                if len(after_end) &gt; 0:
+                    after_end = after_end[0][0]
+                    # sim = gap[1] - data_time_stamps[after_end]
+                    gap = (gap[0], data_time_stamps[after_end])
+                else:
+                    after_end = None
+                num_new_points = int((gap[1] - gap[0]) / sample_interval_micros) - 1
+                if before_start is not None:
+                    result_df = add_data_points_to_df(result_df, before_start, sample_interval_micros,
+                                                      num_new_points, pcm)
+                elif after_end is not None:
+                    result_df = add_data_points_to_df(result_df, after_end, -sample_interval_micros,
+                                                      num_new_points, pcm)
+        return result_df.sort_values(&#34;timestamps&#34;, ignore_index=True)
+    return data_df</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.pad_data"><code class="name flex">
+<span>def <span class="ident">pad_data</span></span>(<span>expected_start: float, expected_end: float, data_df: pandas.core.frame.DataFrame, sample_interval_micros: float) ‑> pandas.core.frame.DataFrame</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pad the start and end of the dataframe with np.nan</p>
+<p>:param expected_start: timestamp indicating start time of the data to pad from
+:param expected_end: timestamp indicating end time of the data to pad from
+:param data_df: dataframe with timestamps as column "timestamps"
+:param sample_interval_micros: constant sample interval in microseconds
+:return: dataframe padded with np.nans in front and back to meet full size of expected start and end</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pad_data(
+        expected_start: float,
+        expected_end: float,
+        data_df: pd.DataFrame,
+        sample_interval_micros: float,
+) -&gt; pd.DataFrame:
+    &#34;&#34;&#34;
+    Pad the start and end of the dataframe with np.nan
+
+    :param expected_start: timestamp indicating start time of the data to pad from
+    :param expected_end: timestamp indicating end time of the data to pad from
+    :param data_df: dataframe with timestamps as column &#34;timestamps&#34;
+    :param sample_interval_micros: constant sample interval in microseconds
+    :return: dataframe padded with np.nans in front and back to meet full size of expected start and end
+    &#34;&#34;&#34;
+    # extract the necessary information to pad the data
+    data_time_stamps = data_df[&#34;timestamps&#34;].to_numpy()
+    first_data_timestamp = data_time_stamps[0]
+    last_data_timestamp = data_time_stamps[-1]
+    result_df = data_df.copy()
+    result_before_update_length = len(result_df) - 1
+    # FRONT/END GAP FILL!  calculate the samples missing based on inputs
+    if expected_start &lt; first_data_timestamp:
+        start_diff = first_data_timestamp - expected_start
+        num_missing_samples = int(start_diff / sample_interval_micros)
+        if num_missing_samples &gt; 0:
+            # add the gap data to the result dataframe
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                0,
+                sample_interval_micros,
+                num_missing_samples,
+                True
+            )
+    if expected_end &gt; last_data_timestamp:
+        last_diff = expected_end - last_data_timestamp
+        num_missing_samples = int(last_diff / sample_interval_micros)
+        if num_missing_samples &gt; 0:
+            # add the gap data to the result dataframe
+            result_df = add_dataless_timestamps_to_df(
+                result_df,
+                result_before_update_length,
+                sample_interval_micros,
+                num_missing_samples
+            )
+    return result_df.sort_values(&#34;timestamps&#34;, ignore_index=True)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.common.gap_and_pad_utils_old.DataPointCreationMode"><code class="flex name class">
+<span>class <span class="ident">DataPointCreationMode</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Type of data point to create</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataPointCreationMode(enum.Enum):
+    &#34;&#34;&#34;
+    Type of data point to create
+    &#34;&#34;&#34;
+
+    NAN: int = 0
+    COPY: int = 1
+    INTERPOLATE: int = 2
+
+    @staticmethod
+    def list_names() -&gt; List[str]:
+        return [n.name for n in DataPointCreationMode]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.gap_and_pad_utils_old.DataPointCreationMode.COPY"><code class="name">var <span class="ident">COPY</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.DataPointCreationMode.INTERPOLATE"><code class="name">var <span class="ident">INTERPOLATE</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.DataPointCreationMode.NAN"><code class="name">var <span class="ident">NAN</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.gap_and_pad_utils_old.DataPointCreationMode.list_names"><code class="name flex">
+<span>def <span class="ident">list_names</span></span>(<span>) ‑> List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def list_names() -&gt; List[str]:
+    return [n.name for n in DataPointCreationMode]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult"><code class="flex name class">
+<span>class <span class="ident">GapPadResult</span></span>
+<span>(</span><span>result_df: Optional[pandas.core.frame.DataFrame] = None, gaps: List[Tuple[float, float]] = &lt;factory&gt;, errors: <a title="redvox.common.errors.RedVoxExceptions" href="errors.html#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a> = &lt;factory&gt;)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>The result of filling gaps or padding a time series</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass_json()
+@dataclass
+class GapPadResult:
+    &#34;&#34;&#34;
+    The result of filling gaps or padding a time series
+    &#34;&#34;&#34;
+    result_df: Optional[pd.DataFrame] = None
+    gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
+    errors: RedVoxExceptions = field(default_factory=lambda: RedVoxExceptions(&#34;GapPadResult&#34;))
+
+    def add_error(self, error: str):
+        &#34;&#34;&#34;
+        add an error to the result
+        :param error: error message to add
+        &#34;&#34;&#34;
+        self.errors.append(error)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult.errors"><code class="name">var <span class="ident">errors</span> : <a title="redvox.common.errors.RedVoxExceptions" href="errors.html#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult.gaps"><code class="name">var <span class="ident">gaps</span> : List[Tuple[float, float]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult.result_df"><code class="name">var <span class="ident">result_df</span> : Optional[pandas.core.frame.DataFrame]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, ForwardRef(None)], *, infer_missing=False) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult.add_error"><code class="name flex">
+<span>def <span class="ident">add_error</span></span>(<span>self, error: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>add an error to the result
+:param error: error message to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_error(self, error: str):
+    &#34;&#34;&#34;
+    add an error to the result
+    :param error: error message to add
+    &#34;&#34;&#34;
+    self.errors.append(error)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, ForwardRef(None)]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.gap_and_pad_utils_old.GapPadResult.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, ForwardRef(None)] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(encode_json=False),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.common" href="index.html">redvox.common</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.common.gap_and_pad_utils_old.add_data_points_to_df" href="#redvox.common.gap_and_pad_utils_old.add_data_points_to_df">add_data_points_to_df</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.add_dataless_timestamps_to_df" href="#redvox.common.gap_and_pad_utils_old.add_dataless_timestamps_to_df">add_dataless_timestamps_to_df</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.calc_evenly_sampled_timestamps" href="#redvox.common.gap_and_pad_utils_old.calc_evenly_sampled_timestamps">calc_evenly_sampled_timestamps</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.check_gap_list" href="#redvox.common.gap_and_pad_utils_old.check_gap_list">check_gap_list</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.create_dataless_timestamps_df" href="#redvox.common.gap_and_pad_utils_old.create_dataless_timestamps_df">create_dataless_timestamps_df</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.fill_audio_gaps" href="#redvox.common.gap_and_pad_utils_old.fill_audio_gaps">fill_audio_gaps</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.fill_gaps" href="#redvox.common.gap_and_pad_utils_old.fill_gaps">fill_gaps</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.pad_data" href="#redvox.common.gap_and_pad_utils_old.pad_data">pad_data</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.common.gap_and_pad_utils_old.DataPointCreationMode" href="#redvox.common.gap_and_pad_utils_old.DataPointCreationMode">DataPointCreationMode</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.gap_and_pad_utils_old.DataPointCreationMode.COPY" href="#redvox.common.gap_and_pad_utils_old.DataPointCreationMode.COPY">COPY</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.DataPointCreationMode.INTERPOLATE" href="#redvox.common.gap_and_pad_utils_old.DataPointCreationMode.INTERPOLATE">INTERPOLATE</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.DataPointCreationMode.NAN" href="#redvox.common.gap_and_pad_utils_old.DataPointCreationMode.NAN">NAN</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.DataPointCreationMode.list_names" href="#redvox.common.gap_and_pad_utils_old.DataPointCreationMode.list_names">list_names</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult" href="#redvox.common.gap_and_pad_utils_old.GapPadResult">GapPadResult</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult.add_error" href="#redvox.common.gap_and_pad_utils_old.GapPadResult.add_error">add_error</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult.errors" href="#redvox.common.gap_and_pad_utils_old.GapPadResult.errors">errors</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult.from_dict" href="#redvox.common.gap_and_pad_utils_old.GapPadResult.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult.from_json" href="#redvox.common.gap_and_pad_utils_old.GapPadResult.from_json">from_json</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult.gaps" href="#redvox.common.gap_and_pad_utils_old.GapPadResult.gaps">gaps</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult.result_df" href="#redvox.common.gap_and_pad_utils_old.GapPadResult.result_df">result_df</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult.schema" href="#redvox.common.gap_and_pad_utils_old.GapPadResult.schema">schema</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult.to_dict" href="#redvox.common.gap_and_pad_utils_old.GapPadResult.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.common.gap_and_pad_utils_old.GapPadResult.to_json" href="#redvox.common.gap_and_pad_utils_old.GapPadResult.to_json">to_json</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

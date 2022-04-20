@@ -191,7 +191,8 @@ except ImportError:
 <span>(</span><span>image_sensor: Image, image_view_widget: <a title="redvox.api1000.gui.image_viewer.ImageViewWidget" href="#redvox.api1000.gui.image_viewer.ImageViewWidget">ImageViewWidget</a>, parent: Optional[PySide6.QtWidgets.QWidget] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This widget provides a table view of available images in the packet.</p>
+<div class="desc"><p>QTableWidget(self, parent: Optional[PySide6.QtWidgets.QWidget] = None) -&gt; None
+QTableWidget(self, rows: int, columns: int, parent: Optional[PySide6.QtWidgets.QWidget] = None) -&gt; None</p>
 <p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None) -&gt; None
 <strong>init</strong>(self, rows: int, columns: int, parent: Optional[PySide6.QtWidgets.QWidget] = None) -&gt; None</p>
 <p>Initialize self.
@@ -255,7 +256,8 @@ See help(type(self)) for accurate signature.</p></div>
 <span>class <span class="ident">ImageViewWidget</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>This widget displays and scales the image</p>
+<div class="desc"><p>QLabel(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None
+QLabel(self, text: str, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None
 <strong>init</strong>(self, text: str, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
@@ -333,7 +335,7 @@ See help(type(self)) for accurate signature.</p></div>
 <span>(</span><span>image_sensor: Image, parent: Optional[PySide6.QtWidgets.QWidget] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Widget that acts as the "main" widget into the application</p>
+<div class="desc"><p>QWidget(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, f: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>
@@ -382,7 +384,7 @@ See help(type(self)) for accurate signature.</p></div>
 <span>(</span><span>image_sensor: Image, parent: Optional[PySide6.QtWidgets.QWidget] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Main window of the application</p>
+<div class="desc"><p>QMainWindow(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, flags: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p><strong>init</strong>(self, parent: Optional[PySide6.QtWidgets.QWidget] = None, flags: PySide6.QtCore.Qt.WindowFlags = Default(Qt.WindowFlags)) -&gt; None</p>
 <p>Initialize self.
 See help(type(self)) for accurate signature.</p></div>

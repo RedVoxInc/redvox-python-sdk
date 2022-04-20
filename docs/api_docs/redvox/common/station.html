@@ -53,7 +53,8 @@ from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.common import packet_to_pyarrow as ptp
 from redvox.common import gap_and_pad_utils as gpu
-from redvox.common.date_time_utils import seconds_to_microseconds as s_to_us
+from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc,\
+    seconds_to_microseconds as s_to_us
 from redvox.common.event_stream import EventStreams
 
 
@@ -147,10 +148,43 @@ class Station:
         else:
             save_mode = FileSystemSaveMode.MEM
         self._fs_writer = Fsw(&#34;&#34;, &#34;&#34;, base_dir, save_mode)
-        self._event_data = EventStreams(save_mode=save_mode)
+        self._event_data = EventStreams()
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
+
+    def __repr__(self):
+        return f&#34;id: {self._id}, &#34; \
+               f&#34;uuid: {self._uuid}, &#34; \
+               f&#34;start_date: {self._start_date}, &#34; \
+               f&#34;use_model_correction: {self._use_model_correction}, &#34; \
+               f&#34;is_timestamps_updated: {self._is_timestamps_updated}, &#34; \
+               f&#34;metadata: {self._metadata.__repr__()}, &#34; \
+               f&#34;packet_metadata: {[p.__repr__() for p in self._packet_metadata]}, &#34; \
+               f&#34;audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, &#34; \
+               f&#34;is_audio_scrambled: {self._is_audio_scrambled}, &#34; \
+               f&#34;timesync: {self._timesync_data.__repr__()}, &#34; \
+               f&#34;event_data: {self._event_data.__repr__()}, &#34; \
+               f&#34;gaps: {[g for g in self._gaps]}&#34;
+        # &#34;data&#34;: [d.__repr__() for d in self._data],
+
+    def __str__(self):
+        start_date = np.nan if np.isnan(self._start_date) \
+            else datetime_from_epoch_microseconds_utc(self._start_date).strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;)
+        return f&#34;id: {self._id}, &#34; \
+               f&#34;uuid: {self._uuid}, &#34; \
+               f&#34;start_date: &#34; \
+               f&#34;{start_date}, &#34; \
+               f&#34;use_model_correction: {self._use_model_correction}, &#34; \
+               f&#34;is_timestamps_updated: {self._is_timestamps_updated}, &#34; \
+               f&#34;metadata: {self._metadata.__str__()}, &#34; \
+               f&#34;audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, &#34; \
+               f&#34;is_audio_scrambled: {self._is_audio_scrambled}, &#34; \
+               f&#34;timesync: {self._timesync_data.__str__()}, &#34; \
+               f&#34;event_data: {self._event_data.__str__()}, &#34; \
+               f&#34;gaps: {[g for g in self._gaps]}&#34;
+        # &#34;packet_metadata&#34;: [p.__str__() for p in self._packet_metadata],
+        # &#34;data&#34;: [d.__str__() for d in self._data]
 
     def data(self) -&gt; List[sd.SensorData]:
         &#34;&#34;&#34;
@@ -279,13 +313,12 @@ class Station:
 
         :param indexes: List of indexes of the files to read
         &#34;&#34;&#34;
-        first_pkt = indexes[0].read_first_packet()
-        self._load_metadata_from_packet(first_pkt)
+        self._load_metadata_from_packet(indexes[0].read_first_packet())
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
         self._timesync_data.arrow_file = \
             f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
         all_summaries = ptp.AggregateSummary()
-        self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+        self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
         for idx in indexes:
             pkts = idx.read_contents()
             self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
@@ -364,7 +397,7 @@ class Station:
             self._set_pyarrow_sensors(summaries)
             if self._correct_timestamps:
                 self.update_timestamps()
-            self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+            self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
             self._event_data.read_from_packets_list(packets)
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
@@ -1283,6 +1316,12 @@ class Station:
         &#34;&#34;&#34;
         self._event_data = data
 
+    def get_event_data_dir(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: the station&#39;s event data directory
+        &#34;&#34;&#34;
+        return os.path.join(self.save_dir(), &#34;events&#34;)
+
     def _get_id_key(self) -&gt; str:
         &#34;&#34;&#34;
         :return: the station&#39;s id and start time as a string
@@ -1304,6 +1343,7 @@ class Station:
             self._gaps = sensor_summaries.gaps
             self._data.append(sd.AudioSensor(first_audio.name, first_audio.data(), first_audio.srate_hz,
                                              1 / first_audio.srate_hz, 0., True,
+                                             use_offset_model_for_correction=self._use_model_correction,
                                              base_dir=self.get_save_dir_sensor(sd.SensorType.AUDIO),
                                              save_data=self._fs_writer.is_save_disk()))
             self.update_first_and_last_data_timestamps()
@@ -1315,7 +1355,8 @@ class Station:
                     for i in range(1, len(sdata)):
                         data_table = pa.concat_tables([data_table, sdata[i].data()])
                 if np.isnan(sdata[0].srate_hz):
-                    smnint = float(np.mean(np.diff(data_table[&#34;timestamps&#34;].to_numpy())))
+                    timestamps = data_table[&#34;timestamps&#34;].to_numpy()
+                    smnint = float(np.mean(np.diff(timestamps))) if len(timestamps) &gt; 1 else np.nan
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
@@ -1323,6 +1364,7 @@ class Station:
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
+                        use_offset_model_for_correction=self._use_model_correction,
                         base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 else:
                     d, g = gpu.fill_gaps(
@@ -1333,6 +1375,7 @@ class Station:
                             sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
                             sample_interval_std_s=0., is_sample_rate_fixed=True,
+                            use_offset_model_for_correction=self._use_model_correction,
                             base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 self._data.append(new_sensor.class_from_type())
         else:
@@ -1497,7 +1540,7 @@ class Station:
         &#34;&#34;&#34;
         if self._is_timestamps_updated:
             self._errors.append(&#34;Timestamps already corrected!&#34;)
-        else:
+        elif self._correct_timestamps:
             self._start_date = self._timesync_data.offset_model().update_time(
                 self._start_date, self._use_model_correction
             )
@@ -1520,6 +1563,8 @@ class Station:
             self.update_first_and_last_data_timestamps()
             self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
             self._is_timestamps_updated = True
+        else:
+            self._errors.append(&#34;Attempted to correct timestamps, but correction not enabled.&#34;)
         return self
 
     def as_dict(self) -&gt; dict:
@@ -1541,8 +1586,8 @@ class Station:
             &#34;packet_metadata&#34;: [p.as_dict() for p in self._packet_metadata],
             &#34;gaps&#34;: self._gaps,
             &#34;errors&#34;: self._errors.as_dict(),
-            &#34;sensors&#34;: [s.type().name for s in self._data],
-            &#34;event_data&#34;: self._event_data.list_for_dict()
+            &#34;sensors&#34;: [s.type().name for s in self._data]
+            # &#34;event_data&#34;: self._event_data.as_dict()
         }
 
     def default_station_json_file_name(self) -&gt; str:
@@ -1597,7 +1642,8 @@ class Station:
                 result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
             ts_file_name = io.get_json_file(os.path.join(file_dir, &#34;timesync&#34;))
             result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, &#34;timesync&#34;, ts_file_name)))
-            result.set_event_data(EventStreams.from_dir(os.path.join(file_dir, &#34;events&#34;), json_data[&#34;event_data&#34;]))
+            ev_file_name = io.get_json_file(os.path.join(file_dir, &#34;events&#34;))
+            result.set_event_data(EventStreams.from_json_file(os.path.join(file_dir, &#34;events&#34;), ev_file_name))
             result.update_first_and_last_data_timestamps()
         else:
             result = Station()
@@ -1754,10 +1800,43 @@ default False</p></div>
         else:
             save_mode = FileSystemSaveMode.MEM
         self._fs_writer = Fsw(&#34;&#34;, &#34;&#34;, base_dir, save_mode)
-        self._event_data = EventStreams(save_mode=save_mode)
+        self._event_data = EventStreams()
 
         self._data: List[sd.SensorData] = []
         self._gaps: List[Tuple[float, float]] = []
+
+    def __repr__(self):
+        return f&#34;id: {self._id}, &#34; \
+               f&#34;uuid: {self._uuid}, &#34; \
+               f&#34;start_date: {self._start_date}, &#34; \
+               f&#34;use_model_correction: {self._use_model_correction}, &#34; \
+               f&#34;is_timestamps_updated: {self._is_timestamps_updated}, &#34; \
+               f&#34;metadata: {self._metadata.__repr__()}, &#34; \
+               f&#34;packet_metadata: {[p.__repr__() for p in self._packet_metadata]}, &#34; \
+               f&#34;audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, &#34; \
+               f&#34;is_audio_scrambled: {self._is_audio_scrambled}, &#34; \
+               f&#34;timesync: {self._timesync_data.__repr__()}, &#34; \
+               f&#34;event_data: {self._event_data.__repr__()}, &#34; \
+               f&#34;gaps: {[g for g in self._gaps]}&#34;
+        # &#34;data&#34;: [d.__repr__() for d in self._data],
+
+    def __str__(self):
+        start_date = np.nan if np.isnan(self._start_date) \
+            else datetime_from_epoch_microseconds_utc(self._start_date).strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;)
+        return f&#34;id: {self._id}, &#34; \
+               f&#34;uuid: {self._uuid}, &#34; \
+               f&#34;start_date: &#34; \
+               f&#34;{start_date}, &#34; \
+               f&#34;use_model_correction: {self._use_model_correction}, &#34; \
+               f&#34;is_timestamps_updated: {self._is_timestamps_updated}, &#34; \
+               f&#34;metadata: {self._metadata.__str__()}, &#34; \
+               f&#34;audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, &#34; \
+               f&#34;is_audio_scrambled: {self._is_audio_scrambled}, &#34; \
+               f&#34;timesync: {self._timesync_data.__str__()}, &#34; \
+               f&#34;event_data: {self._event_data.__str__()}, &#34; \
+               f&#34;gaps: {[g for g in self._gaps]}&#34;
+        # &#34;packet_metadata&#34;: [p.__str__() for p in self._packet_metadata],
+        # &#34;data&#34;: [d.__str__() for d in self._data]
 
     def data(self) -&gt; List[sd.SensorData]:
         &#34;&#34;&#34;
@@ -1886,13 +1965,12 @@ default False</p></div>
 
         :param indexes: List of indexes of the files to read
         &#34;&#34;&#34;
-        first_pkt = indexes[0].read_first_packet()
-        self._load_metadata_from_packet(first_pkt)
+        self._load_metadata_from_packet(indexes[0].read_first_packet())
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
         self._timesync_data.arrow_file = \
             f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
         all_summaries = ptp.AggregateSummary()
-        self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+        self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
         for idx in indexes:
             pkts = idx.read_contents()
             self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
@@ -1971,7 +2049,7 @@ default False</p></div>
             self._set_pyarrow_sensors(summaries)
             if self._correct_timestamps:
                 self.update_timestamps()
-            self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+            self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
             self._event_data.read_from_packets_list(packets)
 
     def _load_metadata_from_packet(self, packet: api_m.RedvoxPacketM):
@@ -2890,6 +2968,12 @@ default False</p></div>
         &#34;&#34;&#34;
         self._event_data = data
 
+    def get_event_data_dir(self) -&gt; str:
+        &#34;&#34;&#34;
+        :return: the station&#39;s event data directory
+        &#34;&#34;&#34;
+        return os.path.join(self.save_dir(), &#34;events&#34;)
+
     def _get_id_key(self) -&gt; str:
         &#34;&#34;&#34;
         :return: the station&#39;s id and start time as a string
@@ -2911,6 +2995,7 @@ default False</p></div>
             self._gaps = sensor_summaries.gaps
             self._data.append(sd.AudioSensor(first_audio.name, first_audio.data(), first_audio.srate_hz,
                                              1 / first_audio.srate_hz, 0., True,
+                                             use_offset_model_for_correction=self._use_model_correction,
                                              base_dir=self.get_save_dir_sensor(sd.SensorType.AUDIO),
                                              save_data=self._fs_writer.is_save_disk()))
             self.update_first_and_last_data_timestamps()
@@ -2922,7 +3007,8 @@ default False</p></div>
                     for i in range(1, len(sdata)):
                         data_table = pa.concat_tables([data_table, sdata[i].data()])
                 if np.isnan(sdata[0].srate_hz):
-                    smnint = float(np.mean(np.diff(data_table[&#34;timestamps&#34;].to_numpy())))
+                    timestamps = data_table[&#34;timestamps&#34;].to_numpy()
+                    smnint = float(np.mean(np.diff(timestamps))) if len(timestamps) &gt; 1 else np.nan
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
@@ -2930,6 +3016,7 @@ default False</p></div>
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
+                        use_offset_model_for_correction=self._use_model_correction,
                         base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 else:
                     d, g = gpu.fill_gaps(
@@ -2940,6 +3027,7 @@ default False</p></div>
                             sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
                             sample_interval_std_s=0., is_sample_rate_fixed=True,
+                            use_offset_model_for_correction=self._use_model_correction,
                             base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 self._data.append(new_sensor.class_from_type())
         else:
@@ -3104,7 +3192,7 @@ default False</p></div>
         &#34;&#34;&#34;
         if self._is_timestamps_updated:
             self._errors.append(&#34;Timestamps already corrected!&#34;)
-        else:
+        elif self._correct_timestamps:
             self._start_date = self._timesync_data.offset_model().update_time(
                 self._start_date, self._use_model_correction
             )
@@ -3127,6 +3215,8 @@ default False</p></div>
             self.update_first_and_last_data_timestamps()
             self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
             self._is_timestamps_updated = True
+        else:
+            self._errors.append(&#34;Attempted to correct timestamps, but correction not enabled.&#34;)
         return self
 
     def as_dict(self) -&gt; dict:
@@ -3148,8 +3238,8 @@ default False</p></div>
             &#34;packet_metadata&#34;: [p.as_dict() for p in self._packet_metadata],
             &#34;gaps&#34;: self._gaps,
             &#34;errors&#34;: self._errors.as_dict(),
-            &#34;sensors&#34;: [s.type().name for s in self._data],
-            &#34;event_data&#34;: self._event_data.list_for_dict()
+            &#34;sensors&#34;: [s.type().name for s in self._data]
+            # &#34;event_data&#34;: self._event_data.as_dict()
         }
 
     def default_station_json_file_name(self) -&gt; str:
@@ -3204,7 +3294,8 @@ default False</p></div>
                 result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
             ts_file_name = io.get_json_file(os.path.join(file_dir, &#34;timesync&#34;))
             result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, &#34;timesync&#34;, ts_file_name)))
-            result.set_event_data(EventStreams.from_dir(os.path.join(file_dir, &#34;events&#34;), json_data[&#34;event_data&#34;]))
+            ev_file_name = io.get_json_file(os.path.join(file_dir, &#34;events&#34;))
+            result.set_event_data(EventStreams.from_json_file(os.path.join(file_dir, &#34;events&#34;), ev_file_name))
             result.update_first_and_last_data_timestamps()
         else:
             result = Station()
@@ -3389,7 +3480,8 @@ def from_json_file(file_dir: str, file_name: Optional[str] = None) -&gt; &#34;St
             result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
         ts_file_name = io.get_json_file(os.path.join(file_dir, &#34;timesync&#34;))
         result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, &#34;timesync&#34;, ts_file_name)))
-        result.set_event_data(EventStreams.from_dir(os.path.join(file_dir, &#34;events&#34;), json_data[&#34;event_data&#34;]))
+        ev_file_name = io.get_json_file(os.path.join(file_dir, &#34;events&#34;))
+        result.set_event_data(EventStreams.from_json_file(os.path.join(file_dir, &#34;events&#34;), ev_file_name))
         result.update_first_and_last_data_timestamps()
     else:
         result = Station()
@@ -3576,8 +3668,8 @@ def load(in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
         &#34;packet_metadata&#34;: [p.as_dict() for p in self._packet_metadata],
         &#34;gaps&#34;: self._gaps,
         &#34;errors&#34;: self._errors.as_dict(),
-        &#34;sensors&#34;: [s.type().name for s in self._data],
-        &#34;event_data&#34;: self._event_data.list_for_dict()
+        &#34;sensors&#34;: [s.type().name for s in self._data]
+        # &#34;event_data&#34;: self._event_data.as_dict()
     }</code></pre>
 </details>
 </dd>
@@ -3801,6 +3893,22 @@ since epoch UTC</p></div>
     :return: list pairs of timestamps of the data points on the edge of gaps
     &#34;&#34;&#34;
     return self._gaps</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.get_event_data_dir"><code class="name flex">
+<span>def <span class="ident">get_event_data_dir</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the station's event data directory</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_event_data_dir(self) -&gt; str:
+    &#34;&#34;&#34;
+    :return: the station&#39;s event data directory
+    &#34;&#34;&#34;
+    return os.path.join(self.save_dir(), &#34;events&#34;)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_key"><code class="name flex">
@@ -4830,7 +4938,7 @@ number of audio sensor's data points and the number of packets</p>
         self._set_pyarrow_sensors(summaries)
         if self._correct_timestamps:
             self.update_timestamps()
-        self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+        self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
         self._event_data.read_from_packets_list(packets)</code></pre>
 </details>
 </dd>
@@ -4850,13 +4958,12 @@ number of audio sensor's data points and the number of packets</p>
 
     :param indexes: List of indexes of the files to read
     &#34;&#34;&#34;
-    first_pkt = indexes[0].read_first_packet()
-    self._load_metadata_from_packet(first_pkt)
+    self._load_metadata_from_packet(indexes[0].read_first_packet())
     self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
     self._timesync_data.arrow_file = \
         f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
     all_summaries = ptp.AggregateSummary()
-    self._event_data.base_dir = os.path.join(self.save_dir(), &#34;events&#34;)
+    self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
     for idx in indexes:
         pkts = idx.read_contents()
         self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
@@ -6057,7 +6164,7 @@ If None, a default file name is created using this format:
     &#34;&#34;&#34;
     if self._is_timestamps_updated:
         self._errors.append(&#34;Timestamps already corrected!&#34;)
-    else:
+    elif self._correct_timestamps:
         self._start_date = self._timesync_data.offset_model().update_time(
             self._start_date, self._use_model_correction
         )
@@ -6080,6 +6187,8 @@ If None, a default file name is created using this format:
         self.update_first_and_last_data_timestamps()
         self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
         self._is_timestamps_updated = True
+    else:
+        self._errors.append(&#34;Attempted to correct timestamps, but correction not enabled.&#34;)
     return self</code></pre>
 </details>
 </dd>
@@ -6160,6 +6269,7 @@ If None, a default file name is created using this format:
 <li><code><a title="redvox.common.station.Station.from_json_file" href="#redvox.common.station.Station.from_json_file">from_json_file</a></code></li>
 <li><code><a title="redvox.common.station.Station.fs_writer" href="#redvox.common.station.Station.fs_writer">fs_writer</a></code></li>
 <li><code><a title="redvox.common.station.Station.gaps" href="#redvox.common.station.Station.gaps">gaps</a></code></li>
+<li><code><a title="redvox.common.station.Station.get_event_data_dir" href="#redvox.common.station.Station.get_event_data_dir">get_event_data_dir</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_key" href="#redvox.common.station.Station.get_key">get_key</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_mean_packet_audio_samples" href="#redvox.common.station.Station.get_mean_packet_audio_samples">get_mean_packet_audio_samples</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_mean_packet_duration" href="#redvox.common.station.Station.get_mean_packet_duration">get_mean_packet_duration</a></code></li>

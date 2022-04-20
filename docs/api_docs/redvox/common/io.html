@@ -58,6 +58,7 @@ from typing import (
 import lz4.frame
 
 from redvox.api900.reader import read_rdvxz_file, read_buffer
+from redvox.api900.reader_utils import calculate_uncompressed_size
 from redvox.common import api_conversions as ac
 from redvox.api1000.common.common import check_type
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
@@ -149,6 +150,18 @@ class FileSystemWriter:
         self.base_dir: str = base_dir
         self._save_mode: FileSystemSaveMode = save_mode
         self._temp_dir = tempfile.TemporaryDirectory()
+
+    def __repr__(self):
+        return f&#34;file_name: {self.file_name}, &#34; \
+               f&#34;extension: {self.file_extension}, &#34; \
+               f&#34;base_dir: {self.base_dir}, &#34; \
+               f&#34;save_mode: {self._save_mode.value}&#34;
+
+    def __str__(self):
+        return f&#34;file_name: {self.file_name}, &#34; \
+               f&#34;extension: {self.file_extension}, &#34; \
+               f&#34;base_dir: {self.base_dir}, &#34; \
+               f&#34;save_mode: {self._save_mode.name}&#34;
 
     def is_use_temp(self) -&gt; bool:
         &#34;&#34;&#34;
@@ -386,7 +399,8 @@ class IndexEntry:
     date_time: datetime
     extension: str
     api_version: ApiVersion
-    file_size_bytes: int
+    compressed_file_size_bytes: int = 0
+    decompressed_file_size_bytes: int = 0
 
     @staticmethod
     def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry&#34;]:
@@ -433,14 +447,12 @@ class IndexEntry:
         full_path: str
         try:
             full_path = str(path.resolve(strict=True))
-            file_size = os.path.getsize(full_path) * 8  # decompressed size estimate
         except FileNotFoundError:
             if strict:
                 return None
             full_path = path_str
-            file_size = 0
 
-        return IndexEntry(full_path, station_id, date_time, ext, api_version, file_size)
+        return IndexEntry(full_path, station_id, date_time, ext, api_version)._set_compressed_decompressed_lz4_size()
 
     @staticmethod
     def from_native(entry) -&gt; &#34;IndexEntry&#34;:
@@ -455,9 +467,8 @@ class IndexEntry:
             entry.station_id,
             dt_us(entry.date_time),
             entry.extension,
-            ApiVersion.from_str(entry.api_version),
-            os.path.getsize(entry.full_path) * 8,
-        )
+            ApiVersion.from_str(entry.api_version)
+        )._set_compressed_decompressed_lz4_size()
 
     def to_native(self):
         import redvox_native
@@ -467,9 +478,26 @@ class IndexEntry:
             self.station_id,
             us_dt(self.date_time),
             self.extension,
-            self.api_version.value,
+            self.api_version.value
         )
         return entry
+
+    def _set_compressed_decompressed_lz4_size(self):
+        &#34;&#34;&#34;
+        set the compressed and decompressed file size in bytes of an lz4 file being read by the IndexEntry.
+        default is 0 for both file sizes
+
+        :return: updated self
+        &#34;&#34;&#34;
+        if os.path.exists(self.full_path):
+            self.compressed_file_size_bytes = os.path.getsize(self.full_path)
+            with open(self.full_path, &#34;rb&#34;) as fp:
+                if self.api_version == ApiVersion.API_1000:
+                    header = lz4.frame.get_frame_info(fp.read())
+                    self.decompressed_file_size_bytes = header[&#34;content_size&#34;]
+                elif self.api_version == ApiVersion.API_900:
+                    self.decompressed_file_size_bytes = calculate_uncompressed_size(fp.read())
+        return self
 
     def read(self) -&gt; Optional[Union[WrappedRedvoxPacketM, &#34;WrappedRedvoxPacket&#34;]]:
         &#34;&#34;&#34;
@@ -724,6 +752,7 @@ class IndexStationSummary:
     total_packets: int
     first_packet: datetime
     last_packet: datetime
+    single_packet_decompressed_size_bytes: int
 
     @staticmethod
     def from_entry(entry: IndexEntry) -&gt; &#34;IndexStationSummary&#34;:
@@ -739,6 +768,7 @@ class IndexStationSummary:
             1,
             first_packet=entry.date_time,
             last_packet=entry.date_time,
+            single_packet_decompressed_size_bytes=entry.decompressed_file_size_bytes
         )
 
     def update(self, entry: IndexEntry) -&gt; None:
@@ -873,7 +903,7 @@ class Index:
         entries: List[IndexEntry] = list(
             map(IndexEntry.from_native, index_native.entries)
         )
-        return Index(entries)
+        return Index(entries)._set_decompressed_file_size()
 
     def to_native(self):
         import redvox_native
@@ -881,6 +911,35 @@ class Index:
         native_index = redvox_native.Index()
         native_index.entries = list(map(IndexEntry.to_native, self.entries))
         return native_index
+
+    def max_decompressed_file_size(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: the maximum decompressed file size in the entries
+        &#34;&#34;&#34;
+        return max([fi.decompressed_file_size_bytes for fi in self.entries]) if len(self.entries) &gt; 0 else np.nan
+
+    def get_decompressed_file_size(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: the decompressed size of the first file in the list of entries
+        &#34;&#34;&#34;
+        if len(self.entries) == 0:
+            return np.nan
+        if self.entries[0].decompressed_file_size_bytes == 0 and os.path.exists(self.entries[0].full_path):
+            with lz4.frame.open(self.entries[0].full_path, &#39;rb&#39;) as fr:
+                return len(fr.read())
+        return self.entries[0].decompressed_file_size_bytes
+
+    def _set_decompressed_file_size(self) -&gt; &#34;Index&#34;:
+        &#34;&#34;&#34;
+        updates the decompressed size of all entries if the maximum decompressed size is 0, otherwise makes no changes
+
+        :return: updated self
+        &#34;&#34;&#34;
+        if self.max_decompressed_file_size() == 0:
+            new_size = self.get_decompressed_file_size()
+            for ie in self.entries:
+                ie.decompressed_file_size_bytes = new_size
+        return self
 
     def sort(self) -&gt; None:
         &#34;&#34;&#34;
@@ -898,6 +957,7 @@ class Index:
         :param entries: Entries to append.
         &#34;&#34;&#34;
         self.entries.extend(entries)
+        self._set_decompressed_file_size()
 
     def summarize(self) -&gt; IndexSummary:
         &#34;&#34;&#34;
@@ -964,7 +1024,7 @@ class Index:
         &#34;&#34;&#34;
         :return: sum of file size in bytes of index
         &#34;&#34;&#34;
-        return np.sum([entry.file_size_bytes for entry in self.entries])
+        return float(np.sum([entry.decompressed_file_size_bytes for entry in self.entries]))
 
     def read_contents(self) -&gt; List[RedvoxPacketM]:
         &#34;&#34;&#34;
@@ -1640,7 +1700,7 @@ def sort_unstructured_redvox_data(
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured"><code class="name flex">
-<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Indexes both API 900 and API 1000 structured directory layouts.</p>
@@ -1671,7 +1731,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_1000"><code class="name flex">
-<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API M directory structure and identifies files that match the provided filter.</p>
@@ -1703,7 +1763,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_1000_py"><code class="name flex">
-<span>def <span class="ident">index_structured_api_1000_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_1000_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API M directory structure and identifies files that match the provided filter.</p>
@@ -1768,7 +1828,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_900"><code class="name flex">
-<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API 900 directory structure and identifies files that match the provided filter.</p>
@@ -1800,7 +1860,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_900_py"><code class="name flex">
-<span>def <span class="ident">index_structured_api_900_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_900_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API 900 directory structure and identifies files that match the provided filter.</p>
@@ -1861,7 +1921,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_py"><code class="name flex">
-<span>def <span class="ident">index_structured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Indexes both API 900 and API 1000 structured directory layouts.</p>
@@ -1934,7 +1994,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_unstructured"><code class="name flex">
-<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the list of file paths that match the given filter for unstructured data.</p>
@@ -1966,7 +2026,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_unstructured_py"><code class="name flex">
-<span>def <span class="ident">index_unstructured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_unstructured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the list of file paths that match the given filter for unstructured data.</p>
@@ -2106,7 +2166,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.sort_unstructured_redvox_data"><code class="name flex">
-<span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: Optional[str] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), copy: bool = True) ‑> bool</span>
+<span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: Optional[str] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), copy: bool = True) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>takes all redvox files in input_dir and sorts them into appropriate sub-directories</p>
@@ -2349,6 +2409,18 @@ Default "." (current dir)</p>
         self.base_dir: str = base_dir
         self._save_mode: FileSystemSaveMode = save_mode
         self._temp_dir = tempfile.TemporaryDirectory()
+
+    def __repr__(self):
+        return f&#34;file_name: {self.file_name}, &#34; \
+               f&#34;extension: {self.file_extension}, &#34; \
+               f&#34;base_dir: {self.base_dir}, &#34; \
+               f&#34;save_mode: {self._save_mode.value}&#34;
+
+    def __str__(self):
+        return f&#34;file_name: {self.file_name}, &#34; \
+               f&#34;extension: {self.file_extension}, &#34; \
+               f&#34;base_dir: {self.base_dir}, &#34; \
+               f&#34;save_mode: {self._save_mode.name}&#34;
 
     def is_use_temp(self) -&gt; bool:
         &#34;&#34;&#34;
@@ -2928,7 +3000,7 @@ class Index:
         entries: List[IndexEntry] = list(
             map(IndexEntry.from_native, index_native.entries)
         )
-        return Index(entries)
+        return Index(entries)._set_decompressed_file_size()
 
     def to_native(self):
         import redvox_native
@@ -2936,6 +3008,35 @@ class Index:
         native_index = redvox_native.Index()
         native_index.entries = list(map(IndexEntry.to_native, self.entries))
         return native_index
+
+    def max_decompressed_file_size(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: the maximum decompressed file size in the entries
+        &#34;&#34;&#34;
+        return max([fi.decompressed_file_size_bytes for fi in self.entries]) if len(self.entries) &gt; 0 else np.nan
+
+    def get_decompressed_file_size(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: the decompressed size of the first file in the list of entries
+        &#34;&#34;&#34;
+        if len(self.entries) == 0:
+            return np.nan
+        if self.entries[0].decompressed_file_size_bytes == 0 and os.path.exists(self.entries[0].full_path):
+            with lz4.frame.open(self.entries[0].full_path, &#39;rb&#39;) as fr:
+                return len(fr.read())
+        return self.entries[0].decompressed_file_size_bytes
+
+    def _set_decompressed_file_size(self) -&gt; &#34;Index&#34;:
+        &#34;&#34;&#34;
+        updates the decompressed size of all entries if the maximum decompressed size is 0, otherwise makes no changes
+
+        :return: updated self
+        &#34;&#34;&#34;
+        if self.max_decompressed_file_size() == 0:
+            new_size = self.get_decompressed_file_size()
+            for ie in self.entries:
+                ie.decompressed_file_size_bytes = new_size
+        return self
 
     def sort(self) -&gt; None:
         &#34;&#34;&#34;
@@ -2953,6 +3054,7 @@ class Index:
         :param entries: Entries to append.
         &#34;&#34;&#34;
         self.entries.extend(entries)
+        self._set_decompressed_file_size()
 
     def summarize(self) -&gt; IndexSummary:
         &#34;&#34;&#34;
@@ -3019,7 +3121,7 @@ class Index:
         &#34;&#34;&#34;
         :return: sum of file size in bytes of index
         &#34;&#34;&#34;
-        return np.sum([entry.file_size_bytes for entry in self.entries])
+        return float(np.sum([entry.decompressed_file_size_bytes for entry in self.entries]))
 
     def read_contents(self) -&gt; List[RedvoxPacketM]:
         &#34;&#34;&#34;
@@ -3106,7 +3208,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
     entries: List[IndexEntry] = list(
         map(IndexEntry.from_native, index_native.entries)
     )
-    return Index(entries)</code></pre>
+    return Index(entries)._set_decompressed_file_size()</code></pre>
 </details>
 </dd>
 </dl>
@@ -3128,7 +3230,8 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 
     :param entries: Entries to append.
     &#34;&#34;&#34;
-    self.entries.extend(entries)</code></pre>
+    self.entries.extend(entries)
+    self._set_decompressed_file_size()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.Index.files_size"><code class="name flex">
@@ -3144,7 +3247,28 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
     &#34;&#34;&#34;
     :return: sum of file size in bytes of index
     &#34;&#34;&#34;
-    return np.sum([entry.file_size_bytes for entry in self.entries])</code></pre>
+    return float(np.sum([entry.decompressed_file_size_bytes for entry in self.entries]))</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.io.Index.get_decompressed_file_size"><code class="name flex">
+<span>def <span class="ident">get_decompressed_file_size</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the decompressed size of the first file in the list of entries</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_decompressed_file_size(self) -&gt; int:
+    &#34;&#34;&#34;
+    :return: the decompressed size of the first file in the list of entries
+    &#34;&#34;&#34;
+    if len(self.entries) == 0:
+        return np.nan
+    if self.entries[0].decompressed_file_size_bytes == 0 and os.path.exists(self.entries[0].full_path):
+        with lz4.frame.open(self.entries[0].full_path, &#39;rb&#39;) as fr:
+            return len(fr.read())
+    return self.entries[0].decompressed_file_size_bytes</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.Index.get_index_for_station_id"><code class="name flex">
@@ -3165,8 +3289,24 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
     return Index([en for en in self.entries if en.station_id == station_id])</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.io.Index.max_decompressed_file_size"><code class="name flex">
+<span>def <span class="ident">max_decompressed_file_size</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the maximum decompressed file size in the entries</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def max_decompressed_file_size(self) -&gt; int:
+    &#34;&#34;&#34;
+    :return: the maximum decompressed file size in the entries
+    &#34;&#34;&#34;
+    return max([fi.decompressed_file_size_bytes for fi in self.entries]) if len(self.entries) &gt; 0 else np.nan</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.io.Index.read"><code class="name flex">
-<span>def <span class="ident">read</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> List[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">read</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> List[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, and wrap RedVox data pointed to by this index.</p>
@@ -3265,7 +3405,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.read_raw"><code class="name flex">
-<span>def <span class="ident">read_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> List[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
+<span>def <span class="ident">read_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> List[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, and deserialize RedVox data pointed to by this index.</p>
@@ -3307,7 +3447,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.stream"><code class="name flex">
-<span>def <span class="ident">stream</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> Iterator[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">stream</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> Iterator[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.</p>
@@ -3332,7 +3472,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.stream_raw"><code class="name flex">
-<span>def <span class="ident">stream_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxz&#x27;, &#x27;.rdvxm&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> Iterator[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
+<span>def <span class="ident">stream_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> Iterator[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, and then stream RedVox data pointed to by this index.</p>
@@ -3393,7 +3533,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </dd>
 <dt id="redvox.common.io.IndexEntry"><code class="flex name class">
 <span>class <span class="ident">IndexEntry</span></span>
-<span>(</span><span>full_path: str, station_id: str, date_time: datetime.datetime, extension: str, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>, file_size_bytes: int)</span>
+<span>(</span><span>full_path: str, station_id: str, date_time: datetime.datetime, extension: str, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>, compressed_file_size_bytes: int = 0, decompressed_file_size_bytes: int = 0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This class represents a single index entry. It extracts and encapsulated API agnostic fields that represent the
@@ -3414,7 +3554,8 @@ class IndexEntry:
     date_time: datetime
     extension: str
     api_version: ApiVersion
-    file_size_bytes: int
+    compressed_file_size_bytes: int = 0
+    decompressed_file_size_bytes: int = 0
 
     @staticmethod
     def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry&#34;]:
@@ -3461,14 +3602,12 @@ class IndexEntry:
         full_path: str
         try:
             full_path = str(path.resolve(strict=True))
-            file_size = os.path.getsize(full_path) * 8  # decompressed size estimate
         except FileNotFoundError:
             if strict:
                 return None
             full_path = path_str
-            file_size = 0
 
-        return IndexEntry(full_path, station_id, date_time, ext, api_version, file_size)
+        return IndexEntry(full_path, station_id, date_time, ext, api_version)._set_compressed_decompressed_lz4_size()
 
     @staticmethod
     def from_native(entry) -&gt; &#34;IndexEntry&#34;:
@@ -3483,9 +3622,8 @@ class IndexEntry:
             entry.station_id,
             dt_us(entry.date_time),
             entry.extension,
-            ApiVersion.from_str(entry.api_version),
-            os.path.getsize(entry.full_path) * 8,
-        )
+            ApiVersion.from_str(entry.api_version)
+        )._set_compressed_decompressed_lz4_size()
 
     def to_native(self):
         import redvox_native
@@ -3495,9 +3633,26 @@ class IndexEntry:
             self.station_id,
             us_dt(self.date_time),
             self.extension,
-            self.api_version.value,
+            self.api_version.value
         )
         return entry
+
+    def _set_compressed_decompressed_lz4_size(self):
+        &#34;&#34;&#34;
+        set the compressed and decompressed file size in bytes of an lz4 file being read by the IndexEntry.
+        default is 0 for both file sizes
+
+        :return: updated self
+        &#34;&#34;&#34;
+        if os.path.exists(self.full_path):
+            self.compressed_file_size_bytes = os.path.getsize(self.full_path)
+            with open(self.full_path, &#34;rb&#34;) as fp:
+                if self.api_version == ApiVersion.API_1000:
+                    header = lz4.frame.get_frame_info(fp.read())
+                    self.decompressed_file_size_bytes = header[&#34;content_size&#34;]
+                elif self.api_version == ApiVersion.API_900:
+                    self.decompressed_file_size_bytes = calculate_uncompressed_size(fp.read())
+        return self
 
     def read(self) -&gt; Optional[Union[WrappedRedvoxPacketM, &#34;WrappedRedvoxPacket&#34;]]:
         &#34;&#34;&#34;
@@ -3552,15 +3707,19 @@ class IndexEntry:
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="redvox.common.io.IndexEntry.compressed_file_size_bytes"><code class="name">var <span class="ident">compressed_file_size_bytes</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="redvox.common.io.IndexEntry.date_time"><code class="name">var <span class="ident">date_time</span> : datetime.datetime</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.io.IndexEntry.extension"><code class="name">var <span class="ident">extension</span> : str</code></dt>
+<dt id="redvox.common.io.IndexEntry.decompressed_file_size_bytes"><code class="name">var <span class="ident">decompressed_file_size_bytes</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.io.IndexEntry.file_size_bytes"><code class="name">var <span class="ident">file_size_bytes</span> : int</code></dt>
+<dt id="redvox.common.io.IndexEntry.extension"><code class="name">var <span class="ident">extension</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3599,9 +3758,8 @@ def from_native(entry) -&gt; &#34;IndexEntry&#34;:
         entry.station_id,
         dt_us(entry.date_time),
         entry.extension,
-        ApiVersion.from_str(entry.api_version),
-        os.path.getsize(entry.full_path) * 8,
-    )</code></pre>
+        ApiVersion.from_str(entry.api_version)
+    )._set_compressed_decompressed_lz4_size()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.IndexEntry.from_path"><code class="name flex">
@@ -3662,14 +3820,12 @@ def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry
     full_path: str
     try:
         full_path = str(path.resolve(strict=True))
-        file_size = os.path.getsize(full_path) * 8  # decompressed size estimate
     except FileNotFoundError:
         if strict:
             return None
         full_path = path_str
-        file_size = 0
 
-    return IndexEntry(full_path, station_id, date_time, ext, api_version, file_size)</code></pre>
+    return IndexEntry(full_path, station_id, date_time, ext, api_version)._set_compressed_decompressed_lz4_size()</code></pre>
 </details>
 </dd>
 </dl>
@@ -3744,7 +3900,7 @@ def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry
         self.station_id,
         us_dt(self.date_time),
         self.extension,
-        self.api_version.value,
+        self.api_version.value
     )
     return entry</code></pre>
 </details>
@@ -3753,7 +3909,7 @@ def from_path(path_str: str, strict: bool = True) -&gt; Optional[&#34;IndexEntry
 </dd>
 <dt id="redvox.common.io.IndexStationSummary"><code class="flex name class">
 <span>class <span class="ident">IndexStationSummary</span></span>
-<span>(</span><span>station_id: str, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>, total_packets: int, first_packet: datetime.datetime, last_packet: datetime.datetime)</span>
+<span>(</span><span>station_id: str, api_version: <a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>, total_packets: int, first_packet: datetime.datetime, last_packet: datetime.datetime, single_packet_decompressed_size_bytes: int)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Summary of a single station in the index.</p></div>
@@ -3772,6 +3928,7 @@ class IndexStationSummary:
     total_packets: int
     first_packet: datetime
     last_packet: datetime
+    single_packet_decompressed_size_bytes: int
 
     @staticmethod
     def from_entry(entry: IndexEntry) -&gt; &#34;IndexStationSummary&#34;:
@@ -3787,6 +3944,7 @@ class IndexStationSummary:
             1,
             first_packet=entry.date_time,
             last_packet=entry.date_time,
+            single_packet_decompressed_size_bytes=entry.decompressed_file_size_bytes
         )
 
     def update(self, entry: IndexEntry) -&gt; None:
@@ -3813,6 +3971,10 @@ class IndexStationSummary:
 <div class="desc"></div>
 </dd>
 <dt id="redvox.common.io.IndexStationSummary.last_packet"><code class="name">var <span class="ident">last_packet</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.io.IndexStationSummary.single_packet_decompressed_size_bytes"><code class="name">var <span class="ident">single_packet_decompressed_size_bytes</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3852,6 +4014,7 @@ def from_entry(entry: IndexEntry) -&gt; &#34;IndexStationSummary&#34;:
         1,
         first_packet=entry.date_time,
         last_packet=entry.date_time,
+        single_packet_decompressed_size_bytes=entry.decompressed_file_size_bytes
     )</code></pre>
 </details>
 </dd>
@@ -4954,7 +5117,9 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 <li><code><a title="redvox.common.io.Index.entries" href="#redvox.common.io.Index.entries">entries</a></code></li>
 <li><code><a title="redvox.common.io.Index.files_size" href="#redvox.common.io.Index.files_size">files_size</a></code></li>
 <li><code><a title="redvox.common.io.Index.from_native" href="#redvox.common.io.Index.from_native">from_native</a></code></li>
+<li><code><a title="redvox.common.io.Index.get_decompressed_file_size" href="#redvox.common.io.Index.get_decompressed_file_size">get_decompressed_file_size</a></code></li>
 <li><code><a title="redvox.common.io.Index.get_index_for_station_id" href="#redvox.common.io.Index.get_index_for_station_id">get_index_for_station_id</a></code></li>
+<li><code><a title="redvox.common.io.Index.max_decompressed_file_size" href="#redvox.common.io.Index.max_decompressed_file_size">max_decompressed_file_size</a></code></li>
 <li><code><a title="redvox.common.io.Index.read" href="#redvox.common.io.Index.read">read</a></code></li>
 <li><code><a title="redvox.common.io.Index.read_contents" href="#redvox.common.io.Index.read_contents">read_contents</a></code></li>
 <li><code><a title="redvox.common.io.Index.read_first_packet" href="#redvox.common.io.Index.read_first_packet">read_first_packet</a></code></li>
@@ -4968,11 +5133,12 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </li>
 <li>
 <h4><code><a title="redvox.common.io.IndexEntry" href="#redvox.common.io.IndexEntry">IndexEntry</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="redvox.common.io.IndexEntry.api_version" href="#redvox.common.io.IndexEntry.api_version">api_version</a></code></li>
+<li><code><a title="redvox.common.io.IndexEntry.compressed_file_size_bytes" href="#redvox.common.io.IndexEntry.compressed_file_size_bytes">compressed_file_size_bytes</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.date_time" href="#redvox.common.io.IndexEntry.date_time">date_time</a></code></li>
+<li><code><a title="redvox.common.io.IndexEntry.decompressed_file_size_bytes" href="#redvox.common.io.IndexEntry.decompressed_file_size_bytes">decompressed_file_size_bytes</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.extension" href="#redvox.common.io.IndexEntry.extension">extension</a></code></li>
-<li><code><a title="redvox.common.io.IndexEntry.file_size_bytes" href="#redvox.common.io.IndexEntry.file_size_bytes">file_size_bytes</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.from_native" href="#redvox.common.io.IndexEntry.from_native">from_native</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.from_path" href="#redvox.common.io.IndexEntry.from_path">from_path</a></code></li>
 <li><code><a title="redvox.common.io.IndexEntry.full_path" href="#redvox.common.io.IndexEntry.full_path">full_path</a></code></li>
@@ -4984,11 +5150,12 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </li>
 <li>
 <h4><code><a title="redvox.common.io.IndexStationSummary" href="#redvox.common.io.IndexStationSummary">IndexStationSummary</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="redvox.common.io.IndexStationSummary.api_version" href="#redvox.common.io.IndexStationSummary.api_version">api_version</a></code></li>
 <li><code><a title="redvox.common.io.IndexStationSummary.first_packet" href="#redvox.common.io.IndexStationSummary.first_packet">first_packet</a></code></li>
 <li><code><a title="redvox.common.io.IndexStationSummary.from_entry" href="#redvox.common.io.IndexStationSummary.from_entry">from_entry</a></code></li>
 <li><code><a title="redvox.common.io.IndexStationSummary.last_packet" href="#redvox.common.io.IndexStationSummary.last_packet">last_packet</a></code></li>
+<li><code><a title="redvox.common.io.IndexStationSummary.single_packet_decompressed_size_bytes" href="#redvox.common.io.IndexStationSummary.single_packet_decompressed_size_bytes">single_packet_decompressed_size_bytes</a></code></li>
 <li><code><a title="redvox.common.io.IndexStationSummary.station_id" href="#redvox.common.io.IndexStationSummary.station_id">station_id</a></code></li>
 <li><code><a title="redvox.common.io.IndexStationSummary.total_packets" href="#redvox.common.io.IndexStationSummary.total_packets">total_packets</a></code></li>
 <li><code><a title="redvox.common.io.IndexStationSummary.update" href="#redvox.common.io.IndexStationSummary.update">update</a></code></li>

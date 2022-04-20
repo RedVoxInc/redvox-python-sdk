@@ -277,6 +277,29 @@ class SensorData:
         if show_errors:
             self.print_errors()
 
+    def __repr__(self):
+        return f&#34;name: {self.name}, &#34; \
+               f&#34;type: {self._type.value}, &#34; \
+               f&#34;num_samples: {self.num_samples()}, &#34; \
+               f&#34;sample_rate_hz: {self._sample_rate_hz}, &#34; \
+               f&#34;sample_interval_s: {self._sample_interval_s}, &#34; \
+               f&#34;sample_interval_std_s: {self._sample_interval_std_s}, &#34; \
+               f&#34;is_sample_rate_fixed: {self._is_sample_rate_fixed}, &#34; \
+               f&#34;timestamps_altered: {self._timestamps_altered}, &#34; \
+               f&#34;use_offset_model: {self._use_offset_model}, &#34; \
+               f&#34;gaps: {[g for g in self._gaps]}&#34;
+
+    def __str__(self):
+        return f&#34;name: {self.name}, &#34; \
+               f&#34;type: {self._type.name}, &#34; \
+               f&#34;num_samples: {self.num_samples()}, &#34; \
+               f&#34;sample_rate_hz: {self._sample_rate_hz}, &#34; \
+               f&#34;sample_interval_s: {self._sample_interval_s}, &#34; \
+               f&#34;sample_interval_std_s: {self._sample_interval_std_s}, &#34; \
+               f&#34;is_sample_rate_fixed: {self._is_sample_rate_fixed}, &#34; \
+               f&#34;timestamps_altered: {self._timestamps_altered}, &#34; \
+               f&#34;use_offset_model: {self._use_offset_model}&#34;
+
     @staticmethod
     def from_dir(
             sensor_name: str,
@@ -506,6 +529,17 @@ class SensorData:
             self._data = None
         else:
             self._data = table
+
+    def empty_data_table(self):
+        &#34;&#34;&#34;
+        CAUTION: REMOVES ALL DATA AND COLUMNS FROM THE TABLE
+        &#34;&#34;&#34;
+        tbl = pa.Table.from_pydict({&#34;timestamps&#34;: []})
+        if self._fs_writer.is_save_disk():
+            pq.write_table(tbl, self.full_path())
+            self._data = None
+        else:
+            self._data = tbl
 
     def move_pyarrow_dir(self, new_dir: str) -&gt; Path:
         &#34;&#34;&#34;
@@ -2454,6 +2488,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -2632,6 +2667,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -2923,6 +2959,7 @@ def from_metadata(sensor_name: str,
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -3546,6 +3583,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -3754,6 +3792,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -4020,6 +4059,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -4286,6 +4326,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -4513,6 +4554,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -4691,6 +4733,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -4957,6 +5000,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -5580,6 +5624,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -5846,6 +5891,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -6112,6 +6158,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -6290,6 +6337,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -6468,6 +6516,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -6646,6 +6695,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -6912,6 +6962,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -7138,6 +7189,29 @@ Default False</p></div>
             self._data = sensor_data
         if show_errors:
             self.print_errors()
+
+    def __repr__(self):
+        return f&#34;name: {self.name}, &#34; \
+               f&#34;type: {self._type.value}, &#34; \
+               f&#34;num_samples: {self.num_samples()}, &#34; \
+               f&#34;sample_rate_hz: {self._sample_rate_hz}, &#34; \
+               f&#34;sample_interval_s: {self._sample_interval_s}, &#34; \
+               f&#34;sample_interval_std_s: {self._sample_interval_std_s}, &#34; \
+               f&#34;is_sample_rate_fixed: {self._is_sample_rate_fixed}, &#34; \
+               f&#34;timestamps_altered: {self._timestamps_altered}, &#34; \
+               f&#34;use_offset_model: {self._use_offset_model}, &#34; \
+               f&#34;gaps: {[g for g in self._gaps]}&#34;
+
+    def __str__(self):
+        return f&#34;name: {self.name}, &#34; \
+               f&#34;type: {self._type.name}, &#34; \
+               f&#34;num_samples: {self.num_samples()}, &#34; \
+               f&#34;sample_rate_hz: {self._sample_rate_hz}, &#34; \
+               f&#34;sample_interval_s: {self._sample_interval_s}, &#34; \
+               f&#34;sample_interval_std_s: {self._sample_interval_std_s}, &#34; \
+               f&#34;is_sample_rate_fixed: {self._is_sample_rate_fixed}, &#34; \
+               f&#34;timestamps_altered: {self._timestamps_altered}, &#34; \
+               f&#34;use_offset_model: {self._use_offset_model}&#34;
 
     @staticmethod
     def from_dir(
@@ -7368,6 +7442,17 @@ Default False</p></div>
             self._data = None
         else:
             self._data = table
+
+    def empty_data_table(self):
+        &#34;&#34;&#34;
+        CAUTION: REMOVES ALL DATA AND COLUMNS FROM THE TABLE
+        &#34;&#34;&#34;
+        tbl = pa.Table.from_pydict({&#34;timestamps&#34;: []})
+        if self._fs_writer.is_save_disk():
+            pq.write_table(tbl, self.full_path())
+            self._data = None
+        else:
+            self._data = tbl
 
     def move_pyarrow_dir(self, new_dir: str) -&gt; Path:
         &#34;&#34;&#34;
@@ -8272,6 +8357,27 @@ recalculate the sample rate, interval, and interval std dev, default False
         return self.pyarrow_table()[&#34;timestamps&#34;].to_numpy()
     else:
         return np.array([np.nan])</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.sensor_data.SensorData.empty_data_table"><code class="name flex">
+<span>def <span class="ident">empty_data_table</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>CAUTION: REMOVES ALL DATA AND COLUMNS FROM THE TABLE</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def empty_data_table(self):
+    &#34;&#34;&#34;
+    CAUTION: REMOVES ALL DATA AND COLUMNS FROM THE TABLE
+    &#34;&#34;&#34;
+    tbl = pa.Table.from_pydict({&#34;timestamps&#34;: []})
+    if self._fs_writer.is_save_disk():
+        pq.write_table(tbl, self.full_path())
+        self._data = None
+    else:
+        self._data = tbl</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.sensor_data.SensorData.errors"><code class="name flex">
@@ -10164,6 +10270,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>
@@ -10434,6 +10541,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_channels" href="#redvox.common.sensor_data.SensorData.data_channels">data_channels</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_df" href="#redvox.common.sensor_data.SensorData.data_df">data_df</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.data_timestamps" href="#redvox.common.sensor_data.SensorData.data_timestamps">data_timestamps</a></code></li>
+<li><code><a title="redvox.common.sensor_data.SensorData.empty_data_table" href="#redvox.common.sensor_data.SensorData.empty_data_table">empty_data_table</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.errors" href="#redvox.common.sensor_data.SensorData.errors">errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.extend_errors" href="#redvox.common.sensor_data.SensorData.extend_errors">extend_errors</a></code></li>
 <li><code><a title="redvox.common.sensor_data.SensorData.file_name" href="#redvox.common.sensor_data.SensorData.file_name">file_name</a></code></li>

@@ -114,16 +114,13 @@ def _migrate_synch_exchanges_900_to_1000(
     return exchanges
 
 
-# todo: can set default return to np.nan?
 def _find_mach_time_zero_raw(packet: api_900.RedvoxPacket) -&gt; int:
     &#34;&#34;&#34;
     find the mach time zero in api 900 packets
 
     :param packet: api 900 redvox packet to read
-    :return: mach time zero fo the api 900 packet or -1 if it doesn&#39;t exist
+    :return: mach time zero of the api 900 packet or -1 if it doesn&#39;t exist
     &#34;&#34;&#34;
-    # if &#34;machTimeZero&#34; in packet.metadata_as_dict():
-    #     return int(packet.metadata_as_dict()[&#34;machTimeZero&#34;])
     key: str = &#34;machTimeZero&#34;
     mtz: Optional[int] = reader_utils.get_metadata_raw(list(packet.metadata), key, int)
     if mtz is not None:

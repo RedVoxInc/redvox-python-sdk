@@ -118,6 +118,12 @@ class EventOrigin:
         self.altitude_std = alt_std
         self.event_radius_m = event_radius_m
 
+    def __repr__(self):
+        return str(self.as_dict())
+
+    def __str__(self):
+        return str(self.as_dict())
+
     def as_dict(self) -&gt; Dict:
         &#34;&#34;&#34;
         :return: self as dict
@@ -212,39 +218,36 @@ class DataWindowConfig:
         self.use_model_correction = use_model_correction
         self.copy_edge_points = copy_edge_points
 
-    # def __repr__(self):
-    #     return dw_io.dict_to_json({
-    #         &#34;input_dir&#34;: self.input_dir,
-    #         &#34;structured_layout&#34;: self.structured_layout,
-    #         &#34;start_datetime&#34;: self.start_datetime.__repr__(),
-    #         &#34;end_datetime&#34;: self.end_datetime.__repr__(),
-    #         &#34;start_buffer_td&#34;: self.start_buffer_td.__repr__(),
-    #         &#34;end_buffer_td&#34;: self.end_buffer_td.__repr__(),
-    #         &#34;drop_time_s&#34;: self.drop_time_s,
-    #         &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
-    #         &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
-    #         &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
-    #         &#34;apply_correction&#34;: self.apply_correction,
-    #         &#34;use_model_correction&#34;: self.use_model_correction,
-    #         &#34;copy_edge_points&#34;: self.copy_edge_points.value
-    #     })
-    #
-    # def __str__(self):
-    #     return dw_io.dict_to_json({
-    #         &#34;input_dir&#34;: self.input_dir,
-    #         &#34;structured_layout&#34;: self.structured_layout,
-    #         &#34;start_datetime&#34;: self.start_datetime.strftime(&#34;%Y %B %d %I:%M:%S.%f&#34;) if self.start_datetime else None,
-    #         &#34;end_datetime&#34;: self.end_datetime.strftime(&#34;%Y %B %d %I:%M:%S.%f&#34;) if self.end_datetime else None,
-    #         &#34;start_buffer_td (in s)&#34;: self.start_buffer_td.total_seconds(),
-    #         &#34;end_buffer_td (in s)&#34;: self.end_buffer_td.total_seconds(),
-    #         &#34;drop_time_s&#34;: self.drop_time_s,
-    #         &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
-    #         &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
-    #         &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
-    #         &#34;apply_correction&#34;: self.apply_correction,
-    #         &#34;use_model_correction&#34;: self.use_model_correction,
-    #         &#34;copy_edge_points&#34;: self.copy_edge_points.name
-    #     })
+    def __repr__(self):
+        return f&#34;input_dir: {self.input_dir}, &#34; \
+               f&#34;structured_layout: {self.structured_layout}, &#34; \
+               f&#34;start_datetime: {self.start_datetime.__repr__()}, &#34; \
+               f&#34;end_datetime: {self.end_datetime.__repr__()}, &#34; \
+               f&#34;start_buffer_td: {self.start_buffer_td.__repr__()}, &#34; \
+               f&#34;end_buffer_td: {self.end_buffer_td.__repr__()}, &#34; \
+               f&#34;drop_time_s: {self.drop_time_s}, &#34; \
+               f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34; \
+               f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34; \
+               f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34; \
+               f&#34;apply_correction: {self.apply_correction}, &#34; \
+               f&#34;use_model_correction: {self.use_model_correction}, &#34; \
+               f&#34;copy_edge_points: {self.copy_edge_points.value}&#34;
+
+    def __str__(self):
+        return f&#34;input_dir: {self.input_dir}, &#34; \
+               f&#34;structured_layout: {self.structured_layout}, &#34; \
+               f&#34;start_datetime: &#34; \
+               f&#34;{self.start_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.start_datetime else None}, &#34; \
+               f&#34;end_datetime: {self.end_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.end_datetime else None}, &#34; \
+               f&#34;start_buffer_td (in s): {self.start_buffer_td.total_seconds()}, &#34; \
+               f&#34;end_buffer_td (in s): {self.end_buffer_td.total_seconds()}, &#34; \
+               f&#34;drop_time_s: {self.drop_time_s}, &#34; \
+               f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34; \
+               f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34; \
+               f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34; \
+               f&#34;apply_correction: {self.apply_correction}, &#34; \
+               f&#34;use_model_correction: {self.use_model_correction}, &#34; \
+               f&#34;copy_edge_points: {self.copy_edge_points.name}&#34;
 
     def as_dict(self) -&gt; Dict:
         return {&#34;input_dir&#34;: self.input_dir,
@@ -343,36 +346,26 @@ class DataWindow:
         if self.debug:
             self.print_errors()
 
-    # def __repr__(self):
-    #     # todo: use representations for the datetime and timedelta objects
-    #     # todo: use the dictionary function
-    #     return dw_io.dict_to_json({
-    #         &#34;event_name&#34;: self.event_name,
-    #         &#34;event_origin&#34;: repr(self.event_origin),
-    #         &#34;config&#34;: repr(self._config),
-    #         &#34;base_dir&#34;: self.save_dir(),
-    #         &#34;out_type&#34;: self._fs_writer.file_extension,
-    #         &#34;make_runme&#34;: self._fs_writer.make_run_me,
-    #         &#34;sdk_version&#34;: self._sdk_version,
-    #         &#34;errors&#34;: repr(self._errors),
-    #         &#34;debug&#34;: self.debug
-    #     })
-    #
-    # def __str__(self):
-    #     # todo: use representations for the datetime and timedelta objects
-    #     # todo: use the dictionary function
-    #     return dw_io.dict_to_json(
-    #         {&#34;event_name&#34;: self.event_name,
-    #          &#34;event_origin&#34;: str(self.event_origin),
-    #          &#34;config&#34;: str(self._config),
-    #          &#34;base_dir&#34;: self.save_dir(),
-    #          &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
-    #          &#34;out_type&#34;: self._fs_writer.file_extension,
-    #          &#34;make_runme&#34;: self._fs_writer.make_run_me,
-    #          &#34;sdk_version&#34;: self._sdk_version,
-    #          &#34;errors&#34;: str(self._errors),
-    #          &#34;debug&#34;: self.debug
-    #          })
+    def __repr__(self):
+        return f&#34;event_name: {self.event_name}, &#34; \
+               f&#34;event_origin: {self.event_origin.__repr__()}, &#34; \
+               f&#34;config: {self._config.__repr__()}, &#34; \
+               f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34; \
+               f&#34;out_type: {self._fs_writer.file_extension}, &#34; \
+               f&#34;make_runme: {self._fs_writer.make_run_me}, &#34; \
+               f&#34;sdk_version: {self._sdk_version}, &#34; \
+               f&#34;debug: {self.debug}&#34;
+
+    def __str__(self):
+        return f&#34;event_name: {self.event_name}, &#34; \
+               f&#34;event_origin: {self.event_origin.__str__()}, &#34; \
+               f&#34;config: {self._config.__str__()}, &#34; \
+               f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34; \
+               f&#34;out_type: {self._fs_writer.file_extension}, &#34; \
+               f&#34;make_runme: {self._fs_writer.make_run_me}, &#34; \
+               f&#34;sdk_version: {self._sdk_version}, &#34; \
+               f&#34;debug: {self.debug}&#34;
+        # &#34;stations&#34;: [s.__str__() for s in self._stations],
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -754,7 +747,7 @@ class DataWindow:
                           dw_save_mode=self._fs_writer.save_mode(),
                           debug=self.debug, pool=_pool)
 
-        self._errors.extend_error(a_r.errors)
+        # self._errors.extend_error(a_r.errors)
 
         if self._fs_writer.is_use_mem() and a_r.dw_save_mode != self._fs_writer.save_mode():
             if self.debug:
@@ -767,12 +760,7 @@ class DataWindow:
         sts = a_r.get_stations()
         if self.debug:
             print(&#34;num stations loaded: &#34;, len(sts))
-        # if self._config.apply_correction:
-            # for st in maybe_parallel_map(_pool, Station.update_timestamps,
-            #                              iter(sts), chunk_size=1):
-            #     self._add_sensor_to_window(st)
-            #     if self.debug:
-            #         print(&#34;station processed: &#34;, st.id())
+
         for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
             self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
             if self.debug:
@@ -807,9 +795,9 @@ class DataWindow:
         remove = []
         for s in self._stations:
             if not s.has_audio_sensor():
-                remove.append(s.id())
+                remove.append(s.get_key())
         if len(remove) &gt; 0:
-            self._stations = [s for s in self._stations if s.id() not in remove]
+            self._stations = [s for s in self._stations if s.get_key() not in remove]
 
     def _check_valid_ids(self):
         &#34;&#34;&#34;
@@ -817,14 +805,14 @@ class DataWindow:
         and creates an error message for each id requested but has no data
         if there are no stations, creates a single error message declaring no data found
         &#34;&#34;&#34;
-        if len(self._stations) &lt; 1:
+        if len(self._stations) &lt; 1 and self._config.station_ids:
             if len(self._config.station_ids) &gt; 1:
                 add_ids = f&#34;for all stations {self._config.station_ids} &#34;
             else:
                 add_ids = &#34;&#34;
             self._errors.append(f&#34;No data matching criteria {add_ids}in {self._config.input_dir}&#34;
                                 f&#34;\nPlease adjust parameters of DataWindow&#34;)
-        elif len(self.station_ids()) &gt; 0 and self._config.station_ids:
+        elif len(self._stations) &gt; 0 and self._config.station_ids:
             for ids in self._config.station_ids:
                 if ids.zfill(10) not in [i.id() for i in self._stations]:
                     self._errors.append(
@@ -854,18 +842,19 @@ class DataWindow:
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
-        for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
-            self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
-                                station.audio_sensor().last_data_timestamp())
-        # recalculate metadata
-        station.update_first_and_last_data_timestamps()
-        station.set_packet_metadata([meta for meta in station.packet_metadata()
-                                     if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
-                                     meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
-        if self._fs_writer.is_save_disk():
-            station.set_save_mode(io.FileSystemSaveMode.DISK)
-            station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
-        self._stations.append(station)
+        if station.has_audio_data():
+            for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
+                self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
+                                    station.audio_sensor().last_data_timestamp())
+            # recalculate metadata
+            station.update_first_and_last_data_timestamps()
+            station.set_packet_metadata([meta for meta in station.packet_metadata()
+                                         if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
+                                         meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+            if self._fs_writer.is_save_disk():
+                station.set_save_mode(io.FileSystemSaveMode.DISK)
+                station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
+            self._stations.append(station)
 
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
@@ -898,9 +887,12 @@ class DataWindow:
             # check if all the samples have been cut off
             is_audio = sensor.type() == SensorType.AUDIO
             if end_index &lt;= start_index:
+                self._errors.append(
+                    f&#34;Data window for {station_id} {&#39;Audio&#39; if is_audio else sensor.type().name} &#34;
+                    f&#34;sensor has truncated all data points&#34;
+                )
                 if is_audio:
-                    self._errors.append(f&#34;Data window for {station_id} &#34;
-                                        f&#34;Audio sensor has truncated all data points&#34;)
+                    sensor.empty_data_table()
                 elif last_before_start is not None and first_after_end is None:
                     first_entry = sensor.pyarrow_table().slice(last_before_start, 1).to_pydict()
                     first_entry[&#34;timestamps&#34;] = [start_date_timestamp]
@@ -913,11 +905,6 @@ class DataWindow:
                     sensor.write_pyarrow_table(
                         sensor.interpolate(start_date_timestamp, last_before_start, 1,
                                            self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
-                else:
-                    self._errors.append(
-                        f&#34;Data window for {station_id} {sensor.type().name} &#34;
-                        f&#34;sensor has truncated all data points&#34;
-                    )
             else:
                 _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
                 # if sensor is audio or location, we want nan&#39;d edge points
@@ -1092,36 +1079,26 @@ Default False</p></div>
         if self.debug:
             self.print_errors()
 
-    # def __repr__(self):
-    #     # todo: use representations for the datetime and timedelta objects
-    #     # todo: use the dictionary function
-    #     return dw_io.dict_to_json({
-    #         &#34;event_name&#34;: self.event_name,
-    #         &#34;event_origin&#34;: repr(self.event_origin),
-    #         &#34;config&#34;: repr(self._config),
-    #         &#34;base_dir&#34;: self.save_dir(),
-    #         &#34;out_type&#34;: self._fs_writer.file_extension,
-    #         &#34;make_runme&#34;: self._fs_writer.make_run_me,
-    #         &#34;sdk_version&#34;: self._sdk_version,
-    #         &#34;errors&#34;: repr(self._errors),
-    #         &#34;debug&#34;: self.debug
-    #     })
-    #
-    # def __str__(self):
-    #     # todo: use representations for the datetime and timedelta objects
-    #     # todo: use the dictionary function
-    #     return dw_io.dict_to_json(
-    #         {&#34;event_name&#34;: self.event_name,
-    #          &#34;event_origin&#34;: str(self.event_origin),
-    #          &#34;config&#34;: str(self._config),
-    #          &#34;base_dir&#34;: self.save_dir(),
-    #          &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
-    #          &#34;out_type&#34;: self._fs_writer.file_extension,
-    #          &#34;make_runme&#34;: self._fs_writer.make_run_me,
-    #          &#34;sdk_version&#34;: self._sdk_version,
-    #          &#34;errors&#34;: str(self._errors),
-    #          &#34;debug&#34;: self.debug
-    #          })
+    def __repr__(self):
+        return f&#34;event_name: {self.event_name}, &#34; \
+               f&#34;event_origin: {self.event_origin.__repr__()}, &#34; \
+               f&#34;config: {self._config.__repr__()}, &#34; \
+               f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34; \
+               f&#34;out_type: {self._fs_writer.file_extension}, &#34; \
+               f&#34;make_runme: {self._fs_writer.make_run_me}, &#34; \
+               f&#34;sdk_version: {self._sdk_version}, &#34; \
+               f&#34;debug: {self.debug}&#34;
+
+    def __str__(self):
+        return f&#34;event_name: {self.event_name}, &#34; \
+               f&#34;event_origin: {self.event_origin.__str__()}, &#34; \
+               f&#34;config: {self._config.__str__()}, &#34; \
+               f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34; \
+               f&#34;out_type: {self._fs_writer.file_extension}, &#34; \
+               f&#34;make_runme: {self._fs_writer.make_run_me}, &#34; \
+               f&#34;sdk_version: {self._sdk_version}, &#34; \
+               f&#34;debug: {self.debug}&#34;
+        # &#34;stations&#34;: [s.__str__() for s in self._stations],
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -1503,7 +1480,7 @@ Default False</p></div>
                           dw_save_mode=self._fs_writer.save_mode(),
                           debug=self.debug, pool=_pool)
 
-        self._errors.extend_error(a_r.errors)
+        # self._errors.extend_error(a_r.errors)
 
         if self._fs_writer.is_use_mem() and a_r.dw_save_mode != self._fs_writer.save_mode():
             if self.debug:
@@ -1516,12 +1493,7 @@ Default False</p></div>
         sts = a_r.get_stations()
         if self.debug:
             print(&#34;num stations loaded: &#34;, len(sts))
-        # if self._config.apply_correction:
-            # for st in maybe_parallel_map(_pool, Station.update_timestamps,
-            #                              iter(sts), chunk_size=1):
-            #     self._add_sensor_to_window(st)
-            #     if self.debug:
-            #         print(&#34;station processed: &#34;, st.id())
+
         for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
             self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
             if self.debug:
@@ -1556,9 +1528,9 @@ Default False</p></div>
         remove = []
         for s in self._stations:
             if not s.has_audio_sensor():
-                remove.append(s.id())
+                remove.append(s.get_key())
         if len(remove) &gt; 0:
-            self._stations = [s for s in self._stations if s.id() not in remove]
+            self._stations = [s for s in self._stations if s.get_key() not in remove]
 
     def _check_valid_ids(self):
         &#34;&#34;&#34;
@@ -1566,14 +1538,14 @@ Default False</p></div>
         and creates an error message for each id requested but has no data
         if there are no stations, creates a single error message declaring no data found
         &#34;&#34;&#34;
-        if len(self._stations) &lt; 1:
+        if len(self._stations) &lt; 1 and self._config.station_ids:
             if len(self._config.station_ids) &gt; 1:
                 add_ids = f&#34;for all stations {self._config.station_ids} &#34;
             else:
                 add_ids = &#34;&#34;
             self._errors.append(f&#34;No data matching criteria {add_ids}in {self._config.input_dir}&#34;
                                 f&#34;\nPlease adjust parameters of DataWindow&#34;)
-        elif len(self.station_ids()) &gt; 0 and self._config.station_ids:
+        elif len(self._stations) &gt; 0 and self._config.station_ids:
             for ids in self._config.station_ids:
                 if ids.zfill(10) not in [i.id() for i in self._stations]:
                     self._errors.append(
@@ -1603,18 +1575,19 @@ Default False</p></div>
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
-        for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
-            self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
-                                station.audio_sensor().last_data_timestamp())
-        # recalculate metadata
-        station.update_first_and_last_data_timestamps()
-        station.set_packet_metadata([meta for meta in station.packet_metadata()
-                                     if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
-                                     meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
-        if self._fs_writer.is_save_disk():
-            station.set_save_mode(io.FileSystemSaveMode.DISK)
-            station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
-        self._stations.append(station)
+        if station.has_audio_data():
+            for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
+                self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
+                                    station.audio_sensor().last_data_timestamp())
+            # recalculate metadata
+            station.update_first_and_last_data_timestamps()
+            station.set_packet_metadata([meta for meta in station.packet_metadata()
+                                         if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
+                                         meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+            if self._fs_writer.is_save_disk():
+                station.set_save_mode(io.FileSystemSaveMode.DISK)
+                station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
+            self._stations.append(station)
 
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
@@ -1647,9 +1620,12 @@ Default False</p></div>
             # check if all the samples have been cut off
             is_audio = sensor.type() == SensorType.AUDIO
             if end_index &lt;= start_index:
+                self._errors.append(
+                    f&#34;Data window for {station_id} {&#39;Audio&#39; if is_audio else sensor.type().name} &#34;
+                    f&#34;sensor has truncated all data points&#34;
+                )
                 if is_audio:
-                    self._errors.append(f&#34;Data window for {station_id} &#34;
-                                        f&#34;Audio sensor has truncated all data points&#34;)
+                    sensor.empty_data_table()
                 elif last_before_start is not None and first_after_end is None:
                     first_entry = sensor.pyarrow_table().slice(last_before_start, 1).to_pydict()
                     first_entry[&#34;timestamps&#34;] = [start_date_timestamp]
@@ -1662,11 +1638,6 @@ Default False</p></div>
                     sensor.write_pyarrow_table(
                         sensor.interpolate(start_date_timestamp, last_before_start, 1,
                                            self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
-                else:
-                    self._errors.append(
-                        f&#34;Data window for {station_id} {sensor.type().name} &#34;
-                        f&#34;sensor has truncated all data points&#34;
-                    )
             else:
                 _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
                 # if sensor is audio or location, we want nan&#39;d edge points
@@ -2003,7 +1974,7 @@ stations without audio or any data outside the window are removed</p></div>
                       dw_save_mode=self._fs_writer.save_mode(),
                       debug=self.debug, pool=_pool)
 
-    self._errors.extend_error(a_r.errors)
+    # self._errors.extend_error(a_r.errors)
 
     if self._fs_writer.is_use_mem() and a_r.dw_save_mode != self._fs_writer.save_mode():
         if self.debug:
@@ -2016,12 +1987,7 @@ stations without audio or any data outside the window are removed</p></div>
     sts = a_r.get_stations()
     if self.debug:
         print(&#34;num stations loaded: &#34;, len(sts))
-    # if self._config.apply_correction:
-        # for st in maybe_parallel_map(_pool, Station.update_timestamps,
-        #                              iter(sts), chunk_size=1):
-        #     self._add_sensor_to_window(st)
-        #     if self.debug:
-        #         print(&#34;station processed: &#34;, st.id())
+
     for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
         self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
         if self.debug:
@@ -2088,18 +2054,19 @@ returns nothing, updates the station in place</p>
     else:
         end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
     self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
-    for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
-        self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
-                            station.audio_sensor().last_data_timestamp())
-    # recalculate metadata
-    station.update_first_and_last_data_timestamps()
-    station.set_packet_metadata([meta for meta in station.packet_metadata()
-                                 if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
-                                 meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
-    if self._fs_writer.is_save_disk():
-        station.set_save_mode(io.FileSystemSaveMode.DISK)
-        station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
-    self._stations.append(station)</code></pre>
+    if station.has_audio_data():
+        for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
+            self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
+                                station.audio_sensor().last_data_timestamp())
+        # recalculate metadata
+        station.update_first_and_last_data_timestamps()
+        station.set_packet_metadata([meta for meta in station.packet_metadata()
+                                     if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
+                                     meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+        if self._fs_writer.is_save_disk():
+            station.set_save_mode(io.FileSystemSaveMode.DISK)
+            station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
+        self._stations.append(station)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.end_date"><code class="name flex">
@@ -2322,9 +2289,12 @@ Updates sensor in place, returns nothing.</p>
         # check if all the samples have been cut off
         is_audio = sensor.type() == SensorType.AUDIO
         if end_index &lt;= start_index:
+            self._errors.append(
+                f&#34;Data window for {station_id} {&#39;Audio&#39; if is_audio else sensor.type().name} &#34;
+                f&#34;sensor has truncated all data points&#34;
+            )
             if is_audio:
-                self._errors.append(f&#34;Data window for {station_id} &#34;
-                                    f&#34;Audio sensor has truncated all data points&#34;)
+                sensor.empty_data_table()
             elif last_before_start is not None and first_after_end is None:
                 first_entry = sensor.pyarrow_table().slice(last_before_start, 1).to_pydict()
                 first_entry[&#34;timestamps&#34;] = [start_date_timestamp]
@@ -2337,11 +2307,6 @@ Updates sensor in place, returns nothing.</p>
                 sensor.write_pyarrow_table(
                     sensor.interpolate(start_date_timestamp, last_before_start, 1,
                                        self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
-            else:
-                self._errors.append(
-                    f&#34;Data window for {station_id} {sensor.type().name} &#34;
-                    f&#34;sensor has truncated all data points&#34;
-                )
         else:
             _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
             # if sensor is audio or location, we want nan&#39;d edge points
@@ -2785,39 +2750,36 @@ Default True</p></div>
         self.use_model_correction = use_model_correction
         self.copy_edge_points = copy_edge_points
 
-    # def __repr__(self):
-    #     return dw_io.dict_to_json({
-    #         &#34;input_dir&#34;: self.input_dir,
-    #         &#34;structured_layout&#34;: self.structured_layout,
-    #         &#34;start_datetime&#34;: self.start_datetime.__repr__(),
-    #         &#34;end_datetime&#34;: self.end_datetime.__repr__(),
-    #         &#34;start_buffer_td&#34;: self.start_buffer_td.__repr__(),
-    #         &#34;end_buffer_td&#34;: self.end_buffer_td.__repr__(),
-    #         &#34;drop_time_s&#34;: self.drop_time_s,
-    #         &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
-    #         &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
-    #         &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
-    #         &#34;apply_correction&#34;: self.apply_correction,
-    #         &#34;use_model_correction&#34;: self.use_model_correction,
-    #         &#34;copy_edge_points&#34;: self.copy_edge_points.value
-    #     })
-    #
-    # def __str__(self):
-    #     return dw_io.dict_to_json({
-    #         &#34;input_dir&#34;: self.input_dir,
-    #         &#34;structured_layout&#34;: self.structured_layout,
-    #         &#34;start_datetime&#34;: self.start_datetime.strftime(&#34;%Y %B %d %I:%M:%S.%f&#34;) if self.start_datetime else None,
-    #         &#34;end_datetime&#34;: self.end_datetime.strftime(&#34;%Y %B %d %I:%M:%S.%f&#34;) if self.end_datetime else None,
-    #         &#34;start_buffer_td (in s)&#34;: self.start_buffer_td.total_seconds(),
-    #         &#34;end_buffer_td (in s)&#34;: self.end_buffer_td.total_seconds(),
-    #         &#34;drop_time_s&#34;: self.drop_time_s,
-    #         &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
-    #         &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
-    #         &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
-    #         &#34;apply_correction&#34;: self.apply_correction,
-    #         &#34;use_model_correction&#34;: self.use_model_correction,
-    #         &#34;copy_edge_points&#34;: self.copy_edge_points.name
-    #     })
+    def __repr__(self):
+        return f&#34;input_dir: {self.input_dir}, &#34; \
+               f&#34;structured_layout: {self.structured_layout}, &#34; \
+               f&#34;start_datetime: {self.start_datetime.__repr__()}, &#34; \
+               f&#34;end_datetime: {self.end_datetime.__repr__()}, &#34; \
+               f&#34;start_buffer_td: {self.start_buffer_td.__repr__()}, &#34; \
+               f&#34;end_buffer_td: {self.end_buffer_td.__repr__()}, &#34; \
+               f&#34;drop_time_s: {self.drop_time_s}, &#34; \
+               f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34; \
+               f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34; \
+               f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34; \
+               f&#34;apply_correction: {self.apply_correction}, &#34; \
+               f&#34;use_model_correction: {self.use_model_correction}, &#34; \
+               f&#34;copy_edge_points: {self.copy_edge_points.value}&#34;
+
+    def __str__(self):
+        return f&#34;input_dir: {self.input_dir}, &#34; \
+               f&#34;structured_layout: {self.structured_layout}, &#34; \
+               f&#34;start_datetime: &#34; \
+               f&#34;{self.start_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.start_datetime else None}, &#34; \
+               f&#34;end_datetime: {self.end_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.end_datetime else None}, &#34; \
+               f&#34;start_buffer_td (in s): {self.start_buffer_td.total_seconds()}, &#34; \
+               f&#34;end_buffer_td (in s): {self.end_buffer_td.total_seconds()}, &#34; \
+               f&#34;drop_time_s: {self.drop_time_s}, &#34; \
+               f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34; \
+               f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34; \
+               f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34; \
+               f&#34;apply_correction: {self.apply_correction}, &#34; \
+               f&#34;use_model_correction: {self.use_model_correction}, &#34; \
+               f&#34;copy_edge_points: {self.copy_edge_points.name}&#34;
 
     def as_dict(self) -&gt; Dict:
         return {&#34;input_dir&#34;: self.input_dir,
@@ -2981,6 +2943,12 @@ the location data and the radius of the event</p>
         self.longitude_std = lon_std
         self.altitude_std = alt_std
         self.event_radius_m = event_radius_m
+
+    def __repr__(self):
+        return str(self.as_dict())
+
+    def __str__(self):
+        return str(self.as_dict())
 
     def as_dict(self) -&gt; Dict:
         &#34;&#34;&#34;

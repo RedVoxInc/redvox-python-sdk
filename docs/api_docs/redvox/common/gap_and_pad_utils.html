@@ -281,12 +281,13 @@ def fill_audio_gaps2(
         if last_timestamp_diff &gt; gap_lower_limit * packet_length:
             fractional_packet, num_packets = modf(last_timestamp_diff /
                                                   (samples_in_packet * sample_interval_micros))
-            if fractional_packet &gt;= gap_upper_limit:
+            if fractional_packet &gt;= gap_upper_limit and num_packets &lt; 1:
                 num_samples = samples_in_packet * (num_packets + 1)
             else:
                 num_samples = np.max([np.floor((fractional_packet + num_packets) * samples_in_packet), 1])
-            start_ts = last_data_timestamp + (num_samples * sample_interval_micros) + sample_interval_micros
-            gaps.append((last_data_timestamp, start_ts))
+            gap_start = last_data_timestamp
+            last_data_timestamp += (num_samples + 1) * sample_interval_micros
+            gaps.append((gap_start, last_data_timestamp))
         elif last_timestamp_diff &lt; -gap_lower_limit * packet_length:
             result.add_error(f&#34;Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} &#34;
                              f&#34;is before last timestamp of previous &#34;
@@ -797,12 +798,13 @@ default DEFAULT_GAP_UPPER_LIMIT
         if last_timestamp_diff &gt; gap_lower_limit * packet_length:
             fractional_packet, num_packets = modf(last_timestamp_diff /
                                                   (samples_in_packet * sample_interval_micros))
-            if fractional_packet &gt;= gap_upper_limit:
+            if fractional_packet &gt;= gap_upper_limit and num_packets &lt; 1:
                 num_samples = samples_in_packet * (num_packets + 1)
             else:
                 num_samples = np.max([np.floor((fractional_packet + num_packets) * samples_in_packet), 1])
-            start_ts = last_data_timestamp + (num_samples * sample_interval_micros) + sample_interval_micros
-            gaps.append((last_data_timestamp, start_ts))
+            gap_start = last_data_timestamp
+            last_data_timestamp += (num_samples + 1) * sample_interval_micros
+            gaps.append((gap_start, last_data_timestamp))
         elif last_timestamp_diff &lt; -gap_lower_limit * packet_length:
             result.add_error(f&#34;Packet start timestamp: {dtu.microseconds_to_seconds(start_ts)} &#34;
                              f&#34;is before last timestamp of previous &#34;

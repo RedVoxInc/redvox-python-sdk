@@ -168,6 +168,24 @@ class TimeSync:
             ])
             self._stats_from_exchanges()
 
+    def __repr__(self):
+        return f&#34;best_latency_index: {self._best_latency_index}, &#34; \
+               f&#34;best_latency: {self._best_latency}, &#34; \
+               f&#34;mean_latency: {self._mean_latency}, &#34; \
+               f&#34;latency_std: {self._latency_std}, &#34; \
+               f&#34;best_offset: {self._best_offset}, &#34; \
+               f&#34;mean_offset: {self._mean_offset}, &#34; \
+               f&#34;offset_std: {self._offset_std}&#34;
+
+    def __str__(self):
+        return f&#34;best_latency_index: {self._best_latency_index}, &#34; \
+               f&#34;best_latency: {self._best_latency}, &#34; \
+               f&#34;mean_latency: {self._mean_latency}, &#34; \
+               f&#34;latency_std: {self._latency_std}, &#34; \
+               f&#34;best_offset: {self._best_offset}, &#34; \
+               f&#34;mean_offset: {self._mean_offset}, &#34; \
+               f&#34;offset_std: {self._offset_std}&#34;
+
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
         :return: TimeSync as a dictionary
@@ -1033,6 +1051,24 @@ default "timesync"</p></div>
                 for i in range(0, len(time_sync_exchanges_list), 6)
             ])
             self._stats_from_exchanges()
+
+    def __repr__(self):
+        return f&#34;best_latency_index: {self._best_latency_index}, &#34; \
+               f&#34;best_latency: {self._best_latency}, &#34; \
+               f&#34;mean_latency: {self._mean_latency}, &#34; \
+               f&#34;latency_std: {self._latency_std}, &#34; \
+               f&#34;best_offset: {self._best_offset}, &#34; \
+               f&#34;mean_offset: {self._mean_offset}, &#34; \
+               f&#34;offset_std: {self._offset_std}&#34;
+
+    def __str__(self):
+        return f&#34;best_latency_index: {self._best_latency_index}, &#34; \
+               f&#34;best_latency: {self._best_latency}, &#34; \
+               f&#34;mean_latency: {self._mean_latency}, &#34; \
+               f&#34;latency_std: {self._latency_std}, &#34; \
+               f&#34;best_offset: {self._best_offset}, &#34; \
+               f&#34;mean_offset: {self._mean_offset}, &#34; \
+               f&#34;offset_std: {self._offset_std}&#34;
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;

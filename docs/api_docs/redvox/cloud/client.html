@@ -66,7 +66,7 @@ if TYPE_CHECKING:
 
 
 def chunk_time_range(
-        start_ts: int, end_ts: int, max_chunk: int
+    start_ts: int, end_ts: int, max_chunk: int
 ) -&gt; List[Tuple[int, int]]:
     &#34;&#34;&#34;
     Chunks the given request window into smaller windows.
@@ -100,11 +100,12 @@ class CloudClient:
     &#34;&#34;&#34;
     The RedVox Cloud API client.
     &#34;&#34;&#34;
+
     def __init__(
-            self,
-            redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
-            refresh_token_interval: float = 600.0,
-            timeout: Optional[float] = 10.0,
+        self,
+        redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
+        refresh_token_interval: float = 600.0,
+        timeout: Optional[float] = 10.0,
     ):
         &#34;&#34;&#34;
         Instantiates this client.
@@ -156,9 +157,9 @@ class CloudClient:
                 raise ex
 
             if (
-                    auth_resp.status != 200
-                    or auth_resp.auth_token is None
-                    or len(auth_resp.auth_token) == 0
+                auth_resp.status != 200
+                or auth_resp.auth_token is None
+                or len(auth_resp.auth_token) == 0
             ):
                 self.close()
                 raise cloud_errors.AuthenticationError()
@@ -228,7 +229,7 @@ class CloudClient:
         )
 
     def validate_auth_token(
-            self, auth_token: str
+        self, auth_token: str
     ) -&gt; Optional[auth_api.ValidateTokenResp]:
         &#34;&#34;&#34;
         Validates the provided authentication token with the cloud API.
@@ -251,7 +252,7 @@ class CloudClient:
         return self.validate_auth_token(self.auth_token)
 
     def refresh_auth_token(
-            self, auth_token: str
+        self, auth_token: str
     ) -&gt; Optional[auth_api.RefreshTokenResp]:
         &#34;&#34;&#34;
         Retrieves a new authentication token from a given valid authentication token.
@@ -279,12 +280,12 @@ class CloudClient:
         return self.refresh_auth_token(self.auth_token)
 
     def request_metadata(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            metadata_to_include: List[str],
-            chunk_by_seconds: int = constants.SECONDS_PER_DAY,
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_DAY,
     ) -&gt; Optional[metadata_api.MetadataResp]:
         &#34;&#34;&#34;
         Requests RedVox packet metadata.
@@ -339,12 +340,12 @@ class CloudClient:
         return metadata_resp
 
     def request_metadata_m(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            metadata_to_include: List[str],
-            chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
     ) -&gt; Optional[metadata_api.MetadataRespM]:
         &#34;&#34;&#34;
         Requests RedVox packet metadata.
@@ -357,19 +358,20 @@ class CloudClient:
         &#34;&#34;&#34;
         metadata_resp: metadata_api.MetadataRespM = metadata_api.MetadataRespM([])
         resp: Optional[metadata_api.MetadataRespM]
-        for resp in self.request_metadata_m_stream(start_ts_s, end_ts_s, station_ids, metadata_to_include,
-                                                   chunk_by_seconds):
+        for resp in self.request_metadata_m_stream(
+            start_ts_s, end_ts_s, station_ids, metadata_to_include, chunk_by_seconds
+        ):
             if resp is not None:
                 metadata_resp.db_packets.extend(resp.db_packets)
         return metadata_resp
 
     def request_metadata_m_stream(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            metadata_to_include: List[str],
-            chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
     ) -&gt; Iterator[Optional[metadata_api.MetadataRespM]]:
         &#34;&#34;&#34;
         Requests RedVox packet metadata.
@@ -419,12 +421,77 @@ class CloudClient:
 
             yield chunked_resp
 
+    def request_geo_metadata_stream(
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        bounding_box: Optional[metadata_api.BoundingBox],
+        bounding_circle: Optional[metadata_api.BoundingCircle],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
+    ) -&gt; Iterator[Optional[metadata_api.GeoMetadataResp]]:
+        &#34;&#34;&#34;
+        Requests RedVox packet metadata from geo bounds.
+        :param start_ts_s: Start epoch of request window.
+        :param end_ts_s: End epoch of request window.
+        :param bounding_box: A bounding box given by the SW and NE coordinates. Mutually exclusive with bounding_circle.
+        :param bounding_circle: A bounding circle given by a center point and radius in meter. Mutually exclusive with bounding_box.
+        :param metadata_to_include: A list of metadata fields to include (see: redvox.cloud.metadata.AvailableMetadata)
+        :param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
+        :return: A geo metadata result containing the requested metadata or None on error.
+        &#34;&#34;&#34;
+        if end_ts_s &lt;= start_ts_s:
+            raise cloud_errors.CloudApiError(&#34;start_ts_s must be &lt; end_ts_s&#34;)
+
+        if bounding_box is None and bounding_circle is None:
+            raise cloud_errors.CloudApiError(
+                &#34;Exactly one of bounding_box or bounding_circle must be set&#34;
+            )
+
+        if bounding_box is not None and bounding_circle is not None:
+            raise cloud_errors.CloudApiError(
+                &#34;Exactly one of bounding_box or bounding_circle must be set&#34;
+            )
+
+        if len(metadata_to_include) == 0:
+            raise cloud_errors.CloudApiError(
+                &#34;At least one metadata field must be included&#34;
+            )
+
+        if chunk_by_seconds &lt;= 0:
+            raise cloud_errors.CloudApiError(&#34;chunk_by_seconds must be &gt; 0&#34;)
+
+        time_chunks: List[Tuple[int, int]] = chunk_time_range(
+            start_ts_s, end_ts_s, chunk_by_seconds
+        )
+
+        for start_ts, end_ts in time_chunks:
+            geo_metadata_req: metadata_api.GeoMetadataReq = metadata_api.GeoMetadataReq(
+                self.auth_token,
+                start_ts,
+                end_ts,
+                bounding_box,
+                bounding_circle,
+                metadata_to_include,
+            )
+
+            chunked_resp: Optional[
+                metadata_api.GeoMetadataResp
+            ] = metadata_api.request_geo_metadata(
+                self.redvox_config,
+                geo_metadata_req,
+                session=self.__session,
+                timeout=self.timeout,
+            )
+
+            yield chunked_resp
+
     def request_timing_metadata(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            chunk_by_seconds: int = constants.SECONDS_PER_DAY,
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_DAY,
     ) -&gt; metadata_api.TimingMetaResponse:
         &#34;&#34;&#34;
         Requests timing metadata from RedVox packets.
@@ -492,10 +559,10 @@ class CloudClient:
         )
 
     def request_station_statuses(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
     ) -&gt; Optional[metadata_api.StationStatusResp]:
         &#34;&#34;&#34;
         Requests station timing information from the cloud services.
@@ -525,13 +592,13 @@ class CloudClient:
         )
 
     def request_data_range(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
-            correct_query_timing: bool = True,
-            out_queue: Optional[Queue] = None
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
+        correct_query_timing: bool = True,
+        out_queue: Optional[Queue] = None,
     ) -&gt; data_api.DataRangeResp:
         &#34;&#34;&#34;
         Request signed URLs for RedVox packets.
@@ -545,7 +612,7 @@ class CloudClient:
         &#34;&#34;&#34;
 
         def _make_req(
-                _start_ts_s: int, _end_ts_s: int, _station_ids: List[str]
+            _start_ts_s: int, _end_ts_s: int, _station_ids: List[str]
         ) -&gt; data_api.DataRangeResp:
             &#34;&#34;&#34;
             Makes the actual data request after timing correction was or was not applied.
@@ -594,9 +661,11 @@ class CloudClient:
             resp: data_api.DataRangeResp = data_api.DataRangeResp([])
             corrected_query: &#34;CorrectedQuery&#34;
             for corrected_query in corrected_queries:
-                correction_msg: str = f&#34;Running timing corrected query for {corrected_query.station_id} &#34; \
-                                      f&#34;start offset={corrected_query.start_offset()} &#34; \
-                                      f&#34;end offset={corrected_query.end_offset()}&#34;
+                correction_msg: str = (
+                    f&#34;Running timing corrected query for {corrected_query.station_id} &#34;
+                    f&#34;start offset={corrected_query.start_offset()} &#34;
+                    f&#34;end offset={corrected_query.end_offset()}&#34;
+                )
 
                 if out_queue is None:
                     print(correction_msg)
@@ -616,10 +685,10 @@ class CloudClient:
             return _make_req(start_ts_s, end_ts_s, station_ids)
 
     def request_station_stats(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
     ) -&gt; Optional[station_stats_api.StationStatsResp]:
         &#34;&#34;&#34;
         Request signed URLs for RedVox packets.
@@ -651,9 +720,9 @@ class CloudClient:
 
 @contextlib.contextmanager
 def cloud_client(
-        redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
-        refresh_token_interval: float = 600.0,
-        timeout: float = 10.0,
+    redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
+    refresh_token_interval: float = 600.0,
+    timeout: float = 10.0,
 ):
     &#34;&#34;&#34;
     Function that can be used within a &#34;with&#34; block to automatically handle the closing of open resources.
@@ -701,7 +770,7 @@ def cloud_client(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def chunk_time_range(
-        start_ts: int, end_ts: int, max_chunk: int
+    start_ts: int, end_ts: int, max_chunk: int
 ) -&gt; List[Tuple[int, int]]:
     &#34;&#34;&#34;
     Chunks the given request window into smaller windows.
@@ -749,9 +818,9 @@ occurs.</p>
 </summary>
 <pre><code class="python">@contextlib.contextmanager
 def cloud_client(
-        redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
-        refresh_token_interval: float = 600.0,
-        timeout: float = 10.0,
+    redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
+    refresh_token_interval: float = 600.0,
+    timeout: float = 10.0,
 ):
     &#34;&#34;&#34;
     Function that can be used within a &#34;with&#34; block to automatically handle the closing of open resources.
@@ -801,11 +870,12 @@ def cloud_client(
     &#34;&#34;&#34;
     The RedVox Cloud API client.
     &#34;&#34;&#34;
+
     def __init__(
-            self,
-            redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
-            refresh_token_interval: float = 600.0,
-            timeout: Optional[float] = 10.0,
+        self,
+        redvox_config: Optional[RedVoxConfig] = RedVoxConfig.find(),
+        refresh_token_interval: float = 600.0,
+        timeout: Optional[float] = 10.0,
     ):
         &#34;&#34;&#34;
         Instantiates this client.
@@ -857,9 +927,9 @@ def cloud_client(
                 raise ex
 
             if (
-                    auth_resp.status != 200
-                    or auth_resp.auth_token is None
-                    or len(auth_resp.auth_token) == 0
+                auth_resp.status != 200
+                or auth_resp.auth_token is None
+                or len(auth_resp.auth_token) == 0
             ):
                 self.close()
                 raise cloud_errors.AuthenticationError()
@@ -929,7 +999,7 @@ def cloud_client(
         )
 
     def validate_auth_token(
-            self, auth_token: str
+        self, auth_token: str
     ) -&gt; Optional[auth_api.ValidateTokenResp]:
         &#34;&#34;&#34;
         Validates the provided authentication token with the cloud API.
@@ -952,7 +1022,7 @@ def cloud_client(
         return self.validate_auth_token(self.auth_token)
 
     def refresh_auth_token(
-            self, auth_token: str
+        self, auth_token: str
     ) -&gt; Optional[auth_api.RefreshTokenResp]:
         &#34;&#34;&#34;
         Retrieves a new authentication token from a given valid authentication token.
@@ -980,12 +1050,12 @@ def cloud_client(
         return self.refresh_auth_token(self.auth_token)
 
     def request_metadata(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            metadata_to_include: List[str],
-            chunk_by_seconds: int = constants.SECONDS_PER_DAY,
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_DAY,
     ) -&gt; Optional[metadata_api.MetadataResp]:
         &#34;&#34;&#34;
         Requests RedVox packet metadata.
@@ -1040,12 +1110,12 @@ def cloud_client(
         return metadata_resp
 
     def request_metadata_m(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            metadata_to_include: List[str],
-            chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
     ) -&gt; Optional[metadata_api.MetadataRespM]:
         &#34;&#34;&#34;
         Requests RedVox packet metadata.
@@ -1058,19 +1128,20 @@ def cloud_client(
         &#34;&#34;&#34;
         metadata_resp: metadata_api.MetadataRespM = metadata_api.MetadataRespM([])
         resp: Optional[metadata_api.MetadataRespM]
-        for resp in self.request_metadata_m_stream(start_ts_s, end_ts_s, station_ids, metadata_to_include,
-                                                   chunk_by_seconds):
+        for resp in self.request_metadata_m_stream(
+            start_ts_s, end_ts_s, station_ids, metadata_to_include, chunk_by_seconds
+        ):
             if resp is not None:
                 metadata_resp.db_packets.extend(resp.db_packets)
         return metadata_resp
 
     def request_metadata_m_stream(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            metadata_to_include: List[str],
-            chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
     ) -&gt; Iterator[Optional[metadata_api.MetadataRespM]]:
         &#34;&#34;&#34;
         Requests RedVox packet metadata.
@@ -1120,12 +1191,77 @@ def cloud_client(
 
             yield chunked_resp
 
+    def request_geo_metadata_stream(
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        bounding_box: Optional[metadata_api.BoundingBox],
+        bounding_circle: Optional[metadata_api.BoundingCircle],
+        metadata_to_include: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
+    ) -&gt; Iterator[Optional[metadata_api.GeoMetadataResp]]:
+        &#34;&#34;&#34;
+        Requests RedVox packet metadata from geo bounds.
+        :param start_ts_s: Start epoch of request window.
+        :param end_ts_s: End epoch of request window.
+        :param bounding_box: A bounding box given by the SW and NE coordinates. Mutually exclusive with bounding_circle.
+        :param bounding_circle: A bounding circle given by a center point and radius in meter. Mutually exclusive with bounding_box.
+        :param metadata_to_include: A list of metadata fields to include (see: redvox.cloud.metadata.AvailableMetadata)
+        :param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
+        :return: A geo metadata result containing the requested metadata or None on error.
+        &#34;&#34;&#34;
+        if end_ts_s &lt;= start_ts_s:
+            raise cloud_errors.CloudApiError(&#34;start_ts_s must be &lt; end_ts_s&#34;)
+
+        if bounding_box is None and bounding_circle is None:
+            raise cloud_errors.CloudApiError(
+                &#34;Exactly one of bounding_box or bounding_circle must be set&#34;
+            )
+
+        if bounding_box is not None and bounding_circle is not None:
+            raise cloud_errors.CloudApiError(
+                &#34;Exactly one of bounding_box or bounding_circle must be set&#34;
+            )
+
+        if len(metadata_to_include) == 0:
+            raise cloud_errors.CloudApiError(
+                &#34;At least one metadata field must be included&#34;
+            )
+
+        if chunk_by_seconds &lt;= 0:
+            raise cloud_errors.CloudApiError(&#34;chunk_by_seconds must be &gt; 0&#34;)
+
+        time_chunks: List[Tuple[int, int]] = chunk_time_range(
+            start_ts_s, end_ts_s, chunk_by_seconds
+        )
+
+        for start_ts, end_ts in time_chunks:
+            geo_metadata_req: metadata_api.GeoMetadataReq = metadata_api.GeoMetadataReq(
+                self.auth_token,
+                start_ts,
+                end_ts,
+                bounding_box,
+                bounding_circle,
+                metadata_to_include,
+            )
+
+            chunked_resp: Optional[
+                metadata_api.GeoMetadataResp
+            ] = metadata_api.request_geo_metadata(
+                self.redvox_config,
+                geo_metadata_req,
+                session=self.__session,
+                timeout=self.timeout,
+            )
+
+            yield chunked_resp
+
     def request_timing_metadata(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            chunk_by_seconds: int = constants.SECONDS_PER_DAY,
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        chunk_by_seconds: int = constants.SECONDS_PER_DAY,
     ) -&gt; metadata_api.TimingMetaResponse:
         &#34;&#34;&#34;
         Requests timing metadata from RedVox packets.
@@ -1193,10 +1329,10 @@ def cloud_client(
         )
 
     def request_station_statuses(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
     ) -&gt; Optional[metadata_api.StationStatusResp]:
         &#34;&#34;&#34;
         Requests station timing information from the cloud services.
@@ -1226,13 +1362,13 @@ def cloud_client(
         )
 
     def request_data_range(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
-            req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
-            correct_query_timing: bool = True,
-            out_queue: Optional[Queue] = None
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
+        req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
+        correct_query_timing: bool = True,
+        out_queue: Optional[Queue] = None,
     ) -&gt; data_api.DataRangeResp:
         &#34;&#34;&#34;
         Request signed URLs for RedVox packets.
@@ -1246,7 +1382,7 @@ def cloud_client(
         &#34;&#34;&#34;
 
         def _make_req(
-                _start_ts_s: int, _end_ts_s: int, _station_ids: List[str]
+            _start_ts_s: int, _end_ts_s: int, _station_ids: List[str]
         ) -&gt; data_api.DataRangeResp:
             &#34;&#34;&#34;
             Makes the actual data request after timing correction was or was not applied.
@@ -1295,9 +1431,11 @@ def cloud_client(
             resp: data_api.DataRangeResp = data_api.DataRangeResp([])
             corrected_query: &#34;CorrectedQuery&#34;
             for corrected_query in corrected_queries:
-                correction_msg: str = f&#34;Running timing corrected query for {corrected_query.station_id} &#34; \
-                                      f&#34;start offset={corrected_query.start_offset()} &#34; \
-                                      f&#34;end offset={corrected_query.end_offset()}&#34;
+                correction_msg: str = (
+                    f&#34;Running timing corrected query for {corrected_query.station_id} &#34;
+                    f&#34;start offset={corrected_query.start_offset()} &#34;
+                    f&#34;end offset={corrected_query.end_offset()}&#34;
+                )
 
                 if out_queue is None:
                     print(correction_msg)
@@ -1317,10 +1455,10 @@ def cloud_client(
             return _make_req(start_ts_s, end_ts_s, station_ids)
 
     def request_station_stats(
-            self,
-            start_ts_s: int,
-            end_ts_s: int,
-            station_ids: List[str],
+        self,
+        start_ts_s: int,
+        end_ts_s: int,
+        station_ids: List[str],
     ) -&gt; Optional[station_stats_api.StationStatsResp]:
         &#34;&#34;&#34;
         Request signed URLs for RedVox packets.
@@ -1444,7 +1582,7 @@ def cloud_client(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def refresh_auth_token(
-        self, auth_token: str
+    self, auth_token: str
 ) -&gt; Optional[auth_api.RefreshTokenResp]:
     &#34;&#34;&#34;
     Retrieves a new authentication token from a given valid authentication token.
@@ -1484,7 +1622,7 @@ def cloud_client(
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_data_range"><code class="name flex">
-<span>def <span class="ident">request_data_range</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900_1000, correct_query_timing: bool = True, out_queue: Optional[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x102b519a0>>] = None) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="data_api.html#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
+<span>def <span class="ident">request_data_range</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900_1000, correct_query_timing: bool = True, out_queue: Optional[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x7f974f761450>>] = None) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="data_api.html#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Request signed URLs for RedVox packets.
@@ -1501,13 +1639,13 @@ correct_timing queried.
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def request_data_range(
-        self,
-        start_ts_s: int,
-        end_ts_s: int,
-        station_ids: List[str],
-        req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
-        correct_query_timing: bool = True,
-        out_queue: Optional[Queue] = None
+    self,
+    start_ts_s: int,
+    end_ts_s: int,
+    station_ids: List[str],
+    req_type: data_api.DataRangeReqType = data_api.DataRangeReqType.API_900_1000,
+    correct_query_timing: bool = True,
+    out_queue: Optional[Queue] = None,
 ) -&gt; data_api.DataRangeResp:
     &#34;&#34;&#34;
     Request signed URLs for RedVox packets.
@@ -1521,7 +1659,7 @@ correct_timing queried.
     &#34;&#34;&#34;
 
     def _make_req(
-            _start_ts_s: int, _end_ts_s: int, _station_ids: List[str]
+        _start_ts_s: int, _end_ts_s: int, _station_ids: List[str]
     ) -&gt; data_api.DataRangeResp:
         &#34;&#34;&#34;
         Makes the actual data request after timing correction was or was not applied.
@@ -1570,9 +1708,11 @@ correct_timing queried.
         resp: data_api.DataRangeResp = data_api.DataRangeResp([])
         corrected_query: &#34;CorrectedQuery&#34;
         for corrected_query in corrected_queries:
-            correction_msg: str = f&#34;Running timing corrected query for {corrected_query.station_id} &#34; \
-                                  f&#34;start offset={corrected_query.start_offset()} &#34; \
-                                  f&#34;end offset={corrected_query.end_offset()}&#34;
+            correction_msg: str = (
+                f&#34;Running timing corrected query for {corrected_query.station_id} &#34;
+                f&#34;start offset={corrected_query.start_offset()} &#34;
+                f&#34;end offset={corrected_query.end_offset()}&#34;
+            )
 
             if out_queue is None:
                 print(correction_msg)
@@ -1592,6 +1732,88 @@ correct_timing queried.
         return _make_req(start_ts_s, end_ts_s, station_ids)</code></pre>
 </details>
 </dd>
+<dt id="redvox.cloud.client.CloudClient.request_geo_metadata_stream"><code class="name flex">
+<span>def <span class="ident">request_geo_metadata_stream</span></span>(<span>self, start_ts_s: int, end_ts_s: int, bounding_box: Optional[<a title="redvox.cloud.metadata_api.BoundingBox" href="metadata_api.html#redvox.cloud.metadata_api.BoundingBox">BoundingBox</a>], bounding_circle: Optional[<a title="redvox.cloud.metadata_api.BoundingCircle" href="metadata_api.html#redvox.cloud.metadata_api.BoundingCircle">BoundingCircle</a>], metadata_to_include: List[str], chunk_by_seconds: int = 3600) ‑> Iterator[Optional[<a title="redvox.cloud.metadata_api.GeoMetadataResp" href="metadata_api.html#redvox.cloud.metadata_api.GeoMetadataResp">GeoMetadataResp</a>]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Requests RedVox packet metadata from geo bounds.
+:param start_ts_s: Start epoch of request window.
+:param end_ts_s: End epoch of request window.
+:param bounding_box: A bounding box given by the SW and NE coordinates. Mutually exclusive with bounding_circle.
+:param bounding_circle: A bounding circle given by a center point and radius in meter. Mutually exclusive with bounding_box.
+:param metadata_to_include: A list of metadata fields to include (see: redvox.cloud.metadata.AvailableMetadata)
+:param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
+:return: A geo metadata result containing the requested metadata or None on error.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def request_geo_metadata_stream(
+    self,
+    start_ts_s: int,
+    end_ts_s: int,
+    bounding_box: Optional[metadata_api.BoundingBox],
+    bounding_circle: Optional[metadata_api.BoundingCircle],
+    metadata_to_include: List[str],
+    chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
+) -&gt; Iterator[Optional[metadata_api.GeoMetadataResp]]:
+    &#34;&#34;&#34;
+    Requests RedVox packet metadata from geo bounds.
+    :param start_ts_s: Start epoch of request window.
+    :param end_ts_s: End epoch of request window.
+    :param bounding_box: A bounding box given by the SW and NE coordinates. Mutually exclusive with bounding_circle.
+    :param bounding_circle: A bounding circle given by a center point and radius in meter. Mutually exclusive with bounding_box.
+    :param metadata_to_include: A list of metadata fields to include (see: redvox.cloud.metadata.AvailableMetadata)
+    :param chunk_by_seconds: Split up longer requests into chunks of chunk_by_seconds size (default 86400s/1d)
+    :return: A geo metadata result containing the requested metadata or None on error.
+    &#34;&#34;&#34;
+    if end_ts_s &lt;= start_ts_s:
+        raise cloud_errors.CloudApiError(&#34;start_ts_s must be &lt; end_ts_s&#34;)
+
+    if bounding_box is None and bounding_circle is None:
+        raise cloud_errors.CloudApiError(
+            &#34;Exactly one of bounding_box or bounding_circle must be set&#34;
+        )
+
+    if bounding_box is not None and bounding_circle is not None:
+        raise cloud_errors.CloudApiError(
+            &#34;Exactly one of bounding_box or bounding_circle must be set&#34;
+        )
+
+    if len(metadata_to_include) == 0:
+        raise cloud_errors.CloudApiError(
+            &#34;At least one metadata field must be included&#34;
+        )
+
+    if chunk_by_seconds &lt;= 0:
+        raise cloud_errors.CloudApiError(&#34;chunk_by_seconds must be &gt; 0&#34;)
+
+    time_chunks: List[Tuple[int, int]] = chunk_time_range(
+        start_ts_s, end_ts_s, chunk_by_seconds
+    )
+
+    for start_ts, end_ts in time_chunks:
+        geo_metadata_req: metadata_api.GeoMetadataReq = metadata_api.GeoMetadataReq(
+            self.auth_token,
+            start_ts,
+            end_ts,
+            bounding_box,
+            bounding_circle,
+            metadata_to_include,
+        )
+
+        chunked_resp: Optional[
+            metadata_api.GeoMetadataResp
+        ] = metadata_api.request_geo_metadata(
+            self.redvox_config,
+            geo_metadata_req,
+            session=self.__session,
+            timeout=self.timeout,
+        )
+
+        yield chunked_resp</code></pre>
+</details>
+</dd>
 <dt id="redvox.cloud.client.CloudClient.request_metadata"><code class="name flex">
 <span>def <span class="ident">request_metadata</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], metadata_to_include: List[str], chunk_by_seconds: int = 86400) ‑> Optional[<a title="redvox.cloud.metadata_api.MetadataResp" href="metadata_api.html#redvox.cloud.metadata_api.MetadataResp">MetadataResp</a>]</span>
 </code></dt>
@@ -1608,12 +1830,12 @@ correct_timing queried.
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def request_metadata(
-        self,
-        start_ts_s: int,
-        end_ts_s: int,
-        station_ids: List[str],
-        metadata_to_include: List[str],
-        chunk_by_seconds: int = constants.SECONDS_PER_DAY,
+    self,
+    start_ts_s: int,
+    end_ts_s: int,
+    station_ids: List[str],
+    metadata_to_include: List[str],
+    chunk_by_seconds: int = constants.SECONDS_PER_DAY,
 ) -&gt; Optional[metadata_api.MetadataResp]:
     &#34;&#34;&#34;
     Requests RedVox packet metadata.
@@ -1684,12 +1906,12 @@ correct_timing queried.
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def request_metadata_m(
-        self,
-        start_ts_s: int,
-        end_ts_s: int,
-        station_ids: List[str],
-        metadata_to_include: List[str],
-        chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
+    self,
+    start_ts_s: int,
+    end_ts_s: int,
+    station_ids: List[str],
+    metadata_to_include: List[str],
+    chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
 ) -&gt; Optional[metadata_api.MetadataRespM]:
     &#34;&#34;&#34;
     Requests RedVox packet metadata.
@@ -1702,8 +1924,9 @@ correct_timing queried.
     &#34;&#34;&#34;
     metadata_resp: metadata_api.MetadataRespM = metadata_api.MetadataRespM([])
     resp: Optional[metadata_api.MetadataRespM]
-    for resp in self.request_metadata_m_stream(start_ts_s, end_ts_s, station_ids, metadata_to_include,
-                                               chunk_by_seconds):
+    for resp in self.request_metadata_m_stream(
+        start_ts_s, end_ts_s, station_ids, metadata_to_include, chunk_by_seconds
+    ):
         if resp is not None:
             metadata_resp.db_packets.extend(resp.db_packets)
     return metadata_resp</code></pre>
@@ -1725,12 +1948,12 @@ correct_timing queried.
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def request_metadata_m_stream(
-        self,
-        start_ts_s: int,
-        end_ts_s: int,
-        station_ids: List[str],
-        metadata_to_include: List[str],
-        chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
+    self,
+    start_ts_s: int,
+    end_ts_s: int,
+    station_ids: List[str],
+    metadata_to_include: List[str],
+    chunk_by_seconds: int = constants.SECONDS_PER_HOUR,
 ) -&gt; Iterator[Optional[metadata_api.MetadataRespM]]:
     &#34;&#34;&#34;
     Requests RedVox packet metadata.
@@ -1827,10 +2050,10 @@ The end epoch of the window.
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def request_station_stats(
-        self,
-        start_ts_s: int,
-        end_ts_s: int,
-        station_ids: List[str],
+    self,
+    start_ts_s: int,
+    end_ts_s: int,
+    station_ids: List[str],
 ) -&gt; Optional[station_stats_api.StationStatsResp]:
     &#34;&#34;&#34;
     Request signed URLs for RedVox packets.
@@ -1874,10 +2097,10 @@ The end epoch of the window.
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def request_station_statuses(
-        self,
-        start_ts_s: int,
-        end_ts_s: int,
-        station_ids: List[str],
+    self,
+    start_ts_s: int,
+    end_ts_s: int,
+    station_ids: List[str],
 ) -&gt; Optional[metadata_api.StationStatusResp]:
     &#34;&#34;&#34;
     Requests station timing information from the cloud services.
@@ -1922,11 +2145,11 @@ The end epoch of the window.
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def request_timing_metadata(
-        self,
-        start_ts_s: int,
-        end_ts_s: int,
-        station_ids: List[str],
-        chunk_by_seconds: int = constants.SECONDS_PER_DAY,
+    self,
+    start_ts_s: int,
+    end_ts_s: int,
+    station_ids: List[str],
+    chunk_by_seconds: int = constants.SECONDS_PER_DAY,
 ) -&gt; metadata_api.TimingMetaResponse:
     &#34;&#34;&#34;
     Requests timing metadata from RedVox packets.
@@ -1987,7 +2210,7 @@ The end epoch of the window.
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def validate_auth_token(
-        self, auth_token: str
+    self, auth_token: str
 ) -&gt; Optional[auth_api.ValidateTokenResp]:
     &#34;&#34;&#34;
     Validates the provided authentication token with the cloud API.
@@ -2054,6 +2277,7 @@ The end epoch of the window.
 <li><code><a title="redvox.cloud.client.CloudClient.refresh_auth_token" href="#redvox.cloud.client.CloudClient.refresh_auth_token">refresh_auth_token</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.refresh_own_auth_token" href="#redvox.cloud.client.CloudClient.refresh_own_auth_token">refresh_own_auth_token</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_data_range" href="#redvox.cloud.client.CloudClient.request_data_range">request_data_range</a></code></li>
+<li><code><a title="redvox.cloud.client.CloudClient.request_geo_metadata_stream" href="#redvox.cloud.client.CloudClient.request_geo_metadata_stream">request_geo_metadata_stream</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_metadata" href="#redvox.cloud.client.CloudClient.request_metadata">request_metadata</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_metadata_m" href="#redvox.cloud.client.CloudClient.request_metadata_m">request_metadata_m</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_metadata_m_stream" href="#redvox.cloud.client.CloudClient.request_metadata_m_stream">request_metadata_m_stream</a></code></li>

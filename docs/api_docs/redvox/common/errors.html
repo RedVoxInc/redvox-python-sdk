@@ -53,6 +53,12 @@ class RedVoxExceptions:
         self._errors: List[RedVoxError] = []
         self._num_errors: int = 0
 
+    def __repr__(self):
+        return str(self.as_dict())
+
+    def __str__(self):
+        return str(self.as_dict())
+
     def get(self) -&gt; List[RedVoxError]:
         &#34;&#34;&#34;
         :return: the list of errors
@@ -191,6 +197,12 @@ class RedVoxExceptions:
         self._obj_class = obj_class
         self._errors: List[RedVoxError] = []
         self._num_errors: int = 0
+
+    def __repr__(self):
+        return str(self.as_dict())
+
+    def __str__(self):
+        return str(self.as_dict())
 
     def get(self) -&gt; List[RedVoxError]:
         &#34;&#34;&#34;

@@ -195,7 +195,13 @@ class ApiReaderTest(unittest.TestCase):
                 continue  # skip failed filter result
             self.assertEqual(result, 2)
             final_result += result
-        self.assertEqual(final_result, 4)</code></pre>
+        self.assertEqual(final_result, 4)
+
+    def test_file_size(self):
+        reader = api_reader.ApiReader(self.input_dir)
+        for i in reader.index_summary.station_summaries.values():
+            for s in i.values():
+                self.assertTrue(s.single_packet_decompressed_size_bytes &gt; 0)</code></pre>
 </details>
 </section>
 <section>
@@ -399,7 +405,13 @@ not have a method with the specified name.</p></div>
                 continue  # skip failed filter result
             self.assertEqual(result, 2)
             final_result += result
-        self.assertEqual(final_result, 4)</code></pre>
+        self.assertEqual(final_result, 4)
+
+    def test_file_size(self):
+        reader = api_reader.ApiReader(self.input_dir)
+        for i in reader.index_summary.station_summaries.values():
+            for s in i.values():
+                self.assertTrue(s.single_packet_decompressed_size_bytes &gt; 0)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -426,6 +438,22 @@ def setUpClass(cls) -&gt; None:
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="redvox.tests.common.test_api_reader.ApiReaderTest.test_file_size"><code class="name flex">
+<span>def <span class="ident">test_file_size</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_file_size(self):
+    reader = api_reader.ApiReader(self.input_dir)
+    for i in reader.index_summary.station_summaries.values():
+        for s in i.values():
+            self.assertTrue(s.single_packet_decompressed_size_bytes &gt; 0)</code></pre>
+</details>
+</dd>
 <dt id="redvox.tests.common.test_api_reader.ApiReaderTest.test_filter_loop"><code class="name flex">
 <span>def <span class="ident">test_filter_loop</span></span>(<span>self)</span>
 </code></dt>
@@ -718,6 +746,7 @@ def setUpClass(cls) -&gt; None:
 <h4><code><a title="redvox.tests.common.test_api_reader.ApiReaderTest" href="#redvox.tests.common.test_api_reader.ApiReaderTest">ApiReaderTest</a></code></h4>
 <ul class="">
 <li><code><a title="redvox.tests.common.test_api_reader.ApiReaderTest.setUpClass" href="#redvox.tests.common.test_api_reader.ApiReaderTest.setUpClass">setUpClass</a></code></li>
+<li><code><a title="redvox.tests.common.test_api_reader.ApiReaderTest.test_file_size" href="#redvox.tests.common.test_api_reader.ApiReaderTest.test_file_size">test_file_size</a></code></li>
 <li><code><a title="redvox.tests.common.test_api_reader.ApiReaderTest.test_filter_loop" href="#redvox.tests.common.test_api_reader.ApiReaderTest.test_filter_loop">test_filter_loop</a></code></li>
 <li><code><a title="redvox.tests.common.test_api_reader.ApiReaderTest.test_read_all_api1000_in_structured_dir" href="#redvox.tests.common.test_api_reader.ApiReaderTest.test_read_all_api1000_in_structured_dir">test_read_all_api1000_in_structured_dir</a></code></li>
 <li><code><a title="redvox.tests.common.test_api_reader.ApiReaderTest.test_read_all_api1000_in_unstructured_dir" href="#redvox.tests.common.test_api_reader.ApiReaderTest.test_read_all_api1000_in_unstructured_dir">test_read_all_api1000_in_unstructured_dir</a></code></li>

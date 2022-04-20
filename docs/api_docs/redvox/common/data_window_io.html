@@ -1,0 +1,1146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>redvox.common.data_window_io API documentation</title>
+<meta name="description" content="This module provides IO primitives for working with data windows." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>redvox.common.data_window_io</code></h1>
+</header>
+<section id="section-intro">
+<p>This module provides IO primitives for working with data windows.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+This module provides IO primitives for working with data windows.
+&#34;&#34;&#34;
+from dataclasses import dataclass
+import os.path
+from pathlib import Path
+import pickle
+import json
+import enum
+
+from typing import (
+    Dict,
+    List,
+    Optional,
+    TYPE_CHECKING,
+)
+
+import lz4.frame
+
+from redvox.common.io import FileSystemWriter, FileSystemSaveMode, json_to_dict, dict_to_json
+from redvox.common.date_time_utils import (
+    datetime_to_epoch_microseconds_utc as us_dt,
+)
+
+
+if TYPE_CHECKING:
+    from redvox.common.data_window import DataWindow, DataWindowConfig
+    from redvox.common.data_window_old import DataWindow as DwOld
+
+
+class DataWindowOutputType(enum.Enum):
+    &#34;&#34;&#34;
+    Type of file to create when exporting DataWindow
+    &#34;&#34;&#34;
+
+    NONE: int = 0
+    LZ4: int = 1
+    PARQUET: int = 2
+
+    @staticmethod
+    def list_names() -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: list of possible values for OutputType
+        &#34;&#34;&#34;
+        return [n.name for n in DataWindowOutputType]
+
+    @staticmethod
+    def list_non_none_names() -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: List of possible non-None values for OutputType
+        &#34;&#34;&#34;
+        return [n.name for n in DataWindowOutputType if n != DataWindowOutputType.NONE]
+
+    @staticmethod
+    def str_to_type(str_type: str) -&gt; &#34;DataWindowOutputType&#34;:
+        &#34;&#34;&#34;
+        converts the string to the corresponding OutputType
+        if the type given is not in list_non_none_names(), returns NONE value
+
+        :param str_type: string to convert
+        :return: DataWindowOutputType matching string given or NONE
+        &#34;&#34;&#34;
+        str_type = str_type.upper()
+        if str_type == &#34;LZ4&#34; or str_type == &#34;PARQUET&#34;:
+            return DataWindowOutputType[str_type]
+        return DataWindowOutputType[&#34;NONE&#34;]
+
+
+class DataWindowFileSystemWriter(FileSystemWriter):
+    &#34;&#34;&#34;
+    This class holds the FileSystemWriter info for DataWindows.  Extends the FileSystemWriter from io.py
+
+    Properties:
+        file_name: str, the name of the file (do not include extension)
+
+        file_ext: str, the extension used by the file (do not include the .)  Default &#34;NONE&#34;
+
+        base_dir: str, the directory to save the file to.  Default &#34;.&#34; (current dir)
+
+        make_run_me: bool, if True, makes a sample runme.py file when saving to disk.  default False
+
+        orig_path: str, the current working directory when the object is initialized
+
+    Protected:
+        _save_mode: FileSystemSaveMode, determines how files get saved
+
+        _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
+    &#34;&#34;&#34;
+
+    def __init__(self, file_name: str, file_ext: str = &#34;none&#34;, base_dir: str = &#34;.&#34;, make_run_me: bool = False):
+        &#34;&#34;&#34;
+        initialize DataWindowFileSystemWriter
+
+        :param file_name: name of file
+        :param file_ext: extension of file, default &#34;none&#34;
+        :param base_dir: directory to save file to, default &#34;.&#34; (current dir)
+        :param make_run_me: if True, add a runme.py file to the saved files.  Default False
+        &#34;&#34;&#34;
+        self.orig_path = os.getcwd()
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir, exist_ok=True)
+        os.chdir(base_dir)
+        super().__init__(file_name, file_ext, &#34;.&#34;,
+                         FileSystemSaveMode.DISK
+                         if DataWindowOutputType.str_to_type(file_ext) != DataWindowOutputType.NONE
+                         else FileSystemSaveMode.MEM)
+        self.make_run_me = make_run_me
+
+    def set_extension(self, ext: str):
+        &#34;&#34;&#34;
+        change the file extension.  Valid values are &#34;PARQUET&#34;, &#34;LZ4&#34; and &#34;NONE&#34;.  Invalid values become &#34;NONE&#34;
+
+        :param ext: extension to change to
+        &#34;&#34;&#34;
+        self.file_extension = DataWindowOutputType.str_to_type(ext).name.lower()
+
+
+@dataclass
+class DataWindowSerializationResult:
+    path: str
+    serialized_bytes: int
+    compressed_bytes: int
+
+
+def serialize_data_window_old(
+        data_window: &#34;DwOld&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+        compression_factor: int = 4,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Serializes and compresses a DataWindow to a file.
+
+    :param data_window: The data window to serialize and compress.
+    :param base_dir: The base directory to write the serialized file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [start_ts]_[end_ts]_[num_stations].pkl.lz4
+    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                               (default=4).
+    :return: The path to the written file.
+    &#34;&#34;&#34;
+
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{int(data_window.start_datetime.timestamp())}&#34;
+             f&#34;_{int(data_window.end_datetime.timestamp())}&#34;
+             f&#34;_{len(data_window.station_ids)}.pkl.lz4&#34;
+    )
+
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+
+    with lz4.frame.open(
+            file_path, &#34;wb&#34;, compression_level=compression_factor
+    ) as compressed_out:
+        pickle.dump(data_window, compressed_out)
+        compressed_out.flush()
+        return file_path.resolve(False)
+
+
+def deserialize_data_window_old(path: str) -&gt; &#34;DwOld&#34;:
+    &#34;&#34;&#34;
+    Decompresses and deserializes a DataWindow written to disk.
+
+    :param path: Path to the serialized and compressed data window.
+    :return: An instance of a DataWindow.
+    &#34;&#34;&#34;
+    with lz4.frame.open(path, &#34;rb&#34;) as compressed_in:
+        return pickle.load(compressed_in)
+
+
+def json_file_to_data_window_old(base_dir: str, file_name: str) -&gt; Dict:
+    &#34;&#34;&#34;
+    load a data window from json written to disk
+
+    :param base_dir: directory where json file is saved
+    :param file_name: name of json file to load
+    :return: a dictionary representing a json-ified data window
+    &#34;&#34;&#34;
+    with open(Path(base_dir).joinpath(file_name), &#34;r&#34;) as r_f:
+        return json_to_dict(r_f.read())
+
+
+def data_window_to_json_old(
+        data_win: &#34;DwOld&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+        compression_format: str = &#34;lz4&#34;,
+) -&gt; str:
+    &#34;&#34;&#34;
+    Converts a data window to json format
+
+    :param data_win: the data window object to convert
+    :param base_dir: the base directory to write the data file to
+    :param file_name: the data object&#39;s optional base file name.  Do not include a file extension.
+                        If None, a default file name is created using this format:
+                        [start_ts]_[end_ts]_[num_stations].[compression_type]
+    :param compression_format: the compression format to use.  default lz4
+    :return: The path to the written file
+    &#34;&#34;&#34;
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{int(data_win.start_datetime.timestamp())}&#34;
+             f&#34;_{int(data_win.end_datetime.timestamp())}&#34;
+             f&#34;_{len(data_win.station_ids)}&#34;
+    )
+    base_dir = os.path.join(base_dir, &#34;dw&#34;)
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+    if compression_format == &#34;lz4&#34;:
+        _ = str(
+            serialize_data_window_old(
+                data_win, base_dir, _file_name + &#34;.pkl.lz4&#34;
+            ).resolve()
+        )
+    else:
+        dfp = os.path.join(base_dir, _file_name + &#34;.pkl&#34;)
+        with open(dfp, &#34;wb&#34;) as compressed_out:
+            pickle.dump(data_win, compressed_out)
+    data_win_dict = {
+        &#34;start_datetime&#34;: us_dt(data_win.start_datetime)
+        if data_win.start_datetime
+        else None,
+        &#34;end_datetime&#34;: us_dt(data_win.end_datetime) if data_win.end_datetime else None,
+        &#34;station_ids&#34;: list(data_win.station_ids),
+        &#34;compression_format&#34;: compression_format,
+        &#34;file_name&#34;: _file_name,
+    }
+    return json.dumps(data_win_dict)
+
+
+def data_window_to_json_file_old(
+        data_window: &#34;DwOld&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+        compression_format: str = &#34;lz4&#34;,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Converts a data window to json format.
+
+    :param data_window: the data window object to convert
+    :param base_dir: the base directory to write the json file to
+    :param file_name: the optional base file name.  Do not include a file extension.
+                        If None, a default file name is created using this format:
+                        [start_ts]_[end_ts]_[num_stations].json
+    :param compression_format: the type of compression to use.  default lz4
+    :return: The path to the written file
+    &#34;&#34;&#34;
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{int(data_window.start_datetime.timestamp())}&#34;
+             f&#34;_{int(data_window.end_datetime.timestamp())}&#34;
+             f&#34;_{len(data_window.station_ids)}&#34;
+    )
+    file_path: Path = Path(base_dir).joinpath(f&#34;{_file_name}.json&#34;)
+    with open(file_path, &#34;w&#34;) as f_p:
+        f_p.write(
+            data_window_to_json_old(
+                data_window, base_dir, file_name, compression_format
+            )
+        )
+        return file_path.resolve(False)
+
+
+def data_window_as_json(
+        data_window: &#34;DataWindow&#34;
+) -&gt; str:
+    &#34;&#34;&#34;
+    Converts the DataWindow&#39;s metadata into a JSON dictionary
+
+    :param data_window: The data window to convert
+    :return: The data window&#39;s metadata as a JSON dictionary
+    &#34;&#34;&#34;
+    return json.dumps(data_window.as_dict())
+
+
+def data_window_to_json(
+        data_window: &#34;DataWindow&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Converts the DataWindow into a JSON metadata file
+
+    :param data_window: The data window to convert.
+    :param base_dir: The base directory to write the JSON file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [event_name].json
+    :return: The path to the written metadata file.
+    &#34;&#34;&#34;
+    _file_name = file_name if file_name is not None else data_window.event_name
+    os.makedirs(base_dir, exist_ok=True)
+    for s in data_window.stations():
+        s.to_json_file()
+    file_path: Path = Path(base_dir).joinpath(f&#34;{_file_name}.json&#34;)
+    with open(file_path, &#34;w&#34;) as f:
+        f.write(data_window_as_json(data_window))
+        return file_path.resolve(False)
+
+
+def json_file_to_data_window(file_path: str) -&gt; Dict:
+    &#34;&#34;&#34;
+    load a specifically named DataWindow as a dictionary from a directory
+
+    :param file_path: full path of file to load
+    :return: the dictionary of the DataWindow if it exists, or None otherwise
+    &#34;&#34;&#34;
+    with open(file_path, &#34;r&#34;) as f_p:
+        return json_to_dict(f_p.read())
+
+
+def serialize_data_window(
+        data_window: &#34;DataWindow&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+        compression_factor: int = 4,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Serializes and compresses a DataWindow to a file and creates a JSON metadata file for the compressed file.
+
+    :param data_window: The data window to serialize and compress.
+    :param base_dir: The base directory to write the serialized file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [start_ts]_[end_ts]_[event_name].pkl.lz4
+    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                               (default=4).
+    :return: The path to the written compressed file.
+    &#34;&#34;&#34;
+
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{int(data_window.start_date())}&#34;
+             f&#34;_{int(data_window.end_date())}&#34;
+             f&#34;_{len(data_window.event_name)}.pkl.lz4&#34;
+    )
+
+    json_path: Path = data_window.fs_writer().json_path()
+    with open(json_path, &#34;w&#34;) as f:
+        f.write(data_window.to_json())
+        json_path.resolve(False)
+
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+
+    with lz4.frame.open(
+            file_path, &#34;wb&#34;, compression_level=compression_factor
+    ) as compressed_out:
+        pickle.dump(data_window, compressed_out)
+        compressed_out.flush()
+        return file_path.resolve(False)
+
+
+def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
+    &#34;&#34;&#34;
+    Decompresses and deserializes a DataWindow written to disk.
+
+    :param path: Path to the serialized and compressed data window.
+    :return: An instance of a DataWindow.
+    &#34;&#34;&#34;
+    with lz4.frame.open(path, &#34;rb&#34;) as compressed_in:
+        return pickle.load(compressed_in)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="redvox.common.data_window_io.data_window_as_json"><code class="name flex">
+<span>def <span class="ident">data_window_as_json</span></span>(<span>data_window: DataWindow) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts the DataWindow's metadata into a JSON dictionary</p>
+<p>:param data_window: The data window to convert
+:return: The data window's metadata as a JSON dictionary</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_window_as_json(
+        data_window: &#34;DataWindow&#34;
+) -&gt; str:
+    &#34;&#34;&#34;
+    Converts the DataWindow&#39;s metadata into a JSON dictionary
+
+    :param data_window: The data window to convert
+    :return: The data window&#39;s metadata as a JSON dictionary
+    &#34;&#34;&#34;
+    return json.dumps(data_window.as_dict())</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.data_window_to_json"><code class="name flex">
+<span>def <span class="ident">data_window_to_json</span></span>(<span>data_window: DataWindow, base_dir: str = '.', file_name: Optional[str] = None) ‑> pathlib.Path</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts the DataWindow into a JSON metadata file</p>
+<p>:param data_window: The data window to convert.
+:param base_dir: The base directory to write the JSON file to (default=.).
+:param file_name: The optional file name. If None, a default filename with the following format is used:
+[event_name].json
+:return: The path to the written metadata file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_window_to_json(
+        data_window: &#34;DataWindow&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Converts the DataWindow into a JSON metadata file
+
+    :param data_window: The data window to convert.
+    :param base_dir: The base directory to write the JSON file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [event_name].json
+    :return: The path to the written metadata file.
+    &#34;&#34;&#34;
+    _file_name = file_name if file_name is not None else data_window.event_name
+    os.makedirs(base_dir, exist_ok=True)
+    for s in data_window.stations():
+        s.to_json_file()
+    file_path: Path = Path(base_dir).joinpath(f&#34;{_file_name}.json&#34;)
+    with open(file_path, &#34;w&#34;) as f:
+        f.write(data_window_as_json(data_window))
+        return file_path.resolve(False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.data_window_to_json_file_old"><code class="name flex">
+<span>def <span class="ident">data_window_to_json_file_old</span></span>(<span>data_window: DwOld, base_dir: str = '.', file_name: Optional[str] = None, compression_format: str = 'lz4') ‑> pathlib.Path</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a data window to json format.</p>
+<p>:param data_window: the data window object to convert
+:param base_dir: the base directory to write the json file to
+:param file_name: the optional base file name.
+Do not include a file extension.
+If None, a default file name is created using this format:
+[start_ts]<em>[end_ts]</em>[num_stations].json
+:param compression_format: the type of compression to use.
+default lz4
+:return: The path to the written file</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_window_to_json_file_old(
+        data_window: &#34;DwOld&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+        compression_format: str = &#34;lz4&#34;,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Converts a data window to json format.
+
+    :param data_window: the data window object to convert
+    :param base_dir: the base directory to write the json file to
+    :param file_name: the optional base file name.  Do not include a file extension.
+                        If None, a default file name is created using this format:
+                        [start_ts]_[end_ts]_[num_stations].json
+    :param compression_format: the type of compression to use.  default lz4
+    :return: The path to the written file
+    &#34;&#34;&#34;
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{int(data_window.start_datetime.timestamp())}&#34;
+             f&#34;_{int(data_window.end_datetime.timestamp())}&#34;
+             f&#34;_{len(data_window.station_ids)}&#34;
+    )
+    file_path: Path = Path(base_dir).joinpath(f&#34;{_file_name}.json&#34;)
+    with open(file_path, &#34;w&#34;) as f_p:
+        f_p.write(
+            data_window_to_json_old(
+                data_window, base_dir, file_name, compression_format
+            )
+        )
+        return file_path.resolve(False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.data_window_to_json_old"><code class="name flex">
+<span>def <span class="ident">data_window_to_json_old</span></span>(<span>data_win: DwOld, base_dir: str = '.', file_name: Optional[str] = None, compression_format: str = 'lz4') ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Converts a data window to json format</p>
+<p>:param data_win: the data window object to convert
+:param base_dir: the base directory to write the data file to
+:param file_name: the data object's optional base file name.
+Do not include a file extension.
+If None, a default file name is created using this format:
+[start_ts]<em>[end_ts]</em>[num_stations].[compression_type]
+:param compression_format: the compression format to use.
+default lz4
+:return: The path to the written file</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def data_window_to_json_old(
+        data_win: &#34;DwOld&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+        compression_format: str = &#34;lz4&#34;,
+) -&gt; str:
+    &#34;&#34;&#34;
+    Converts a data window to json format
+
+    :param data_win: the data window object to convert
+    :param base_dir: the base directory to write the data file to
+    :param file_name: the data object&#39;s optional base file name.  Do not include a file extension.
+                        If None, a default file name is created using this format:
+                        [start_ts]_[end_ts]_[num_stations].[compression_type]
+    :param compression_format: the compression format to use.  default lz4
+    :return: The path to the written file
+    &#34;&#34;&#34;
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{int(data_win.start_datetime.timestamp())}&#34;
+             f&#34;_{int(data_win.end_datetime.timestamp())}&#34;
+             f&#34;_{len(data_win.station_ids)}&#34;
+    )
+    base_dir = os.path.join(base_dir, &#34;dw&#34;)
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
+    if compression_format == &#34;lz4&#34;:
+        _ = str(
+            serialize_data_window_old(
+                data_win, base_dir, _file_name + &#34;.pkl.lz4&#34;
+            ).resolve()
+        )
+    else:
+        dfp = os.path.join(base_dir, _file_name + &#34;.pkl&#34;)
+        with open(dfp, &#34;wb&#34;) as compressed_out:
+            pickle.dump(data_win, compressed_out)
+    data_win_dict = {
+        &#34;start_datetime&#34;: us_dt(data_win.start_datetime)
+        if data_win.start_datetime
+        else None,
+        &#34;end_datetime&#34;: us_dt(data_win.end_datetime) if data_win.end_datetime else None,
+        &#34;station_ids&#34;: list(data_win.station_ids),
+        &#34;compression_format&#34;: compression_format,
+        &#34;file_name&#34;: _file_name,
+    }
+    return json.dumps(data_win_dict)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.deserialize_data_window"><code class="name flex">
+<span>def <span class="ident">deserialize_data_window</span></span>(<span>path: str) ‑> DataWindow</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Decompresses and deserializes a DataWindow written to disk.</p>
+<p>:param path: Path to the serialized and compressed data window.
+:return: An instance of a DataWindow.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
+    &#34;&#34;&#34;
+    Decompresses and deserializes a DataWindow written to disk.
+
+    :param path: Path to the serialized and compressed data window.
+    :return: An instance of a DataWindow.
+    &#34;&#34;&#34;
+    with lz4.frame.open(path, &#34;rb&#34;) as compressed_in:
+        return pickle.load(compressed_in)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.deserialize_data_window_old"><code class="name flex">
+<span>def <span class="ident">deserialize_data_window_old</span></span>(<span>path: str) ‑> DwOld</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Decompresses and deserializes a DataWindow written to disk.</p>
+<p>:param path: Path to the serialized and compressed data window.
+:return: An instance of a DataWindow.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deserialize_data_window_old(path: str) -&gt; &#34;DwOld&#34;:
+    &#34;&#34;&#34;
+    Decompresses and deserializes a DataWindow written to disk.
+
+    :param path: Path to the serialized and compressed data window.
+    :return: An instance of a DataWindow.
+    &#34;&#34;&#34;
+    with lz4.frame.open(path, &#34;rb&#34;) as compressed_in:
+        return pickle.load(compressed_in)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.json_file_to_data_window"><code class="name flex">
+<span>def <span class="ident">json_file_to_data_window</span></span>(<span>file_path: str) ‑> Dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load a specifically named DataWindow as a dictionary from a directory</p>
+<p>:param file_path: full path of file to load
+:return: the dictionary of the DataWindow if it exists, or None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def json_file_to_data_window(file_path: str) -&gt; Dict:
+    &#34;&#34;&#34;
+    load a specifically named DataWindow as a dictionary from a directory
+
+    :param file_path: full path of file to load
+    :return: the dictionary of the DataWindow if it exists, or None otherwise
+    &#34;&#34;&#34;
+    with open(file_path, &#34;r&#34;) as f_p:
+        return json_to_dict(f_p.read())</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.json_file_to_data_window_old"><code class="name flex">
+<span>def <span class="ident">json_file_to_data_window_old</span></span>(<span>base_dir: str, file_name: str) ‑> Dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load a data window from json written to disk</p>
+<p>:param base_dir: directory where json file is saved
+:param file_name: name of json file to load
+:return: a dictionary representing a json-ified data window</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def json_file_to_data_window_old(base_dir: str, file_name: str) -&gt; Dict:
+    &#34;&#34;&#34;
+    load a data window from json written to disk
+
+    :param base_dir: directory where json file is saved
+    :param file_name: name of json file to load
+    :return: a dictionary representing a json-ified data window
+    &#34;&#34;&#34;
+    with open(Path(base_dir).joinpath(file_name), &#34;r&#34;) as r_f:
+        return json_to_dict(r_f.read())</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.serialize_data_window"><code class="name flex">
+<span>def <span class="ident">serialize_data_window</span></span>(<span>data_window: DataWindow, base_dir: str = '.', file_name: Optional[str] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Serializes and compresses a DataWindow to a file and creates a JSON metadata file for the compressed file.</p>
+<p>:param data_window: The data window to serialize and compress.
+:param base_dir: The base directory to write the serialized file to (default=.).
+:param file_name: The optional file name. If None, a default filename with the following format is used:
+[start_ts]<em>[end_ts]</em>[event_name].pkl.lz4
+:param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+(default=4).
+:return: The path to the written compressed file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_data_window(
+        data_window: &#34;DataWindow&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+        compression_factor: int = 4,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Serializes and compresses a DataWindow to a file and creates a JSON metadata file for the compressed file.
+
+    :param data_window: The data window to serialize and compress.
+    :param base_dir: The base directory to write the serialized file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [start_ts]_[end_ts]_[event_name].pkl.lz4
+    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                               (default=4).
+    :return: The path to the written compressed file.
+    &#34;&#34;&#34;
+
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{int(data_window.start_date())}&#34;
+             f&#34;_{int(data_window.end_date())}&#34;
+             f&#34;_{len(data_window.event_name)}.pkl.lz4&#34;
+    )
+
+    json_path: Path = data_window.fs_writer().json_path()
+    with open(json_path, &#34;w&#34;) as f:
+        f.write(data_window.to_json())
+        json_path.resolve(False)
+
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+
+    with lz4.frame.open(
+            file_path, &#34;wb&#34;, compression_level=compression_factor
+    ) as compressed_out:
+        pickle.dump(data_window, compressed_out)
+        compressed_out.flush()
+        return file_path.resolve(False)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.serialize_data_window_old"><code class="name flex">
+<span>def <span class="ident">serialize_data_window_old</span></span>(<span>data_window: DwOld, base_dir: str = '.', file_name: Optional[str] = None, compression_factor: int = 4) ‑> pathlib.Path</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Serializes and compresses a DataWindow to a file.</p>
+<p>:param data_window: The data window to serialize and compress.
+:param base_dir: The base directory to write the serialized file to (default=.).
+:param file_name: The optional file name. If None, a default filename with the following format is used:
+[start_ts]<em>[end_ts]</em>[num_stations].pkl.lz4
+:param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+(default=4).
+:return: The path to the written file.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def serialize_data_window_old(
+        data_window: &#34;DwOld&#34;,
+        base_dir: str = &#34;.&#34;,
+        file_name: Optional[str] = None,
+        compression_factor: int = 4,
+) -&gt; Path:
+    &#34;&#34;&#34;
+    Serializes and compresses a DataWindow to a file.
+
+    :param data_window: The data window to serialize and compress.
+    :param base_dir: The base directory to write the serialized file to (default=.).
+    :param file_name: The optional file name. If None, a default filename with the following format is used:
+                      [start_ts]_[end_ts]_[num_stations].pkl.lz4
+    :param compression_factor: A value between 1 and 12. Higher values provide better compression, but take longer.
+                               (default=4).
+    :return: The path to the written file.
+    &#34;&#34;&#34;
+
+    _file_name: str = (
+        file_name
+        if file_name is not None
+        else f&#34;{int(data_window.start_datetime.timestamp())}&#34;
+             f&#34;_{int(data_window.end_datetime.timestamp())}&#34;
+             f&#34;_{len(data_window.station_ids)}.pkl.lz4&#34;
+    )
+
+    file_path: Path = Path(base_dir).joinpath(_file_name)
+
+    with lz4.frame.open(
+            file_path, &#34;wb&#34;, compression_level=compression_factor
+    ) as compressed_out:
+        pickle.dump(data_window, compressed_out)
+        compressed_out.flush()
+        return file_path.resolve(False)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="redvox.common.data_window_io.DataWindowFileSystemWriter"><code class="flex name class">
+<span>class <span class="ident">DataWindowFileSystemWriter</span></span>
+<span>(</span><span>file_name: str, file_ext: str = 'none', base_dir: str = '.', make_run_me: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This class holds the FileSystemWriter info for DataWindows.
+Extends the FileSystemWriter from io.py</p>
+<h2 id="properties">Properties</h2>
+<p>file_name: str, the name of the file (do not include extension)</p>
+<p>file_ext: str, the extension used by the file (do not include the .)
+Default "NONE"</p>
+<p>base_dir: str, the directory to save the file to.
+Default "." (current dir)</p>
+<p>make_run_me: bool, if True, makes a sample runme.py file when saving to disk.
+default False</p>
+<p>orig_path: str, the current working directory when the object is initialized</p>
+<h2 id="protected">Protected</h2>
+<p>_save_mode: FileSystemSaveMode, determines how files get saved</p>
+<p>_temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk</p>
+<p>initialize DataWindowFileSystemWriter</p>
+<p>:param file_name: name of file
+:param file_ext: extension of file, default "none"
+:param base_dir: directory to save file to, default "." (current dir)
+:param make_run_me: if True, add a runme.py file to the saved files.
+Default False</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataWindowFileSystemWriter(FileSystemWriter):
+    &#34;&#34;&#34;
+    This class holds the FileSystemWriter info for DataWindows.  Extends the FileSystemWriter from io.py
+
+    Properties:
+        file_name: str, the name of the file (do not include extension)
+
+        file_ext: str, the extension used by the file (do not include the .)  Default &#34;NONE&#34;
+
+        base_dir: str, the directory to save the file to.  Default &#34;.&#34; (current dir)
+
+        make_run_me: bool, if True, makes a sample runme.py file when saving to disk.  default False
+
+        orig_path: str, the current working directory when the object is initialized
+
+    Protected:
+        _save_mode: FileSystemSaveMode, determines how files get saved
+
+        _temp_dir: TemporaryDirectory, temporary directory for large files when not saving to disk
+    &#34;&#34;&#34;
+
+    def __init__(self, file_name: str, file_ext: str = &#34;none&#34;, base_dir: str = &#34;.&#34;, make_run_me: bool = False):
+        &#34;&#34;&#34;
+        initialize DataWindowFileSystemWriter
+
+        :param file_name: name of file
+        :param file_ext: extension of file, default &#34;none&#34;
+        :param base_dir: directory to save file to, default &#34;.&#34; (current dir)
+        :param make_run_me: if True, add a runme.py file to the saved files.  Default False
+        &#34;&#34;&#34;
+        self.orig_path = os.getcwd()
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir, exist_ok=True)
+        os.chdir(base_dir)
+        super().__init__(file_name, file_ext, &#34;.&#34;,
+                         FileSystemSaveMode.DISK
+                         if DataWindowOutputType.str_to_type(file_ext) != DataWindowOutputType.NONE
+                         else FileSystemSaveMode.MEM)
+        self.make_run_me = make_run_me
+
+    def set_extension(self, ext: str):
+        &#34;&#34;&#34;
+        change the file extension.  Valid values are &#34;PARQUET&#34;, &#34;LZ4&#34; and &#34;NONE&#34;.  Invalid values become &#34;NONE&#34;
+
+        :param ext: extension to change to
+        &#34;&#34;&#34;
+        self.file_extension = DataWindowOutputType.str_to_type(ext).name.lower()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="redvox.common.io.FileSystemWriter" href="io.html#redvox.common.io.FileSystemWriter">FileSystemWriter</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.common.data_window_io.DataWindowFileSystemWriter.set_extension"><code class="name flex">
+<span>def <span class="ident">set_extension</span></span>(<span>self, ext: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>change the file extension.
+Valid values are "PARQUET", "LZ4" and "NONE".
+Invalid values become "NONE"</p>
+<p>:param ext: extension to change to</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_extension(self, ext: str):
+    &#34;&#34;&#34;
+    change the file extension.  Valid values are &#34;PARQUET&#34;, &#34;LZ4&#34; and &#34;NONE&#34;.  Invalid values become &#34;NONE&#34;
+
+    :param ext: extension to change to
+    &#34;&#34;&#34;
+    self.file_extension = DataWindowOutputType.str_to_type(ext).name.lower()</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="redvox.common.io.FileSystemWriter" href="io.html#redvox.common.io.FileSystemWriter">FileSystemWriter</a></b></code>:
+<ul class="hlist">
+<li><code><a title="redvox.common.io.FileSystemWriter.as_dict" href="io.html#redvox.common.io.FileSystemWriter.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.create_dir" href="io.html#redvox.common.io.FileSystemWriter.create_dir">create_dir</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.from_dict" href="io.html#redvox.common.io.FileSystemWriter.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.full_name" href="io.html#redvox.common.io.FileSystemWriter.full_name">full_name</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.full_path" href="io.html#redvox.common.io.FileSystemWriter.full_path">full_path</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.get_temp" href="io.html#redvox.common.io.FileSystemWriter.get_temp">get_temp</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.is_save_disk" href="io.html#redvox.common.io.FileSystemWriter.is_save_disk">is_save_disk</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.is_use_disk" href="io.html#redvox.common.io.FileSystemWriter.is_use_disk">is_use_disk</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.is_use_mem" href="io.html#redvox.common.io.FileSystemWriter.is_use_mem">is_use_mem</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.is_use_temp" href="io.html#redvox.common.io.FileSystemWriter.is_use_temp">is_use_temp</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.json_file_name" href="io.html#redvox.common.io.FileSystemWriter.json_file_name">json_file_name</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.json_path" href="io.html#redvox.common.io.FileSystemWriter.json_path">json_path</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.save_dir" href="io.html#redvox.common.io.FileSystemWriter.save_dir">save_dir</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.save_mode" href="io.html#redvox.common.io.FileSystemWriter.save_mode">save_mode</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_name" href="io.html#redvox.common.io.FileSystemWriter.set_name">set_name</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_name_and_extension" href="io.html#redvox.common.io.FileSystemWriter.set_name_and_extension">set_name_and_extension</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_save_mode" href="io.html#redvox.common.io.FileSystemWriter.set_save_mode">set_save_mode</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_use_disk" href="io.html#redvox.common.io.FileSystemWriter.set_use_disk">set_use_disk</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_use_mem" href="io.html#redvox.common.io.FileSystemWriter.set_use_mem">set_use_mem</a></code></li>
+<li><code><a title="redvox.common.io.FileSystemWriter.set_use_temp" href="io.html#redvox.common.io.FileSystemWriter.set_use_temp">set_use_temp</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="redvox.common.data_window_io.DataWindowOutputType"><code class="flex name class">
+<span>class <span class="ident">DataWindowOutputType</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Type of file to create when exporting DataWindow</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataWindowOutputType(enum.Enum):
+    &#34;&#34;&#34;
+    Type of file to create when exporting DataWindow
+    &#34;&#34;&#34;
+
+    NONE: int = 0
+    LZ4: int = 1
+    PARQUET: int = 2
+
+    @staticmethod
+    def list_names() -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: list of possible values for OutputType
+        &#34;&#34;&#34;
+        return [n.name for n in DataWindowOutputType]
+
+    @staticmethod
+    def list_non_none_names() -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: List of possible non-None values for OutputType
+        &#34;&#34;&#34;
+        return [n.name for n in DataWindowOutputType if n != DataWindowOutputType.NONE]
+
+    @staticmethod
+    def str_to_type(str_type: str) -&gt; &#34;DataWindowOutputType&#34;:
+        &#34;&#34;&#34;
+        converts the string to the corresponding OutputType
+        if the type given is not in list_non_none_names(), returns NONE value
+
+        :param str_type: string to convert
+        :return: DataWindowOutputType matching string given or NONE
+        &#34;&#34;&#34;
+        str_type = str_type.upper()
+        if str_type == &#34;LZ4&#34; or str_type == &#34;PARQUET&#34;:
+            return DataWindowOutputType[str_type]
+        return DataWindowOutputType[&#34;NONE&#34;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.data_window_io.DataWindowOutputType.LZ4"><code class="name">var <span class="ident">LZ4</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_io.DataWindowOutputType.NONE"><code class="name">var <span class="ident">NONE</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_io.DataWindowOutputType.PARQUET"><code class="name">var <span class="ident">PARQUET</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.data_window_io.DataWindowOutputType.list_names"><code class="name flex">
+<span>def <span class="ident">list_names</span></span>(<span>) ‑> List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: list of possible values for OutputType</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def list_names() -&gt; List[str]:
+    &#34;&#34;&#34;
+    :return: list of possible values for OutputType
+    &#34;&#34;&#34;
+    return [n.name for n in DataWindowOutputType]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.DataWindowOutputType.list_non_none_names"><code class="name flex">
+<span>def <span class="ident">list_non_none_names</span></span>(<span>) ‑> List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: List of possible non-None values for OutputType</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def list_non_none_names() -&gt; List[str]:
+    &#34;&#34;&#34;
+    :return: List of possible non-None values for OutputType
+    &#34;&#34;&#34;
+    return [n.name for n in DataWindowOutputType if n != DataWindowOutputType.NONE]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window_io.DataWindowOutputType.str_to_type"><code class="name flex">
+<span>def <span class="ident">str_to_type</span></span>(<span>str_type: str) ‑> <a title="redvox.common.data_window_io.DataWindowOutputType" href="#redvox.common.data_window_io.DataWindowOutputType">DataWindowOutputType</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>converts the string to the corresponding OutputType
+if the type given is not in list_non_none_names(), returns NONE value</p>
+<p>:param str_type: string to convert
+:return: DataWindowOutputType matching string given or NONE</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def str_to_type(str_type: str) -&gt; &#34;DataWindowOutputType&#34;:
+    &#34;&#34;&#34;
+    converts the string to the corresponding OutputType
+    if the type given is not in list_non_none_names(), returns NONE value
+
+    :param str_type: string to convert
+    :return: DataWindowOutputType matching string given or NONE
+    &#34;&#34;&#34;
+    str_type = str_type.upper()
+    if str_type == &#34;LZ4&#34; or str_type == &#34;PARQUET&#34;:
+        return DataWindowOutputType[str_type]
+    return DataWindowOutputType[&#34;NONE&#34;]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.common.data_window_io.DataWindowSerializationResult"><code class="flex name class">
+<span>class <span class="ident">DataWindowSerializationResult</span></span>
+<span>(</span><span>path: str, serialized_bytes: int, compressed_bytes: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>DataWindowSerializationResult(path: str, serialized_bytes: int, compressed_bytes: int)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass
+class DataWindowSerializationResult:
+    path: str
+    serialized_bytes: int
+    compressed_bytes: int</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.data_window_io.DataWindowSerializationResult.compressed_bytes"><code class="name">var <span class="ident">compressed_bytes</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_io.DataWindowSerializationResult.path"><code class="name">var <span class="ident">path</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window_io.DataWindowSerializationResult.serialized_bytes"><code class="name">var <span class="ident">serialized_bytes</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="redvox.common" href="index.html">redvox.common</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="redvox.common.data_window_io.data_window_as_json" href="#redvox.common.data_window_io.data_window_as_json">data_window_as_json</a></code></li>
+<li><code><a title="redvox.common.data_window_io.data_window_to_json" href="#redvox.common.data_window_io.data_window_to_json">data_window_to_json</a></code></li>
+<li><code><a title="redvox.common.data_window_io.data_window_to_json_file_old" href="#redvox.common.data_window_io.data_window_to_json_file_old">data_window_to_json_file_old</a></code></li>
+<li><code><a title="redvox.common.data_window_io.data_window_to_json_old" href="#redvox.common.data_window_io.data_window_to_json_old">data_window_to_json_old</a></code></li>
+<li><code><a title="redvox.common.data_window_io.deserialize_data_window" href="#redvox.common.data_window_io.deserialize_data_window">deserialize_data_window</a></code></li>
+<li><code><a title="redvox.common.data_window_io.deserialize_data_window_old" href="#redvox.common.data_window_io.deserialize_data_window_old">deserialize_data_window_old</a></code></li>
+<li><code><a title="redvox.common.data_window_io.json_file_to_data_window" href="#redvox.common.data_window_io.json_file_to_data_window">json_file_to_data_window</a></code></li>
+<li><code><a title="redvox.common.data_window_io.json_file_to_data_window_old" href="#redvox.common.data_window_io.json_file_to_data_window_old">json_file_to_data_window_old</a></code></li>
+<li><code><a title="redvox.common.data_window_io.serialize_data_window" href="#redvox.common.data_window_io.serialize_data_window">serialize_data_window</a></code></li>
+<li><code><a title="redvox.common.data_window_io.serialize_data_window_old" href="#redvox.common.data_window_io.serialize_data_window_old">serialize_data_window_old</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="redvox.common.data_window_io.DataWindowFileSystemWriter" href="#redvox.common.data_window_io.DataWindowFileSystemWriter">DataWindowFileSystemWriter</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.data_window_io.DataWindowFileSystemWriter.set_extension" href="#redvox.common.data_window_io.DataWindowFileSystemWriter.set_extension">set_extension</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.data_window_io.DataWindowOutputType" href="#redvox.common.data_window_io.DataWindowOutputType">DataWindowOutputType</a></code></h4>
+<ul class="two-column">
+<li><code><a title="redvox.common.data_window_io.DataWindowOutputType.LZ4" href="#redvox.common.data_window_io.DataWindowOutputType.LZ4">LZ4</a></code></li>
+<li><code><a title="redvox.common.data_window_io.DataWindowOutputType.NONE" href="#redvox.common.data_window_io.DataWindowOutputType.NONE">NONE</a></code></li>
+<li><code><a title="redvox.common.data_window_io.DataWindowOutputType.PARQUET" href="#redvox.common.data_window_io.DataWindowOutputType.PARQUET">PARQUET</a></code></li>
+<li><code><a title="redvox.common.data_window_io.DataWindowOutputType.list_names" href="#redvox.common.data_window_io.DataWindowOutputType.list_names">list_names</a></code></li>
+<li><code><a title="redvox.common.data_window_io.DataWindowOutputType.list_non_none_names" href="#redvox.common.data_window_io.DataWindowOutputType.list_non_none_names">list_non_none_names</a></code></li>
+<li><code><a title="redvox.common.data_window_io.DataWindowOutputType.str_to_type" href="#redvox.common.data_window_io.DataWindowOutputType.str_to_type">str_to_type</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.common.data_window_io.DataWindowSerializationResult" href="#redvox.common.data_window_io.DataWindowSerializationResult">DataWindowSerializationResult</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.common.data_window_io.DataWindowSerializationResult.compressed_bytes" href="#redvox.common.data_window_io.DataWindowSerializationResult.compressed_bytes">compressed_bytes</a></code></li>
+<li><code><a title="redvox.common.data_window_io.DataWindowSerializationResult.path" href="#redvox.common.data_window_io.DataWindowSerializationResult.path">path</a></code></li>
+<li><code><a title="redvox.common.data_window_io.DataWindowSerializationResult.serialized_bytes" href="#redvox.common.data_window_io.DataWindowSerializationResult.serialized_bytes">serialized_bytes</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
