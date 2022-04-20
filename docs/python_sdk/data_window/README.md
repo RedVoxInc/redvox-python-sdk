@@ -387,17 +387,17 @@ Continuing with the example, we will look at the audio sensor of our station in 
 from redvox.common.station import Station
 
 station: Station = station_list[0]
-audio_sensor = station.audio_sensor()
-print(audio_sensor.sample_rate_hz())         # sample rate in hz
-print(audio_sensor.is_sample_rate_fixed())   # is sample rate constant
-print(audio_sensor.sample_interval_s())      # sample interval in seconds
-print(audio_sensor.sample_interval_std_s())  # sample interval std dev
-print(audio_sensor.data_timestamps())        # data timestamps as numpy array
-print(audio_sensor.first_data_timestamp())   # first data timestamp
-print(audio_sensor.last_data_timestamp())    # last data timestamp
-print(audio_sensor.samples())                # the data as an ndarray
-print(audio_sensor.num_samples())            # the number of data samples
-print(audio_sensor.data_channels())          # the names of the dataframe columns
+audiosensor = station.audio_sensor()
+print(audiosensor.sample_rate_hz())         # sample rate in hz
+print(audiosensor.is_sample_rate_fixed())   # is sample rate constant
+print(audiosensor.sample_interval_s())      # sample interval in seconds
+print(audiosensor.sample_interval_std_s())  # sample interval std dev
+print(audiosensor.data_timestamps())        # data timestamps as numpy array
+print(audiosensor.first_data_timestamp())   # first data timestamp
+print(audiosensor.last_data_timestamp())    # last data timestamp
+print(audiosensor.samples())                # the data as an ndarray
+print(audiosensor.num_samples())            # the number of data samples
+print(audiosensor.data_channels())          # the names of the dataframe columns
 ```
 
 As a reminder, all timestamps are in [UTC](https://www.timeanddate.com/time/aboututc.html).
@@ -408,7 +408,7 @@ Audio sensors will typically have two data channels, timestamps and microphone.
 We can access the microphone data in the audio sensor using:
 
 ```python
-samples = audio_sensor.get_microphone_data()
+samples = audiosensor.get_microphone_data()
 ```
 
 Other sensors will have functions specific to their data channels.
@@ -416,8 +416,8 @@ Other sensors will have functions specific to their data channels.
 Now that we have access to our data, the possibilities are limitless.  Here is a short pyplot example showing the audio data:
 ```python
 import matplotlib.pyplot as plt
-plt.plot(audio_sensor.data_timestamps() - audio_sensor.first_data_timestamp(), samples)
-plt.title(f"{station.id} - audio data")
+plt.plot(audiosensor.data_timestamps() - audiosensor.first_data_timestamp(), samples)
+plt.title(f"{station.id()} - audio data")
 plt.xlabel(f"microseconds from {requested_start_datetime}")
 plt.show()
 ```
@@ -717,7 +717,7 @@ if __name__ == "__main__":
 
     station = datawindow.first_station()
     
-    print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
+    print(f"{station.id()} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
           f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz()}\n"
           f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed()}\n"
           f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s()}\n"
@@ -772,7 +772,7 @@ datawindow = DataWindow(config=config)
 
 station = datawindow.first_station(target_station)
 
-print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
+print(f"{station.id()} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
       f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz()}\n"
       f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed()}\n"
       f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s()}\n"
@@ -789,7 +789,7 @@ samples = station.audio_sensor().get_microphone_data()
 plt.plot(station.audio_sensor().data_timestamps() -
          station.audio_sensor().first_data_timestamp(),
          samples)
-plt.title(f"{station.id}")
+plt.title(f"{station.id()}")
 plt.xlabel(f"microseconds from {start_timestamp_s}")
 plt.show()
 ```
@@ -801,7 +801,7 @@ _Remember to update your config file to match your environment before running th
 ```python
 import matplotlib.pyplot as plt
 
-from redvox.common.data_window import DataWindowConfig, DataWindow
+from redvox.common.data_window import DataWindow
 
 
 # Variables
@@ -815,7 +815,7 @@ datawindow = DataWindow.from_config_file(config_dir)
 
 station = datawindow.first_station(target_station)
 
-print(f"{station.id} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
+print(f"{station.id()} Audio Sensor (All timestamps are in microseconds since epoch UTC):\n"
       f"mic sample rate in hz: {station.audio_sensor().sample_rate_hz()}\n"
       f"is mic sample rate constant: {station.audio_sensor().is_sample_rate_fixed()}\n"
       f"mic sample interval in seconds: {station.audio_sensor().sample_interval_s()}\n"
@@ -832,9 +832,32 @@ samples = station.audio_sensor().get_microphone_data()
 plt.plot(station.audio_sensor().data_timestamps() -
          station.audio_sensor().first_data_timestamp(),
          samples)
-plt.title(f"{station.id}")
+plt.title(f"{station.id()}")
 plt.xlabel(f"microseconds from {datawindow.start_date()}")
 plt.show()
+```
+
+Saving and loading a DataWindow:
+```python
+from redvox.common.data_window import DataWindow
+
+
+# assuming you created datawindow using a method from above:
+# saving
+datawindow.save()
+
+# loading
+load_path = "/path/to/datawindow.json"
+DataWindow.load(load_path)
+```
+
+If you have an lz4 file (for example, from [redvox.io](https://redvox.io/#/home)):
+```python
+from redvox.common.data_window import DataWindow
+
+
+load_path = "/path/to/datawindow.lz4"
+DataWindow.deserialize(load_path)
 ```
 
 _[Table of Contents](#table-of-contents)_
