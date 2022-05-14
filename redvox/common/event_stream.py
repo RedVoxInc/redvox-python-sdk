@@ -1,4 +1,4 @@
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Union
 from dataclasses import dataclass, field
 from pathlib import Path
 import enum
@@ -227,6 +227,15 @@ class Event:
             result[f] = [k for k in self._data[f].keys()]
         return result
 
+    def get_column_names(self) -> List[str]:
+        """
+        :return: the column names of the data
+        """
+        result = []
+        for f in self._data.keys():
+            result.extend([k for k in self._data[f].keys()])
+        return result
+
     def get_string_values(self) -> dict:
         """
         :return: the string data as a dictionary
@@ -302,6 +311,17 @@ class Event:
             if s == data_key:
                 return byts[s]
         return None
+
+    def get_item(self, data_key: str) -> Union[List[str], str, bool, float]:
+        """
+        :param data_key: key of data to get
+        :return: data with matching data_key or the list of all possible data keys
+        """
+        for r in [self.get_string_item(data_key), self.get_numeric_item(data_key),
+                  self.get_boolean_item(data_key), self.get_byte_item(data_key)]:
+            if r is not None:
+                return r
+        return self.get_column_names()
 
     def get_classification(self, index: int = 0) -> dict:
         """
@@ -640,12 +660,36 @@ class EventStream:
 
     def get_event(self, index: int = 0) -> Optional[Event]:
         """
-        :param index: index of event to get.  Use non-negative values only.  Default 0 (first event)
+        :param index: index of event to get.  Use negative values to select from the end of the list.
+                        Default 0 (first event)
         :return: Event at the index, or None if the event/index doesn't exist
         """
-        if index >= len(self.events) or index < 0:
-            return None
-        return self.events[index]
+        if 0 > index:
+            index += len(self.events)
+        if 0 <= index < len(self.events):
+            return self.events[index]
+        return None
+
+    def get_column(self, column_name: str) -> list:
+        """
+        return a list of data with key column_name from the events
+        if column_name doesn't exist, gets a list of valid column_names
+
+        :param column_name: key of data to get
+        :return: list of data named column_name or the list of all possible column names
+        """
+        result = []
+        column_list = set()
+        for r in self.events:
+            val = r.get_item(column_name)
+            if type(val) != list:
+                result.append(val)
+            else:
+                for v in val:
+                    column_list.add(v)
+        if len(result) > 0:
+            return result
+        return list(column_list)
 
     @staticmethod
     def from_eventstream(stream: RedvoxPacketM.EventStream,
@@ -691,6 +735,8 @@ class EventStream:
             for i in range(len(timestamps)):
                 self.events.append(Event(timestamps[i], save_mode=save_mode,
                                          base_dir=base_dir).read_raw(events[i]))
+        else:
+            print(f"Stream name mismatch while adding to EventStream.  Expected {self.name}, got {stream.name}.")
 
     def sort_events(self, asc: bool = True):
         """
@@ -699,6 +745,23 @@ class EventStream:
         :param asc: if True, data is sorted in ascending order
         """
         self.events.sort(key=lambda e: e.timestamp, reverse=not asc)
+
+    def num_events(self) -> int:
+        """
+        :return: number of events in stream
+        """
+        return len(self.events)
+
+    def create_event_window(self, start: float = -np.inf, end: float = np.inf):
+        """
+        removes any event in the stream that doesn't match start <= event < end
+        default start is negative infinity, default end is infinity
+        all times in microseconds since epoch UTC
+
+        :param start: inclusive start time of events to keep
+        :param end: exclusive end time of events to keep
+        """
+        self.events = [s for s in self.events if start <= s.get_timestamp() < end]
 
     def get_file_names(self) -> List[str]:
         """
@@ -892,6 +955,18 @@ class EventStreams:
         :return: names of all streams
         """
         return [s.name for s in self.streams]
+
+    def create_event_window(self, start: float = -np.inf, end: float = np.inf):
+        """
+        removes any event in the streams that doesn't match start <= event < end
+        default start is negative infinity, default end is infinity
+        all times in microseconds since epoch UTC
+
+        :param start: inclusive start time of events to keep
+        :param end: exclusive end time of events to keep
+        """
+        for s in self.streams:
+            s.create_event_window(start, end)
 
     def set_save_dir(self, new_dir: str):
         """

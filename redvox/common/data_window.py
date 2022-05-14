@@ -810,6 +810,7 @@ class DataWindow:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime)
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
+        # process events?
         self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
         if station.has_audio_data():
             for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
@@ -820,6 +821,7 @@ class DataWindow:
             station.set_packet_metadata([meta for meta in station.packet_metadata()
                                          if meta.packet_start_mach_timestamp < station.last_data_timestamp() and
                                          meta.packet_end_mach_timestamp >= station.first_data_timestamp()])
+            station.event_data().create_event_window(station.first_data_timestamp(), station.last_data_timestamp())
             if self._fs_writer.is_save_disk():
                 station.set_save_mode(io.FileSystemSaveMode.DISK)
                 station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())

@@ -268,7 +268,8 @@ class FileSystemWriter:
             else:
                 os.makedirs(self.save_dir())
         elif self.is_use_temp():
-            remove_dir_contents(Path(self._temp_dir.name))
+            self._temp_dir.cleanup()
+            self._temp_dir = tempfile.TemporaryDirectory()
 
     def __del__(self):
         """

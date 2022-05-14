@@ -1,5 +1,19 @@
 ## Changelog
 
+### 3.2.1 (??-??-??)
+
+* There is a known bug when exiting programs in which a DataWindow has been created.  This bug is fairly benign and
+  can be mitigated by explicitly deleting the DataWindow that was created.
+  ```
+  # example code
+  my_dw: DataWindow
+  del my_dw
+  ```
+* Added searching functionality to EventStream.  The functions return a list of valid values if the user inputs a 
+  value that doesn't exist
+* Include automatic updates to data based on OS and app version to account for discrepancies in sensor readings
+* TBC
+
 ### 3.2.0 (2022-4-20)
 
 * Updated cloud HTTP client: Added support for geo-based cloud metadata queries

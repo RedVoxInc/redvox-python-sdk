@@ -90,11 +90,13 @@ class ApiReader:
             mem_split_factor = len(self.files_index) if settings.is_parallelism_enabled() else 1
             self.chunk_limit = psutil.virtual_memory().available * PERCENT_FREE_MEM_USE / mem_split_factor
             max_file_size = max([fe.decompressed_file_size_bytes for fi in self.files_index for fe in fi.entries])
+            total_est_size = max_file_size * sum([len(fi.entries) for fi in self.files_index])
             if max_file_size > self.chunk_limit:
                 raise MemoryError(f"System requires {max_file_size} bytes of memory to process a file but only has "
                                   f"{self.chunk_limit} available.  Please free or add more RAM.")
-            elif max_file_size * sum([len(fi.entries) for fi in self.files_index]) > self.chunk_limit:
-                raise MemoryError("TOO MUCH DATA DAWG")
+            elif total_est_size / mem_split_factor > self.chunk_limit:
+                raise MemoryError(f"{total_est_size} of data requested, but only {self.chunk_limit} available; "
+                                  f"please reduce the amount of data you are requesting.")
             if debug:
                 if mem_split_factor == 1:
                     print(f"{len(self.files_index)} stations have {int(self.chunk_limit)} "

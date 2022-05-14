@@ -28,13 +28,14 @@ from redvox.common.event_stream import EventStreams
 class Station:
     """
     generic station for api-independent stuff; uses API M as the core data object since its quite versatile
-    In order for a list of packets to be a station, all of the packets must:
+    In order for a list of data to be a station, all of the data packets must:
         * Have the same station id
         * Have the same station uuid
-        * Have the same start time
+        * Have the same start date
         * Have the same audio sample rate
+        * Have the same metadata
     Properties:
-        _data: list sensor data associated with the station, default empty dictionary
+        _data: list of sensor data associated with the station, default empty list
 
         _metadata: StationMetadata consistent across all packets, default empty StationMetadata
 
@@ -46,9 +47,9 @@ class Station:
 
         _start_date: float of microseconds since epoch UTC when the station started recording, default np.nan
 
-        _first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
+        _first_data_timestamp: float of microseconds since epoch UTC of the first audio data point, default np.nan
 
-        _last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
+        _last_data_timestamp: float of microseconds since epoch UTC of the last audio data point, default np.nan
 
         _audio_sample_rate_nominal_hz: float of nominal sample rate of audio component in hz, default np.nan
 
@@ -59,11 +60,13 @@ class Station:
         _timesync_data: TimeSyncArrow object, contains information about the station's time synchronization values
 
         _correct_timestamps: bool, if True, timestamps are updated as soon as they can be, default False
+        Note: If False, Timestamps can still be corrected if the update_timestamps function is invoked.
 
         _use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
         correction is done by adding the OffsetModel's best offset (intercept value).  default True
 
-        _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
+        _gaps: List of Tuples of floats indicating start and end times of audio gaps.
+        Times are not inclusive of the gap.
 
         _fs_writer: FileSystemWriter, handles file system i/o parameters
 
@@ -1297,6 +1300,25 @@ class Station:
             return f"{self._id}_0"
         return f"{self._id}_{int(self._start_date)}"
 
+    def _fix_sensor_data(self, sensor_type: sd.SensorType, data_table: pa.Table) -> pa.Table:
+        """
+        fix any problems with the data in data_table due to app/OS version
+
+        :param sensor_type: type of sensor
+        :param data_table: the data to edit
+        :return: updated table
+        """
+        if sensor_type == sd.SensorType.ACCELEROMETER and self.metadata().os == st_utils.OsType["IOS"] \
+                and (self._app_version_major()[0] < 4 or
+                     (self._app_version_major()[0] == 4 and self._app_version_major()[1] == 0)):
+            data_table = data_table.set_column(2, "accelerometer_x",
+                                               pa.array(data_table["accelerometer_x"].to_numpy() * -9.8))
+            data_table = data_table.set_column(3, "accelerometer_y",
+                                               pa.array(data_table["accelerometer_y"].to_numpy() * -9.8))
+            data_table = data_table.set_column(4, "accelerometer_z",
+                                               pa.array(data_table["accelerometer_z"].to_numpy() * -9.8))
+        return data_table
+
     def _set_pyarrow_sensors(self, sensor_summaries: ptp.AggregateSummary):
         """
         create pyarrow tables that will become sensors (and in audio's case, just make it a sensor)
@@ -1306,10 +1328,9 @@ class Station:
         audio_summary = sensor_summaries.get_audio()
         if audio_summary:
             # fuse audio into a single result
-            first_audio = audio_summary[0]
             self._gaps = sensor_summaries.gaps
-            self._data.append(sd.AudioSensor(first_audio.name, first_audio.data(), first_audio.srate_hz,
-                                             1 / first_audio.srate_hz, 0., True,
+            self._data.append(sd.AudioSensor(audio_summary[0].name, audio_summary[0].data(), audio_summary[0].srate_hz,
+                                             1 / audio_summary[0].srate_hz, 0., True,
                                              use_offset_model_for_correction=self._use_model_correction,
                                              base_dir=self.get_save_dir_sensor(sd.SensorType.AUDIO),
                                              save_data=self._fs_writer.is_save_disk()))
@@ -1321,13 +1342,13 @@ class Station:
                     data_table = sdata[0].data()
                     for i in range(1, len(sdata)):
                         data_table = pa.concat_tables([data_table, sdata[i].data()])
+                data_table = self._fix_sensor_data(snr, data_table)
                 if np.isnan(sdata[0].srate_hz):
                     timestamps = data_table["timestamps"].to_numpy()
-                    smnint = float(np.mean(np.diff(timestamps))) if len(timestamps) > 1 else np.nan
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        smnint, True)
+                        float(np.mean(np.diff(timestamps))) if len(timestamps) > 1 else np.nan, True)
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
@@ -1347,6 +1368,13 @@ class Station:
                 self._data.append(new_sensor.class_from_type())
         else:
             self._errors.append("Audio Sensor expected, but does not exist.")
+
+    def _app_version_major(self) -> Tuple[int, int]:
+        """
+        :return: tuple of app version to 2 significant version numbers (i.e: version number x.y.z returns x and y)
+        """
+        nums = self.metadata().app_version.split(".")
+        return int(nums[0]), int(nums[1])
 
     def metadata(self) -> st_utils.StationMetadata:
         """
