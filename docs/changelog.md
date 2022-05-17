@@ -7,6 +7,7 @@
   ```
   # example code
   my_dw: DataWindow
+  # do stuff with my_dw
   del my_dw
   ```
 * Added searching functionality to EventStream.  The functions return a list of valid values if the user inputs a 

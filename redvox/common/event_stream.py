@@ -50,7 +50,7 @@ class Event:
     def __init__(self,
                  timestamp: float,
                  name: str = "event",
-                 data: Optional[Dict[str, dict]] = None,
+                 data: Optional[Dict[EventDataTypes, dict]] = None,
                  save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
                  base_dir: str = "."):
         """
@@ -227,9 +227,9 @@ class Event:
             result[f] = [k for k in self._data[f].keys()]
         return result
 
-    def get_column_names(self) -> List[str]:
+    def get_data_keys(self) -> List[str]:
         """
-        :return: the column names of the data
+        :return: the keys of the data in the event
         """
         result = []
         for f in self._data.keys():
@@ -293,7 +293,7 @@ class Event:
         :param data_key: the name of the data value to look for
         :return: boolean data if it exists, None otherwise
         """
-        boos = self.get_string_values()
+        boos = self.get_boolean_values()
         for s in boos.keys():
             if s == data_key:
                 return boos[s]
@@ -306,7 +306,7 @@ class Event:
         :param data_key: the name of the data value to look for
         :return: byte data if it exists, None otherwise
         """
-        byts = self.get_string_values()
+        byts = self.get_byte_values()
         for s in byts.keys():
             if s == data_key:
                 return byts[s]
@@ -321,7 +321,7 @@ class Event:
                   self.get_boolean_item(data_key), self.get_byte_item(data_key)]:
             if r is not None:
                 return r
-        return self.get_column_names()
+        return self.get_data_keys()
 
     def get_classification(self, index: int = 0) -> dict:
         """
@@ -333,7 +333,7 @@ class Event:
         result = {}
         for s in self._data.keys():
             for b, v in self._data[s].items():
-                match = re.match(f"*_{index}", b)
+                match = re.search(f"_{index}$", b)
                 if match is not None:
                     result[b] = v
         return result
@@ -621,12 +621,15 @@ class EventStream:
         sample_rate_std_hz: float; std deviation of the sample rate.  Default 0.0
 
         metadata: Dict[str, str]; metadata as dict of strings.  Default empty dict
+
+        debug: boolean; if True, outputs additional information at runtime.  Default False.
     """
     name: str = "stream"
     events: List[Event] = field(default_factory=lambda: [])
     sample_rate_hz: float = np.nan
     sample_rate_std_hz: float = 0.0
     metadata: Dict[str, str] = field(default_factory=lambda: {})
+    debug: bool = False
 
     def __repr__(self):
         return f"name: {self.name}, " \
@@ -670,9 +673,9 @@ class EventStream:
             return self.events[index]
         return None
 
-    def get_column(self, column_name: str) -> list:
+    def get_data_column(self, column_name: str) -> list:
         """
-        return a list of data with key column_name from the events
+        return a list of data with key column_name from each of the events
         if column_name doesn't exist, gets a list of valid column_names
 
         :param column_name: key of data to get
@@ -735,7 +738,7 @@ class EventStream:
             for i in range(len(timestamps)):
                 self.events.append(Event(timestamps[i], save_mode=save_mode,
                                          base_dir=base_dir).read_raw(events[i]))
-        else:
+        elif self.debug:
             print(f"Stream name mismatch while adding to EventStream.  Expected {self.name}, got {stream.name}.")
 
     def sort_events(self, asc: bool = True):
