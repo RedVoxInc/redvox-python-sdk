@@ -540,7 +540,9 @@ class DataWindow:
         :return: DataWindow from json metadata
         """
         cur_path = os.getcwd()
-        os.chdir(os.path.dirname(file_path))
+        path_dir = os.path.dirname(file_path)
+        if path_dir:
+            os.chdir(os.path.dirname(file_path))
         result = DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
         os.chdir(cur_path)
         return result

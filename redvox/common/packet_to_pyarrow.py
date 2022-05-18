@@ -348,7 +348,7 @@ class AggregateSummary:
 
     def get_non_audio(self) -> Dict[srupa.SensorType, List[PyarrowSummary]]:
         """
-        :return: a dictionary of non-Audio SensorType: PyarrowSummary
+        :return: a dictionary of {non-Audio SensorType: PyarrowSummary}
         """
         result = {}
         for k in self.sensor_types():

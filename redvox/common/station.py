@@ -1308,6 +1308,7 @@ class Station:
         :param data_table: the data to edit
         :return: updated table
         """
+        # iOS accelerometer recorded values in G's instead of m/s2 before app version 4.1.x
         if sensor_type == sd.SensorType.ACCELEROMETER and self.metadata().os == st_utils.OsType["IOS"] \
                 and (self._app_version_major()[0] < 4 or
                      (self._app_version_major()[0] == 4 and self._app_version_major()[1] == 0)):
@@ -1321,7 +1322,7 @@ class Station:
 
     def _set_pyarrow_sensors(self, sensor_summaries: ptp.AggregateSummary):
         """
-        create pyarrow tables that will become sensors (and in audio's case, just make it a sensor)
+        create sensors using pyarrow functions to convert summaries to tables and metadata
 
         :param sensor_summaries: summaries of sensor data that can be used to create sensors
         """

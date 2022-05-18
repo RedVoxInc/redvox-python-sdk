@@ -4,7 +4,6 @@ This file is expected to be in the same directory as the JSON file being loaded,
 and there is only one JSON file to load.
 This file is expected to work with SDK version 3.1.4 and higher
 """
-
 import redvox.common.data_window as dwa
 from redvox.common.io import get_json_file
 
@@ -13,7 +12,7 @@ def main():
     files = get_json_file(".")
     if files is None:
         raise KeyError("Missing .json file to load!")
-    dw = dwa.DataWindow.load(files)
+    dw = dwa.DataWindow.load(f"./{files}")
 
     print("Stations by ID in Data Window:", [sttn.id() for sttn in dw.stations()])
     st = dw.first_station()

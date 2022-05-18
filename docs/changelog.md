@@ -13,7 +13,7 @@
 * Added searching functionality to EventStream.  The functions return a list of valid values if the user inputs a 
   value that doesn't exist
 * Include automatic updates to data based on OS and app version to account for discrepancies in sensor readings
-* TBC
+* Fixed bug in run_me.py
 
 ### 3.2.0 (2022-4-20)
 
