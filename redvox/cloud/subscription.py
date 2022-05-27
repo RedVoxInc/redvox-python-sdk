@@ -4,15 +4,50 @@ A simple WebSocket API for subscribing to live RedVox data.
 
 import time
 import threading
-from typing import Optional, List, Iterator
+from dataclasses import dataclass
+from typing import Optional, List, Iterator, TypeVar, Generic
 from queue import Empty, Queue
 
 import lz4.frame
+from dataclasses_json import dataclass_json
 from websocket import WebSocketApp
 
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.cloud.client import CloudClient
+
+
+@dataclass_json
+@dataclass
+class PubHeader:
+    """
+    A header that is optionally included with messages from subscription producers.
+    """
+
+    file_path: str
+
+
+T = TypeVar("T", bytes, RedvoxPacketM, WrappedRedvoxPacketM)
+R = TypeVar("R", RedvoxPacketM, WrappedRedvoxPacketM)
+
+
+@dataclass
+class PubMsg(Generic[T]):
+    header: Optional[PubHeader]
+    msg: T
+
+    def map(self, msg: R) -> "PubMsg[R]":
+        return PubMsg(self.header, msg)
+
+    @staticmethod
+    def parse(msg: bytes) -> "PubMsg":
+        if msg[:3] == b"\xc0\xff\xee":
+            header_len: int = int.from_bytes(msg[3:5], "little", signed=False)
+            json: str = msg[5 : 5 + header_len].decode("utf-8")
+            pub_header: PubHeader = PubHeader.from_json(json)  # type: ignore
+            return PubMsg(pub_header, msg[5 + header_len :])
+        else:
+            return PubMsg(None, msg)
 
 
 def fmt_uri(base: str, auth_token: str, station_ids: Optional[List[str]] = None) -> str:
@@ -31,12 +66,12 @@ def fmt_uri(base: str, auth_token: str, station_ids: Optional[List[str]] = None)
             map(lambda station_id: f"&station_id={station_id}", station_ids)
         )
 
-    return f"{base}?auth_token={auth_token}{station_ids_query}"
+    return f"{base}?auth_token={auth_token}{station_ids_query}&include_header=true"
 
 
 def subscribe_bytes_queue(
     base_uri: str,
-    queue: Queue[bytes],
+    queue: Queue[PubMsg[bytes]],
     client: CloudClient,
     station_ids: Optional[List[str]] = None,
 ) -> None:
@@ -48,16 +83,13 @@ def subscribe_bytes_queue(
     :param station_ids: An optional list of station IDs to subscribe to.
     """
 
-    def on_message(ws_app: WebSocketApp, msg: bytes) -> None:
-        queue.put(msg)
-
     while True:
         uri: str = fmt_uri(base_uri, client.auth_token, station_ids)
         print(f"Connecting to {uri}")
         # noinspection PyTypeChecker
         ws_app: WebSocketApp = WebSocketApp(
             uri,
-            on_message=on_message,
+            on_message=lambda ws, msg: queue.put(PubMsg.parse(msg)),
             on_open=lambda ws: print("Connection established"),
             on_error=lambda ws, ex: print(f"Connection error: {ex}"),
             on_close=lambda ws, code, reason: print(
@@ -75,7 +107,7 @@ def subscribe_bytes(
     base_uri: str,
     client: CloudClient,
     station_ids: Optional[List[str]] = None,
-) -> Iterator[bytes]:
+) -> Iterator[PubMsg[bytes]]:
     """
     Create a subscription on the RedVox packet compressed bytes objects.
     :param base_uri: The base URI to the acquisition subscription service.
@@ -83,7 +115,7 @@ def subscribe_bytes(
     :param station_ids: An optional list of station IDs to subscribe to.
     :return: An iterator over RedVox compressed bytes instances.
     """
-    queue: Queue = Queue()
+    queue: Queue[PubMsg[bytes]] = Queue()
     subscription_thread: threading.Thread = threading.Thread(
         target=subscribe_bytes_queue, args=(base_uri, queue, client, station_ids)
     )
@@ -100,7 +132,7 @@ def subscribe_proto(
     base_uri: str,
     client: CloudClient,
     station_ids: Optional[List[str]] = None,
-) -> Iterator[RedvoxPacketM]:
+) -> Iterator[PubMsg[RedvoxPacketM]]:
     """
     Create a subscription on the RedVox packet protobuf objects (RedvoxPacketM).
     :param base_uri: The base URI to the acquisition subscription service.
@@ -108,19 +140,19 @@ def subscribe_proto(
     :param station_ids: An optional list of station IDs to subscribe to.
     :return: An iterator over RedvoxPacketM instances.
     """
-    compressed_bytes: bytes
-    for compressed_bytes in subscribe_bytes(base_uri, client, station_ids):
-        decompressed_bytes: bytes = lz4.frame.decompress(compressed_bytes, False)
+    pub_msg: PubMsg[bytes]
+    for pub_msg in subscribe_bytes(base_uri, client, station_ids):
+        decompressed_bytes: bytes = lz4.frame.decompress(pub_msg.msg, False)
         proto: RedvoxPacketM = RedvoxPacketM()
         proto.ParseFromString(decompressed_bytes)
-        yield proto
+        yield pub_msg.map(proto)
 
 
 def subscribe_packet(
     base_uri: str,
     client: CloudClient,
     station_ids: Optional[List[str]] = None,
-) -> Iterator[WrappedRedvoxPacketM]:
+) -> Iterator[PubMsg[WrappedRedvoxPacketM]]:
     """
     Create a subscription on the RedVox wrapped packet objects (WrappedRedvoxPacketM).
     :param base_uri: The base URI to the acquisition subscription service.
@@ -128,6 +160,6 @@ def subscribe_packet(
     :param station_ids: An optional list of station IDs to subscribe to.
     :return: An iterator over WrappedRedvoxPacketM instances.
     """
-    proto: RedvoxPacketM
-    for proto in subscribe_proto(base_uri, client, station_ids):
-        yield WrappedRedvoxPacketM(proto)
+    pub_msg: PubMsg[RedvoxPacketM]
+    for pub_msg in subscribe_proto(base_uri, client, station_ids):
+        yield pub_msg.map(WrappedRedvoxPacketM(pub_msg.msg))
