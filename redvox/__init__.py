@@ -21,6 +21,7 @@ def print_redvox_info() -> None:
     Prints information about this library to standard out.
     """
     import redvox.settings
+
     print()
     print(f"version: {VERSION}")
     print(f"parallelism enabled: {redvox.settings.is_parallelism_enabled()}")
