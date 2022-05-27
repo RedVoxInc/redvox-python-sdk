@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.3.2 (2022-5-27)
+
+* Add API for real-time subscriptions
+
 ### 3.2.0 (2022-4-20)
 
 * Updated cloud HTTP client: Added support for geo-based cloud metadata queries
