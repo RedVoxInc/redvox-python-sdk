@@ -3,7 +3,7 @@ Provides library level metadata and constants.
 """
 
 NAME: str = "redvox"
-VERSION: str = "3.2.0"
+VERSION: str = "3.3.3"
 
 
 def version() -> str:
@@ -21,6 +21,7 @@ def print_redvox_info() -> None:
     Prints information about this library to standard out.
     """
     import redvox.settings
+
     print()
     print(f"version: {VERSION}")
     print(f"parallelism enabled: {redvox.settings.is_parallelism_enabled()}")

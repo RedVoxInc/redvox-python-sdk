@@ -1,5 +1,13 @@
 ## Changelog
 
+### 3.3.3 (2022-6-1)
+
+* Add support for subscriptions to distributed servers
+
+### 3.3.2 (2022-5-27)
+
+* Add API for real-time subscriptions
+
 ### 3.2.1 (??-??-??)
 
 * There is a known bug when exiting programs in which a DataWindow has been created.  This bug is fairly benign and

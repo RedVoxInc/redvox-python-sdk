@@ -32,7 +32,7 @@ Provides library level metadata and constants.
 &#34;&#34;&#34;
 
 NAME: str = &#34;redvox&#34;
-VERSION: str = &#34;3.2.0&#34;
+VERSION: str = &#34;3.3.3&#34;
 
 
 def version() -&gt; str:
@@ -50,6 +50,7 @@ def print_redvox_info() -&gt; None:
     Prints information about this library to standard out.
     &#34;&#34;&#34;
     import redvox.settings
+
     print()
     print(f&#34;version: {VERSION}&#34;)
     print(f&#34;parallelism enabled: {redvox.settings.is_parallelism_enabled()}&#34;)
@@ -111,6 +112,7 @@ def print_redvox_info() -&gt; None:
     Prints information about this library to standard out.
     &#34;&#34;&#34;
     import redvox.settings
+
     print()
     print(f&#34;version: {VERSION}&#34;)
     print(f&#34;parallelism enabled: {redvox.settings.is_parallelism_enabled()}&#34;)
