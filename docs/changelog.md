@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.3.3 (2022-6-1)
+
+* Add support for subscriptions to distributed servers
+
 ### 3.3.2 (2022-5-27)
 
 * Add API for real-time subscriptions
