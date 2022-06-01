@@ -1,5 +1,19 @@
 ## Changelog
 
+### 3.3.4 (??-??-??)
+
+* There is a known issue when exiting programs in which a DataWindow has been created.  This issue can be mitigated by 
+  explicitly deleting the DataWindow that was created.
+  ```
+  # example code
+  my_dw: DataWindow
+  del my_dw
+  ```
+* Added searching functionality to EventStream.  The functions return a list of valid values if the user inputs a
+  value that doesn't exist
+* Include automatic updates to data based on OS and app version to account for discrepancies in sensor readings
+* TBC
+
 ### 3.3.3 (2022-6-1)
 
 * Add support for subscriptions to distributed servers
@@ -7,20 +21,6 @@
 ### 3.3.2 (2022-5-27)
 
 * Add API for real-time subscriptions
-
-### 3.2.1 (??-??-??)
-
-* There is a known bug when exiting programs in which a DataWindow has been created.  This bug is fairly benign and
-  can be mitigated by explicitly deleting the DataWindow that was created.
-  ```
-  # example code
-  my_dw: DataWindow
-  del my_dw
-  ```
-* Added searching functionality to EventStream.  The functions return a list of valid values if the user inputs a 
-  value that doesn't exist
-* Include automatic updates to data based on OS and app version to account for discrepancies in sensor readings
-* TBC
 
 ### 3.2.0 (2022-4-20)
 
