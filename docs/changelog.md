@@ -1,15 +1,7 @@
 ## Changelog
 
-### 3.3.4 (??-??-??)
+### 3.3.4 (2022-6-6)
 
-* There is a known issue when exiting programs in which a DataWindow has been created.  This issue can be mitigated by 
-  explicitly deleting the DataWindow that was created.
-  ```
-  # example code
-  my_dw: DataWindow
-  # do stuff with my_dw
-  del my_dw
-  ```
 * Added searching functionality to EventStream.  The functions return a list of valid values if the user inputs a
   value that doesn't exist
 * Include automatic updates to data based on OS and app version to account for discrepancies in sensor readings
