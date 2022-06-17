@@ -143,8 +143,7 @@ class Station:
             else datetime_from_epoch_microseconds_utc(self._start_date).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         return f"id: {self._id}, " \
                f"uuid: {self._uuid}, " \
-               f"start_date: " \
-               f"{start_date}, " \
+               f"start_date: {start_date}, " \
                f"use_model_correction: {self._use_model_correction}, " \
                f"is_timestamps_updated: {self._is_timestamps_updated}, " \
                f"metadata: {self._metadata.__str__()}, " \

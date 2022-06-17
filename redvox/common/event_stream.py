@@ -325,7 +325,7 @@ class Event:
 
     def get_classification(self, index: int = 0) -> dict:
         """
-        get a classification from an event
+        get a classification from an event (anything that ends with "_X" where X is the index value)
 
         :param index: index of classification, default 0
         :return: dictionary of data
