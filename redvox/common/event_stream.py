@@ -616,9 +616,13 @@ class EventStream:
 
         events: List[Event]; all events in the stream.  Default empty list
 
-        sample_rate_hz: float; the sample rate of the events.  Default np.nan
+        input_sample_rate: int; audio sample rate.  Default 0
 
-        sample_rate_std_hz: float; std deviation of the sample rate.  Default 0.0
+        samples_per_window: int; samples per window of the events.  Default 0
+
+        samples_per_hop: int; samples per hop of the events.  Default 0
+
+        model_version: string; version of the model.  Default "0.0"
 
         metadata: Dict[str, str]; metadata as dict of strings.  Default empty dict
 
@@ -626,22 +630,28 @@ class EventStream:
     """
     name: str = "stream"
     events: List[Event] = field(default_factory=lambda: [])
-    sample_rate_hz: float = np.nan
-    sample_rate_std_hz: float = 0.0
+    input_sample_rate: int = 0
+    samples_per_window: int = 0
+    samples_per_hop: int = 0
+    model_version: str = "n/a"
     metadata: Dict[str, str] = field(default_factory=lambda: {})
     debug: bool = False
 
     def __repr__(self):
         return f"name: {self.name}, " \
                f"events: {[s.__repr__() for s in self.events]}, " \
-               f"sample_rate_hz: {self.sample_rate_hz}, " \
-               f"sample_rate_std_hz: {self.sample_rate_std_hz}"
+               f"input_sample_rate: {self.input_sample_rate}, " \
+               f"samples_per_window: {self.samples_per_window}, " \
+               f"samples_per_hop: {self.samples_per_hop}, " \
+               f"model_version: {self.model_version}"
 
     def __str__(self):
         return f"name: {self.name}, " \
                f"events: {[s.__str__() for s in self.events]}, " \
-               f"sample_rate_hz: {self.sample_rate_hz}, " \
-               f"sample_rate_std_hz: {self.sample_rate_std_hz}"
+               f"input_sample_rate: {self.input_sample_rate}, " \
+               f"samples_per_window: {self.samples_per_window}, " \
+               f"samples_per_hop: {self.samples_per_hop}, " \
+               f"model_version: {self.model_version}"
 
     def as_dict(self) -> dict:
         """
@@ -650,14 +660,22 @@ class EventStream:
         return {
             "name": self.name,
             "events": [e.as_dict() for e in self.events],
-            "sample_rate_hz": self.sample_rate_hz,
-            "sample_rate_std_hz": self.sample_rate_std_hz,
+            "input_sample_rate": self.input_sample_rate,
+            "samples_per_window": self.samples_per_window,
+            "samples_per_hop": self.samples_per_hop,
+            "model_version": self.model_version,
             "metadata": self.metadata
         }
 
     def has_data(self):
         """
         :return: if there is at least one event
+        """
+        return len(self.events) > 0
+
+    def has_events(self) -> bool:
+        """
+        :return: True if there are one or more events in the stream
         """
         return len(self.events) > 0
 
@@ -709,10 +727,15 @@ class EventStream:
                             Default current directory (".")
         :return: EventStream (sdk version)
         """
-        result = EventStream(stream.name, sample_rate_hz=stream.timestamps.mean_sample_rate,
-                             sample_rate_std_hz=stream.timestamps.stdev_sample_rate,
-                             metadata=dict(stream.metadata)
-                             )
+        result = EventStream(stream.name, metadata=dict(stream.metadata))
+        if "input_sample_rate" in stream.metadata.keys():
+            result.input_sample_rate = int(stream.metadata.get("input_sample_rate"))
+        if "input_samples_per_window" in stream.metadata.keys():
+            result.samples_per_window = int(stream.metadata.get("input_samples_per_window"))
+        if "input_samples_per_hop" in stream.metadata.keys():
+            result.samples_per_hop = int(stream.metadata.get("input_samples_per_hop"))
+        if "model_version" in stream.metadata.keys():
+            result.model_version = stream.metadata.get("model_version")
         result.add_events(stream,
                           save_mode=save_mode,
                           base_dir=base_dir)
@@ -747,13 +770,31 @@ class EventStream:
 
         :param asc: if True, data is sorted in ascending order
         """
-        self.events.sort(key=lambda e: e.timestamp, reverse=not asc)
+        self.events.sort(key=lambda e: e.get_timestamp(), reverse=not asc)
 
     def num_events(self) -> int:
         """
         :return: number of events in stream
         """
         return len(self.events)
+
+    def sample_rate_hz(self):
+        """
+        :return: sample rate of events in the stream in hz
+        """
+        return np.mean(np.diff([e.get_timestamp() for e in self.events]))
+
+    def window_sample_rate_hz(self):
+        """
+        :return: idealized event sample window rate in hz
+        """
+        return self.input_sample_rate / self.samples_per_window
+
+    def hop_sample_rate_hz(self):
+        """
+        :return: idealized event sample hop rate in hz
+        """
+        return self.input_sample_rate / self.samples_per_hop
 
     def create_event_window(self, start: float = -np.inf, end: float = np.inf):
         """
@@ -765,6 +806,10 @@ class EventStream:
         :param end: exclusive end time of events to keep
         """
         self.events = [s for s in self.events if start <= s.get_timestamp() < end]
+        if self.num_events() > 0:
+            if start < self.events[0].get_timestamp():
+                self.events.insert(0, Event(start, self.name))
+            self.events.append(Event(end, self.name))
 
     def get_file_names(self) -> List[str]:
         """
@@ -819,7 +864,8 @@ class EventStream:
         """
         if "name" in json_dict.keys():
             result = EventStream(json_dict["name"], [Event.from_json_dict(e) for e in json_dict["events"]],
-                                 json_dict["sample_rate_hz"], json_dict["sample_rate_std_hz"], json_dict["metadata"])
+                                 json_dict["input_sample_rate"], json_dict["samples_per_window"],
+                                 json_dict["samples_per_hop"], json_dict["model_version"], json_dict["metadata"])
         else:
             result = EventStream("Empty Stream; no name for identification")
         return result
@@ -833,8 +879,9 @@ class EventStream:
         """
         json_data = io.json_file_to_dict(os.path.join(file_dir, f"{file_name}"))
         if "name" in json_data.keys():
-            result = EventStream(json_data["name"], json_data["events"], json_data["sample_rate_hz"],
-                                 json_data["sample_rate_std_hz"], json_data["metadata"])
+            result = EventStream(json_data["name"], json_data["events"], json_data["input_sample_rate"],
+                                 json_data["samples_per_window"], json_data["samples_per_hop"],
+                                 json_data["model_version"], json_data["metadata"])
             result.set_save_mode(FileSystemSaveMode.DISK)
             result.set_save_dir(file_dir)
         else:

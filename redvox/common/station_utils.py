@@ -96,7 +96,7 @@ class StationKey:
     start_timestamp_micros: float
 
     def __repr__(self):
-        return f"StationKey:\nid:{self.id}, uuid:{self.uuid}, start_timestamp:{self.start_timestamp_micros}"
+        return f"StationKey:\nid:{self.id}, uuid:{self.uuid}, start_date:{self.start_timestamp_micros}"
 
     def get_key(self) -> Tuple[str, str, float]:
         """

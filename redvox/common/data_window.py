@@ -26,10 +26,11 @@ from redvox.common import data_window_io as dw_io
 from redvox.common.data_window_configuration import DataWindowConfigFile
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
-from redvox.common.sensor_data import SensorType, SensorData
+from redvox.common.sensor_data import SensorType, SensorData, NON_NUMERIC_COLUMNS
 from redvox.common.api_reader_dw import ApiReaderDw
 from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.errors import RedVoxExceptions
+from redvox.common.dw_query import DataWindowQuery
 
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
 DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to end time of data
@@ -676,9 +677,72 @@ class DataWindow:
             print(f"Attempted to get station {station_id}, but that station is not in this data window!")
         return None
 
-    # def _add_sensor_to_window(self, station: Station):
-        # set the window start and end if they were specified, otherwise use the bounds of the data
-        # self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
+    def get_data_channel(self, station_id: str, sensor_type: SensorType,
+                         channels: Optional[List[str]] = None) -> Optional[DataWindowQuery]:
+        """
+        Attempt to get a set of data with empty data points added to the start and end of the window.
+        Returns None if one of the values doesn't exist
+
+        :param station_id: id of station to get
+        :param sensor_type: type of sensor to get
+        :param channels: list of channels in the sensor to get; if None or empty, gets all channels.  default None
+        :return: DataWindowQuery object with the data requested
+        """
+        sttn = self.first_station(station_id)
+        if sttn is not None:
+            start = sttn.audio_sensor().first_data_timestamp()
+            end = sttn.audio_sensor().last_data_timestamp()
+            snsr = sttn.get_sensor_by_type(sensor_type)
+            if snsr is not None:
+                if channels is None or len(channels) == 0:
+                    channels = snsr.data_channels()
+                else:
+                    channels = [c for c in channels if c in snsr.data_channels()]
+
+                timestamps = snsr.data_timestamps()
+                if timestamps[0] != start:
+                    timestamps = np.concatenate(([start], timestamps))
+                else:
+                    start = None
+                if timestamps[-1] != end:
+                    timestamps = np.concatenate((timestamps, [end]))
+                else:
+                    end = None
+                result = {"timestamps": timestamps}
+                for chnl in channels:
+                    data = snsr.get_data_channel(chnl)
+                    if start is not None:
+                        data = np.concatenate(([data[0]], data))
+                    if end is not None:
+                        data = np.concatenate((data, [data[-1]]))
+                    result[chnl] = data
+                return DataWindowQuery(sttn.get_key(), snsr.name, snsr.type(), result)
+            else:
+                print(f"Station {sttn.id} does not have {sensor_type.name} sensor.")
+        return None
+
+    def get_pressure_window(self, station_id: str):
+        """
+        :param station_id: station to get audio data for
+        :return: pressure data of station, windowed to audio data timestamps
+        """
+        result = {}
+        sttn = self.first_station(station_id)
+        if sttn is not None:
+            start = sttn.first_data_timestamp()
+            end = sttn.last_data_timestamp()
+            snsr = sttn.pressure_sensor()
+            if snsr is not None:
+                timestamps = snsr.data_timestamps()
+                data = snsr.get_pressure_data()
+                if timestamps[0] != start:
+                    timestamps = np.concatenate(([start], timestamps))
+                    data = np.concatenate(([data[0]], data))
+                if timestamps[-1] != end:
+                    timestamps = np.concatenate((timestamps, [end]))
+                    data = np.concatenate((data, [data[-1]]))
+                result = {"timestamps": timestamps, "data": data}
+        return result
 
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         """
@@ -832,7 +896,7 @@ class DataWindow:
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
         """
-        process a non audio sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
+        process a sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
 
         :param sensor: sensor to process
         :param station_id: station id
@@ -907,17 +971,18 @@ class DataWindow:
                                                    / end_sample_interval)
                     else:
                         start_samples_to_add = 0
-                # add to end
-                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=_arrow.num_rows - 1,
-                                                    sample_interval_micros=end_sample_interval,
-                                                    num_samples_to_add=end_samples_to_add,
-                                                    point_creation_mode=new_point_mode))
-                # add to begin
-                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=0,
-                                                    sample_interval_micros=start_sample_interval,
-                                                    num_samples_to_add=start_samples_to_add,
-                                                    point_creation_mode=new_point_mode))
-                sensor.sort_by_data_timestamps(_arrow)
+                    # move this one indentation back to restore to normal state
+                    # add to end
+                    _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=_arrow.num_rows - 1,
+                                                        sample_interval_micros=end_sample_interval,
+                                                        num_samples_to_add=end_samples_to_add,
+                                                        point_creation_mode=new_point_mode))
+                    # add to begin
+                    _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=0,
+                                                        sample_interval_micros=start_sample_interval,
+                                                        num_samples_to_add=start_samples_to_add,
+                                                        point_creation_mode=new_point_mode))
+                    sensor.sort_by_data_timestamps(_arrow)
         else:
             self._errors.append(f"Data window for {station_id} {sensor.type().name} "
                                 f"sensor has no data points!")

@@ -722,7 +722,7 @@ class SensorData:
 
     def data_channels(self) -> List[str]:
         """
-        :return: a list of the names of the columns (data channels) of the dataframe
+        :return: a list of the names of the columns (data channels) of the data
         """
         if self.pyarrow_table():
             return self.pyarrow_table().schema.names

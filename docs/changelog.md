@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.3.5 (2022-6-??)
+
+* Updated EventStream with new metadata
+* Added empty Event data points at the start and end of DataWindow
+
 ### 3.3.4 (2022-6-6)
 
 * Added searching functionality to EventStream.  The functions return a list of valid values if the user inputs a
