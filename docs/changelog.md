@@ -5,6 +5,7 @@
 * Updated EventStream with new metadata
 * Added empty Event data points at the start and end of DataWindow
 * Fixed errors when loading DataWindows from older SDK versions
+* Limited numpy to <=1.22.4 to prevent incompatibility with pyserde on python 3.8
 
 ### 3.3.4 (2022-6-6)
 
