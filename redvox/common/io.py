@@ -126,19 +126,21 @@ class FileSystemWriter:
         return f"file_name: {self.file_name}, " \
                f"extension: {self.file_extension}, " \
                f"base_dir: {self.base_dir}, " \
-               f"save_mode: {self._save_mode.value}"
+               f"save_mode: {self._save_mode.value if hasattr(self, '_save_mode') else FileSystemSaveMode.TEMP.value}"
 
     def __str__(self):
         return f"file_name: {self.file_name}, " \
                f"extension: {self.file_extension}, " \
                f"base_dir: {self.base_dir}, " \
-               f"save_mode: {self._save_mode.name}"
+               f"save_mode: {self._save_mode.name if hasattr(self, '_save_mode') else FileSystemSaveMode.TEMP.name}"
 
     def is_use_temp(self) -> bool:
         """
         :return: if writing to temp dir
         """
-        return self._save_mode == FileSystemSaveMode.TEMP
+        if hasattr(self, "_save_mode"):
+            return self._save_mode == FileSystemSaveMode.TEMP
+        return False
 
     def set_use_temp(self, use_temp: bool):
         """
@@ -157,7 +159,9 @@ class FileSystemWriter:
         """
         :return: if writing to path on disk
         """
-        return self._save_mode == FileSystemSaveMode.DISK
+        if hasattr(self, "_save_mode"):
+            return self._save_mode == FileSystemSaveMode.DISK
+        return False
 
     def set_use_disk(self, use_disk: bool):
         """
@@ -170,7 +174,9 @@ class FileSystemWriter:
         """
         :return: if writing data to memory
         """
-        return self._save_mode == FileSystemSaveMode.MEM
+        if hasattr(self, "_save_mode"):
+            return self._save_mode == FileSystemSaveMode.MEM
+        return False
 
     def set_use_mem(self, use_mem: bool):
         """
@@ -183,7 +189,9 @@ class FileSystemWriter:
         """
         :return: if writing data to disk (temp dir or user defined path) instead of using memory
         """
-        return self._save_mode != FileSystemSaveMode.MEM
+        if hasattr(self, '_save_mode'):
+            return self._save_mode != FileSystemSaveMode.MEM
+        return False
 
     def save_dir(self) -> str:
         """
@@ -207,7 +215,7 @@ class FileSystemWriter:
         """
         :return: the save mode
         """
-        return self._save_mode
+        return self._save_mode.name if hasattr(self, '_save_mode') else FileSystemSaveMode.TEMP
 
     def full_name(self) -> str:
         """
@@ -285,7 +293,7 @@ class FileSystemWriter:
             "file_name": self.file_name,
             "file_extension": self.file_extension,
             "base_dir": self.base_dir,
-            "save_mode": self._save_mode.name
+            "save_mode": self._save_mode.name if hasattr(self, '_save_mode') else FileSystemSaveMode.TEMP.name
         }
 
     @staticmethod

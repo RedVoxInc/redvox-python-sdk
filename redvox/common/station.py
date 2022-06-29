@@ -134,7 +134,7 @@ class Station:
                f"audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, " \
                f"is_audio_scrambled: {self._is_audio_scrambled}, " \
                f"timesync: {self._timesync_data.__repr__()}, " \
-               f"event_data: {self._event_data.__repr__()}, " \
+               f"event_data: {self.event_data().__repr__()}, " \
                f"gaps: {[g for g in self._gaps]}"
         # "data": [d.__repr__() for d in self._data],
 
@@ -150,7 +150,7 @@ class Station:
                f"audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, " \
                f"is_audio_scrambled: {self._is_audio_scrambled}, " \
                f"timesync: {self._timesync_data.__str__()}, " \
-               f"event_data: {self._event_data.__str__()}, " \
+               f"event_data: {self.event_data().__str__()}, " \
                f"gaps: {[g for g in self._gaps]}"
         # "packet_metadata": [p.__str__() for p in self._packet_metadata],
         # "data": [d.__str__() for d in self._data]
@@ -181,7 +181,8 @@ class Station:
         :param new_save_mode: FileSystemSaveMode to change to
         """
         self._fs_writer.set_save_mode(new_save_mode)
-        self._event_data.set_save_mode(new_save_mode)
+        if hasattr(self, "_event_data"):
+            self._event_data.set_save_mode(new_save_mode)
         for s in self._data:
             s.set_save_mode(new_save_mode)
 
@@ -213,7 +214,8 @@ class Station:
         for s in self._data:
             s.move_pyarrow_dir(self.save_dir())
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
-        self._event_data.set_save_dir(os.path.join(self.save_dir(), "events"))
+        if hasattr(self, "_event_data"):
+            self._event_data.set_save_dir(os.path.join(self.save_dir(), "events"))
 
     def save_dir(self) -> str:
         """
@@ -501,6 +503,8 @@ class Station:
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+            if not hasattr(self, "_event_data"):
+                self._event_data = EventStreams()
             self._event_data.append_streams(new_station.event_data())
             self.update_first_and_last_data_timestamps()
 
@@ -1275,7 +1279,7 @@ class Station:
         """
         :return: all EventStreams in the Station
         """
-        return self._event_data
+        return self._event_data if hasattr(self, '_event_data') else None
 
     def set_event_data(self, data: EventStreams):
         """
@@ -1478,8 +1482,9 @@ class Station:
         self._errors.print()
         for sen in self._data:
             sen.print_errors()
-        for ev in self._event_data.streams:
-            ev.print_errors()
+        if hasattr(self, "_event_data"):
+            for ev in self._event_data.streams:
+                ev.print_errors()
 
     def audio_sample_rate_nominal_hz(self) -> float:
         """
@@ -1554,7 +1559,8 @@ class Station:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
-            self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
+            if hasattr(self, "_event_data"):
+                self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
             self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
             self._is_timestamps_updated = True

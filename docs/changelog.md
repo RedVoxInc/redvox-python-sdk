@@ -1,9 +1,10 @@
 ## Changelog
 
-### 3.3.5 (2022-6-??)
+### 3.3.5 (2022-6-29)
 
 * Updated EventStream with new metadata
 * Added empty Event data points at the start and end of DataWindow
+* Fixed errors when loading DataWindows from older SDK versions
 
 ### 3.3.4 (2022-6-6)
 

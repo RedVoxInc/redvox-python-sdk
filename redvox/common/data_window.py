@@ -903,18 +903,17 @@ class DataWindow:
                                                    / end_sample_interval)
                     else:
                         start_samples_to_add = 0
-                    # move this one indentation back to restore to normal state
-                    # add to end
-                    _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=_arrow.num_rows - 1,
-                                                        sample_interval_micros=end_sample_interval,
-                                                        num_samples_to_add=end_samples_to_add,
-                                                        point_creation_mode=new_point_mode))
-                    # add to begin
-                    _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=0,
-                                                        sample_interval_micros=start_sample_interval,
-                                                        num_samples_to_add=start_samples_to_add,
-                                                        point_creation_mode=new_point_mode))
-                    sensor.sort_by_data_timestamps(_arrow)
+                # add to end
+                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=_arrow.num_rows - 1,
+                                                    sample_interval_micros=end_sample_interval,
+                                                    num_samples_to_add=end_samples_to_add,
+                                                    point_creation_mode=new_point_mode))
+                # add to begin
+                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=0,
+                                                    sample_interval_micros=start_sample_interval,
+                                                    num_samples_to_add=start_samples_to_add,
+                                                    point_creation_mode=new_point_mode))
+                sensor.sort_by_data_timestamps(_arrow)
         else:
             self._errors.append(f"Data window for {station_id} {sensor.type().name} "
                                 f"sensor has no data points!")

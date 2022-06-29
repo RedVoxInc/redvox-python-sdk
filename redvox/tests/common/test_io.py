@@ -1032,3 +1032,43 @@ class IndexStationSummaryTests(IoTestCase):
         self.assertEqual(3, summary_1000.total_packets)
         self.assertEqual(datetime(1969, 12, 31, 23, 59, 59), summary_1000.first_packet)
         self.assertEqual(datetime(1970, 1, 1, 0, 0, 1), summary_1000.last_packet)
+
+
+class FileSystemWriterTests(TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        temp_dir_path = self.temp_dir.name
+        self.mem_fsw = io.FileSystemWriter("mem", "test", temp_dir_path, io.FileSystemSaveMode.MEM)
+        self.temp_fsw = io.FileSystemWriter("temp", "test", temp_dir_path, io.FileSystemSaveMode.TEMP)
+        self.disk_fsw = io.FileSystemWriter("disk", "test", temp_dir_path, io.FileSystemSaveMode.DISK)
+
+    def tearDown(self) -> None:
+        self.temp_dir.cleanup()
+
+    def test_save_mode(self):
+        self.assertEqual(self.mem_fsw.save_mode(), io.FileSystemSaveMode.MEM.name)
+        self.assertEqual(self.temp_fsw.save_mode(), io.FileSystemSaveMode.TEMP.name)
+        self.assertEqual(self.disk_fsw.save_mode(), io.FileSystemSaveMode.DISK.name)
+
+    def test_check_is_mem(self):
+        self.assertTrue(self.mem_fsw.is_use_mem())
+        self.assertFalse(self.temp_fsw.is_use_mem())
+        self.assertFalse(self.disk_fsw.is_use_mem())
+
+    def test_check_is_temp(self):
+        self.assertTrue(self.temp_fsw.is_use_temp())
+        self.assertFalse(self.mem_fsw.is_use_temp())
+        self.assertFalse(self.disk_fsw.is_use_temp())
+
+    def test_check_is_disk(self):
+        self.assertTrue(self.disk_fsw.is_use_disk())
+        self.assertFalse(self.temp_fsw.is_use_disk())
+        self.assertFalse(self.mem_fsw.is_use_disk())
+
+    def test_save_dir(self):
+        self.assertEqual("", self.mem_fsw.save_dir())
+
+    def test_full_name(self):
+        self.assertEqual("mem.test", self.mem_fsw.full_name())
+        self.assertEqual("temp.test", self.temp_fsw.full_name())
+        self.assertEqual("disk.test", self.disk_fsw.full_name())
