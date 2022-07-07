@@ -24,7 +24,7 @@ class TestCommonProtoBase(unittest.TestCase):
     def test_get_proto_empty(self):
         empty_proto = self.empty_microphone_channel.get_proto()
         self.assertEqual(empty_proto.sample_rate, 0.0)
-        self.assertEqual(empty_proto.metadata, {})
+        self.assertEqual(len(empty_proto.metadata), 0)
 
     def test_get_proto(self):
         full_proto = self.non_empty_microphone_channel.get_proto()
