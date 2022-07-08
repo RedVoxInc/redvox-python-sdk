@@ -7,7 +7,7 @@ lxml==4.9.1
 lz4==4.0.1
 numpy==1.21.6  # Pinned to 1.21.6 for current libquantum -> librosa -> numba compatability AND pyserde
 pandas==1.4.3
-protobuf==3.20.1  # Pinned to 3.20.1 because TF requires <3.20.*
+protobuf==3.20.0  # Pinned to 3.20.0 because TF requires <3.20.0
 psutil==5.9.1
 pyserde==0.8.3
 pyarrow==8.0.0
