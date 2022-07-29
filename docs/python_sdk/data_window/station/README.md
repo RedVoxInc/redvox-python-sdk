@@ -220,7 +220,7 @@ Use these functions to save and load Station data.
 
 Saves the Station's data to disk if enabled, then returns he path to the saved JSON file.  If given a `file_name`, 
 saves the data with that name.  Do not include a file extension with `file_name`.  If `file_name` is `None`, a default 
-file name is created using this format: `[station_id]_[start_date]`
+file name is created using this format: `[station_id]_[start_date]`.
 Does nothing and returns `None` if saving is not enabled.
 
 2. `load(in_dir: str = "") -> "Station"`
@@ -260,6 +260,8 @@ Common replacements are:
 * microphone instead of audio
 * barometer instead of pressure
 * infrared instead of proximity
+
+*** Some sensors may not be implemented in the app and may not have any data.
 
 Refer to the [SensorData](#sensor-data) section on how to access the data.
 
@@ -452,17 +454,11 @@ EventStreams are comprised of many EventStream, organized by their name.
 #### EventStreams
 
 These are the properties of an EventStreams:
-1. `streams`: List of EventStream, all EventStream objects.  Default empty list
-2. `save_mode`: FileSystemSaveMode, the method used to save the data.  Options are:  
-   1. MEM: the default method, saves to memory and is deleted when the program finishes
-   2. TEMP: a temporary directory on disk that is deleted when the program is finished
-   3. DISK: a chosen directory on disk that remains after the program is finished
-3. `base_dir`: string, the directory where the files are saved to if the `save_mode` is `FileSystemSaveMode.DISK`. 
-   Default is `"."` (current directory)
-4. `debug`: boolean, if `True`, outputs additional messages during program execution.  Default `False`
+1. `streams`: List of all EventStream objects.  Default empty list
+2. `debug`: boolean, if `True`, outputs additional messages during program execution.  Default `False`
 
 EventStreams have multiple methods available:
-1. `list_for_dict(self) -> list`: returns the name(s) of files that store EventStream
+1. `as_dict(self) -> dict`: returns the `streams` property as a dictionary.
 2. `read_from_packet(self, packet: RedvoxPacketM)`: reads the EventStream payload from a single Redvox Api1000 packet
    and stores it in the EventStreams
 3. `read_from_packets_list(self, packets: List[RedvoxPacketM])`: read the EventStream payload from multiple Redvox
@@ -474,10 +470,10 @@ EventStreams have multiple methods available:
 6. `get_stream(self, stream_name: str) -> Optional[EventStream]`: returns the EventStream that has the name specified 
    or `None` if it doesn't exist
 7. `get_stream_names(self) -> List[str]`: returns the names of all EventStream in the EventStreams
-8. `save_streams(self)`: saves all streams to disk; uses the `base_dir` property as the starting directory
+8. `set_save_mode(self, new_save_mode: FileSystemSaveMode)`: sets all EventStream save_mode property to `new_save_mode`.
+   Options are: `FileSystemSaveMode.NONE, FileSystemSaveMode.PARQUET, FileSystemSaveMode.LZ4`.
 9. `set_save_dir(self, new_dir: str)`: changes the directory where data is saved to `new_dir`
-10. `from_dir(base_dir: str, file_names: List[str]) -> "EventStreams"`: returns EventStreams object from a directory if 
-    the names of the EventStream files match a value in `file_names`
+
 
 #### EventStream
 
@@ -689,7 +685,8 @@ These functions return specific details from the Sensor's properties:
 9. `print_errors()`: Print the errors encountered in the SensorData.
 
 ** Reading enumerated types from this function requires additional imports.  Refer to 
-[the footnote on enumerated types](#a-note-on-enumerated-types) for more information
+[the footnote on enumerated types](#a-note-on-enumerated-types) for more information, and [Enumerated Values](../enumerated_values.md) 
+for the list of enumerated values.
 
 #### Sensor Save and Load
 
@@ -789,6 +786,8 @@ from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvid
 from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 from redvox.api1000.wrapped_redvox_packet.sensors.audio import AudioCodec
 ```
+
+Refer to the [list of commonly used enumerations in DataWindow](../enumerated_values.md).
 
 _[Table of Contents](#table-of-contents)_
 
