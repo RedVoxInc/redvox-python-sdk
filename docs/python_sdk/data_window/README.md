@@ -9,6 +9,8 @@ and focuses on quickly returning results.
 
 If you wish to learn more about the low-level class used to construct DataWindow, refer to the [Station Documentation](station)
 
+For a tutorial with example code, please view the [DataWindow Examples](https://redvoxinc.github.io/datawindow-examples/)
+
 ## Table of Contents
 
 <!-- toc -->
@@ -61,6 +63,8 @@ You may find the DataWindow specific API documentation [here](https://redvoxinc.
 
 If you want a quick example to copy and paste into your Python IDE, check [here](#datawindow-example-code)
 
+For a tutorial with example code, click [here](https://redvoxinc.github.io/datawindow-examples/)
+
 _[Table of Contents](#table-of-contents)_
 
 ### DataWindow Parameters
@@ -87,8 +91,8 @@ DataWindowConfig, no data will be collected.  See the section on [DataWindowConf
 
 `output_dir`: a string that identifies the directory to save the DataWindow to.  Default `"."`, or current directory.
 
-`out_type`: a string that identifies the method to save the DataWindow.  Options: `"PARQUET", "LZ4", "NONE"`. 
-Default is `"NONE"` (no saving).
+`out_type`: a string that identifies the method to save the DataWindow.  Options: `"PARQUET"` (save as parquet files), 
+`"LZ4"` (save as lz4 compressed file), `"NONE"` (no saving). Default is `"NONE"`.
 
 #### Optional DataWindow Parameters
 These parameters do not have to be set when creating a DataWindow.
@@ -587,6 +591,14 @@ Creates an error if saving is not enabled.
 
 Loads a DataWindow using the JSON file specified by the parameter file_path.
 
+3. `serialize() -> Path`
+
+Copies the DataWindow into a pkl.lz4 file and saves it to disk using the save directory.
+
+4. `deserialize(path: str) -> DataWindow`
+
+Loads a DataWindow using the pkl.lz4 file specified by the parameter path.
+
 Refer to the [DataWindow API documentation](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/common/data_window.html) as needed.
 
 _[Table of Contents](#table-of-contents)_
@@ -693,6 +705,15 @@ _[Table of Contents](#table-of-contents)_
 DataWindow uses Station objects to hold its processed data.
 
 Refer to [Station Documentation](station) for more information.
+
+_[Table of Contents](#table-of-contents)_
+
+## Enumerated Types
+
+DataWindow uses several enumerations to limit the possible values for certain properties.
+
+Refer to [Enumerated Values](enumerated_values.md) for a list of commonly used enumerations and where they can be 
+imported from.
 
 _[Table of Contents](#table-of-contents)_
 
@@ -871,7 +892,10 @@ Below are troubleshooting tips in the event DataWindow does not run properly
 * If you can't access the DataWindow class, include this line to import DataWindow into your project:
 `from redvox.common.data_window import DataWindow`
 
-### If your files aren't loading through DataWindow:
+* If you can't access the DataWindowConfig class, include this line to import DataWindowConfig into your project:
+`from redvox.common.data_window import DataWindowConfig`
+
+### Enable Error Reporting
 
 * Enable the debug parameter in DataWindow to display any errors encountered while creating DataWindow.
 ```python
@@ -879,6 +903,13 @@ datawindow = DataWindow(event_name=my_event_name,
                         # ...
                         debug=True)
 ```
+
+* Use the `print_errors()` function of DataWindow to display any errors.
+```python
+datawindow.print_errors()
+```
+
+### If your files aren't loading through DataWindow:
 
 * Check the value of `input_dir` in the DataWindowConfig for any errors, and that the files within the directory are in 
 one of two formats (structured or unstructured) described in the [DataWindowConfig](#datawindowconfig) section.
@@ -895,5 +926,16 @@ provided in `redvox.common.date_time_utils` to convert UTC epoch times into date
 
 * Check your files for non-typical extensions.  `.rdvxm` and `.rdxvz` are the two expected file extensions.
 If you have other file extensions, those files may not work with DataWindow.
+
+* The .json file used to load DataWindow will have the same name as the DataWindow; if the DataWindow is titled 
+`big_boom`, the .json file to load the DataWindow will be named `big_boom.json`.
+
+* If you are loading a DataWindow using a file, make sure you use the correct method (use `deserialize()` for files 
+ending in pkl.lz4 and `load()` if you have a .json file).
+  
+* Check the parameters to your functions for any errors.
+
+* There may be errors when loading DataWindow files created in older SDK versions.  If you still have access to the raw
+data or the website, use the corresponding source to recreate the DataWindow.
 
 _[Table of Contents](#table-of-contents)_
