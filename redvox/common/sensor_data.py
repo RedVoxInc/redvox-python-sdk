@@ -829,8 +829,8 @@ class SensorData:
     def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
                     copy: bool = True) -> pa.Table:
         """
-        interpolates two points at the intercept value.  the two points must be consecutive in the data.
-        data channels that can't be interpolated are set to np.nan.
+        interpolates two points at the chosen timestamp.  If copy is true, copies the values of the closest point,
+        otherwise interpolates any numerical value.  Non-numeric values are set to a copy of the closest point.
 
         :param interpolate_timestamp: timestamp to interpolate other values
         :param first_point: index of first point

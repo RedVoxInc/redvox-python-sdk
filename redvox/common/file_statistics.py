@@ -11,7 +11,7 @@ from multiprocessing.pool import Pool
 
 import numpy as np
 
-from redvox.common.timesync_old import TimeSyncData
+from redvox.common.timesync import TimeSync
 from redvox.common.parallel_utils import maybe_parallel_map
 
 # noinspection Mypy
@@ -215,14 +215,10 @@ class StationStat:
         best_offset = packet.best_offset()
         best_latency = packet.best_latency()
         if packet.has_time_synchronization_sensor():
-            tsd = TimeSyncData(
-                packet.redvox_id(),
+            tsd = TimeSync(
                 time_sync_exchanges_list=list(
                     packet.time_synchronization_sensor().payload_values()
-                ),
-                packet_start_timestamp=packet.app_file_start_timestamp_machine(),
-                packet_end_timestamp=packet.end_timestamp_us_utc(),
-                server_acquisition_timestamp=packet.server_timestamp_epoch_microseconds_utc(),
+                )
             )
             if not best_offset or not best_latency:
                 best_offset = tsd.best_offset
@@ -283,12 +279,8 @@ class StationStat:
         best_offset = timing_info.get_best_offset()
         best_latency = timing_info.get_best_latency()
         if len(timing_info.get_synch_exchange_array()) > 0:
-            tsd = TimeSyncData(
-                station_info.get_id(),
-                time_sync_exchanges_list=timing_info.get_synch_exchange_array(),
-                packet_start_timestamp=timing_info.get_packet_start_mach_timestamp(),
-                packet_end_timestamp=timing_info.get_packet_end_mach_timestamp(),
-                server_acquisition_timestamp=timing_info.get_server_acquisition_arrival_timestamp(),
+            tsd = TimeSync(
+                time_sync_exchanges_list=timing_info.get_synch_exchange_array()
             )
             if not best_offset or not best_latency:
                 best_offset = tsd.best_offset

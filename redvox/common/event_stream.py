@@ -799,6 +799,7 @@ class EventStream:
     def create_event_window(self, start: float = -np.inf, end: float = np.inf):
         """
         removes any event in the stream that doesn't match start <= event < end
+        adds empty events to beginning and end of data (as long as the corresponding input values are not infinity)
         default start is negative infinity, default end is infinity
         all times in microseconds since epoch UTC
 
@@ -807,9 +808,10 @@ class EventStream:
         """
         self.events = [s for s in self.events if start <= s.get_timestamp() < end]
         if self.num_events() > 0:
-            if start < self.events[0].get_timestamp():
+            if start < self.events[0].get_timestamp() and not np.isinf(start):
                 self.events.insert(0, Event(start, self.name))
-            self.events.append(Event(end, self.name))
+            if not np.isinf(end):
+                self.events.append(Event(end - 1, self.name))
 
     def get_file_names(self) -> List[str]:
         """

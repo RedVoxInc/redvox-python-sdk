@@ -1,5 +1,11 @@
 ## Changelog
 
+### 3.3.6 (2022-?-??)
+
+* Removed all references to older versions of certain functions
+* Updated requirements to match latest versions of packages
+* Minor fixes to functions and comments
+
 ### 3.3.5 (2022-6-29)
 
 * Updated EventStream with new metadata

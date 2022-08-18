@@ -768,7 +768,7 @@ class DataWindow:
 
     def _check_valid_ids(self):
         """
-        if there are stations, searches the station_ids for any ids not in the data collected
+        if there are stations, searches the config's station_ids for any ids not in the data collected
         and creates an error message for each id requested but has no data
         if there are no stations, creates a single error message declaring no data found
         """

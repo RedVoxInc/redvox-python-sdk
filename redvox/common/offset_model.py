@@ -144,7 +144,7 @@ class OffsetModel:
         """
         Gets offset at time based on the offset model.
 
-        :param time: The time of corresponding to the new offset
+        :param time: The time corresponding to the new offset
         :return: new offset corresponding to the time
         """
         return get_offset_at_new_time(
