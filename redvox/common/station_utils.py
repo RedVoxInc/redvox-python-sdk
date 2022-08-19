@@ -157,7 +157,7 @@ class StationMetadata:
         other_metadata: dict, str: str of other metadata from the packet, default empty list
     """
 
-    def __init__(self, app: str, packet: Optional[api_m.RedvoxPacketM] = None):
+    def __init__(self, app: str = "", packet: Optional[api_m.RedvoxPacketM] = None):
         """
         initialize the metadata
 

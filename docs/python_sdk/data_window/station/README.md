@@ -331,6 +331,24 @@ print(my_metadata.packet_duration_s)
 
 _[Table of Contents](#table-of-contents)_
 
+#### Sub API Special Value
+
+Usually the `sub_api` value is small, however, if `api == 1000.0` and `sub_api == 900`, then the data was converted 
+from API 900 into API M format.  Some values may be missing or set to default, as they did not exist in API 900 format.
+
+```python
+from redvox.common.station_utils import StationMetadata
+
+# We assume you have a method of loading station metadata 
+metadata: StationMetadata
+
+# checking for converted data.
+if metadata.api == 1000.0 and metadata.sub_api == 900.0:
+    print("This data came from API 900 files, and was converted into API M format")
+```
+
+_[Table of Contents](#table-of-contents)_
+
 ### Station Packet Metadata
 
 StationPacketMetadata is the properties of the packets that contain the station's data that change between packets.
