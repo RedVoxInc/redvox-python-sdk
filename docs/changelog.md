@@ -5,6 +5,7 @@
 * Removed all references to older versions of certain functions
 * Updated requirements to match latest versions of packages
 * Minor fixes to classes, functions and comments
+* Updated data fetching method
 
 ### 3.3.5 (2022-6-29)
 
