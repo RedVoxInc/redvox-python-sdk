@@ -7,6 +7,11 @@
 * Minor fixes to classes, functions and comments
 * Updated data fetching method
 
+### 3.3.6 (2022-9-13)
+
+* Updated OffsetModel with new parameters, repr and str functions
+* Added tomli_w module to satisfy pyserde requirements
+
 ### 3.3.5 (2022-6-29)
 
 * Updated EventStream with new metadata

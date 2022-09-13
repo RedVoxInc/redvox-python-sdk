@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 import redvox.common.date_time_utils as dt_utils
 
 
-MIN_VALID_LATENCY_MICROS = 250  # minimum value of latency before it's unreliable
+MIN_VALID_LATENCY_MICROS = 100  # minimum value of latency before it's unreliable
 DEFAULT_SAMPLES = 3  # default number of samples per bin
 MIN_SAMPLES = 3  # minimum number of samples per 5 minutes for reliable data
 MIN_TIMESYNC_DURATION_MIN = (
@@ -82,7 +82,7 @@ class OffsetModel:
         :param n_samples: number of samples per bin, default 3
         :param debug: boolean for additional output when running OffsetModel, default False
         :param min_valid_latency_us: the minimum latency in microseconds to be used in the model.  default 100
-        :param min_samples_per_bin: the minimum number of samples per 5 minutes of data for the model to be reliable.
+        :param min_samples_per_bin: the minimum number of samples per bin of data for the model to be reliable.
                                     default 3
         :param min_timesync_dur_min: the minimum number of minutes of data for the model to be reliable.  default 5
         """
@@ -155,6 +155,9 @@ class OffsetModel:
                f"score: {self.score}, " \
                f"mean_latency: {self.mean_latency}, " \
                f"std_dev_latency: {self.std_dev_latency}, " \
+               f"min_valid_latency_micros: {self.min_valid_latency_micros}, " \
+               f"min_samples_per_bin: {self.min_samples_per_bin}, " \
+               f"min_timesync_dur_min: {self.min_timesync_dur_min}, " \
                f"debug: {self.debug}"
 
     def __str__(self):
@@ -166,7 +169,10 @@ class OffsetModel:
                f"intercept: {self.intercept}, " \
                f"score: {self.score}, " \
                f"mean_latency: {self.mean_latency}, " \
-               f"std_dev_latency: {self.std_dev_latency}"
+               f"std_dev_latency: {self.std_dev_latency}, " \
+               f"min_valid_latency_micros: {self.min_valid_latency_micros}, " \
+               f"min_samples_per_bin: {self.min_samples_per_bin}, " \
+               f"min_timesync_dur_min: {self.min_timesync_dur_min}"
 
     @staticmethod
     def empty_model() -> "OffsetModel":
