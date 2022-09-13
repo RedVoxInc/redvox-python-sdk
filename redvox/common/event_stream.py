@@ -85,7 +85,7 @@ class Event:
                f"timestamp: {self._timestamp}, " \
                f"uncorrected_timestamp: {self._uncorrected_timestamp}, " \
                f"schema: {self.get_schema()}, " \
-               f"save_mode: {self._fs_writer.save_mode().value}"
+               f"save_mode: {self._fs_writer.save_mode()}"
 
     def __str__(self):
         return f"name: {self.name}, " \

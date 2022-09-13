@@ -22,10 +22,11 @@ class TriMessageStats:
         latency3: latencies measured by timestamps 2 and 3
         offset1: offsets measured by timestamps 1 and 2
         offset3: offsets measured by timestamps 2 and 3
-        best_latency: minimum latency that meets all criteria
-        best_offset: best offset that meets all criteria
-        best_latency_array_index: index in latency array with best latency
-        best_latency_index: index of which latency array has the best latency
+        best_latency: minimum latency that meets all criteria, default np.nan
+        best_offset: best offset that meets all criteria, default 0.0
+        best_latency_array_index: index of which latency array has the best latency, valid values are either 1 or 3,
+                                    all other values are invalid, default 0
+        best_latency_index: index in latency array with best latency, default None
         best_latency_per_exchange_index_array: the index of which latency array has the best latency, per each exchange
         num_messages: number of tri-message exchanges
     """
@@ -63,10 +64,10 @@ class TriMessageStats:
         self.offset1: np.ndarray = offsets_tuple[0]
         self.offset3: np.ndarray = offsets_tuple[1]
 
-        self.best_latency: Optional[float] = np.nan
-        self.best_latency_array_index: Optional[int] = None
+        self.best_latency: float = np.nan
+        self.best_latency_array_index: int = 0
         self.best_latency_index: Optional[int] = None
-        self.best_offset: Optional[float] = 0.0
+        self.best_offset: float = 0.0
 
         self.find_best_latency()
         self.find_best_offset()

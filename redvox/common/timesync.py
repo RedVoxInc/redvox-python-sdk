@@ -58,7 +58,7 @@ class TimeSync:
         _data_end: float, end timestamp of the data, default np.nan
 
         _best_latency_index: int, index in latencies/sync exchanges array that contains the best latency,
-        default -1
+        default np.nan
 
         _best_msg_array_index: int, indicates which latency array has the best latency.
         Must be 1 or 3, other values are invalid.  Default 0
@@ -83,7 +83,7 @@ class TimeSync:
             offset_std: float = np.nan,
             data_start: float = np.nan,
             data_end: float = np.nan,
-            best_latency_index: Optional[int] = None,
+            best_latency_index: int = np.nan,
             best_array_index: int = 0,
             arrow_dir: str = ".",
             arrow_file_name: str = "timesync"
@@ -102,7 +102,8 @@ class TimeSync:
         :param offset_std: the standard deviation of all offsets, default np.nan
         :param data_start: the start timestamp of the data, default np.nan
         :param data_end: the end timestamp of the data, default np.nan
-        :param best_latency_index: optional index of best latency in latencies array, default None
+        :param best_latency_index: index of best latency in latencies array, default -1 (valid array index,
+                                    invalid meaning)
         :param best_array_index: index of best latency array; must be either 1 (first array) or 3 (second array),
                                     any other value is invalid, default 0
         :param arrow_dir: directory to save timesync data in, default "."
@@ -132,7 +133,12 @@ class TimeSync:
                 time_sync_exchanges_list[i: i + 6]
                 for i in range(0, len(time_sync_exchanges_list), 6)
             ])
-            self._stats_from_exchanges()
+            if self._latencies is None:
+                if not np.isnan(self._data_start):
+                    self._data_start = self.get_exchange_timestamps(4)[0]
+                if not np.isnan(self._data_end):
+                    self._data_end = self.get_exchange_timestamps(5)[-1]
+                self._stats_from_exchanges()
 
     def __repr__(self):
         return f"best_latency_index: {self._best_latency_index}, " \
@@ -250,11 +256,11 @@ class TimeSync:
             self._best_offset = 0
             self._mean_offset = np.nan
             self._offset_std = np.nan
-            self._best_latency_index = -1
+            self._best_latency_index = np.nan
             self._best_msg_array_index = 0
             self._offset_model = OffsetModel.empty_model()
             self._best_exchange_index_list = []
-        elif self._latencies is None:
+        else:
             # compute tri message data from time sync exchanges
             tse = tms.TriMessageStats(
                 "",
@@ -266,36 +272,41 @@ class TimeSync:
                 np.array(self._time_sync_exchanges_list[5]),
             )
             self._latencies = np.array((tse.latency1, tse.latency3))
-            if self._offsets is None:
-                self._offsets = np.array((tse.offset1, tse.offset3))
-            # Compute the statistics for latency and offset
-            if np.isnan(self._mean_latency):
-                self._mean_latency = np.mean([*self._latencies[0], *self._latencies[1]])
-            if np.isnan(self._latency_std):
-                self._latency_std = np.std([*self._latencies[0], *self._latencies[1]])
-            if np.isnan(self._mean_offset):
-                self._mean_offset = np.mean([*self._offsets[0], *self._offsets[1]])
-            if np.isnan(self._offset_std):
-                self._offset_std = np.std([*self._offsets[0], *self._offsets[1]])
-            self._best_exchange_index_list = tse.best_latency_per_exchange_index_array
-            self._best_latency_index = tse.best_latency_index
-            self._best_msg_array_index = tse.best_latency_array_index
-            # if best_latency is np.nan, set to best computed latency
-            if np.isnan(self._best_latency):
-                self._best_latency = tse.best_latency
-                self._best_offset = tse.best_offset
-            # if best_offset is still default value, use the best computed offset
-            elif self._best_offset == 0:
-                self._best_offset = tse.best_offset
+            self._offsets = np.array((tse.offset1, tse.offset3))
             if not np.isnan(self._data_start) and not np.isnan(self._data_end):
                 self._offset_model = OffsetModel(self._latencies.flatten(), self._offsets.flatten(),
                                                  self.get_device_exchanges_timestamps(),
                                                  self._data_start, self._data_end)
+                # Compute the statistics for latency using the model
+                self._mean_latency = self._offset_model.mean_latency
+                self._latency_std = self._offset_model.std_dev_latency
+            else:
+                self._offset_model = OffsetModel.empty_model()
+                # Compute the statistics for latency using the exchanges
+                self._mean_latency = np.mean([*self._latencies[0], *self._latencies[1]])
+                self._latency_std = np.std([*self._latencies[0], *self._latencies[1]])
+            # compute the rest of the statistics
+            self._mean_offset = np.mean([*self._offsets[0], *self._offsets[1]])
+            self._offset_std = np.std([*self._offsets[0], *self._offsets[1]])
+            self._best_latency_index = tse.best_latency_index
+            self._best_msg_array_index = tse.best_latency_array_index
+            self._best_latency = tse.best_latency
+            self._best_offset = tse.best_offset
+            self._best_exchange_index_list = tse.best_latency_per_exchange_index_array
+
+    def process_exchanges(self, force: bool = False):
+        """
+        Use the sync exchanges to compute the time sync stats (latencies, best latency, offsets, etc).
+
+        :param force: if True, will overwrite any existing values.
+        """
+        if self._latencies is None or force:
+            self._stats_from_exchanges()
 
     def get_exchange_timestamps(self, index: int) -> np.array:
         """
-        :param index: index of timestamps to return.  0, 1, 2 are server timestamps.  3, 4, 5 are device
-                        any value not from 0 to 5 will be converted to 0
+        :param index: index of timestamps to return.  0, 1, 2 are server timestamps.  3, 4, 5 are device.
+                        Any value not from 0 to 5 will be converted to 0
         :return: timestamps from the chosen index.
         """
         if index < 0 or index > 5:
@@ -351,30 +362,7 @@ class TimeSync:
             self._data_end = new_data._data_end
         elif not np.isnan(new_data._data_end):
             self._data_end = np.max([self._data_end, new_data._data_end])
-        if len(self._time_sync_exchanges_list[0]) > 0:
-            tse = tms.TriMessageStats(
-                "",
-                np.array(self._time_sync_exchanges_list[0]),
-                np.array(self._time_sync_exchanges_list[1]),
-                np.array(self._time_sync_exchanges_list[2]),
-                np.array(self._time_sync_exchanges_list[3]),
-                np.array(self._time_sync_exchanges_list[4]),
-                np.array(self._time_sync_exchanges_list[5]),
-            )
-            self._latencies = np.array((tse.latency1, tse.latency3))
-            self._offsets = np.array((tse.offset1, tse.offset3))
-            self._mean_latency = np.mean([*self._latencies[0], *self._latencies[1]])
-            self._latency_std = np.std([*self._latencies[0], *self._latencies[1]])
-            self._mean_offset = np.mean([*self._offsets[0], *self._offsets[1]])
-            self._offset_std = np.std([*self._offsets[0], *self._offsets[1]])
-            self._best_latency_index = tse.best_latency_index
-            self._best_msg_array_index = tse.best_latency_array_index
-            self._best_latency = tse.best_latency
-            self._best_offset = tse.best_offset
-            self._best_exchange_index_list = tse.best_latency_per_exchange_index_array
-            self._offset_model = OffsetModel(self._latencies.flatten(), self._offsets.flatten(),
-                                             self.get_device_exchanges_timestamps(),
-                                             self._data_start, self._data_end)
+        self._stats_from_exchanges()
 
     def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -> 'TimeSync':
         """
@@ -410,43 +398,7 @@ class TimeSync:
             self._time_sync_exchanges_list = np.transpose([
                 all_exchanges[i: i + 6] for i in range(0, len(all_exchanges), 6)
             ])
-            tse = tms.TriMessageStats(
-                "",
-                np.array(self._time_sync_exchanges_list[0]),
-                np.array(self._time_sync_exchanges_list[1]),
-                np.array(self._time_sync_exchanges_list[2]),
-                np.array(self._time_sync_exchanges_list[3]),
-                np.array(self._time_sync_exchanges_list[4]),
-                np.array(self._time_sync_exchanges_list[5]),
-            )
-            self._latencies = np.array((tse.latency1, tse.latency3))
-            self._offsets = np.array((tse.offset1, tse.offset3))
-            # Compute the statistics for latency and offset
-            self._mean_latency = np.mean([*self._latencies[0], *self._latencies[1]])
-            self._latency_std = np.std([*self._latencies[0], *self._latencies[1]])
-            self._mean_offset = np.mean([*self._offsets[0], *self._offsets[1]])
-            self._offset_std = np.std([*self._offsets[0], *self._offsets[1]])
-            self._best_latency_index = tse.best_latency_index
-            self._best_msg_array_index = tse.best_latency_array_index
-            self._best_latency = tse.best_latency
-            self._best_offset = tse.best_offset
-            self._best_exchange_index_list = tse.best_latency_per_exchange_index_array
-            self._offset_model = OffsetModel(self._latencies.flatten(), self._offsets.flatten(),
-                                             self.get_device_exchanges_timestamps(),
-                                             self._data_start, self._data_end)
-        else:
-            self._latencies = np.array(([], []))
-            self._offsets = np.array(([], []))
-            self._best_latency = np.nan
-            self._mean_latency = np.nan
-            self._latency_std = np.nan
-            self._best_offset = 0
-            self._mean_offset = np.nan
-            self._offset_std = np.nan
-            self._best_latency_index = -1
-            self._best_msg_array_index = 0
-            self._best_exchange_index_list = []
-            self._offset_model = OffsetModel.empty_model()
+            self._stats_from_exchanges()
         return self
 
     def sync_exchanges(self) -> np.ndarray:
@@ -489,9 +441,9 @@ class TimeSync:
         """
         return self._latency_std
 
-    def best_latency_index(self) -> float:
+    def best_latency_index(self) -> int:
         """
-        :return: index/position of best latency
+        :return: index/position of best latency or np.nan if no best latency exists
         """
         return self._best_latency_index
 

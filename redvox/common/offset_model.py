@@ -10,16 +10,14 @@ from typing import Tuple, Optional, List, TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
+from sklearn.linear_model import LinearRegression
 
 if TYPE_CHECKING:
     from redvox.common.file_statistics import StationStat
-
 import redvox.common.date_time_utils as dt_utils
 
-from sklearn.linear_model import LinearRegression
 
-
-MIN_VALID_LATENCY_MICROS = 100  # minimum value of latency before it's unreliable
+MIN_VALID_LATENCY_MICROS = 250  # minimum value of latency before it's unreliable
 DEFAULT_SAMPLES = 3  # default number of samples per bin
 MIN_SAMPLES = 3  # minimum number of samples per 5 minutes for reliable data
 MIN_TIMESYNC_DURATION_MIN = (
@@ -56,6 +54,8 @@ class OffsetModel:
         std_dev_latency: float, latency standard deviation
 
         debug: boolean, if True, output additional information when running the OffsetModel, default False
+
+        min_valid_latency_us: float, the minimum latency in microseconds to be used in the model.  default 100
     """
 
     def __init__(
@@ -67,6 +67,9 @@ class OffsetModel:
             end_time: float,
             n_samples: int = DEFAULT_SAMPLES,
             debug: bool = False,
+            min_valid_latency_us: float = MIN_VALID_LATENCY_MICROS,
+            min_samples_per_bin: int = MIN_SAMPLES,
+            min_timesync_dur_min: int = MIN_TIMESYNC_DURATION_MIN
     ):
         """
         Create an OffsetModel
@@ -78,14 +81,22 @@ class OffsetModel:
         :param end_time: model's end timestamp in microseconds since epoch utc
         :param n_samples: number of samples per bin, default 3
         :param debug: boolean for additional output when running OffsetModel, default False
+        :param min_valid_latency_us: the minimum latency in microseconds to be used in the model.  default 100
+        :param min_samples_per_bin: the minimum number of samples per 5 minutes of data for the model to be reliable.
+                                    default 3
+        :param min_timesync_dur_min: the minimum number of minutes of data for the model to be reliable.  default 5
         """
         self.start_time = start_time
         self.end_time = end_time
         self.k_bins = get_bins_per_5min(start_time, end_time)
         self.n_samples = n_samples
         self.debug = debug
-        latencies = np.where(latencies < MIN_VALID_LATENCY_MICROS, np.nan, latencies)
-        use_model = timesync_quality_check(latencies, start_time, end_time, self.debug)
+        self.min_valid_latency_micros = min_valid_latency_us
+        self.min_samples_per_bin = min_samples_per_bin
+        self.min_timesync_dur_min = min_timesync_dur_min
+        latencies = np.where(latencies < self.min_valid_latency_micros, np.nan, latencies)
+        use_model = timesync_quality_check(latencies, start_time, end_time, self.debug,
+                                           self.min_timesync_dur_min, self.min_samples_per_bin)
         if use_model:
             # Organize the data into a data frame
             full_df = pd.DataFrame(data=times, columns=["times"])
@@ -115,9 +126,10 @@ class OffsetModel:
                 model_time=0,
             )
 
-            self.mean_latency = np.mean(binned_df["latencies"].values)
-            self.std_dev_latency = np.std(binned_df["latencies"].values)
+            self.mean_latency = np.nanmean(binned_df["latencies"].values)
+            self.std_dev_latency = np.nanstd(binned_df["latencies"].values)
 
+            # slope == 0 means constant offset, so if slope is not 0, model is good.
             use_model = self.slope != 0.0
         # if data or model is not sufficient, use the offset corresponding to lowest latency:
         if not use_model:
@@ -130,8 +142,31 @@ class OffsetModel:
             else:
                 best_latency = np.nanmin(latencies[np.nonzero(latencies)])
                 self.intercept = offsets[np.argwhere(latencies == best_latency)[0][0]]
-                self.mean_latency = np.mean(latencies)
-                self.std_dev_latency = np.std(latencies)
+                self.mean_latency = np.nanmean(latencies)
+                self.std_dev_latency = np.nanstd(latencies)
+
+    def __repr__(self):
+        return f"start_time: {self.start_time}, " \
+               f"end_time: {self.end_time}, " \
+               f"k_bins: {self.k_bins}, " \
+               f"n_samples: {self.n_samples}, " \
+               f"slope: {self.slope}, " \
+               f"intercept: {self.intercept}, " \
+               f"score: {self.score}, " \
+               f"mean_latency: {self.mean_latency}, " \
+               f"std_dev_latency: {self.std_dev_latency}, " \
+               f"debug: {self.debug}"
+
+    def __str__(self):
+        return f"start_time: {self.start_time}, " \
+               f"end_time: {self.end_time}, " \
+               f"k_bins: {self.k_bins}, " \
+               f"n_samples: {self.n_samples}, " \
+               f"slope: {self.slope}, " \
+               f"intercept: {self.intercept}, " \
+               f"score: {self.score}, " \
+               f"mean_latency: {self.mean_latency}, " \
+               f"std_dev_latency: {self.std_dev_latency}"
 
     @staticmethod
     def empty_model() -> "OffsetModel":
@@ -325,36 +360,39 @@ def get_binned_df(
 
 
 def timesync_quality_check(
-        latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False
+        latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False,
+        min_timesync_dur_mins: int = MIN_TIMESYNC_DURATION_MIN, min_samples: int = MIN_SAMPLES
 ) -> bool:
     """
     Checks quality of timesync data to determine if offset model should be used.
     The following list is the quality check:
-        If timesync duration is longer than 5 min
-        If there are 3 latency values (non-nan) per 5 minutes on average
+        If timesync duration is longer than min_timesync_dur_mins (default 5) min
+        If there are min_samples (default 3) latency values (non-nan) per 5 minutes on average
     Returns False if the data quality is not up to "standards".
 
     :param latencies: array of the best latencies per packet
     :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
     :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
     :param debug: if True, reason for failing quality check is printed, default False
+    :param min_timesync_dur_mins: minimum number of minutes for result to be reliable
+    :param min_samples: minimum number of samples per bin
     :return: True if timesync data passes all quality checks, False otherwise
     """
 
     # Check the Duration of the signal of interest
     duration_min = (end_time - start_time) / (1e6 * 60)
 
-    if duration_min < MIN_TIMESYNC_DURATION_MIN:
+    if duration_min < min_timesync_dur_mins:
         if debug:
-            print(f"Timesync data duration less than {MIN_TIMESYNC_DURATION_MIN} min")
+            print(f"Timesync data duration less than {min_timesync_dur_mins} min")
         return False
 
     # Check average number of points per 5 min (pretty arbitrary, but maybe 3 points per 5 min)
     points_per_5min = 5 * np.count_nonzero(~np.isnan(latencies)) / duration_min
 
-    if points_per_5min < MIN_SAMPLES:
+    if points_per_5min < min_samples:
         if debug:
-            print(f"Less than {MIN_SAMPLES} of timesync data per 5 min")
+            print(f"Less than {min_samples} of timesync data per 5 min")
         return False
 
     # Return True if it meets the above criteria
