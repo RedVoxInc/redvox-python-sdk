@@ -20,9 +20,76 @@ import redvox.common.date_time_utils as dt_utils
 MIN_VALID_LATENCY_MICROS = 100  # minimum value of latency before it's unreliable
 DEFAULT_SAMPLES = 3  # default number of samples per bin
 MIN_SAMPLES = 3  # minimum number of samples per 5 minutes for reliable data
-MIN_TIMESYNC_DURATION_MIN = (
-    5  # minimum number of minutes of data required to produce reliable results
-)
+MIN_TIMESYNC_DURATION_MIN = 5  # minimum number of minutes of data required to produce reliable results
+
+
+__MIN_VALID_LATENCY_MICROS: Optional[float] = MIN_VALID_LATENCY_MICROS
+
+
+__MIN_SAMPLES: Optional[float] = MIN_SAMPLES
+
+
+__MIN_TIMESYNC_DURATION_MIN: Optional[float] = MIN_TIMESYNC_DURATION_MIN
+
+
+def set_min_valid_latency_micros(new_min: float):
+    """
+    sets the minimum latency in microseconds for data to be considered valid
+
+    :param new_min: new minimum value
+    """
+    global __MIN_VALID_LATENCY_MICROS
+    __MIN_VALID_LATENCY_MICROS = new_min
+
+
+def get_min_valid_latency_micros() -> float:
+    """
+    :return: the minimum latency in microseconds for data to be considered valid
+    """
+    global __MIN_VALID_LATENCY_MICROS
+    if __MIN_VALID_LATENCY_MICROS is None:
+        __MIN_VALID_LATENCY_MICROS = MIN_VALID_LATENCY_MICROS
+    return __MIN_VALID_LATENCY_MICROS
+
+
+def set_min_samples(new_min: int):
+    """
+    sets the minimum number of samples per bin for reliable results
+
+    :param new_min: new minimum value
+    """
+    global __MIN_SAMPLES
+    __MIN_SAMPLES = new_min
+
+
+def get_min_samples() -> int:
+    """
+    :return: the minimum number of samples per bin for reliable results
+    """
+    global __MIN_SAMPLES
+    if __MIN_SAMPLES is None:
+        __MIN_SAMPLES = MIN_SAMPLES
+    return __MIN_SAMPLES
+
+
+def set_min_timesync_dur(new_min: int):
+    """
+    sets the minimum duration in minutes of a bin for reliable results
+
+    :param new_min: new minimum value
+    """
+    global __MIN_TIMESYNC_DURATION_MIN
+    __MIN_TIMESYNC_DURATION_MIN = new_min
+
+
+def get_min_timesync_dur() -> int:
+    """
+    :return: the minimum duration in minutes of a bin for reliable results
+    """
+    global __MIN_TIMESYNC_DURATION_MIN
+    if __MIN_TIMESYNC_DURATION_MIN is None:
+        __MIN_TIMESYNC_DURATION_MIN = MIN_TIMESYNC_DURATION_MIN
+    return __MIN_TIMESYNC_DURATION_MIN
 
 
 class OffsetModel:
@@ -56,6 +123,11 @@ class OffsetModel:
         debug: boolean, if True, output additional information when running the OffsetModel, default False
 
         min_valid_latency_us: float, the minimum latency in microseconds to be used in the model.  default 100
+
+        min_samples_per_bin: int, the minimum number of samples per bin of data for the model to be reliable.
+        default 3
+
+        min_timesync_dur_min: int, the minimum number of minutes of data for the model to be reliable.  default 5
     """
 
     def __init__(
@@ -67,9 +139,9 @@ class OffsetModel:
             end_time: float,
             n_samples: int = DEFAULT_SAMPLES,
             debug: bool = False,
-            min_valid_latency_us: float = MIN_VALID_LATENCY_MICROS,
-            min_samples_per_bin: int = MIN_SAMPLES,
-            min_timesync_dur_min: int = MIN_TIMESYNC_DURATION_MIN
+            min_valid_latency_us: Optional[float] = None,
+            min_samples_per_bin: Optional[int] = None,
+            min_timesync_dur_min: Optional[int] = None
     ):
         """
         Create an OffsetModel
@@ -91,9 +163,10 @@ class OffsetModel:
         self.k_bins = get_bins_per_5min(start_time, end_time)
         self.n_samples = n_samples
         self.debug = debug
-        self.min_valid_latency_micros = min_valid_latency_us
-        self.min_samples_per_bin = min_samples_per_bin
-        self.min_timesync_dur_min = min_timesync_dur_min
+        self.min_valid_latency_micros = \
+            get_min_valid_latency_micros() if min_valid_latency_us is None else min_valid_latency_us
+        self.min_samples_per_bin = get_min_samples() if min_samples_per_bin is None else min_samples_per_bin
+        self.min_timesync_dur_min = get_min_timesync_dur() if min_timesync_dur_min is None else min_timesync_dur_min
         latencies = np.where(latencies < self.min_valid_latency_micros, np.nan, latencies)
         use_model = timesync_quality_check(latencies, start_time, end_time, self.debug,
                                            self.min_timesync_dur_min, self.min_samples_per_bin)
@@ -213,6 +286,18 @@ class OffsetModel:
         if use_model_function and self.slope != 0.0:
             return [self.update_time(t) for t in timestamps]
         return [t + self.intercept for t in timestamps]
+
+    def get_original_time(self, time: float, use_model_function: bool = True) -> float:
+        """
+        reverse the updated time to the unaltered value
+
+        :param time: time to update
+        :param use_model_function: if True, use the slope of the model, otherwise use the intercept.  default True
+        :return: unaltered, original time
+        """
+        if use_model_function:
+            return (self.slope * self.start_time + time - self.intercept) / (1 + self.slope)
+        return time - self.intercept
 
 
 # Method to get number of bins
@@ -367,7 +452,7 @@ def get_binned_df(
 
 def timesync_quality_check(
         latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False,
-        min_timesync_dur_mins: int = MIN_TIMESYNC_DURATION_MIN, min_samples: int = MIN_SAMPLES
+        min_timesync_dur_mins: Optional[int] = None, min_samples: Optional[int] = None
 ) -> bool:
     """
     Checks quality of timesync data to determine if offset model should be used.
@@ -384,6 +469,12 @@ def timesync_quality_check(
     :param min_samples: minimum number of samples per bin
     :return: True if timesync data passes all quality checks, False otherwise
     """
+
+    if min_timesync_dur_mins is None:
+        min_timesync_dur_mins = get_min_timesync_dur()
+
+    if min_samples is None:
+        min_samples = get_min_samples()
 
     # Check the Duration of the signal of interest
     duration_min = (end_time - start_time) / (1e6 * 60)

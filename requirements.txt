@@ -5,7 +5,7 @@ dataclasses-json==0.5.7
 fastkml==0.12
 lxml==4.9.1
 lz4==4.0.2
-numpy==1.23.2
+numpy==1.23.3
 pandas==1.4.4
 protobuf==4.21.5
 psutil==5.9.2

@@ -437,6 +437,19 @@ class StationPacketMetadata:
         self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
         self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)
 
+    def original_timestamps(self, om: OffsetModel, use_model_function: bool = True):
+        """
+        undo the updates to the timestamps in the metadata using the offset model
+
+        :param om: OffsetModel to apply to data
+        :param use_model_function: if True, use the offset model's correction function to correct time,
+                                    otherwise use best offset (model's intercept value).  default True
+        """
+        self.packet_start_mach_timestamp = om.get_original_time(self.packet_start_mach_timestamp, use_model_function)
+        self.packet_end_mach_timestamp = om.get_original_time(self.packet_end_mach_timestamp, use_model_function)
+        self.packet_start_os_timestamp = om.get_original_time(self.packet_start_os_timestamp, use_model_function)
+        self.packet_end_os_timestamp = om.get_original_time(self.packet_end_os_timestamp, use_model_function)
+
     def as_dict(self) -> dict:
         """
         :return: dictionary representation of the packet metadata

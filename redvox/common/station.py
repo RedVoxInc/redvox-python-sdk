@@ -1568,6 +1568,37 @@ class Station:
             self._errors.append("Attempted to correct timestamps, but correction not enabled.")
         return self
 
+    def undo_update_timestamps(self) -> "Station":
+        """
+        undoes non-sensor timestamp updates of the timestamps in the station using the offset model
+        sensors already have unaltered timestamps
+        """
+        if not self._is_timestamps_updated:
+            self._errors.append("Timestamps already not corrected!")
+        else:
+            self._start_date = self._timesync_data.offset_model().get_original_time(
+                self._start_date, self._use_model_correction
+            )
+            if self._fs_writer.file_name != self._get_id_key():
+                if self._fs_writer.is_save_disk():
+                    old_name = self.save_dir()
+                    self.set_save_dir(self._fs_writer.base_dir)
+                    if old_name != "." and os.path.exists(old_name):
+                        os.rename(old_name, self.save_dir())
+                else:
+                    self._fs_writer.file_name = self._get_id_key()
+            for packet in self._packet_metadata:
+                packet.original_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
+            for g in range(len(self._gaps)):
+                self._gaps[g] = (self._timesync_data.offset_model().get_original_time(self._gaps[g][0]),
+                                 self._timesync_data.offset_model().get_original_time(self._gaps[g][1]))
+            if hasattr(self, "_event_data"):
+                self._event_data.original_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
+            self.update_first_and_last_data_timestamps()
+            self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
+            self._is_timestamps_updated = True
+        return self
+
     def as_dict(self) -> dict:
         """
         :return: station as dictionary

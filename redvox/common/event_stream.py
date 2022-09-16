@@ -433,6 +433,19 @@ class Event:
         else:
             self._timestamp = offset_model.update_time(self._timestamp, use_model_function)
 
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        """
+        undo the update to the timestamp of the Event
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model's slope function to update the timestamps.
+                                    otherwise uses the best offset (model's intercept value).  Default False
+        """
+        if not self.is_timestamp_corrected():
+            self._errors.append("Timestamps already not corrected!")
+        else:
+            self._timestamp = offset_model.get_original_time(self._timestamp, use_model_function)
+
     def default_json_file_name(self) -> str:
         """
         :return: default event json file name (event_[event.name]): note there is no extension
@@ -858,6 +871,17 @@ class EventStream:
         for evnt in self.events:
             evnt.update_timestamps(offset_model, use_model_function)
 
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        """
+        undo the update to the timestamps in the data
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model's slope function to update the timestamps.
+                                    otherwise uses the best offset (model's intercept value).  Default False
+        """
+        for evnt in self.events:
+            evnt.original_timestamps(offset_model, use_model_function)
+
     @staticmethod
     def from_json_dict(json_dict: dict) -> "EventStream":
         """
@@ -1048,6 +1072,17 @@ class EventStreams:
         """
         for evnt in self.streams:
             evnt.update_timestamps(offset_model, use_model_function)
+
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        """
+        undo the update to the timestamps in the data
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model's slope function to update the timestamps.
+                                    otherwise uses the best offset (model's intercept value).  Default False
+        """
+        for evnt in self.streams:
+            evnt.original_timestamps(offset_model, use_model_function)
 
     @staticmethod
     def from_json_file(file_dir: str, file_name: str) -> "EventStreams":

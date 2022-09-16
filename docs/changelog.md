@@ -1,6 +1,6 @@
 ## Changelog
 
-### 3.3.6 (2022-?-??)
+### 3.3.7 (2022-?-??)
 
 * Removed all references to older versions of certain functions
 * Updated requirements to match latest versions of packages

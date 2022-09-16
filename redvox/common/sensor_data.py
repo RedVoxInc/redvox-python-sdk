@@ -808,11 +808,11 @@ class SensorData:
             # use the model to update the first timestamp or add the best offset (model's intercept value)
             timestamps = pa.array(
                 calc_evenly_sampled_timestamps(
-                    offset_model.update_time(self.first_data_timestamp(), self._use_offset_model),
+                    offset_model.update_time(self.unaltered_data_timestamps()[0], self._use_offset_model),
                     self.num_samples(),
                     slope))
         else:
-            timestamps = pa.array(offset_model.update_timestamps(self.data_timestamps(),
+            timestamps = pa.array(offset_model.update_timestamps(self.unaltered_data_timestamps(),
                                                                  self._use_offset_model))
         # old_name = self.full_path()
         self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", timestamps))
