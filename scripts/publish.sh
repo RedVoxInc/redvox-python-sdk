@@ -2,13 +2,13 @@
 
 if [ -z "$1" ]
 then
-  echo "usage: ./build-and-upload-dist.sh <user> <password>"
+  echo "usage: ./publish.sh <user> <password>"
   exit 1
 fi
 
 if [ -z "$2" ]
 then
-  echo "usage: ./build-and-upload-dist.sh <user> <password>"
+  echo "usage: ./publish.sh <user> <password>"
   exit 1
 fi
 
