@@ -35,11 +35,12 @@ __MIN_TIMESYNC_DURATION_MIN: Optional[float] = MIN_TIMESYNC_DURATION_MIN
 def set_min_valid_latency_micros(new_min: float):
     """
     sets the minimum latency in microseconds for data to be considered valid
+    can't be less than 0, any value below 0 is converted to 0
 
     :param new_min: new minimum value
     """
     global __MIN_VALID_LATENCY_MICROS
-    __MIN_VALID_LATENCY_MICROS = new_min
+    __MIN_VALID_LATENCY_MICROS = np.fmax(new_min, 0)
 
 
 def get_min_valid_latency_micros() -> float:
@@ -55,11 +56,12 @@ def get_min_valid_latency_micros() -> float:
 def set_min_samples(new_min: int):
     """
     sets the minimum number of samples per bin for reliable results
+    can't be less than 3, anything below 3 is converted to 3
 
     :param new_min: new minimum value
     """
     global __MIN_SAMPLES
-    __MIN_SAMPLES = new_min
+    __MIN_SAMPLES = np.fmax(new_min, 3)
 
 
 def get_min_samples() -> int:
@@ -75,11 +77,12 @@ def get_min_samples() -> int:
 def set_min_timesync_dur(new_min: int):
     """
     sets the minimum duration in minutes of a bin for reliable results
+    can't be less than 5, anything below 5 is converted to 5
 
     :param new_min: new minimum value
     """
     global __MIN_TIMESYNC_DURATION_MIN
-    __MIN_TIMESYNC_DURATION_MIN = new_min
+    __MIN_TIMESYNC_DURATION_MIN = np.fmax(new_min, 5)
 
 
 def get_min_timesync_dur() -> int:
@@ -286,18 +289,6 @@ class OffsetModel:
         if use_model_function and self.slope != 0.0:
             return [self.update_time(t) for t in timestamps]
         return [t + self.intercept for t in timestamps]
-
-    def get_original_time(self, time: float, use_model_function: bool = True) -> float:
-        """
-        reverse the updated time to the unaltered value
-
-        :param time: time to update
-        :param use_model_function: if True, use the slope of the model, otherwise use the intercept.  default True
-        :return: unaltered, original time
-        """
-        if use_model_function:
-            return (self.slope * self.start_time + time - self.intercept) / (1 + self.slope)
-        return time - self.intercept
 
 
 # Method to get number of bins

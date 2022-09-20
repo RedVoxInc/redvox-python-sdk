@@ -1,5 +1,10 @@
 ## Changelog
 
+### 3.3.7 (2022-9-20)
+
+* Added functions to update constants defined in offsetmodel.py
+* Updated api900 conversion functions to utilize sub_api to denote api900 files
+
 ### 3.3.7 (2022-?-??)
 
 * Removed all references to older versions of certain functions

@@ -22,6 +22,7 @@ RedVox data, but it is capable of representing a variety of station and sensor c
   * [Station Metadata](#station-metadata)
   * [Station Packet Metadata](#station-packet-metadata)
   * [TimeSync and Offset Model](#timesync-and-offset-model)
+    * [Altering Offset Model Defaults](#altering-offset-model-defaults)
   * [Events](#events)
     * [EventStreams](#eventstreams)
     * [EventStream](#eventstream)
@@ -434,6 +435,9 @@ These are the properties of the OffsetModel class and their default values:
 7. `score`: float, R2 value of the model; 1.0 is best, 0.0 is worst
 8. `mean_latency`: float, mean latency of the data
 9. `std_dev_latency`: float, latency standard deviation
+10. `min_valid_latency_us`: float, the minimum latency in microseconds to be used in the model.  Default 100
+11. `min_samples_per_bin`: int, the minimum number of samples per bin of data for the model to be reliable.  Default 3
+12. `min_timesync_dur_min`: int, the minimum number of minutes of data for the model to be reliable.  Default 5
 
 These are the functions of the OffsetModel:
 1. `get_offset_at_time(time: float)`: Returns the offset at the specified `time`
@@ -441,6 +445,7 @@ These are the functions of the OffsetModel:
    if `use_model_function` is True, otherwise uses the offset at `start_time`.
 3. `update_timestamps(timestamps: np.array, use_model_function: bool = True)`: Returns `timestamps` modified by the offset
    at their respective times if `use_model_function` is True, otherwise uses the offset at `start_time`.
+4. `empty_model()`: Returns an OffsetModel with offset and slope = 0.
 
 We recommend only reading information from the TimeSync and OffsetModel objects.  
 Setting or changing any of the properties may cause unexpected results.
@@ -461,6 +466,22 @@ my_om = my_ts.offset_model()
 print(my_om.slope)
 print(my_om.intercept)
 ```
+
+### Altering Offset Model Defaults 
+You may alter the default values of these three OffsetModel properties:
+1. `min_valid_latency_us`
+2. `min_samples_per_bin`
+3. `min_timesync_dur_min`
+
+Using these functions:
+1. `set_min_valid_latency_micros(new_min: float)`: Sets the default minimum valid latency in microseconds.  Any value 
+   below 0 is converted to 0.
+2. `set_min_samples(new_min: int)`: Sets the default minimum number of samples per bin for reliable results.  Any value
+   below 3 is converted to 3.
+3. `set_min_timesync_dur(new_min: int)`: Sets the default minimum minutes of time sync data required for reliable 
+   results.  Any value below 5 is converted to 5.
+
+Please note that using these functions will alter ALL OffsetModel instances created after invoking these functions.
 
 _[Table of Contents](#table-of-contents)_
 
