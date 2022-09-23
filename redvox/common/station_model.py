@@ -258,3 +258,15 @@ class StationModel:
         for p in data_stream:
             model.get_data_from_packet(p)
         return model
+
+    def num_sensors(self) -> int:
+        """
+        :return: number of sensors in the Station
+        """
+        return len(self._sensors.keys())
+
+    def list_of_sensors(self) -> List[str]:
+        """
+        :return: list of sensor names as strings
+        """
+        return list(self._sensors.keys())
