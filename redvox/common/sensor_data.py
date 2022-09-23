@@ -826,6 +826,14 @@ class SensorData:
                 self._sample_interval_std_s = dtu.microseconds_to_seconds(float(np.std(time_diffs)))
         self._timestamps_altered = True
 
+    def set_original_timestamps(self):
+        """
+        converts all timestamps in the sensor to the original values from the data
+        """
+        timestamps = self.unaltered_data_timestamps()
+        self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", timestamps))
+        self._timestamps_altered = False
+
     def interpolate(self, interpolate_timestamp: float, first_point: int, second_point: int = 0,
                     copy: bool = True) -> pa.Table:
         """

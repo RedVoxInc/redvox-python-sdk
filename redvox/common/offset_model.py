@@ -290,6 +290,18 @@ class OffsetModel:
             return [self.update_time(t) for t in timestamps]
         return [t + self.intercept for t in timestamps]
 
+    def get_original_time(self, time: float, use_model_function: bool = True) -> float:
+        """
+        reverse the updated time to the unaltered value
+
+        :param time: time to update
+        :param use_model_function: if True, use the slope of the model, otherwise use the intercept.  default True
+        :return: unaltered, original time
+        """
+        if use_model_function:
+            return (self.slope * self.start_time + time - self.intercept) / (1 + self.slope)
+        return time - self.intercept
+
 
 # Method to get number of bins
 def get_bins_per_5min(start_time: float, end_time: float) -> int:

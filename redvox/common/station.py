@@ -1587,6 +1587,8 @@ class Station:
                         os.rename(old_name, self.save_dir())
                 else:
                     self._fs_writer.file_name = self._get_id_key()
+            for sensor in self._data:
+                sensor.set_original_timestamps()
             for packet in self._packet_metadata:
                 packet.original_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
             for g in range(len(self._gaps)):
