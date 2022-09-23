@@ -7,7 +7,7 @@ lxml>=4.5.2
 lz4>=3.1.0
 numpy<=1.22.4
 pandas>=1.4.1
-protobuf==3.20.0 # TODO: Trying to use the CPP implementation with new versions causes tests to fail.
+protobuf==3.20.2 # TODO: Trying to use the CPP implementation with new versions causes tests to fail.
 psutil
 pyserde
 pyarrow
