@@ -78,8 +78,8 @@ __ORIENTATION_FIELD_NAME: str = "orientation"
 __PRESSURE_FIELD_NAME: str = "pressure"
 __PROXIMITY_FIELD_NAME: str = "proximity"
 __RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidity"
-__ROTATION_VECTOR: str = "rotation_vector"
-__VELOCITY: str = "velocity"
+__ROTATION_VECTOR_FIELD_NAME: str = "rotation_vector"
+__VELOCITY_FIELD_NAME: str = "velocity"
 
 __SENSOR_TYPE_TO_FIELD_NAME: Dict[SensorType, str] = {
     SensorType.UNKNOWN_SENSOR: "unknown",
@@ -100,8 +100,9 @@ __SENSOR_TYPE_TO_FIELD_NAME: Dict[SensorType, str] = {
     SensorType.PRESSURE: __PRESSURE_FIELD_NAME,
     SensorType.PROXIMITY: __PROXIMITY_FIELD_NAME,
     SensorType.RELATIVE_HUMIDITY: __RELATIVE_HUMIDITY_FIELD_NAME,
-    SensorType.ROTATION_VECTOR: __ROTATION_VECTOR,
+    SensorType.ROTATION_VECTOR: __ROTATION_VECTOR_FIELD_NAME,
     SensorType.INFRARED: __PROXIMITY_FIELD_NAME,
+    SensorType.VELOCITY: __VELOCITY_FIELD_NAME,
 }
 
 Sensor = Union[
@@ -143,6 +144,7 @@ __SENSOR_TYPE_TO_SENSOR_FN: Dict[
     SensorType.RELATIVE_HUMIDITY: lambda packet: packet.sensors.relative_humidity,
     SensorType.ROTATION_VECTOR: lambda packet: packet.sensors.rotation_vector,
     SensorType.INFRARED: lambda packet: packet.sensors.proximity,
+    SensorType.VELOCITY: lambda packet: packet.sensors.velocity,
 }
 
 
@@ -165,6 +167,22 @@ def __has_sensor(
         return data.HasField(field_name)
 
     return False
+
+
+def get_all_sensors_in_packet(packet: api_m.RedvoxPacketM) -> List[str]:
+    """
+    :param packet: packet to check
+    :return: list of all sensors in the packet
+    """
+    result: List[str] = []
+    for s in [__ACCELEROMETER_FIELD_NAME, __AMBIENT_TEMPERATURE_FIELD_NAME, __AUDIO_FIELD_NAME,
+              __COMPRESSED_AUDIO_FIELD_NAME, __GRAVITY_FIELD_NAME, __GYROSCOPE_FIELD_NAME, __IMAGE_FIELD_NAME,
+              __LIGHT_FIELD_NAME, __LINEAR_ACCELERATION_FIELD_NAME, __LOCATION_FIELD_NAME, __MAGNETOMETER_FIELD_NAME,
+              __ORIENTATION_FIELD_NAME, __PRESSURE_FIELD_NAME, __PROXIMITY_FIELD_NAME, __RELATIVE_HUMIDITY_FIELD_NAME,
+              __ROTATION_VECTOR_FIELD_NAME, __VELOCITY_FIELD_NAME]:
+        if __has_sensor(packet, s):
+            result.append(s)
+    return result
 
 
 def __packet_duration_s(packet: api_m.RedvoxPacketM) -> float:

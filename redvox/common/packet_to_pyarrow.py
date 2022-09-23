@@ -48,6 +48,7 @@ __SENSOR_NAME_TO_SENSOR_FN: Dict[
     "relative_humidity": lambda packet: packet.sensors.relative_humidity,
     "rotation_vector": lambda packet: packet.sensors.rotation_vector,
     "infrared": lambda packet: packet.sensors.proximity,
+    "velocity": lambda packet: packet.sensors.velocity,
 }
 
 
@@ -425,6 +426,7 @@ def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -> A
         load_apim_linear_accel,
         load_apim_orientation,
         load_apim_rotation_vector,
+        load_apim_velocity,
     ]
     sensors = map(lambda fn: fn(packet), funcs)
     for data in sensors:
@@ -735,7 +737,7 @@ def load_apim_linear_accel(packet: RedvoxPacketM) -> Optional[PyarrowSummary]:
     return load_xyz(packet, srupa.SensorType.LINEAR_ACCELERATION)
 
 
-def load_apim_rotation_vector(packet: RedvoxPacketM,) -> Optional[PyarrowSummary]:
+def load_apim_rotation_vector(packet: RedvoxPacketM) -> Optional[PyarrowSummary]:
     """
     load rotation vector data from a single redvox packet
 
@@ -743,3 +745,13 @@ def load_apim_rotation_vector(packet: RedvoxPacketM,) -> Optional[PyarrowSummary
     :return: rotation vector sensor data if it exists, None otherwise
     """
     return load_xyz(packet, srupa.SensorType.ROTATION_VECTOR)
+
+
+def load_apim_velocity(packet: RedvoxPacketM) -> Optional[PyarrowSummary]:
+    """
+    load velocity data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: velocity sensor data if it exists, None otherwise
+    """
+    return load_xyz(packet, srupa.SensorType.VELOCITY)

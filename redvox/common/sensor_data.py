@@ -74,6 +74,7 @@ class SensorType(enum.Enum):
     # available RAM of the system, cell service status, amount of hard disk space left, power charging state
     # wifi lock state, cpu utilization, screen state, and screen brightness
     BEST_LOCATION = 19  # See standard
+    VELOCITY = 20  # m/s
 
     @staticmethod
     def type_from_str(type_str: str) -> "SensorType":
@@ -128,6 +129,8 @@ class SensorType(enum.Enum):
             return SensorType.RELATIVE_HUMIDITY
         elif type_str.lower() == "rotation_vector":
             return SensorType.ROTATION_VECTOR
+        elif type_str.lower() == "velocity":
+            return SensorType.VELOCITY
         else:
             return SensorType.UNKNOWN_SENSOR
 
@@ -958,6 +961,7 @@ class SensorData:
                 SensorType.GRAVITY: GravitySensor,
                 SensorType.LINEAR_ACCELERATION: LinearAccelerationSensor,
                 SensorType.ROTATION_VECTOR: RotationVectorSensor,
+                SensorType.VELOCITY: VelocitySensor,
                 SensorType.UNKNOWN_SENSOR: SensorData
             }
             self.__class__ = sensor_class_from_type[self._type]
@@ -1616,6 +1620,64 @@ class RotationVectorSensor(SensorData):
         :return: non-nan rotation vector z channel data as numpy array
         """
         return super().get_valid_data_channel_values('rotation_vector_z')
+
+
+class VelocitySensor(SensorData):
+    """
+    Rotation vector specific functions
+    """
+    def __init__(self, sensor_name: str,
+                 sensor_data: Optional[pa.Table] = None,
+                 sample_rate_hz: float = np.nan,
+                 sample_interval_s: float = np.nan,
+                 sample_interval_std_s: float = np.nan,
+                 is_sample_rate_fixed: bool = False,
+                 are_timestamps_altered: bool = False,
+                 calculate_stats: bool = False,
+                 use_offset_model_for_correction: bool = False,
+                 save_data: bool = False,
+                 base_dir: str = ".",
+                 gaps: Optional[List[Tuple[float, float]]] = None,
+                 show_errors: bool = False):
+        super().__init__(sensor_name, sensor_data, SensorType.Velocity, sample_rate_hz, sample_interval_s,
+                         sample_interval_std_s, is_sample_rate_fixed, are_timestamps_altered, calculate_stats,
+                         use_offset_model_for_correction, save_data, base_dir, gaps, show_errors)
+
+    def get_velocity_x_data(self) -> np.array:
+        """
+        :return: velocity x channel data as numpy array
+        """
+        return super().get_data_channel('velocity_x')
+
+    def get_valid_velocity_x_data(self) -> np.array:
+        """
+        :return: non-nan velocity x channel data as numpy array
+        """
+        return super().get_valid_data_channel_values('velocity_x')
+
+    def get_velocity_y_data(self) -> np.array:
+        """
+        :return: velocity y channel data as numpy array
+        """
+        return super().get_data_channel('velocity_y')
+
+    def get_valid_velocity_y_data(self) -> np.array:
+        """
+        :return: non-nan velocity y channel data as numpy array
+        """
+        return super().get_valid_data_channel_values('velocity_y')
+
+    def get_velocity_z_data(self) -> np.array:
+        """
+        :return: velocity z channel data as numpy array
+        """
+        return super().get_data_channel('velocity_z')
+
+    def get_valid_velocity_z_data(self) -> np.array:
+        """
+        :return: non-nan velocity z channel data as numpy array
+        """
+        return super().get_valid_data_channel_values('velocity_z')
 
 
 class GyroscopeSensor(SensorData):
