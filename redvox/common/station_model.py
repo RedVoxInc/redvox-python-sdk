@@ -200,9 +200,9 @@ class StationModel:
         elif sensor == "ambient_temperature":
             v = packet.sensors.ambient_temperature.timestamps.mean_sample_rate
         elif sensor == "audio":
-            v = packet.sensors.audio.sample_rate
+            return packet.sensors.audio.sample_rate
         elif sensor == "compressed_audio":
-            v = packet.sensors.compressed_audio.sample_rate
+            return packet.sensors.compressed_audio.sample_rate
         elif sensor == "gravity":
             v = packet.sensors.gravity.timestamps.mean_sample_rate
         elif sensor == "gyroscope":
@@ -253,7 +253,7 @@ class StationModel:
             v = packet.sensors.velocity.timestamps.mean_sample_rate
         else:
             v = np.nan
-        return v
+        return v / 1e-6
 
     def get_data_from_packet(self, packet: api_m.RedvoxPacketM) -> "StationModel":
         """
