@@ -30,10 +30,45 @@ def _dict_str(d: dict) -> str:
 class StationModel:
     """
     Station Model designed to summarize the entirety of a station's operational period
+    Timestamps are in microseconds since epoch UTC
+    Latitude and Longitude are in degrees
+    Altitude is in meters
+    Sample rates are in hz
+    Latency and offset are in microseconds
+    Packet duration is in seconds
+
+    Protected:
+        _id: str, id of the station.  Default ""
+        _uuid: str, uuid of the station.  Default ""
+        _start_date: float, Timestamp since epoch UTC of when station was started.  Default np.nan
+        _sensors: Dict[str, float], The name of sensors and their mean sample rate as a dictionary.
+        _errors: RedVoxExceptions, Contains any errors found when creating the model
+        _sdk_version: str, the version of the SDK used to create the model
 
     Properties:
-        location: lat, lon, alt, source
-        _sensors: the name of sensors and their mean sample rate as a dictionary
+        app: str, Name of the app the station is running.  Default ""
+        api: float, Version number of the API the station is using.  Default np.nan
+        sub_api: float, Version number of the sub-API the station in using.  Default np.nan
+        make: str, Make of the station.  Default ""
+        model: str, Model of the station.  Default ""
+        app_version: str, Version of the app the station is running.  Default ""
+        packet_duration_s: float, Length of station's data packets in seconds.  Default np.nan
+        station_description: str, Text description of the station.  Default ""
+        num_packets: int, Number of files used to create the model.  Default 0
+        first_data_timestamp: float, Timestamp of the first data point.  Default np.nan
+        last_data_timestamp: float, Timestamp of the last data point.  Default np.nan
+        first_location: Tuple[float, float, float], Latitude, longitude, and altitude of first location.  Default None
+        first_location_source: str, Name of source of first location values.  Default ""
+        last_location: Tuple[float, float, float], Latitude, longitude, and altitude of last location.  Default None
+        last_location_source: str, Name of source of last location values.  Default ""
+        has_moved: bool, If True, location changed during station operation.  Default False
+        location_counts: Dict[str, int], Number of times a location source has appeared.  Default empty
+        first_latency_timestamp: float, Timestamp of first latency.  Default np.nan
+        first_latency: float, First latency of the model.  Default np.nan
+        first_offset: float, First offset of the model.  Default np.nan
+        last_latency_timestamp: float, Timestamp of last latency.  Default np.nan
+        last_latency: float, Last latency of the model.  Default np.nan
+        last_offset: float, Last offset of the model.  Default np.nan
     """
     def __init__(self,
                  station_id: str = "",
@@ -61,6 +96,37 @@ class StationModel:
                  last_latency: float = np.nan,
                  last_offset: float = np.nan
                  ):
+        """
+        Initialize a Station Model.  Does not include sensor statistics.  Use function create_from_packet() if you
+        already have a packet to read from to get a complete model from the packet.
+
+        :param station_id: id of the station, default ""
+        :param uuid: uuid of the station, default ""
+        :param start_timestamp: timestamp from epoch UTC when station was started, default np.nan
+        :param api: api version of data, default np.nan
+        :param sub_api: sub-api version of data, default np.nan
+        :param make: make of station, default ""
+        :param model: model of station, default ""
+        :param app_version: version of the app on station, default ""
+        :param packet_duration_s: duration of data packets in seconds, default np.nan
+        :param station_description: station description, default ""
+        :param created_from_packet: if True, the rest of the values came from a packet and sets num_packets to 1.
+                                    Default False
+        :param first_data_timestamp: first timestamp from epoch UTC of the data, default np.nan
+        :param last_data_timestamp: last timestamp from epoch UTC of the data, default np.nan
+        :param first_location: Optional latitude, longitude and altitude of the first location, default None
+        :param first_location_source: source of the first location data, default ""
+        :param last_location: Optional latitude, longitude and altitude of the last location, default None
+        :param last_location_source: source of the last location data, default ""
+        :param location_counts: Optional dict of source names and number of times each location source appeared in the
+                                data, default None
+        :param first_latency_timestamp: timestamp of the first latency value, default np.nan
+        :param first_latency: first latency of the model, default np.nan
+        :param first_offset: first offset of the model, default np.nan
+        :param last_latency_timestamp: timestamp of the last latency value, default np.nan
+        :param last_latency: last latency of the model, default np.nan
+        :param last_offset: last offset of the model, default np.nan
+        """
         self._id: str = station_id
         self._uuid: str = uuid
         self._start_date: float = start_timestamp
@@ -118,7 +184,6 @@ class StationModel:
                f"last_latency_timestamp: {self.last_latency_timestamp}, " \
                f"last_latency: {self.last_latency}, " \
                f"last_offset: {self.last_offset}, " \
-               f"audio_sample_rate_hz: {self.audio_sample_rate_nominal_hz()}, " \
                f"sdk_version: {self._sdk_version}, " \
                f"sensors: {self._sensors}"
 
@@ -143,8 +208,8 @@ class StationModel:
                f"num_packets: {self.num_packets}, " \
                f"first_data_timestamp: {first_timestamp}, " \
                f"last_data_timestamp: {last_timestamp}, " \
-               f"first_location: {self.first_location}, {self.first_location_source}, " \
-               f"last_location: {self.last_location}, {self.last_location_source}, " \
+               f"first lat, lon, alt (m): {self.first_location}, {self.first_location_source}, " \
+               f"last lat, lon, alt (m): {self.last_location}, {self.last_location_source}, " \
                f"location_counts: {_dict_str(self.location_counts)}, " \
                f"has_moved: {self.has_moved}, " \
                f"first_latency_timestamp: {self.first_latency_timestamp}, " \
@@ -155,7 +220,7 @@ class StationModel:
                f"last_offset: {self.last_offset}, " \
                f"audio_sample_rate_hz: {self.audio_sample_rate_nominal_hz()}, " \
                f"sdk_version: {self._sdk_version}, " \
-               f"sensors and sample rate: {self._sensors}"
+               f"sensors and sample rate (hz): {self._sensors}"
 
     def id(self) -> str:
         """
