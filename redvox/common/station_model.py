@@ -451,3 +451,15 @@ class StationModel:
         :return: list of sensor names as strings
         """
         return list(self._sensors.keys())
+
+    def get_sensor_data(self, sensor: str) -> Optional[float]:
+        """
+        Returns the data associated with a sensor or None if the data doesn't exist.
+        Currently returns the mean sample rate of the sensor
+
+        :param sensor: sensor to get data for
+        :return: sensor data or None
+        """
+        if sensor in self._sensors.keys():
+            return self._sensors[sensor]
+        return None
