@@ -559,3 +559,40 @@ def compute_offsets(station_stats: List["StationStat"]) -> Optional[TimingOffset
     return TimingOffsets(
         start_offset, start_dt + start_offset, end_offset, end_dt + end_offset
     )
+
+
+def model_from_stats(station_stats: List["StationStat"]) -> Optional[OffsetModel]:
+    """
+    Computes the offset model from the provided station statistics.
+
+    :param station_stats: Statistics to compute model from.
+    :return: OffsetModel or None if there are no offsets or there is an error.
+    """
+    # Preallocate the data arrays.
+    latencies: np.ndarray = np.zeros(len(station_stats), float)
+    offsets: np.ndarray = np.zeros(len(station_stats), float)
+    times: np.ndarray = np.zeros(len(station_stats), float)
+
+    # Extract data or return early on data error
+    i: int
+    stat: "StationStat"
+    for i, stat in enumerate(station_stats):
+        if stat.packet_duration == 0.0 or not stat.packet_duration:
+            return None
+
+        latencies[i] = mapf(stat.latency)
+        offsets[i] = mapf(stat.offset)
+        times[i] = stat.best_latency_timestamp
+
+    if len(latencies) == 0:
+        return None
+
+    # Prep clock model
+    start_dt: datetime = station_stats[0].packet_start_dt
+    end_dt: datetime = (
+            station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
+    )
+    start_time: float = dt_utils.datetime_to_epoch_microseconds_utc(start_dt)
+    end_time: float = dt_utils.datetime_to_epoch_microseconds_utc(end_dt)
+
+    return OffsetModel(latencies, offsets, times, start_time, end_time)

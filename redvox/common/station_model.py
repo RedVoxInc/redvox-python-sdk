@@ -1,11 +1,12 @@
-from typing import List, Dict, Optional, Callable, Tuple
+from typing import List, Dict, Optional, Tuple
 
 import numpy as np
 
 import redvox
-from redvox.common.sensor_reader_utils import get_all_sensors_in_packet
+import redvox.common.sensor_reader_utils as sru
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc
+from redvox.common.api_reader import ApiReaderModel
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 
@@ -258,67 +259,69 @@ class StationModel:
         :param: packet: the packet to get data from
         :return: mean sample rate from packet for a sensor
         """
-        if sensor == "health":
-            v = packet.station_information.station_metrics.timestamps.mean_sample_rate
-        elif sensor == "accelerometer":
-            v = packet.sensors.accelerometer.timestamps.mean_sample_rate
-        elif sensor == "ambient_temperature":
-            v = packet.sensors.ambient_temperature.timestamps.mean_sample_rate
-        elif sensor == "audio":
-            return packet.sensors.audio.sample_rate
-        elif sensor == "compressed_audio":
-            return packet.sensors.compressed_audio.sample_rate
-        elif sensor == "gravity":
-            v = packet.sensors.gravity.timestamps.mean_sample_rate
-        elif sensor == "gyroscope":
-            v = packet.sensors.gyroscope.timestamps.mean_sample_rate
-        elif sensor == "image":
-            v = packet.sensors.image.timestamps.mean_sample_rate
-        elif sensor == "light":
-            v = packet.sensors.light.timestamps.mean_sample_rate
-        elif sensor == "linear_acceleration":
-            v = packet.sensors.linear_acceleration.timestamps.mean_sample_rate
-        elif sensor == "location":
-            v = packet.sensors.location.timestamps.mean_sample_rate
-            if self.first_location is None \
-                    or self.first_data_timestamp > packet.sensors.location.timestamps.timestamps[0]:
-                self.first_location = (packet.sensors.location.latitude_samples.values[0],
-                                       packet.sensors.location.longitude_samples.values[0],
-                                       packet.sensors.location.altitude_samples.values[0])
-                self.first_location_source = \
-                    COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
-            if self.last_location is None \
-                    or self.last_data_timestamp < packet.sensors.location.timestamps.timestamps[-1]:
-                self.last_location = (packet.sensors.location.latitude_samples.values[-1],
-                                      packet.sensors.location.longitude_samples.values[-1],
-                                      packet.sensors.location.altitude_samples.values[-1])
-                self.last_location_source = \
-                    COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
-            for loc in packet.sensors.location.location_providers:
-                n = COLUMN_TO_ENUM_FN["location_provider"](loc)
-                if n not in self.location_counts.keys():
-                    self.location_counts[n] = 1
-                else:
-                    self.location_counts[n] += 1
-            if not self.has_moved:
-                self.has_moved = self.first_location != self.last_location
-        elif sensor == "magnetometer":
-            v = packet.sensors.magnetometer.timestamps.mean_sample_rate
-        elif sensor == "orientation":
-            v = packet.sensors.orientation.timestamps.mean_sample_rate
-        elif sensor == "pressure":
-            v = packet.sensors.pressure.timestamps.mean_sample_rate
-        elif sensor == "proximity":
-            v = packet.sensors.proximity.timestamps.mean_sample_rate
-        elif sensor == "relative_humidity":
-            v = packet.sensors.relative_humidity.timestamps.mean_sample_rate
-        elif sensor == "rotation_vector":
-            v = packet.sensors.rotation_vector.timestamps.mean_sample_rate
-        elif sensor == "velocity":
-            v = packet.sensors.velocity.timestamps.mean_sample_rate
-        else:
-            v = np.nan
-        return v / 1e-6
+        if sru.__has_sensor(packet, sensor):
+            if sensor == "health":
+                v = packet.station_information.station_metrics.timestamps.mean_sample_rate
+            elif sensor == sru.__ACCELEROMETER_FIELD_NAME:
+                v = packet.sensors.accelerometer.timestamps.mean_sample_rate
+            elif sensor == sru.__AMBIENT_TEMPERATURE_FIELD_NAME:
+                v = packet.sensors.ambient_temperature.timestamps.mean_sample_rate
+            elif sensor == sru.__AUDIO_FIELD_NAME:
+                return packet.sensors.audio.sample_rate
+            elif sensor == sru.__COMPRESSED_AUDIO_FIELD_NAME:
+                return packet.sensors.compressed_audio.sample_rate
+            elif sensor == sru.__GRAVITY_FIELD_NAME:
+                v = packet.sensors.gravity.timestamps.mean_sample_rate
+            elif sensor == sru.__GYROSCOPE_FIELD_NAME:
+                v = packet.sensors.gyroscope.timestamps.mean_sample_rate
+            elif sensor == sru.__IMAGE_FIELD_NAME:
+                v = packet.sensors.image.timestamps.mean_sample_rate
+            elif sensor == sru.__LIGHT_FIELD_NAME:
+                v = packet.sensors.light.timestamps.mean_sample_rate
+            elif sensor == sru.__LINEAR_ACCELERATION_FIELD_NAME:
+                v = packet.sensors.linear_acceleration.timestamps.mean_sample_rate
+            elif sensor == sru.__LOCATION_FIELD_NAME:
+                v = packet.sensors.location.timestamps.mean_sample_rate
+                if self.first_location is None \
+                        or self.first_data_timestamp > packet.sensors.location.timestamps.timestamps[0]:
+                    self.first_location = (packet.sensors.location.latitude_samples.values[0],
+                                           packet.sensors.location.longitude_samples.values[0],
+                                           packet.sensors.location.altitude_samples.values[0])
+                    self.first_location_source = \
+                        COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
+                if self.last_location is None \
+                        or self.last_data_timestamp < packet.sensors.location.timestamps.timestamps[-1]:
+                    self.last_location = (packet.sensors.location.latitude_samples.values[-1],
+                                          packet.sensors.location.longitude_samples.values[-1],
+                                          packet.sensors.location.altitude_samples.values[-1])
+                    self.last_location_source = \
+                        COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
+                for loc in packet.sensors.location.location_providers:
+                    n = COLUMN_TO_ENUM_FN["location_provider"](loc)
+                    if n not in self.location_counts.keys():
+                        self.location_counts[n] = 1
+                    else:
+                        self.location_counts[n] += 1
+                if not self.has_moved:
+                    self.has_moved = self.first_location != self.last_location
+            elif sensor == sru.__MAGNETOMETER_FIELD_NAME:
+                v = packet.sensors.magnetometer.timestamps.mean_sample_rate
+            elif sensor == sru.__ORIENTATION_FIELD_NAME:
+                v = packet.sensors.orientation.timestamps.mean_sample_rate
+            elif sensor == sru.__PRESSURE_FIELD_NAME:
+                v = packet.sensors.pressure.timestamps.mean_sample_rate
+            elif sensor == sru.__PROXIMITY_FIELD_NAME:
+                v = packet.sensors.proximity.timestamps.mean_sample_rate
+            elif sensor == sru.__RELATIVE_HUMIDITY_FIELD_NAME:
+                v = packet.sensors.relative_humidity.timestamps.mean_sample_rate
+            elif sensor == sru.__ROTATION_VECTOR_FIELD_NAME:
+                v = packet.sensors.rotation_vector.timestamps.mean_sample_rate
+            elif sensor == sru.__VELOCITY_FIELD_NAME:
+                v = packet.sensors.velocity.timestamps.mean_sample_rate
+            else:
+                v = np.nan
+            return v / 1e-6  # convert microseconds to seconds so rate is in hz
+        return np.nan
 
     def get_data_from_packet(self, packet: api_m.RedvoxPacketM) -> "StationModel":
         """
@@ -334,7 +337,7 @@ class StationModel:
                 if packet.timing_information.app_start_mach_timestamp == self._start_date:
                     packet_start = packet.timing_information.packet_start_mach_timestamp
                     packet_end = packet.timing_information.packet_end_mach_timestamp
-                    sensors = get_all_sensors_in_packet(packet)
+                    sensors = sru.get_all_sensors_in_packet(packet)
                     sensors.append("health")
                     if list(self._sensors.keys()) != sensors:
                         self._errors.append(f"packet sensors {sensors} does not match.")
@@ -367,7 +370,7 @@ class StationModel:
 
         :param packet: API M packet of data to read
         """
-        sensors = get_all_sensors_in_packet(packet)
+        sensors = sru.get_all_sensors_in_packet(packet)
         sensors.append("health")
         for s in sensors:
             self._sensors[s] = self._get_sensor_data_from_packet(s, packet)
@@ -381,37 +384,46 @@ class StationModel:
         :return: StationModel using the data from the packet
         """
         loc_counts = {}
-        for loc in packet.sensors.location.location_providers:
-            n = COLUMN_TO_ENUM_FN["location_provider"](loc)
-            if n not in loc_counts.keys():
-                loc_counts[n] = 1
-            else:
-                loc_counts[n] += 1
-        result = StationModel(packet.station_information.id, packet.station_information.uuid,
-                              packet.timing_information.app_start_mach_timestamp, packet.api, packet.sub_api,
-                              packet.station_information.make, packet.station_information.model,
-                              packet.station_information.app_version,
-                              len(packet.sensors.audio.samples.values) / packet.sensors.audio.sample_rate,
-                              packet.station_information.description, True,
-                              packet.timing_information.packet_start_mach_timestamp,
-                              packet.timing_information.packet_end_mach_timestamp,
-                              (packet.sensors.location.latitude_samples.values[0],
-                               packet.sensors.location.longitude_samples.values[0],
-                               packet.sensors.location.altitude_samples.values[0]),
-                              COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0]),
-                              (packet.sensors.location.latitude_samples.values[-1],
-                               packet.sensors.location.longitude_samples.values[-1],
-                               packet.sensors.location.altitude_samples.values[-1]),
-                              COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1]),
-                              loc_counts,
-                              packet.timing_information.packet_start_mach_timestamp,
-                              packet.timing_information.best_latency,
-                              packet.timing_information.best_offset,
-                              packet.timing_information.packet_start_mach_timestamp,
-                              packet.timing_information.best_latency,
-                              packet.timing_information.best_offset,
-                              )
-        result.set_sensor_data(packet)
+        first_location = None
+        first_loc_provider = ""
+        last_location = None
+        last_loc_provider = ""
+        if sru.__has_sensor(packet, sru.__LOCATION_FIELD_NAME):
+            for loc in packet.sensors.location.location_providers:
+                n = COLUMN_TO_ENUM_FN["location_provider"](loc)
+                if n not in loc_counts.keys():
+                    loc_counts[n] = 1
+                else:
+                    loc_counts[n] += 1
+            first_location = (packet.sensors.location.latitude_samples.values[0],
+                              packet.sensors.location.longitude_samples.values[0],
+                              packet.sensors.location.altitude_samples.values[0])
+            first_loc_provider = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
+
+            last_location = (packet.sensors.location.latitude_samples.values[-1],
+                             packet.sensors.location.longitude_samples.values[-1],
+                             packet.sensors.location.altitude_samples.values[-1])
+            last_loc_provider = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1]),
+        try:
+            result = StationModel(packet.station_information.id, packet.station_information.uuid,
+                                  packet.timing_information.app_start_mach_timestamp, packet.api, packet.sub_api,
+                                  packet.station_information.make, packet.station_information.model,
+                                  packet.station_information.app_version,
+                                  len(packet.sensors.audio.samples.values) / packet.sensors.audio.sample_rate,
+                                  packet.station_information.description, True,
+                                  packet.timing_information.packet_start_mach_timestamp,
+                                  packet.timing_information.packet_end_mach_timestamp,
+                                  first_location, first_loc_provider, last_location, last_loc_provider, loc_counts,
+                                  packet.timing_information.packet_start_mach_timestamp,
+                                  packet.timing_information.best_latency,
+                                  packet.timing_information.best_offset,
+                                  packet.timing_information.packet_start_mach_timestamp,
+                                  packet.timing_information.best_latency,
+                                  packet.timing_information.best_offset,
+                                  )
+            result.set_sensor_data(packet)
+        except Exception as e:
+            result = StationModel(station_description=f"FAILED: {e}")
         return result
 
     def stream_data(self, data_stream: List[api_m.RedvoxPacketM]) -> "StationModel":
@@ -439,6 +451,16 @@ class StationModel:
             model.get_data_from_packet(p)
         data_stream.insert(0, p1)
         return model
+
+    def create_from_api_reader(self, api_reader: ApiReaderModel) -> "StationModel":
+        """
+        use the special ApiReaderModel to create a StationModel
+        NOTE: Currently uses the first id in the ApiReader cuz we keeping it simple
+
+        :param api_reader: the ApiReaderModel to get data from
+        :return: StationModel using data from the ApiReaderModel
+        """
+        return self.create_from_stream(api_reader.get_station_files())
 
     def num_sensors(self) -> int:
         """

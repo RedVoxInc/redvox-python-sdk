@@ -12,7 +12,8 @@ import psutil
 
 import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
-from redvox.common import offset_model, io,\
+from redvox.common import offset_model as om,\
+    io,\
     api_conversions as ac,\
     file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
@@ -217,7 +218,7 @@ class ApiReader:
         if pool is None:
             _pool.close()
 
-        timing_offsets: Optional[offset_model.TimingOffsets] = offset_model.compute_offsets(stats)
+        timing_offsets: Optional[om.TimingOffsets] = om.compute_offsets(stats)
 
         # punt if duration or other important values are invalid or if the latency array was empty
         if timing_offsets is None:
@@ -376,3 +377,180 @@ class ApiReader:
         if len(result) < 1:
             return None
         return result
+
+
+class ApiReaderModel:
+    """
+    Reads data from api 900 or api 1000 format, converting all data read into RedvoxPacketM for
+    ease of comparison and use.
+
+    Properties:
+        filter: io.ReadFilter with the station ids, start and end time, start and end time padding, and
+        types of files to read
+
+        base_dir: str of the directory containing all the files to read
+
+        structured_dir: bool, if True, the base_dir contains a specific directory structure used by the
+        respective api formats.  If False, base_dir only has the data files.  Default False.
+
+        files_index: io.Index of the files that match the filter that are in base_dir
+
+        index_summary: io.IndexSummary of the filtered data
+
+        debug: bool, if True, output additional information during function execution.  Default False.
+    """
+
+    def __init__(
+            self,
+            base_dir: str,
+            structured_dir: bool = False,
+            read_filter: io.ReadFilter = None,
+            debug: bool = False,
+            pool: Optional[multiprocessing.pool.Pool] = None,
+    ):
+        """
+        Initialize the ApiReader object
+
+        :param base_dir: directory containing the files to read
+        :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
+                                api formats.  If False, base_dir only has the data files.  Default False.
+        :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
+        :param debug: if True, output program warnings/errors during function execution.  Default False.
+        """
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
+
+        if read_filter:
+            self.filter = read_filter
+            if self.filter.station_ids:
+                self.filter.station_ids = set(self.filter.station_ids)
+        else:
+            self.filter = io.ReadFilter()
+        self.base_dir = base_dir
+        self.structured_dir = structured_dir
+        self.debug = debug
+        self.errors = RedVoxExceptions("APIReader")
+        self.offset_model = om.OffsetModel.empty_model()
+        self.files_index = self._get_all_files(_pool)
+        self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
+
+        if debug:
+            self.errors.print()
+
+        if pool is None:
+            _pool.close()
+
+    def get_station_files(self, station_id: str = "") -> list:
+        """
+        Gets all files for a specific station; returns the first instance of the id match
+        If no station_id is given, returns the first id in the data
+
+        :param station_id: station id to get data for
+        :return: list of all files for the station
+        """
+        if not station_id:
+            return list(self.files_index[0].stream_raw())
+        for k in self.files_index:
+            if k.entries[0].station_id == station_id:
+                return list(k.stream_raw())
+
+    def _flatten_files_index(self):
+        """
+        :return: flattened version of files_index
+        """
+        result = io.Index()
+        for i in self.files_index:
+            result.append(i.entries)
+        return result
+
+    def _get_all_files(
+            self, pool: Optional[multiprocessing.pool.Pool] = None
+    ) -> List[io.Index]:
+        """
+        get all files in the base dir of the ApiReader
+
+        :return: index with all the files that match the filter
+        """
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
+        index: List[io.Index] = []
+        # this guarantees that all ids we search for are valid
+        all_index = self._apply_filter(pool=_pool)
+        for station_id in all_index.summarize().station_ids():
+            id_index = all_index.get_index_for_station_id(station_id)
+            checked_index = self._check_station_stats(id_index, pool=_pool)
+            index.extend(checked_index)
+
+        if pool is None:
+            _pool.close()
+
+        return index
+
+    def _apply_filter(
+            self,
+            reader_filter: Optional[io.ReadFilter] = None,
+            pool: Optional[multiprocessing.pool.Pool] = None,
+    ) -> io.Index:
+        """
+        apply the filter of the reader, or another filter if specified
+
+        :param reader_filter: optional filter; if None, use the reader's filter, default None
+        :return: index of the filtered files
+        """
+        _pool: multiprocessing.pool.Pool = (
+            multiprocessing.Pool() if pool is None else pool
+        )
+        if not reader_filter:
+            reader_filter = self.filter
+        if self.structured_dir:
+            index = io.index_structured(self.base_dir, reader_filter, pool=_pool)
+        else:
+            index = io.index_unstructured(self.base_dir, reader_filter, pool=_pool)
+        if pool is None:
+            _pool.close()
+        return index
+
+    def _check_station_stats(
+            self,
+            station_index: io.Index,
+            pool: Optional[multiprocessing.pool.Pool] = None,
+    ) -> List[io.Index]:
+        """
+        check the index's results; if it has enough information, return it, otherwise search for more data.
+        The index should only request one station id
+        If the station was restarted during the request period, a new group of indexes will be created
+        to represent the change in station metadata.
+
+        :param station_index: index representing the requested information
+        :return: List of Indexes that includes as much information as possible that fits the request
+        """
+        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
+        # if we found nothing, return the index
+        if len(station_index.entries) < 1:
+            return [station_index]
+
+        stats = fs.extract_stats(station_index, pool=_pool)
+        # Close pool if created here
+        if pool is None:
+            _pool.close()
+
+        self.offset_model = om.model_from_stats(stats)
+
+        # punt if duration or other important values are invalid or if the latency array was empty
+        if self.offset_model is None:
+            return [station_index]
+
+        results = {}
+        keys = []
+
+        for v, e in enumerate(stats):
+            key = e.app_start_dt
+            if key not in keys:
+                keys.append(key)
+                results[key] = io.Index()
+
+            results[key].append(entries=[station_index.entries[v]])
+
+        return list(results.values())
