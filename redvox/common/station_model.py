@@ -308,7 +308,7 @@ class StationModel:
         """
         :return: the nominal audio sample rate in hz
         """
-        return self._sensors["audio"]
+        return self._sensors["audio"] if "audio" in self._sensors.keys() else np.nan
 
     def _get_sensor_data_from_packet(self, sensor: str, packet: api_m.RedvoxPacketM) -> float:
         """
@@ -339,27 +339,27 @@ class StationModel:
                 v = packet.sensors.linear_acceleration.timestamps.mean_sample_rate
             elif sensor == _LOCATION_FIELD_NAME:
                 v = packet.sensors.location.timestamps.mean_sample_rate
-
-                if self.first_location is None \
-                        or self.first_data_timestamp > packet.sensors.location.timestamps.timestamps[0]:
-                    self.first_location = (packet.sensors.location.latitude_samples.values[0]
-                                           if packet.sensors.location.HasField("latitude_samples") else np.nan,
-                                           packet.sensors.location.longitude_samples.values[0]
-                                           if packet.sensors.location.HasField("longitude_samples") else np.nan,
-                                           packet.sensors.location.altitude_samples.values[0]
-                                           if packet.sensors.location.HasField("altitude_samples") else np.nan)
-                    self.first_location_source = \
-                        COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
-                if self.last_location is None \
-                        or self.last_data_timestamp < packet.sensors.location.timestamps.timestamps[-1]:
-                    self.last_location = (packet.sensors.location.latitude_samples.values[-1]
-                                          if packet.sensors.location.HasField("latitude_samples") else np.nan,
-                                          packet.sensors.location.longitude_samples.values[-1]
-                                          if packet.sensors.location.HasField("longitude_samples") else np.nan,
-                                          packet.sensors.location.altitude_samples.values[-1]
-                                          if packet.sensors.location.HasField("altitude_samples") else np.nan)
-                    self.last_location_source = \
-                        COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
+                if packet.sensors.location.timestamps.timestamp_statistics.count > 0:
+                    if self.first_location is None \
+                            or self.first_data_timestamp > packet.sensors.location.timestamps.timestamps[0]:
+                        self.first_location = (packet.sensors.location.latitude_samples.values[0]
+                                               if packet.sensors.location.HasField("latitude_samples") else np.nan,
+                                               packet.sensors.location.longitude_samples.values[0]
+                                               if packet.sensors.location.HasField("longitude_samples") else np.nan,
+                                               packet.sensors.location.altitude_samples.values[0]
+                                               if packet.sensors.location.HasField("altitude_samples") else np.nan)
+                        self.first_location_source = \
+                            COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
+                    if self.last_location is None \
+                            or self.last_data_timestamp < packet.sensors.location.timestamps.timestamps[-1]:
+                        self.last_location = (packet.sensors.location.latitude_samples.values[-1]
+                                              if packet.sensors.location.HasField("latitude_samples") else np.nan,
+                                              packet.sensors.location.longitude_samples.values[-1]
+                                              if packet.sensors.location.HasField("longitude_samples") else np.nan,
+                                              packet.sensors.location.altitude_samples.values[-1]
+                                              if packet.sensors.location.HasField("altitude_samples") else np.nan)
+                        self.last_location_source = \
+                            COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
                 for loc in packet.sensors.location.location_providers:
                     n = COLUMN_TO_ENUM_FN["location_provider"](loc)
                     if n not in self.location_counts.keys():
@@ -453,7 +453,8 @@ class StationModel:
         first_loc_provider = ""
         last_location = None
         last_loc_provider = ""
-        if _has_sensor(packet, _LOCATION_FIELD_NAME):
+        if _has_sensor(packet, _LOCATION_FIELD_NAME) \
+                and packet.sensors.location.timestamps.timestamp_statistics.count >= 1:
             for loc in packet.sensors.location.location_providers:
                 n = COLUMN_TO_ENUM_FN["location_provider"](loc)
                 if n not in loc_counts.keys():
@@ -494,7 +495,8 @@ class StationModel:
                                   )
             result.set_sensor_data(packet)
         except Exception as e:
-            result = StationModel(station_description=f"FAILED: {e}")
+            # result = StationModel(station_description=f"FAILED: {e}")
+            raise e
         return result
 
     def stream_data(self, data_stream: List[api_m.RedvoxPacketM]) -> "StationModel":
