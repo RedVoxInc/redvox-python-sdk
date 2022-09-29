@@ -339,18 +339,25 @@ class StationModel:
                 v = packet.sensors.linear_acceleration.timestamps.mean_sample_rate
             elif sensor == _LOCATION_FIELD_NAME:
                 v = packet.sensors.location.timestamps.mean_sample_rate
+
                 if self.first_location is None \
                         or self.first_data_timestamp > packet.sensors.location.timestamps.timestamps[0]:
-                    self.first_location = (packet.sensors.location.latitude_samples.values[0],
-                                           packet.sensors.location.longitude_samples.values[0],
-                                           packet.sensors.location.altitude_samples.values[0])
+                    self.first_location = (packet.sensors.location.latitude_samples.values[0]
+                                           if packet.sensors.location.HasField("latitude_samples") else np.nan,
+                                           packet.sensors.location.longitude_samples.values[0]
+                                           if packet.sensors.location.HasField("longitude_samples") else np.nan,
+                                           packet.sensors.location.altitude_samples.values[0]
+                                           if packet.sensors.location.HasField("altitude_samples") else np.nan)
                     self.first_location_source = \
                         COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
                 if self.last_location is None \
                         or self.last_data_timestamp < packet.sensors.location.timestamps.timestamps[-1]:
-                    self.last_location = (packet.sensors.location.latitude_samples.values[-1],
-                                          packet.sensors.location.longitude_samples.values[-1],
-                                          packet.sensors.location.altitude_samples.values[-1])
+                    self.last_location = (packet.sensors.location.latitude_samples.values[-1]
+                                          if packet.sensors.location.HasField("latitude_samples") else np.nan,
+                                          packet.sensors.location.longitude_samples.values[-1]
+                                          if packet.sensors.location.HasField("longitude_samples") else np.nan,
+                                          packet.sensors.location.altitude_samples.values[-1]
+                                          if packet.sensors.location.HasField("altitude_samples") else np.nan)
                     self.last_location_source = \
                         COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
                 for loc in packet.sensors.location.location_providers:
@@ -453,14 +460,20 @@ class StationModel:
                     loc_counts[n] = 1
                 else:
                     loc_counts[n] += 1
-            first_location = (packet.sensors.location.latitude_samples.values[0],
-                              packet.sensors.location.longitude_samples.values[0],
-                              packet.sensors.location.altitude_samples.values[0])
+            first_location = (packet.sensors.location.latitude_samples.values[0]
+                              if packet.sensors.location.HasField("latitude_samples") else np.nan,
+                              packet.sensors.location.longitude_samples.values[0]
+                              if packet.sensors.location.HasField("longitude_samples") else np.nan,
+                              packet.sensors.location.altitude_samples.values[0]
+                              if packet.sensors.location.HasField("altitude_samples") else np.nan)
             first_loc_provider = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
 
-            last_location = (packet.sensors.location.latitude_samples.values[-1],
-                             packet.sensors.location.longitude_samples.values[-1],
-                             packet.sensors.location.altitude_samples.values[-1])
+            last_location = (packet.sensors.location.latitude_samples.values[-1]
+                             if packet.sensors.location.HasField("latitude_samples") else np.nan,
+                             packet.sensors.location.longitude_samples.values[-1]
+                             if packet.sensors.location.HasField("longitude_samples") else np.nan,
+                             packet.sensors.location.altitude_samples.values[-1]
+                             if packet.sensors.location.HasField("altitude_samples") else np.nan)
             last_loc_provider = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1]),
         try:
             result = StationModel(packet.station_information.id, packet.station_information.uuid,
