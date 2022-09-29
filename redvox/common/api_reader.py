@@ -18,6 +18,7 @@ from redvox.common import offset_model as om,\
     file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
+from redvox.common.station_model import StationModel
 from redvox.common.errors import RedVoxExceptions
 
 
@@ -431,7 +432,7 @@ class ApiReaderModel:
         self.structured_dir = structured_dir
         self.debug = debug
         self.errors = RedVoxExceptions("APIReader")
-        self.offset_model = om.OffsetModel.empty_model()
+        self.station_models: List[StationModel] = []
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
 
@@ -440,20 +441,6 @@ class ApiReaderModel:
 
         if pool is None:
             _pool.close()
-
-    def get_station_files(self, station_id: str = "") -> list:
-        """
-        Gets all files for a specific station; returns the first instance of the id match
-        If no station_id is given, returns the first id in the data
-
-        :param station_id: station id to get data for
-        :return: list of all files for the station
-        """
-        if not station_id:
-            return list(self.files_index[0].stream_raw())
-        for k in self.files_index:
-            if k.entries[0].station_id == station_id:
-                return list(k.stream_raw())
 
     def _flatten_files_index(self):
         """
@@ -536,10 +523,10 @@ class ApiReaderModel:
         if pool is None:
             _pool.close()
 
-        self.offset_model = om.model_from_stats(stats)
+        offset_model = om.model_from_stats(stats)
 
         # punt if duration or other important values are invalid or if the latency array was empty
-        if self.offset_model is None:
+        if offset_model is None:
             return [station_index]
 
         results = {}
@@ -552,5 +539,10 @@ class ApiReaderModel:
                 results[key] = io.Index()
 
             results[key].append(entries=[station_index.entries[v]])
+
+        for s in results.values():
+            m = StationModel.create_from_stream(list(s.stream_raw()))
+            m.set_offset_model(offset_model)
+            self.station_models.append(m)
 
         return list(results.values())

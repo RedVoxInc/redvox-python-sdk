@@ -6,7 +6,7 @@ import redvox
 import redvox.common.sensor_reader_utils as sru
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc
-from redvox.common.api_reader import ApiReaderModel
+from redvox.common.offset_model import OffsetModel
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 
@@ -157,6 +157,7 @@ class StationModel:
         self._errors: RedVoxExceptions = RedVoxExceptions("StationModel")
         self._sdk_version: str = redvox.version()
         self._sensors: Dict[str, float] = {}
+        self._offset_model: OffsetModel = OffsetModel.empty_model()
 
     def __repr__(self):
         return f"id: {self._id}, " \
@@ -452,16 +453,6 @@ class StationModel:
         data_stream.insert(0, p1)
         return model
 
-    def create_from_api_reader(self, api_reader: ApiReaderModel) -> "StationModel":
-        """
-        use the special ApiReaderModel to create a StationModel
-        NOTE: Currently uses the first id in the ApiReader cuz we keeping it simple
-
-        :param api_reader: the ApiReaderModel to get data from
-        :return: StationModel using data from the ApiReaderModel
-        """
-        return self.create_from_stream(api_reader.get_station_files())
-
     def num_sensors(self) -> int:
         """
         :return: number of sensors in the Station
@@ -485,3 +476,17 @@ class StationModel:
         if sensor in self._sensors.keys():
             return self._sensors[sensor]
         return None
+
+    def set_offset_model(self, model: OffsetModel):
+        """
+        set the offset model
+
+        :param model: model to set
+        """
+        self._offset_model = model
+
+    def get_offset_model(self) -> OffsetModel:
+        """
+        :return: the offset model of the station model
+        """
+        return self._offset_model
