@@ -169,22 +169,6 @@ def __has_sensor(
     return False
 
 
-def get_all_sensors_in_packet(packet: api_m.RedvoxPacketM) -> List[str]:
-    """
-    :param packet: packet to check
-    :return: list of all sensors in the packet
-    """
-    result: List[str] = []
-    for s in [__ACCELEROMETER_FIELD_NAME, __AMBIENT_TEMPERATURE_FIELD_NAME, __AUDIO_FIELD_NAME,
-              __COMPRESSED_AUDIO_FIELD_NAME, __GRAVITY_FIELD_NAME, __GYROSCOPE_FIELD_NAME, __IMAGE_FIELD_NAME,
-              __LIGHT_FIELD_NAME, __LINEAR_ACCELERATION_FIELD_NAME, __LOCATION_FIELD_NAME, __MAGNETOMETER_FIELD_NAME,
-              __ORIENTATION_FIELD_NAME, __PRESSURE_FIELD_NAME, __PROXIMITY_FIELD_NAME, __RELATIVE_HUMIDITY_FIELD_NAME,
-              __ROTATION_VECTOR_FIELD_NAME, __VELOCITY_FIELD_NAME]:
-        if __has_sensor(packet, s):
-            result.append(s)
-    return result
-
-
 def __packet_duration_s(packet: api_m.RedvoxPacketM) -> float:
     """
     Returns the packet duration in seconds.

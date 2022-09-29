@@ -1,9 +1,8 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Union
 
 import numpy as np
 
 import redvox
-import redvox.common.sensor_reader_utils as sru
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc
 from redvox.common.offset_model import OffsetModel
@@ -13,6 +12,62 @@ from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvid
 
 COLUMN_TO_ENUM_FN = {"location_provider": lambda l: LocationProvider(l).name}
 
+# These are used for checking if a field is present or not
+_ACCELEROMETER_FIELD_NAME: str = "accelerometer"
+_AMBIENT_TEMPERATURE_FIELD_NAME: str = "ambient_temperature"
+_AUDIO_FIELD_NAME: str = "audio"
+_COMPRESSED_AUDIO_FIELD_NAME: str = "compressed_audio"
+_GRAVITY_FIELD_NAME: str = "gravity"
+_GYROSCOPE_FIELD_NAME: str = "gyroscope"
+_IMAGE_FIELD_NAME: str = "image"
+_LIGHT_FIELD_NAME: str = "light"
+_LINEAR_ACCELERATION_FIELD_NAME: str = "linear_acceleration"
+_LOCATION_FIELD_NAME: str = "location"
+_MAGNETOMETER_FIELD_NAME: str = "magnetometer"
+_ORIENTATION_FIELD_NAME: str = "orientation"
+_PRESSURE_FIELD_NAME: str = "pressure"
+_PROXIMITY_FIELD_NAME: str = "proximity"
+_RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidity"
+_ROTATION_VECTOR_FIELD_NAME: str = "rotation_vector"
+_VELOCITY_FIELD_NAME: str = "velocity"
+
+
+def _has_sensor(
+        data: Union[api_m.RedvoxPacketM, api_m.RedvoxPacketM.Sensors], field_name: str
+) -> bool:
+    """
+    Returns true if the given packet or sensors instance contains the valid sensor.
+
+    :param data: Either a packet or a packet's sensors message.
+    :param field_name: The name of the sensor being checked.
+    :return: True if the sensor exists, False otherwise.
+    """
+    if isinstance(data, api_m.RedvoxPacketM):
+        # noinspection Mypy,PyTypeChecker
+        return data.sensors.HasField(field_name)
+
+    if isinstance(data, api_m.RedvoxPacketM.Sensors):
+        # noinspection Mypy,PyTypeChecker
+        return data.HasField(field_name)
+
+    return False
+
+
+def get_all_sensors_in_packet(packet: api_m.RedvoxPacketM) -> List[str]:
+    """
+    :param packet: packet to check
+    :return: list of all sensors in the packet
+    """
+    result: List[str] = []
+    for s in [_ACCELEROMETER_FIELD_NAME, _AMBIENT_TEMPERATURE_FIELD_NAME, _AUDIO_FIELD_NAME,
+              _COMPRESSED_AUDIO_FIELD_NAME, _GRAVITY_FIELD_NAME, _GYROSCOPE_FIELD_NAME, _IMAGE_FIELD_NAME,
+              _LIGHT_FIELD_NAME, _LINEAR_ACCELERATION_FIELD_NAME, _LOCATION_FIELD_NAME, _MAGNETOMETER_FIELD_NAME,
+              _ORIENTATION_FIELD_NAME, _PRESSURE_FIELD_NAME, _PROXIMITY_FIELD_NAME, _RELATIVE_HUMIDITY_FIELD_NAME,
+              _ROTATION_VECTOR_FIELD_NAME, _VELOCITY_FIELD_NAME]:
+        if _has_sensor(packet, s):
+            result.append(s)
+    return result
+
 
 def _dict_str(d: dict) -> str:
     """
@@ -20,11 +75,12 @@ def _dict_str(d: dict) -> str:
     :return: a dictionary as string
     """
     r = ""
-    last_key = list(d.keys())[-1]
-    for c, v in d.items():
-        r += f"{c}: {v}"
-        if c != last_key:
-            r += ", "
+    if len(d.keys()) > 0:
+        last_key = list(d.keys())[-1]
+        for c, v in d.items():
+            r += f"{c}: {v}"
+            if c != last_key:
+                r += ", "
     return r
 
 
@@ -260,28 +316,28 @@ class StationModel:
         :param: packet: the packet to get data from
         :return: mean sample rate from packet for a sensor
         """
-        if sru.__has_sensor(packet, sensor):
-            if sensor == "health":
-                v = packet.station_information.station_metrics.timestamps.mean_sample_rate
-            elif sensor == sru.__ACCELEROMETER_FIELD_NAME:
+        if sensor == "health":
+            v = packet.station_information.station_metrics.timestamps.mean_sample_rate
+        elif _has_sensor(packet, sensor):
+            if sensor == _ACCELEROMETER_FIELD_NAME:
                 v = packet.sensors.accelerometer.timestamps.mean_sample_rate
-            elif sensor == sru.__AMBIENT_TEMPERATURE_FIELD_NAME:
+            elif sensor == _AMBIENT_TEMPERATURE_FIELD_NAME:
                 v = packet.sensors.ambient_temperature.timestamps.mean_sample_rate
-            elif sensor == sru.__AUDIO_FIELD_NAME:
+            elif sensor == _AUDIO_FIELD_NAME:
                 return packet.sensors.audio.sample_rate
-            elif sensor == sru.__COMPRESSED_AUDIO_FIELD_NAME:
+            elif sensor == _COMPRESSED_AUDIO_FIELD_NAME:
                 return packet.sensors.compressed_audio.sample_rate
-            elif sensor == sru.__GRAVITY_FIELD_NAME:
+            elif sensor == _GRAVITY_FIELD_NAME:
                 v = packet.sensors.gravity.timestamps.mean_sample_rate
-            elif sensor == sru.__GYROSCOPE_FIELD_NAME:
+            elif sensor == _GYROSCOPE_FIELD_NAME:
                 v = packet.sensors.gyroscope.timestamps.mean_sample_rate
-            elif sensor == sru.__IMAGE_FIELD_NAME:
+            elif sensor == _IMAGE_FIELD_NAME:
                 v = packet.sensors.image.timestamps.mean_sample_rate
-            elif sensor == sru.__LIGHT_FIELD_NAME:
+            elif sensor == _LIGHT_FIELD_NAME:
                 v = packet.sensors.light.timestamps.mean_sample_rate
-            elif sensor == sru.__LINEAR_ACCELERATION_FIELD_NAME:
+            elif sensor == _LINEAR_ACCELERATION_FIELD_NAME:
                 v = packet.sensors.linear_acceleration.timestamps.mean_sample_rate
-            elif sensor == sru.__LOCATION_FIELD_NAME:
+            elif sensor == _LOCATION_FIELD_NAME:
                 v = packet.sensors.location.timestamps.mean_sample_rate
                 if self.first_location is None \
                         or self.first_data_timestamp > packet.sensors.location.timestamps.timestamps[0]:
@@ -305,24 +361,25 @@ class StationModel:
                         self.location_counts[n] += 1
                 if not self.has_moved:
                     self.has_moved = self.first_location != self.last_location
-            elif sensor == sru.__MAGNETOMETER_FIELD_NAME:
+            elif sensor == _MAGNETOMETER_FIELD_NAME:
                 v = packet.sensors.magnetometer.timestamps.mean_sample_rate
-            elif sensor == sru.__ORIENTATION_FIELD_NAME:
+            elif sensor == _ORIENTATION_FIELD_NAME:
                 v = packet.sensors.orientation.timestamps.mean_sample_rate
-            elif sensor == sru.__PRESSURE_FIELD_NAME:
+            elif sensor == _PRESSURE_FIELD_NAME:
                 v = packet.sensors.pressure.timestamps.mean_sample_rate
-            elif sensor == sru.__PROXIMITY_FIELD_NAME:
+            elif sensor == _PROXIMITY_FIELD_NAME:
                 v = packet.sensors.proximity.timestamps.mean_sample_rate
-            elif sensor == sru.__RELATIVE_HUMIDITY_FIELD_NAME:
+            elif sensor == _RELATIVE_HUMIDITY_FIELD_NAME:
                 v = packet.sensors.relative_humidity.timestamps.mean_sample_rate
-            elif sensor == sru.__ROTATION_VECTOR_FIELD_NAME:
+            elif sensor == _ROTATION_VECTOR_FIELD_NAME:
                 v = packet.sensors.rotation_vector.timestamps.mean_sample_rate
-            elif sensor == sru.__VELOCITY_FIELD_NAME:
+            elif sensor == _VELOCITY_FIELD_NAME:
                 v = packet.sensors.velocity.timestamps.mean_sample_rate
             else:
-                v = np.nan
-            return v / 1e-6  # convert microseconds to seconds so rate is in hz
-        return np.nan
+                return np.nan
+        else:
+            return np.nan
+        return v / 1e-6  # convert microseconds to seconds so rate is in hz
 
     def get_data_from_packet(self, packet: api_m.RedvoxPacketM) -> "StationModel":
         """
@@ -338,7 +395,7 @@ class StationModel:
                 if packet.timing_information.app_start_mach_timestamp == self._start_date:
                     packet_start = packet.timing_information.packet_start_mach_timestamp
                     packet_end = packet.timing_information.packet_end_mach_timestamp
-                    sensors = sru.get_all_sensors_in_packet(packet)
+                    sensors = get_all_sensors_in_packet(packet)
                     sensors.append("health")
                     if list(self._sensors.keys()) != sensors:
                         self._errors.append(f"packet sensors {sensors} does not match.")
@@ -371,7 +428,7 @@ class StationModel:
 
         :param packet: API M packet of data to read
         """
-        sensors = sru.get_all_sensors_in_packet(packet)
+        sensors = get_all_sensors_in_packet(packet)
         sensors.append("health")
         for s in sensors:
             self._sensors[s] = self._get_sensor_data_from_packet(s, packet)
@@ -389,7 +446,7 @@ class StationModel:
         first_loc_provider = ""
         last_location = None
         last_loc_provider = ""
-        if sru.__has_sensor(packet, sru.__LOCATION_FIELD_NAME):
+        if _has_sensor(packet, _LOCATION_FIELD_NAME):
             for loc in packet.sensors.location.location_providers:
                 n = COLUMN_TO_ENUM_FN["location_provider"](loc)
                 if n not in loc_counts.keys():
