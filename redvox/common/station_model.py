@@ -1,4 +1,5 @@
 from typing import List, Dict, Optional, Tuple, Union
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -84,6 +85,144 @@ def _dict_str(d: dict) -> str:
     return r
 
 
+@dataclass
+class LocationStat:
+    """
+    Stores the stats of a single location source
+
+    properties:
+        source_name: str, name of the source of the location data
+
+        count: int, number of data points for that source
+
+        means: Tuple of float, the mean of the latitude, longitude, and altitude
+
+        variance: Tuple of float, the variance of the latitude, longitude, and altitude
+    """
+    source_name: str = ""
+    count: int = 0
+    means: Tuple[float, float, float] = (np.nan, np.nan, np.nan)
+    variance: Tuple[float, float, float] = (0., 0., 0.)
+
+    def __str__(self):
+        return f"source_name: {self.source_name}, " \
+               f"count: {self.count}, " \
+               f"means (lat, lon, alt): {self.means}, " \
+               f"std_dev (lat, lon, alt): {np.sqrt(self.variance)}"
+
+
+class LocationStats:
+    """
+    Stores the stats of all locations
+
+    protected:
+        _location_stats: all the location stats, default empty list
+    """
+    def __init__(self, loc_stats: Optional[List[LocationStat]] = None):
+        """
+        initialize the stats
+
+        :param loc_stats: the list of stats to start with, default None
+        """
+        self._location_stats: List[LocationStat] = [] if loc_stats is None else loc_stats
+
+    def __repr__(self):
+        return f"_location_stats: {[n for n in self._location_stats]}"
+
+    def __str__(self):
+        return f"stats: {[n.__str__() for n in self._location_stats]}"
+
+    def add_loc_stat(self, new_loc: LocationStat):
+        """
+        adds a LocationStat to the stats
+        :param new_loc: LocationStat to add
+        """
+        self._location_stats.append(new_loc)
+
+    def has_source(self, source: str) -> bool:
+        """
+        :param source: the source name to check for
+        :return: True if the source name is in the stats, False otherwise
+        """
+        for n in self._location_stats:
+            if n.source_name == source:
+                return True
+        return False
+
+    def find_loc_by_source(self, source: str) -> Optional[LocationStat]:
+        """
+        :param source: the source name to get
+        :return: the LocationStat with the same source name as the input, or None if the input doesn't exist
+        """
+        for n in self._location_stats:
+            if n.source_name == source:
+                return n
+        return None
+
+    def add_count_by_source(self, source: str, val_to_add: int) -> Optional[LocationStat]:
+        """
+        :param source: the source name to update count for
+        :param val_to_add: the number of new points to add to the count
+        :return: the LocationStat with the same source name as the input, or None if the source doesn't exist
+        """
+        for n in self._location_stats:
+            if n.source_name == source:
+                n.count += val_to_add
+                return n
+        return None
+
+    def add_means_by_source(self, source: str, val_to_add: int,
+                            means_to_add: Tuple[float, float, float]) -> Optional[LocationStat]:
+        """
+        :param source: the source name to update count and means for
+        :param val_to_add: the number of new points to add to the count
+        :param means_to_add: the means of the location to add
+        :return: the updated LocationStat with the same source name as the input, or None if the source doesn't exist
+        """
+        for n in self._location_stats:
+            if n.source_name == source:
+                n.count += val_to_add
+                n.means = tuple(map(lambda i, j: (j - i) / n.count, n.means, means_to_add))
+                return n
+        return None
+
+    @staticmethod
+    def _update_variances(num_old_samples: int, old_vari: float,
+                          num_new_samples: int, new_vari: float) -> float:
+        """
+        converts old variance to new variance
+
+        :param num_old_samples: number of old samples
+        :param old_vari: old variance
+        :param num_new_samples: number of new samples
+        :param new_vari: new variance
+        :return: new std dev
+        """
+        if num_old_samples + num_new_samples == 2:
+            return 0.
+        return (((num_old_samples - 1) * old_vari) + ((num_new_samples - 1) * new_vari) /
+                (num_old_samples + num_new_samples - 2))
+
+    def add_std_dev_by_source(self, source: str, val_to_add: int,
+                              means_to_add: Tuple[float, float, float],
+                              varis_to_add: Tuple[float, float, float]) -> Optional[LocationStat]:
+        """
+        :param source: the source name to update count, means, and std dev for
+        :param val_to_add: the number of new points to add to the count
+        :param means_to_add: the means of the location to add
+        :param varis_to_add: the variances of the location to add
+        :return: the updated LocationStat with the same source name as the input, or None if the source doesn't exist
+        """
+        for n in self._location_stats:
+            if n.source_name == source:
+                n.std_devs = (self._update_variances(n.count, n.variance[0], val_to_add, varis_to_add[0]),
+                              self._update_variances(n.count, n.variance[1], val_to_add, varis_to_add[1]),
+                              self._update_variances(n.count, n.variance[2], val_to_add, varis_to_add[2]))
+                self.add_means_by_source(source, val_to_add, means_to_add)
+                return n
+        return None
+
+
 class StationModel:
     """
     Station Model designed to summarize the entirety of a station's operational period
@@ -96,35 +235,63 @@ class StationModel:
 
     Protected:
         _id: str, id of the station.  Default ""
+
         _uuid: str, uuid of the station.  Default ""
+
         _start_date: float, Timestamp since epoch UTC of when station was started.  Default np.nan
+
         _sensors: Dict[str, float], The name of sensors and their mean sample rate as a dictionary.
+
         _errors: RedVoxExceptions, Contains any errors found when creating the model
+
         _sdk_version: str, the version of the SDK used to create the model
 
     Properties:
         app: str, Name of the app the station is running.  Default ""
+
         api: float, Version number of the API the station is using.  Default np.nan
+
         sub_api: float, Version number of the sub-API the station in using.  Default np.nan
+
         make: str, Make of the station.  Default ""
+
         model: str, Model of the station.  Default ""
+
         app_version: str, Version of the app the station is running.  Default ""
+
         packet_duration_s: float, Length of station's data packets in seconds.  Default np.nan
+
         station_description: str, Text description of the station.  Default ""
+
         num_packets: int, Number of files used to create the model.  Default 0
+
         first_data_timestamp: float, Timestamp of the first data point.  Default np.nan
+
         last_data_timestamp: float, Timestamp of the last data point.  Default np.nan
+
         first_location: Tuple[float, float, float], Latitude, longitude, and altitude of first location.  Default None
+
         first_location_source: str, Name of source of first location values.  Default ""
+
         last_location: Tuple[float, float, float], Latitude, longitude, and altitude of last location.  Default None
+
         last_location_source: str, Name of source of last location values.  Default ""
+
         has_moved: bool, If True, location changed during station operation.  Default False
-        location_counts: Dict[str, int], Number of times a location source has appeared.  Default empty
+
+        location_stats: LocationStats, Container for number of times a location source has appeared, the mean of
+        the data points, and the std deviation of the data points.  Default empty
+
         first_latency_timestamp: float, Timestamp of first latency.  Default np.nan
+
         first_latency: float, First latency of the model.  Default np.nan
+
         first_offset: float, First offset of the model.  Default np.nan
+
         last_latency_timestamp: float, Timestamp of last latency.  Default np.nan
+
         last_latency: float, Last latency of the model.  Default np.nan
+
         last_offset: float, Last offset of the model.  Default np.nan
     """
     def __init__(self,
@@ -145,7 +312,7 @@ class StationModel:
                  first_location_source: str = "",
                  last_location: Optional[Tuple[float, float, float]] = None,
                  last_location_source: str = "",
-                 location_counts: Optional[Dict[str, int]] = None,
+                 location_stats: Optional[LocationStats] = None,
                  first_latency_timestamp: float = np.nan,
                  first_latency: float = np.nan,
                  first_offset: float = np.nan,
@@ -175,8 +342,8 @@ class StationModel:
         :param first_location_source: source of the first location data, default ""
         :param last_location: Optional latitude, longitude and altitude of the last location, default None
         :param last_location_source: source of the last location data, default ""
-        :param location_counts: Optional dict of source names and number of times each location source appeared in the
-                                data, default None
+        :param location_stats: Optional LocationStats (source names and the count, mean and std deviation of
+                                each type of location), default None
         :param first_latency_timestamp: timestamp of the first latency value, default np.nan
         :param first_latency: first latency of the model, default np.nan
         :param first_offset: first offset of the model, default np.nan
@@ -203,7 +370,7 @@ class StationModel:
         self.last_location: Optional[Tuple[float, float, float]] = last_location
         self.last_location_source: str = last_location_source
         self.has_moved: bool = first_location != last_location
-        self.location_counts: Dict[str, int] = {} if location_counts is None else location_counts
+        self.location_stats: LocationStats = LocationStats() if location_stats is None else location_stats
         self.first_latency_timestamp: float = first_latency_timestamp
         self.first_latency: float = first_latency
         self.first_offset: float = first_offset
@@ -234,7 +401,7 @@ class StationModel:
                f"first_location_source: {self.first_location_source}, " \
                f"last_location: {self.last_location}, " \
                f"last_location_source: {self.last_location_source}, " \
-               f"location_counts: {self.location_counts}, " \
+               f"location_stats: {self.location_stats}, " \
                f"has_moved: {self.has_moved}, " \
                f"first_latency_timestamp: {self.first_latency_timestamp}, " \
                f"first_latency: {self.first_latency}, " \
@@ -266,9 +433,9 @@ class StationModel:
                f"num_packets: {self.num_packets}, " \
                f"first_data_timestamp: {first_timestamp}, " \
                f"last_data_timestamp: {last_timestamp}, " \
-               f"first lat, lon, alt (m): {self.first_location}, {self.first_location_source}, " \
-               f"last lat, lon, alt (m): {self.last_location}, {self.last_location_source}, " \
-               f"location_counts: {_dict_str(self.location_counts)}, " \
+               f"first lat, lon, alt (m): {self.first_location_source}; {self.first_location}, " \
+               f"last lat, lon, alt (m): {self.last_location_source}; {self.last_location}, " \
+               f"location_stats: {self.location_stats}, " \
                f"has_moved: {self.has_moved}, " \
                f"first_latency_timestamp: {self.first_latency_timestamp}, " \
                f"first_latency: {self.first_latency}, " \
@@ -310,6 +477,27 @@ class StationModel:
         """
         return self._sensors["audio"] if "audio" in self._sensors.keys() else np.nan
 
+    @staticmethod
+    def _update_std_dev(num_old_samples: int, old_mean: float, old_std: float,
+                        num_new_samples: int, new_mean: float, new_std: float) -> float:
+        """
+        converts old std dev to new std dev
+
+        :param num_old_samples: number of old samples
+        :param old_mean: old mean
+        :param old_std: old std dev
+        :param num_new_samples: number of new samples
+        :param new_mean: new mean
+        :param new_std: new std dev
+        :return: new std dev
+        """
+        if num_old_samples + num_new_samples == 1:
+            return 0.
+        return (((num_old_samples - 1) * old_std * old_std) + ((num_new_samples - 1) * new_std * new_std)
+                + ((num_old_samples * num_new_samples / (num_old_samples + num_new_samples))
+                   * (old_mean * old_mean + new_mean * new_mean - (2 * new_mean * old_mean)))) / \
+               (num_old_samples + num_new_samples - 1)
+
     def _get_sensor_data_from_packet(self, sensor: str, packet: api_m.RedvoxPacketM) -> float:
         """
         :param: sensor: the sensor to get data for
@@ -339,33 +527,75 @@ class StationModel:
                 v = packet.sensors.linear_acceleration.timestamps.mean_sample_rate
             elif sensor == _LOCATION_FIELD_NAME:
                 v = packet.sensors.location.timestamps.mean_sample_rate
-                if packet.sensors.location.timestamps.timestamp_statistics.count > 0:
+                num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
+                if num_locs > 0:
+                    has_lats = packet.sensors.location.HasField("latitude_samples")
+                    has_lons = packet.sensors.location.HasField("longitude_samples")
+                    has_alts = packet.sensors.location.HasField("altitude_samples")
                     if self.first_location is None \
                             or self.first_data_timestamp > packet.sensors.location.timestamps.timestamps[0]:
                         self.first_location = (packet.sensors.location.latitude_samples.values[0]
-                                               if packet.sensors.location.HasField("latitude_samples") else np.nan,
+                                               if has_lats else np.nan,
                                                packet.sensors.location.longitude_samples.values[0]
-                                               if packet.sensors.location.HasField("longitude_samples") else np.nan,
+                                               if has_lons else np.nan,
                                                packet.sensors.location.altitude_samples.values[0]
-                                               if packet.sensors.location.HasField("altitude_samples") else np.nan)
-                        self.first_location_source = \
-                            COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
+                                               if has_alts else np.nan)
                     if self.last_location is None \
                             or self.last_data_timestamp < packet.sensors.location.timestamps.timestamps[-1]:
                         self.last_location = (packet.sensors.location.latitude_samples.values[-1]
-                                              if packet.sensors.location.HasField("latitude_samples") else np.nan,
+                                              if has_lats else np.nan,
                                               packet.sensors.location.longitude_samples.values[-1]
-                                              if packet.sensors.location.HasField("longitude_samples") else np.nan,
+                                              if has_lons else np.nan,
                                               packet.sensors.location.altitude_samples.values[-1]
-                                              if packet.sensors.location.HasField("altitude_samples") else np.nan)
+                                              if has_alts else np.nan)
+                    if len(packet.sensors.location.location_providers) < 1:
+                        mean_loc = (packet.sensors.location.latitude_samples.value_statistics.mean,
+                                    packet.sensors.location.longitude_samples.value_statistics.mean,
+                                    packet.sensors.location.altitude_samples.value_statistics.mean)
+                        std_loc = np.power(
+                            (packet.sensors.location.latitude_samples.value_statistics.standard_deviation,
+                             packet.sensors.location.longitude_samples.value_statistics.standard_deviation,
+                             packet.sensors.location.altitude_samples.value_statistics.standard_deviation), 2
+                        )
+                        if self.location_stats.has_source("UNKNOWN"):
+                            self.location_stats.add_std_dev_by_source("UNKNOWN", num_locs, mean_loc, std_loc)
+                        else:
+                            self.location_stats.add_loc_stat(LocationStat("UNKNOWN", num_locs, mean_loc, std_loc))
+                        self.first_location_source = "UNKNOWN"
+                        self.last_location_source = "UNKNOWN"
+                    else:
+                        self.first_location_source = \
+                            COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
                         self.last_location_source = \
                             COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
-                for loc in packet.sensors.location.location_providers:
-                    n = COLUMN_TO_ENUM_FN["location_provider"](loc)
-                    if n not in self.location_counts.keys():
-                        self.location_counts[n] = 1
-                    else:
-                        self.location_counts[n] += 1
+                        data_array = {}
+                        for n in range(num_locs):
+                            lp = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[n])
+                            if lp not in data_array.keys():
+                                data_array[lp] = ([packet.sensors.location.latitude_samples.values[n]
+                                                   if has_lats else np.nan],
+                                                  [packet.sensors.location.longitude_samples.values[n]
+                                                   if has_lons else np.nan],
+                                                  [packet.sensors.location.altitude_samples.values[n]
+                                                   if has_alts else np.nan])
+                            else:
+                                data_array[lp][0].append(packet.sensors.location.latitude_samples.values[n]
+                                                         if has_lats else np.nan)
+                                data_array[lp][1].append(packet.sensors.location.longitude_samples.values[n]
+                                                         if has_lons else np.nan)
+                                data_array[lp][2].append(packet.sensors.location.altitude_samples.values[n]
+                                                         if has_alts else np.nan)
+                        for k, d in data_array.items():
+                            if self.location_stats.has_source(k):
+                                self.location_stats.add_std_dev_by_source(
+                                    k, len(d[0]), (np.mean(d[0]), np.mean(d[1]), np.mean(d[2])),
+                                    (np.var(d[0]), np.var(d[1]), np.var(d[2]))
+                                )
+                            else:
+                                self.location_stats.add_loc_stat(
+                                    LocationStat(k, len(d[0]), (np.mean(d[0]), np.mean(d[1]), np.mean(d[2])),
+                                                 (np.var(d[0]), np.var(d[1]), np.var(d[2])))
+                                )
                 if not self.has_moved:
                     self.has_moved = self.first_location != self.last_location
             elif sensor == _MAGNETOMETER_FIELD_NAME:
@@ -448,34 +678,64 @@ class StationModel:
         :param packet: API M packet of data to read
         :return: StationModel using the data from the packet
         """
-        loc_counts = {}
+        loc_stats: LocationStats = LocationStats()
         first_location = None
         first_loc_provider = ""
         last_location = None
         last_loc_provider = ""
-        if _has_sensor(packet, _LOCATION_FIELD_NAME) \
-                and packet.sensors.location.timestamps.timestamp_statistics.count >= 1:
-            for loc in packet.sensors.location.location_providers:
-                n = COLUMN_TO_ENUM_FN["location_provider"](loc)
-                if n not in loc_counts.keys():
-                    loc_counts[n] = 1
-                else:
-                    loc_counts[n] += 1
-            first_location = (packet.sensors.location.latitude_samples.values[0]
-                              if packet.sensors.location.HasField("latitude_samples") else np.nan,
-                              packet.sensors.location.longitude_samples.values[0]
-                              if packet.sensors.location.HasField("longitude_samples") else np.nan,
-                              packet.sensors.location.altitude_samples.values[0]
-                              if packet.sensors.location.HasField("altitude_samples") else np.nan)
-            first_loc_provider = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
+        num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
+        if _has_sensor(packet, _LOCATION_FIELD_NAME) and num_locs > 0:
+            has_lats = packet.sensors.location.HasField("latitude_samples")
+            has_lons = packet.sensors.location.HasField("longitude_samples")
+            has_alts = packet.sensors.location.HasField("altitude_samples")
+            if len(packet.sensors.location.location_providers) < 1:
+                mean_loc = (packet.sensors.location.latitude_samples.value_statistics.mean if has_lats else np.nan,
+                            packet.sensors.location.longitude_samples.value_statistics.mean if has_lons else np.nan,
+                            packet.sensors.location.altitude_samples.value_statistics.mean if has_alts else np.nan)
+                std_loc = np.power(
+                    (packet.sensors.location.latitude_samples.value_statistics.standard_deviation
+                     if has_lats else np.nan,
+                     packet.sensors.location.longitude_samples.value_statistics.standard_deviation
+                     if has_lons else np.nan,
+                     packet.sensors.location.altitude_samples.value_statistics.standard_deviation
+                     if has_alts else np.nan), 2
+                )
+                loc_stats.add_loc_stat(LocationStat("UNKNOWN", num_locs, mean_loc, std_loc))
+                first_loc_provider = "UNKNOWN"
+                last_loc_provider = "UNKNOWN"
+            else:
+                data_array = {}
+                for n in range(num_locs):
+                    lp = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[n])
+                    if lp not in data_array.keys():
+                        data_array[lp] = ([packet.sensors.location.latitude_samples.values[n] if has_lats else np.nan],
+                                          [packet.sensors.location.longitude_samples.values[n] if has_lons else np.nan],
+                                          [packet.sensors.location.altitude_samples.values[n] if has_alts else np.nan])
+                    else:
+                        data_array[lp][0].append(packet.sensors.location.latitude_samples.values[n]
+                                                 if has_lats else np.nan)
+                        data_array[lp][1].append(packet.sensors.location.longitude_samples.values[n]
+                                                 if has_lons else np.nan)
+                        data_array[lp][2].append(packet.sensors.location.altitude_samples.values[n]
+                                                 if has_alts else np.nan)
+                for k, d in data_array.items():
+                    loc_stats.add_loc_stat(LocationStat(k, len(d[0]), (np.mean(d[0]), np.mean(d[1]), np.mean(d[2])),
+                                                        (np.var(d[0]), np.var(d[1]), np.var(d[2])))
+                                           )
+                first_loc_provider = \
+                    COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
+                last_loc_provider = \
+                    COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
 
-            last_location = (packet.sensors.location.latitude_samples.values[-1]
-                             if packet.sensors.location.HasField("latitude_samples") else np.nan,
-                             packet.sensors.location.longitude_samples.values[-1]
-                             if packet.sensors.location.HasField("longitude_samples") else np.nan,
-                             packet.sensors.location.altitude_samples.values[-1]
-                             if packet.sensors.location.HasField("altitude_samples") else np.nan)
-            last_loc_provider = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1]),
+            first_location = (packet.sensors.location.latitude_samples.values[0] if has_lats else np.nan,
+                              packet.sensors.location.longitude_samples.values[0] if has_lons else np.nan,
+                              packet.sensors.location.altitude_samples.values[0] if has_alts else np.nan)
+
+            last_location = (packet.sensors.location.latitude_samples.values[-1] if has_lats else np.nan,
+                             packet.sensors.location.longitude_samples.values[-1] if has_lons else np.nan,
+                             packet.sensors.location.altitude_samples.values[-1] if has_alts else np.nan)
+
+
         try:
             result = StationModel(packet.station_information.id, packet.station_information.uuid,
                                   packet.timing_information.app_start_mach_timestamp, packet.api, packet.sub_api,
@@ -485,7 +745,7 @@ class StationModel:
                                   packet.station_information.description, True,
                                   packet.timing_information.packet_start_mach_timestamp,
                                   packet.timing_information.packet_end_mach_timestamp,
-                                  first_location, first_loc_provider, last_location, last_loc_provider, loc_counts,
+                                  first_location, first_loc_provider, last_location, last_loc_provider, loc_stats,
                                   packet.timing_information.packet_start_mach_timestamp,
                                   packet.timing_information.best_latency,
                                   packet.timing_information.best_offset,
