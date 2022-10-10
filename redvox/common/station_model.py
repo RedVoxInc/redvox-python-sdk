@@ -89,26 +89,48 @@ def _dict_str(d: dict) -> str:
 class LocationStat:
     """
     Stores the stats of a single location source
+    Variance and standard deviation tuples are optional arguments and will be set to 0 if none are given.
+    If one is given when initialized, but not the other, the proper relational function will be applied to the
+    existing value to get the other.
+    If both are given, nothing is done to either value; we assume the user has provided the correct values.
 
     properties:
-        source_name: str, name of the source of the location data
+        source_name: str, name of the source of the location data.  Default empty string
 
-        count: int, number of data points for that source
+        count: int, number of data points for that source.  Default 0
 
-        means: Tuple of float, the mean of the latitude, longitude, and altitude
+        means: Tuple of float, the mean of the latitude, longitude, and altitude.  Default tuple of np.nan
 
-        variance: Tuple of float, the variance of the latitude, longitude, and altitude
+        variance: Tuple of float, the variance of the latitude, longitude, and altitude.  Default tuple of 0
+
+        std_dev: Tuple of float, the standard deviations of latitude, longitude, and altitude.  Default tuple of 0.
     """
     source_name: str = ""
     count: int = 0
     means: Tuple[float, float, float] = (np.nan, np.nan, np.nan)
-    variance: Tuple[float, float, float] = (0., 0., 0.)
+    variance: Optional[Tuple[float, float, float]] = None
+    std_dev: Optional[Tuple[float, float, float]] = None
+
+    def __post_init__(self):
+        """
+        ensures the variance and std_dev values are correctly set
+        """
+        if self.variance is None and self.std_dev:
+            self.variance = (self.std_dev[0] * self.std_dev[0],
+                             self.std_dev[1] * self.std_dev[1],
+                             self.std_dev[2] * self.std_dev[2])
+        elif self.std_dev is None and self.variance:
+            self.std_dev = np.sqrt(self.variance)
+        elif self.std_dev is None and self.variance is None:
+            self.variance = (0., 0., 0.)
+            self.std_dev = (0., 0., 0.)
 
     def __str__(self):
         return f"source_name: {self.source_name}, " \
                f"count: {self.count}, " \
                f"means (lat, lon, alt): {self.means}, " \
-               f"std_dev (lat, lon, alt): {np.sqrt(self.variance)}"
+               f"std_dev (lat, lon, alt): {self.std_dev}, " \
+               f"variance (lat, lon, alt): {self.variance}"
 
 
 class LocationStats:
@@ -135,9 +157,26 @@ class LocationStats:
     def add_loc_stat(self, new_loc: LocationStat):
         """
         adds a LocationStat to the stats
+
         :param new_loc: LocationStat to add
         """
         self._location_stats.append(new_loc)
+
+    def get_sources(self) -> List[str]:
+        """
+        :return: the sources of all location stats
+        """
+        return [n.source_name for n in self._location_stats]
+
+    def get_source(self, source: str) -> Optional[LocationStat]:
+        """
+        :param source: source name to get
+        :return: LocationStat of source requested or None if source doesn't exist
+        """
+        for n in self._location_stats:
+            if n.source_name == source:
+                return n
+        return None
 
     def has_source(self, source: str) -> bool:
         """
@@ -182,13 +221,13 @@ class LocationStats:
         for n in self._location_stats:
             if n.source_name == source:
                 n.count += val_to_add
-                n.means = tuple(map(lambda i, j: (j - i) / n.count, n.means, means_to_add))
+                n.means = tuple(map(lambda i, j: i + ((j - i) / n.count), n.means, means_to_add))
                 return n
         return None
 
     @staticmethod
-    def _update_variances(num_old_samples: int, old_vari: float,
-                          num_new_samples: int, new_vari: float) -> float:
+    def _update_variances(num_old_samples: int, old_vari: float, old_mean: float,
+                          num_new_samples: int, new_vari: float, new_mean: float) -> float:
         """
         converts old variance to new variance
 
@@ -196,16 +235,18 @@ class LocationStats:
         :param old_vari: old variance
         :param num_new_samples: number of new samples
         :param new_vari: new variance
-        :return: new std dev
+        :return: new variance
         """
-        if num_old_samples + num_new_samples == 2:
+        if num_old_samples + num_new_samples == 0:
             return 0.
-        return (((num_old_samples - 1) * old_vari) + ((num_new_samples - 1) * new_vari) /
-                (num_old_samples + num_new_samples - 2))
+        combined_mean = (num_old_samples * old_mean + num_new_samples * new_mean) / (num_old_samples + num_new_samples)
+        return ((num_old_samples * (old_vari * old_vari + np.power((old_mean - combined_mean), 2))
+                 + num_new_samples * (new_vari * new_vari + np.power((new_mean - combined_mean), 2)))
+                / (num_old_samples + num_new_samples))
 
-    def add_std_dev_by_source(self, source: str, val_to_add: int,
-                              means_to_add: Tuple[float, float, float],
-                              varis_to_add: Tuple[float, float, float]) -> Optional[LocationStat]:
+    def add_variance_by_source(self, source: str, val_to_add: int,
+                               means_to_add: Tuple[float, float, float],
+                               varis_to_add: Tuple[float, float, float]) -> Optional[LocationStat]:
         """
         :param source: the source name to update count, means, and std dev for
         :param val_to_add: the number of new points to add to the count
@@ -215,9 +256,36 @@ class LocationStats:
         """
         for n in self._location_stats:
             if n.source_name == source:
-                n.std_devs = (self._update_variances(n.count, n.variance[0], val_to_add, varis_to_add[0]),
-                              self._update_variances(n.count, n.variance[1], val_to_add, varis_to_add[1]),
-                              self._update_variances(n.count, n.variance[2], val_to_add, varis_to_add[2]))
+                n.variance = (self._update_variances(n.count, n.variance[0], n.means[0],
+                                                     val_to_add, varis_to_add[0], means_to_add[0]),
+                              self._update_variances(n.count, n.variance[1], n.means[1],
+                                                     val_to_add, varis_to_add[1], means_to_add[1]),
+                              self._update_variances(n.count, n.variance[2], n.means[2],
+                                                     val_to_add, varis_to_add[2], means_to_add[2]))
+                n.std_dev = np.sqrt(n.variance)
+                self.add_means_by_source(source, val_to_add, means_to_add)
+                return n
+        return None
+
+    def add_std_dev_by_source(self, source: str, val_to_add: int,
+                              means_to_add: Tuple[float, float, float],
+                              stds_to_add: Tuple[float, float, float]) -> Optional[LocationStat]:
+        """
+        :param source: the source name to update count, means, and std dev for
+        :param val_to_add: the number of new points to add to the count
+        :param means_to_add: the means of the location to add
+        :param stds_to_add: the std devs of the location to add
+        :return: the updated LocationStat with the same source name as the input, or None if the source doesn't exist
+        """
+        for n in self._location_stats:
+            if n.source_name == source:
+                n.variance = (self._update_variances(n.count, n.variance[0], n.means[0],
+                                                     val_to_add, stds_to_add[0]*stds_to_add[0], means_to_add[0]),
+                              self._update_variances(n.count, n.variance[1], n.means[1],
+                                                     val_to_add, stds_to_add[1]*stds_to_add[1], means_to_add[1]),
+                              self._update_variances(n.count, n.variance[2], n.means[2],
+                                                     val_to_add, stds_to_add[2]*stds_to_add[2], means_to_add[2]))
+                n.std_dev = np.sqrt(n.variance)
                 self.add_means_by_source(source, val_to_add, means_to_add)
                 return n
         return None
@@ -477,26 +545,26 @@ class StationModel:
         """
         return self._sensors["audio"] if "audio" in self._sensors.keys() else np.nan
 
-    @staticmethod
-    def _update_std_dev(num_old_samples: int, old_mean: float, old_std: float,
-                        num_new_samples: int, new_mean: float, new_std: float) -> float:
-        """
-        converts old std dev to new std dev
-
-        :param num_old_samples: number of old samples
-        :param old_mean: old mean
-        :param old_std: old std dev
-        :param num_new_samples: number of new samples
-        :param new_mean: new mean
-        :param new_std: new std dev
-        :return: new std dev
-        """
-        if num_old_samples + num_new_samples == 1:
-            return 0.
-        return (((num_old_samples - 1) * old_std * old_std) + ((num_new_samples - 1) * new_std * new_std)
-                + ((num_old_samples * num_new_samples / (num_old_samples + num_new_samples))
-                   * (old_mean * old_mean + new_mean * new_mean - (2 * new_mean * old_mean)))) / \
-               (num_old_samples + num_new_samples - 1)
+    # @staticmethod
+    # def _update_std_dev(num_old_samples: int, old_mean: float, old_std: float,
+    #                     num_new_samples: int, new_mean: float, new_std: float) -> float:
+    #     """
+    #     converts old std dev to new std dev
+    #
+    #     :param num_old_samples: number of old samples
+    #     :param old_mean: old mean
+    #     :param old_std: old std dev
+    #     :param num_new_samples: number of new samples
+    #     :param new_mean: new mean
+    #     :param new_std: new std dev
+    #     :return: new std dev
+    #     """
+    #     if num_old_samples + num_new_samples == 1:
+    #         return 0.
+    #     return (((num_old_samples - 1) * old_std * old_std) + ((num_new_samples - 1) * new_std * new_std)
+    #             + ((num_old_samples * num_new_samples / (num_old_samples + num_new_samples))
+    #                * (old_mean * old_mean + new_mean * new_mean - (2 * new_mean * old_mean)))) / \
+    #            (num_old_samples + num_new_samples - 1)
 
     def _get_sensor_data_from_packet(self, sensor: str, packet: api_m.RedvoxPacketM) -> float:
         """
@@ -552,15 +620,13 @@ class StationModel:
                         mean_loc = (packet.sensors.location.latitude_samples.value_statistics.mean,
                                     packet.sensors.location.longitude_samples.value_statistics.mean,
                                     packet.sensors.location.altitude_samples.value_statistics.mean)
-                        std_loc = np.power(
-                            (packet.sensors.location.latitude_samples.value_statistics.standard_deviation,
-                             packet.sensors.location.longitude_samples.value_statistics.standard_deviation,
-                             packet.sensors.location.altitude_samples.value_statistics.standard_deviation), 2
-                        )
+                        std_loc = (packet.sensors.location.latitude_samples.value_statistics.standard_deviation,
+                                   packet.sensors.location.longitude_samples.value_statistics.standard_deviation,
+                                   packet.sensors.location.altitude_samples.value_statistics.standard_deviation)
                         if self.location_stats.has_source("UNKNOWN"):
                             self.location_stats.add_std_dev_by_source("UNKNOWN", num_locs, mean_loc, std_loc)
                         else:
-                            self.location_stats.add_loc_stat(LocationStat("UNKNOWN", num_locs, mean_loc, std_loc))
+                            self.location_stats.add_loc_stat(LocationStat("UNKNOWN", num_locs, mean_loc, None, std_loc))
                         self.first_location_source = "UNKNOWN"
                         self.last_location_source = "UNKNOWN"
                     else:
@@ -587,7 +653,7 @@ class StationModel:
                                                          if has_alts else np.nan)
                         for k, d in data_array.items():
                             if self.location_stats.has_source(k):
-                                self.location_stats.add_std_dev_by_source(
+                                self.location_stats.add_variance_by_source(
                                     k, len(d[0]), (np.mean(d[0]), np.mean(d[1]), np.mean(d[2])),
                                     (np.var(d[0]), np.var(d[1]), np.var(d[2]))
                                 )
@@ -692,15 +758,13 @@ class StationModel:
                 mean_loc = (packet.sensors.location.latitude_samples.value_statistics.mean if has_lats else np.nan,
                             packet.sensors.location.longitude_samples.value_statistics.mean if has_lons else np.nan,
                             packet.sensors.location.altitude_samples.value_statistics.mean if has_alts else np.nan)
-                std_loc = np.power(
-                    (packet.sensors.location.latitude_samples.value_statistics.standard_deviation
-                     if has_lats else np.nan,
-                     packet.sensors.location.longitude_samples.value_statistics.standard_deviation
-                     if has_lons else np.nan,
-                     packet.sensors.location.altitude_samples.value_statistics.standard_deviation
-                     if has_alts else np.nan), 2
-                )
-                loc_stats.add_loc_stat(LocationStat("UNKNOWN", num_locs, mean_loc, std_loc))
+                std_loc = (packet.sensors.location.latitude_samples.value_statistics.standard_deviation
+                           if has_lats else np.nan,
+                           packet.sensors.location.longitude_samples.value_statistics.standard_deviation
+                           if has_lons else np.nan,
+                           packet.sensors.location.altitude_samples.value_statistics.standard_deviation
+                           if has_alts else np.nan)
+                loc_stats.add_loc_stat(LocationStat("UNKNOWN", num_locs, mean_loc, None, std_loc))
                 first_loc_provider = "UNKNOWN"
                 last_loc_provider = "UNKNOWN"
             else:
@@ -734,7 +798,6 @@ class StationModel:
             last_location = (packet.sensors.location.latitude_samples.values[-1] if has_lats else np.nan,
                              packet.sensors.location.longitude_samples.values[-1] if has_lons else np.nan,
                              packet.sensors.location.altitude_samples.values[-1] if has_alts else np.nan)
-
 
         try:
             result = StationModel(packet.station_information.id, packet.station_information.uuid,
