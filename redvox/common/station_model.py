@@ -229,19 +229,19 @@ class LocationStats:
     def _update_variances(num_old_samples: int, old_vari: float, old_mean: float,
                           num_new_samples: int, new_vari: float, new_mean: float) -> float:
         """
-        converts old variance to new variance
+        adds new variance to old variance to get variance of total set
 
         :param num_old_samples: number of old samples
         :param old_vari: old variance
         :param num_new_samples: number of new samples
         :param new_vari: new variance
-        :return: new variance
+        :return: variance of total set
         """
         if num_old_samples + num_new_samples == 0:
             return 0.
         combined_mean = (num_old_samples * old_mean + num_new_samples * new_mean) / (num_old_samples + num_new_samples)
-        return ((num_old_samples * (old_vari * old_vari + np.power((old_mean - combined_mean), 2))
-                 + num_new_samples * (new_vari * new_vari + np.power((new_mean - combined_mean), 2)))
+        return ((num_old_samples * (old_vari + np.power((old_mean - combined_mean), 2))
+                 + num_new_samples * (new_vari + np.power((new_mean - combined_mean), 2)))
                 / (num_old_samples + num_new_samples))
 
     def add_variance_by_source(self, source: str, val_to_add: int,
