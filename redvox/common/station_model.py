@@ -6,10 +6,12 @@ import numpy as np
 import redvox
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc
-from redvox.common.offset_model import OffsetModel
+from redvox.common.offset_model import OffsetModel, simple_offset_weighted_linear_regression
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 
+
+GPS_TRAVEL_MICROS = 60000  # Assumed GPS latency in microseconds
 
 COLUMN_TO_ENUM_FN = {"location_provider": lambda l: LocationProvider(l).name}
 
@@ -445,6 +447,8 @@ class StationModel:
         self.last_latency_timestamp: float = last_latency_timestamp
         self.last_latency: float = last_latency
         self.last_offset: float = last_offset
+        self._gps_offsets: list[float] = []
+        self._gps_timestamps: list[float] = []
         self._errors: RedVoxExceptions = RedVoxExceptions("StationModel")
         self._sdk_version: str = redvox.version()
         self._sensors: Dict[str, float] = {}
@@ -600,6 +604,11 @@ class StationModel:
                     has_lats = packet.sensors.location.HasField("latitude_samples")
                     has_lons = packet.sensors.location.HasField("longitude_samples")
                     has_alts = packet.sensors.location.HasField("altitude_samples")
+                    gps_offsets = np.array(packet.sensors.location.timestamps_gps.timestamps) \
+                        - np.array(packet.sensors.location.timestamps.timestamps) + GPS_TRAVEL_MICROS
+                    if len(gps_offsets) > 0:
+                        self._gps_offsets.extend(gps_offsets)
+                        self._gps_timestamps.extend(packet.sensors.location.timestamps_gps.timestamps)
                     if self.first_location is None \
                             or self.first_data_timestamp > packet.sensors.location.timestamps.timestamps[0]:
                         self.first_location = (packet.sensors.location.latitude_samples.values[0]
@@ -636,7 +645,9 @@ class StationModel:
                             COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
                         data_array = {}
                         for n in range(num_locs):
-                            lp = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[n])
+                            lp = COLUMN_TO_ENUM_FN["location_provider"](
+                                packet.sensors.location.location_providers[
+                                    0 if num_locs != len(packet.sensors.location.location_providers) else n])
                             if lp not in data_array.keys():
                                 data_array[lp] = ([packet.sensors.location.latitude_samples.values[n]
                                                    if has_lats else np.nan],
@@ -744,7 +755,6 @@ class StationModel:
         :param packet: API M packet of data to read
         :return: StationModel using the data from the packet
         """
-        loc_stats: LocationStats = LocationStats()
         first_location = None
         first_loc_provider = ""
         last_location = None
@@ -755,37 +765,9 @@ class StationModel:
             has_lons = packet.sensors.location.HasField("longitude_samples")
             has_alts = packet.sensors.location.HasField("altitude_samples")
             if len(packet.sensors.location.location_providers) < 1:
-                mean_loc = (packet.sensors.location.latitude_samples.value_statistics.mean if has_lats else np.nan,
-                            packet.sensors.location.longitude_samples.value_statistics.mean if has_lons else np.nan,
-                            packet.sensors.location.altitude_samples.value_statistics.mean if has_alts else np.nan)
-                std_loc = (packet.sensors.location.latitude_samples.value_statistics.standard_deviation
-                           if has_lats else np.nan,
-                           packet.sensors.location.longitude_samples.value_statistics.standard_deviation
-                           if has_lons else np.nan,
-                           packet.sensors.location.altitude_samples.value_statistics.standard_deviation
-                           if has_alts else np.nan)
-                loc_stats.add_loc_stat(LocationStat("UNKNOWN", num_locs, mean_loc, None, std_loc))
                 first_loc_provider = "UNKNOWN"
                 last_loc_provider = "UNKNOWN"
             else:
-                data_array = {}
-                for n in range(num_locs):
-                    lp = COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[n])
-                    if lp not in data_array.keys():
-                        data_array[lp] = ([packet.sensors.location.latitude_samples.values[n] if has_lats else np.nan],
-                                          [packet.sensors.location.longitude_samples.values[n] if has_lons else np.nan],
-                                          [packet.sensors.location.altitude_samples.values[n] if has_alts else np.nan])
-                    else:
-                        data_array[lp][0].append(packet.sensors.location.latitude_samples.values[n]
-                                                 if has_lats else np.nan)
-                        data_array[lp][1].append(packet.sensors.location.longitude_samples.values[n]
-                                                 if has_lons else np.nan)
-                        data_array[lp][2].append(packet.sensors.location.altitude_samples.values[n]
-                                                 if has_alts else np.nan)
-                for k, d in data_array.items():
-                    loc_stats.add_loc_stat(LocationStat(k, len(d[0]), (np.mean(d[0]), np.mean(d[1]), np.mean(d[2])),
-                                                        (np.var(d[0]), np.var(d[1]), np.var(d[2])))
-                                           )
                 first_loc_provider = \
                     COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
                 last_loc_provider = \
@@ -808,7 +790,7 @@ class StationModel:
                                   packet.station_information.description, True,
                                   packet.timing_information.packet_start_mach_timestamp,
                                   packet.timing_information.packet_end_mach_timestamp,
-                                  first_location, first_loc_provider, last_location, last_loc_provider, loc_stats,
+                                  first_location, first_loc_provider, last_location, last_loc_provider, None,
                                   packet.timing_information.packet_start_mach_timestamp,
                                   packet.timing_information.best_latency,
                                   packet.timing_information.best_offset,
@@ -885,3 +867,39 @@ class StationModel:
         :return: the offset model of the station model
         """
         return self._offset_model
+
+    def get_gps_offsets(self) -> List[float]:
+        """
+        :return: all gps offsets of the model
+        """
+        return self._gps_offsets
+
+    def get_gps_timestamps(self) -> List[float]:
+        """
+        :return: all gps timestamps of the model
+        """
+        return self._gps_timestamps
+
+    def get_mean_gps_offsets(self) -> float:
+        """
+        Uses only data points that are less than -1000 and greater than 1000 microseconds, due to forced correction
+        in gps timestamps causing some values to be "out of sync" with the rest.
+
+        :return: the mean gps offset or np.nan if it doesn't exist
+        """
+        valid_gps_points = []
+        for g in self._gps_offsets:
+            if g < -1000 + GPS_TRAVEL_MICROS or g > 1000 + GPS_TRAVEL_MICROS:
+                valid_gps_points.append(g)
+        if len(valid_gps_points) > 0:
+            return np.mean(valid_gps_points)
+        return np.nan
+
+    def get_gps_offset_model(self) -> Tuple[float, float]:
+        """
+        :return: the slope and intercept of the GPS offset model
+        """
+        if len(self._gps_offsets) == 0:
+            return np.nan, np.nan
+        return simple_offset_weighted_linear_regression(np.array(self._gps_offsets),
+                                                        np.array(self._gps_timestamps) - self.first_data_timestamp)

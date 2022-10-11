@@ -384,6 +384,25 @@ def offset_weighted_linear_regression(
     return wls.coef_[0][0], wls.intercept_[0], score
 
 
+def simple_offset_weighted_linear_regression(offsets: np.ndarray, times: np.ndarray) -> Tuple[float, float]:
+    """
+    Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
+    for GPS timestamps vs device timestamps
+    The intercept is based on first UTC time 0, all units are in microseconds
+    The function uses sklearn's LinearRegression with no weights.
+
+    :param offsets: array of offsets
+    :param times: array of device times used to get the offsets
+    :return: slope, intercept
+    """
+    # Set up the linear regression
+    wls = LinearRegression()
+    wls.fit(
+        X=times.reshape(-1, 1), y=offsets.reshape(-1, 1))
+    # return the slope and intercept
+    return wls.coef_[0][0], wls.intercept_[0]
+
+
 # Function to correct the intercept value
 def get_offset_at_new_time(
         new_time: float, slope: float, intercept: float, model_time: float
