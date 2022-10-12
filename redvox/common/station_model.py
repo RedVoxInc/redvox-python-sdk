@@ -617,6 +617,8 @@ class StationModel:
                                                if has_lons else np.nan,
                                                packet.sensors.location.altitude_samples.values[0]
                                                if has_alts else np.nan)
+                        self.first_location_source = "UNKNOWN" if len(packet.sensors.location.location_providers) < 1 \
+                            else COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
                     if self.last_location is None \
                             or self.last_data_timestamp < packet.sensors.location.timestamps.timestamps[-1]:
                         self.last_location = (packet.sensors.location.latitude_samples.values[-1]
@@ -625,6 +627,8 @@ class StationModel:
                                               if has_lons else np.nan,
                                               packet.sensors.location.altitude_samples.values[-1]
                                               if has_alts else np.nan)
+                        self.last_location_source = "UNKNOWN" if len(packet.sensors.location.location_providers) < 1 \
+                            else COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
                     if len(packet.sensors.location.location_providers) < 1:
                         mean_loc = (packet.sensors.location.latitude_samples.value_statistics.mean,
                                     packet.sensors.location.longitude_samples.value_statistics.mean,
@@ -636,13 +640,7 @@ class StationModel:
                             self.location_stats.add_std_dev_by_source("UNKNOWN", num_locs, mean_loc, std_loc)
                         else:
                             self.location_stats.add_loc_stat(LocationStat("UNKNOWN", num_locs, mean_loc, None, std_loc))
-                        self.first_location_source = "UNKNOWN"
-                        self.last_location_source = "UNKNOWN"
                     else:
-                        self.first_location_source = \
-                            COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
-                        self.last_location_source = \
-                            COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
                         data_array = {}
                         for n in range(num_locs):
                             lp = COLUMN_TO_ENUM_FN["location_provider"](
@@ -673,6 +671,32 @@ class StationModel:
                                     LocationStat(k, len(d[0]), (np.mean(d[0]), np.mean(d[1]), np.mean(d[2])),
                                                  (np.var(d[0]), np.var(d[1]), np.var(d[2])))
                                 )
+                elif packet.sensors.location.last_best_location is not None:
+                    self._gps_offsets.append(
+                        packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps
+                        - packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach
+                        + GPS_TRAVEL_MICROS)
+                    self._gps_timestamps.append(
+                        packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps)
+                    only_loc = (packet.sensors.location.last_best_location.latitude,
+                                packet.sensors.location.last_best_location.longitude,
+                                packet.sensors.location.last_best_location.altitude)
+                    only_prov = COLUMN_TO_ENUM_FN["location_provider"](
+                        packet.sensors.location.last_best_location.location_provider)
+                    if self.first_location is None or self.first_data_timestamp \
+                            > packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach:
+                        self.first_location = only_loc
+                        self.first_location_source = only_prov
+                    if self.last_location is None or self.last_data_timestamp < \
+                            packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach:
+                        self.last_location = only_loc
+                        self.last_location_source = only_prov
+                    mean_loc = only_loc
+                    std_loc = (0., 0., 0.)
+                    if self.location_stats.has_source(only_prov):
+                        self.location_stats.add_std_dev_by_source(only_prov, 1, mean_loc, std_loc)
+                    else:
+                        self.location_stats.add_loc_stat(LocationStat(only_prov, 1, mean_loc, None, std_loc))
                 if not self.has_moved:
                     self.has_moved = self.first_location != self.last_location
             elif sensor == _MAGNETOMETER_FIELD_NAME:
