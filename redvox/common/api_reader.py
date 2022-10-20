@@ -523,11 +523,11 @@ class ApiReaderModel:
         if pool is None:
             _pool.close()
 
-        offset_model = om.model_from_stats(stats)
-
-        # punt if duration or other important values are invalid or if the latency array was empty
-        if offset_model is None:
-            return [station_index]
+        # offset_model = om.model_from_stats(stats)
+        #
+        # # punt if duration or other important values are invalid or if the latency array was empty
+        # if offset_model is None:
+        #     return [station_index]
 
         results = {}
         keys = []
@@ -542,7 +542,6 @@ class ApiReaderModel:
 
         for s in results.values():
             m = StationModel.create_from_stream(list(s.stream_raw()))
-            m.set_offset_model(offset_model)
             self.station_models.append(m)
 
         return list(results.values())

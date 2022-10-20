@@ -6,12 +6,16 @@ import numpy as np
 import redvox
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc
+from redvox.common.timesync import TimeSync
 from redvox.common.offset_model import OffsetModel, simple_offset_weighted_linear_regression
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 
 
 GPS_TRAVEL_MICROS = 60000  # Assumed GPS latency in microseconds
+GPS_VALIDITY_BUFFER = 2000  # microseconds before GPS offset is considered valid
+DEGREES_TO_METERS = 0.00001  # About 1 meter in degrees
+NUM_BUFFER_POINTS = 15  # number of data points to keep in a buffer
 
 COLUMN_TO_ENUM_FN = {"location_provider": lambda l: LocationProvider(l).name}
 
@@ -164,6 +168,12 @@ class LocationStats:
         """
         self._location_stats.append(new_loc)
 
+    def get_all_stats(self) -> List[LocationStat]:
+        """
+        :return: all location stats
+        """
+        return self._location_stats.copy()
+
     def get_sources(self) -> List[str]:
         """
         :return: the sources of all location stats
@@ -293,6 +303,89 @@ class LocationStats:
         return None
 
 
+class CircularQueue:
+    def __init__(self, capacity: int, debug: bool = False):
+        self.capacity: int = capacity
+        self.data: List = [None] * capacity
+        self.head: int = 0
+        self.tail: int = -1
+        self.size: int = 0
+        self.debug: bool = debug
+
+    def _update_index(self, index: int):
+        return (index + 1) % self.capacity
+
+    def is_full(self) -> bool:
+        return self.size == self.capacity
+
+    def is_empty(self) -> bool:
+        return self.size == 0
+
+    def add(self, data: any, limit_size: bool = False):
+        """
+        adds data to the buffer.  Overwrites values unless limit_size is True
+
+        :param data: data to add
+        :param limit_size: if True, will not overwrite data if the buffer is full
+        """
+        if limit_size and self.is_full():
+            if self.debug:
+                print("Cannot add to full buffer.")
+        else:
+            self.tail = self._update_index(self.tail)
+            self.data[self.tail] = data
+            self.size = np.minimum(self.size + 1, self.capacity)
+
+    def remove(self) -> any:
+        if self.is_empty():
+            if self.debug:
+                print("Cannot remove from empty buffer.")
+            return None
+        result = self.data[self.head]
+        self.head = self._update_index(self.head)
+        self.size -= 1
+        return result
+
+    def peek(self) -> any:
+        if self.is_empty():
+            if self.debug:
+                print("Cannot look at empty buffer.")
+            return None
+        return self.data[self.head]
+
+    def peek_tail(self) -> any:
+        if self.is_empty():
+            if self.debug:
+                print("Cannot look at empty buffer.")
+            return None
+        return self.data[self.tail]
+
+    def peek_index(self, index: int) -> any:
+        """
+        converts index to be within the buffer's capacity
+
+        :param index: index to look at
+        :return: element at index
+        """
+        if self.is_empty():
+            if self.debug:
+                print("Cannot look at empty buffer.")
+            return None
+        return self.data[index % self.capacity]
+
+    def look_at_data(self) -> List:
+        if self.is_empty():
+            if self.debug:
+                print("Buffer is empty.")
+            return []
+        index = self.head
+        result = []
+        for i in range(self.size):
+            result.append(self.data[index])
+            index = self._update_index(index)
+        return result
+
+
 class StationModel:
     """
     Station Model designed to summarize the entirety of a station's operational period
@@ -352,17 +445,19 @@ class StationModel:
         location_stats: LocationStats, Container for number of times a location source has appeared, the mean of
         the data points, and the std deviation of the data points.  Default empty
 
-        first_latency_timestamp: float, Timestamp of first latency.  Default np.nan
+        best_latency: float, the best latency of the model.  Default np.nan
 
-        first_latency: float, First latency of the model.  Default np.nan
+        num_timesync_points: int, the number of timesync data points.  Default 0
 
-        first_offset: float, First offset of the model.  Default np.nan
+        offset_intercept: float, the offset at station start time.  Default np.nan
 
-        last_latency_timestamp: float, Timestamp of last latency.  Default np.nan
+        offset_slope: float, the slope of the offset line.  Default np.nan
 
-        last_latency: float, Last latency of the model.  Default np.nan
+        num_gps_points: int, the number of gps data points.  Default 0
 
-        last_offset: float, Last offset of the model.  Default np.nan
+        gps_offset_intercept: float, the gps offset at station start time.  Default np.nan
+
+        gps_offset_slope: float, the slope of the gps offset line.  Default np.nan
     """
     def __init__(self,
                  station_id: str = "",
@@ -378,17 +473,12 @@ class StationModel:
                  created_from_packet: bool = False,
                  first_data_timestamp: float = np.nan,
                  last_data_timestamp: float = np.nan,
-                 first_location: Optional[Tuple[float, float, float]] = None,
-                 first_location_source: str = "",
-                 last_location: Optional[Tuple[float, float, float]] = None,
-                 last_location_source: str = "",
                  location_stats: Optional[LocationStats] = None,
-                 first_latency_timestamp: float = np.nan,
-                 first_latency: float = np.nan,
-                 first_offset: float = np.nan,
-                 last_latency_timestamp: float = np.nan,
-                 last_latency: float = np.nan,
-                 last_offset: float = np.nan
+                 best_latency: float = np.nan,
+                 num_timesync_points: int = 0,
+                 offset_intercept: float = np.nan,
+                 offset_slope: float = np.nan,
+                 num_gps_points: int = 0
                  ):
         """
         Initialize a Station Model.  Does not include sensor statistics.  Use function create_from_packet() if you
@@ -408,18 +498,13 @@ class StationModel:
                                     Default False
         :param first_data_timestamp: first timestamp from epoch UTC of the data, default np.nan
         :param last_data_timestamp: last timestamp from epoch UTC of the data, default np.nan
-        :param first_location: Optional latitude, longitude and altitude of the first location, default None
-        :param first_location_source: source of the first location data, default ""
-        :param last_location: Optional latitude, longitude and altitude of the last location, default None
-        :param last_location_source: source of the last location data, default ""
         :param location_stats: Optional LocationStats (source names and the count, mean and std deviation of
                                 each type of location), default None
-        :param first_latency_timestamp: timestamp of the first latency value, default np.nan
-        :param first_latency: first latency of the model, default np.nan
-        :param first_offset: first offset of the model, default np.nan
-        :param last_latency_timestamp: timestamp of the last latency value, default np.nan
-        :param last_latency: last latency of the model, default np.nan
-        :param last_offset: last offset of the model, default np.nan
+        :param best_latency: best latency of the station model, default np.nan
+        :param num_timesync_points: number of timesync data points, default 0
+        :param offset_intercept: offset at station start time, default np.nan
+        :param offset_slope: slope of offset line, default np.nan
+        :param num_gps_points: number of gps data points, default 0
         """
         self._id: str = station_id
         self._uuid: str = uuid
@@ -435,24 +520,22 @@ class StationModel:
         self.num_packets: int = 1 if created_from_packet else 0
         self.first_data_timestamp: float = first_data_timestamp
         self.last_data_timestamp: float = last_data_timestamp
-        self.first_location: Optional[Tuple[float, float, float]] = first_location
-        self.first_location_source: str = first_location_source
-        self.last_location: Optional[Tuple[float, float, float]] = last_location
-        self.last_location_source: str = last_location_source
-        self.has_moved: bool = first_location != last_location
+        self.has_moved: bool = False
         self.location_stats: LocationStats = LocationStats() if location_stats is None else location_stats
-        self.first_latency_timestamp: float = first_latency_timestamp
-        self.first_latency: float = first_latency
-        self.first_offset: float = first_offset
-        self.last_latency_timestamp: float = last_latency_timestamp
-        self.last_latency: float = last_latency
-        self.last_offset: float = last_offset
-        self._gps_offsets: list[float] = []
-        self._gps_timestamps: list[float] = []
+        self.best_latency: float = best_latency
+        self.num_timesync_points: int = num_timesync_points
+        self.mean_latency: float = np.nan
+        self.mean_offset: float = np.nan
+        self.first_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
+        self.last_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
+        self.offset_intercept: float = offset_intercept
+        self.offset_slope: float = offset_slope
+        self.num_gps_points: int = num_gps_points
+        self.first_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
+        self.last_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
         self._errors: RedVoxExceptions = RedVoxExceptions("StationModel")
         self._sdk_version: str = redvox.version()
         self._sensors: Dict[str, float] = {}
-        self._offset_model: OffsetModel = OffsetModel.empty_model()
 
     def __repr__(self):
         return f"id: {self._id}, " \
@@ -469,23 +552,16 @@ class StationModel:
                f"num_packets: {self.num_packets}, " \
                f"first_data_timestamp: {self.first_data_timestamp}, " \
                f"last_data_timestamp: {self.last_data_timestamp}, " \
-               f"first_location: {self.first_location}, " \
-               f"first_location_source: {self.first_location_source}, " \
-               f"last_location: {self.last_location}, " \
-               f"last_location_source: {self.last_location_source}, " \
                f"location_stats: {self.location_stats}, " \
                f"has_moved: {self.has_moved}, " \
-               f"first_latency_timestamp: {self.first_latency_timestamp}, " \
-               f"first_latency: {self.first_latency}, " \
-               f"first_offset: {self.first_offset}, " \
-               f"last_latency_timestamp: {self.last_latency_timestamp}, " \
-               f"last_latency: {self.last_latency}, " \
-               f"last_offset: {self.last_offset}, " \
+               f"best_latency: {self.best_latency}, " \
+               f"offset_intercept: {self.offset_intercept}, " \
+               f"offset_slope: {self.offset_slope}, " \
                f"sdk_version: {self._sdk_version}, " \
                f"sensors: {self._sensors}"
 
     def __str__(self):
-        start_date = np.nan if np.isnan(self._start_date) \
+        s_d = np.nan if np.isnan(self._start_date) \
             else datetime_from_epoch_microseconds_utc(self._start_date).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         first_timestamp = np.nan if np.isnan(self.first_data_timestamp) \
             else datetime_from_epoch_microseconds_utc(self.first_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
@@ -493,7 +569,7 @@ class StationModel:
             else datetime_from_epoch_microseconds_utc(self.last_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         return f"id: {self._id}, " \
                f"uuid: {self._uuid}, " \
-               f"start_date: {start_date}, " \
+               f"start_date: {s_d}, " \
                f"app: {self.app}, " \
                f"api: {self.api}, " \
                f"sub_api: {self.sub_api}, " \
@@ -505,16 +581,11 @@ class StationModel:
                f"num_packets: {self.num_packets}, " \
                f"first_data_timestamp: {first_timestamp}, " \
                f"last_data_timestamp: {last_timestamp}, " \
-               f"first lat, lon, alt (m): {self.first_location_source}; {self.first_location}, " \
-               f"last lat, lon, alt (m): {self.last_location_source}; {self.last_location}, " \
                f"location_stats: {self.location_stats}, " \
                f"has_moved: {self.has_moved}, " \
-               f"first_latency_timestamp: {self.first_latency_timestamp}, " \
-               f"first_latency: {self.first_latency}, " \
-               f"first_offset: {self.first_offset}, " \
-               f"last_latency_timestamp: {self.last_latency_timestamp}, " \
-               f"last_latency: {self.last_latency}, " \
-               f"last_offset: {self.last_offset}, " \
+               f"best_latency: {self.best_latency}, " \
+               f"offset_intercept: {self.offset_intercept}, " \
+               f"offset_slope: {self.offset_slope}, " \
                f"audio_sample_rate_hz: {self.audio_sample_rate_nominal_hz()}, " \
                f"sdk_version: {self._sdk_version}, " \
                f"sensors and sample rate (hz): {self._sensors}"
@@ -549,27 +620,6 @@ class StationModel:
         """
         return self._sensors["audio"] if "audio" in self._sensors.keys() else np.nan
 
-    # @staticmethod
-    # def _update_std_dev(num_old_samples: int, old_mean: float, old_std: float,
-    #                     num_new_samples: int, new_mean: float, new_std: float) -> float:
-    #     """
-    #     converts old std dev to new std dev
-    #
-    #     :param num_old_samples: number of old samples
-    #     :param old_mean: old mean
-    #     :param old_std: old std dev
-    #     :param num_new_samples: number of new samples
-    #     :param new_mean: new mean
-    #     :param new_std: new std dev
-    #     :return: new std dev
-    #     """
-    #     if num_old_samples + num_new_samples == 1:
-    #         return 0.
-    #     return (((num_old_samples - 1) * old_std * old_std) + ((num_new_samples - 1) * new_std * new_std)
-    #             + ((num_old_samples * num_new_samples / (num_old_samples + num_new_samples))
-    #                * (old_mean * old_mean + new_mean * new_mean - (2 * new_mean * old_mean)))) / \
-    #            (num_old_samples + num_new_samples - 1)
-
     def _get_sensor_data_from_packet(self, sensor: str, packet: api_m.RedvoxPacketM) -> float:
         """
         :param: sensor: the sensor to get data for
@@ -600,35 +650,14 @@ class StationModel:
             elif sensor == _LOCATION_FIELD_NAME:
                 v = packet.sensors.location.timestamps.mean_sample_rate
                 num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
+                gps_offsets = []
                 if num_locs > 0:
                     has_lats = packet.sensors.location.HasField("latitude_samples")
                     has_lons = packet.sensors.location.HasField("longitude_samples")
                     has_alts = packet.sensors.location.HasField("altitude_samples")
-                    gps_offsets = np.array(packet.sensors.location.timestamps_gps.timestamps) \
-                        - np.array(packet.sensors.location.timestamps.timestamps) + GPS_TRAVEL_MICROS
-                    if len(gps_offsets) > 0:
-                        self._gps_offsets.extend(gps_offsets)
-                        self._gps_timestamps.extend(packet.sensors.location.timestamps_gps.timestamps)
-                    if self.first_location is None \
-                            or self.first_data_timestamp > packet.sensors.location.timestamps.timestamps[0]:
-                        self.first_location = (packet.sensors.location.latitude_samples.values[0]
-                                               if has_lats else np.nan,
-                                               packet.sensors.location.longitude_samples.values[0]
-                                               if has_lons else np.nan,
-                                               packet.sensors.location.altitude_samples.values[0]
-                                               if has_alts else np.nan)
-                        self.first_location_source = "UNKNOWN" if len(packet.sensors.location.location_providers) < 1 \
-                            else COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
-                    if self.last_location is None \
-                            or self.last_data_timestamp < packet.sensors.location.timestamps.timestamps[-1]:
-                        self.last_location = (packet.sensors.location.latitude_samples.values[-1]
-                                              if has_lats else np.nan,
-                                              packet.sensors.location.longitude_samples.values[-1]
-                                              if has_lons else np.nan,
-                                              packet.sensors.location.altitude_samples.values[-1]
-                                              if has_alts else np.nan)
-                        self.last_location_source = "UNKNOWN" if len(packet.sensors.location.location_providers) < 1 \
-                            else COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
+                    gps_offsets = list(np.array(packet.sensors.location.timestamps_gps.timestamps)
+                                       - np.array(packet.sensors.location.timestamps.timestamps) + GPS_TRAVEL_MICROS)
+                    gps_timestamps = packet.sensors.location.timestamps_gps.timestamps
                     if len(packet.sensors.location.location_providers) < 1:
                         mean_loc = (packet.sensors.location.latitude_samples.value_statistics.mean,
                                     packet.sensors.location.longitude_samples.value_statistics.mean,
@@ -672,33 +701,39 @@ class StationModel:
                                                  (np.var(d[0]), np.var(d[1]), np.var(d[2])))
                                 )
                 elif packet.sensors.location.last_best_location is not None:
-                    self._gps_offsets.append(
-                        packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps
-                        - packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach
-                        + GPS_TRAVEL_MICROS)
-                    self._gps_timestamps.append(
-                        packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps)
+                    gps_offsets = [packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps
+                                   - packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach
+                                   + GPS_TRAVEL_MICROS]
+                    gps_timestamps = [packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps]
                     only_loc = (packet.sensors.location.last_best_location.latitude,
                                 packet.sensors.location.last_best_location.longitude,
                                 packet.sensors.location.last_best_location.altitude)
                     only_prov = COLUMN_TO_ENUM_FN["location_provider"](
                         packet.sensors.location.last_best_location.location_provider)
-                    if self.first_location is None or self.first_data_timestamp \
-                            > packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach:
-                        self.first_location = only_loc
-                        self.first_location_source = only_prov
-                    if self.last_location is None or self.last_data_timestamp < \
-                            packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach:
-                        self.last_location = only_loc
-                        self.last_location_source = only_prov
                     mean_loc = only_loc
                     std_loc = (0., 0., 0.)
                     if self.location_stats.has_source(only_prov):
                         self.location_stats.add_std_dev_by_source(only_prov, 1, mean_loc, std_loc)
                     else:
                         self.location_stats.add_loc_stat(LocationStat(only_prov, 1, mean_loc, None, std_loc))
+                if len(gps_offsets) > 0:
+                    valid_data_points = [i for i in range(len(gps_offsets))
+                                         if gps_offsets[i] < GPS_TRAVEL_MICROS - GPS_VALIDITY_BUFFER
+                                         or gps_offsets[i] > GPS_TRAVEL_MICROS + GPS_VALIDITY_BUFFER]
+                    if len(valid_data_points) > 0:
+                        valid_data = [(gps_timestamps[i], gps_offsets[i]) for i in valid_data_points]
+                        if self.first_gps_data.is_full():
+                            for i in valid_data:
+                                self.last_gps_data.add(i)
+                        else:
+                            for i in valid_data:
+                                self.first_gps_data.add(i, True)
+                    self.num_gps_points += len(valid_data_points)
                 if not self.has_moved:
-                    self.has_moved = self.first_location != self.last_location
+                    for lc in self.location_stats.get_all_stats():
+                        if lc.std_dev[0] > 5. * DEGREES_TO_METERS or lc.std_dev[1] > 5. * DEGREES_TO_METERS \
+                                or lc.std_dev[2] > 5.:
+                            self.has_moved = True
             elif sensor == _MAGNETOMETER_FIELD_NAME:
                 v = packet.sensors.magnetometer.timestamps.mean_sample_rate
             elif sensor == _ORIENTATION_FIELD_NAME:
@@ -733,6 +768,31 @@ class StationModel:
                 if packet.timing_information.app_start_mach_timestamp == self._start_date:
                     packet_start = packet.timing_information.packet_start_mach_timestamp
                     packet_end = packet.timing_information.packet_end_mach_timestamp
+                    timing_info = packet.timing_information.synch_exchanges
+                    secret = TimeSync().from_raw_packets([packet])
+                    if np.isnan(packet.timing_information.best_latency):
+                        packet_best_latency = secret.best_latency()
+                        packet_best_offset = secret.best_offset()
+                    else:
+                        packet_best_latency = packet.timing_information.best_latency
+                        packet_best_offset = secret.best_offset() if np.isnan(packet.timing_information.best_offset) \
+                            else packet.timing_information.best_offset
+                    self.num_timesync_points += len(timing_info)
+                    self.mean_latency = \
+                        (self.mean_latency * self.num_packets + packet_best_latency) / (self.num_packets + 1)
+                    self.mean_offset = \
+                        (self.mean_offset * self.num_packets + packet_best_offset) / (self.num_packets + 1)
+                    _secret_offsets = secret.offsets().flatten()
+                    _secret_timestamps = secret.get_device_exchanges_timestamps()
+                    _secret_latencies = secret.latencies().flatten()
+                    if self.first_timesync_data.is_full():
+                        for i in range(len(_secret_timestamps)):
+                            self.last_timesync_data.add((_secret_timestamps[i], _secret_latencies[i],
+                                                         _secret_offsets[i]))
+                    else:
+                        for i in range(len(_secret_timestamps)):
+                            self.first_timesync_data.add((_secret_timestamps[i], _secret_latencies[i],
+                                                          _secret_offsets[i]), True)
                     sensors = get_all_sensors_in_packet(packet)
                     sensors.append("health")
                     if list(self._sensors.keys()) != sensors:
@@ -743,9 +803,6 @@ class StationModel:
                             self.first_data_timestamp = packet_start
                         if packet_end > self.last_data_timestamp:
                             self.last_data_timestamp = packet_end
-                            self.last_latency_timestamp = packet_start
-                            self.last_latency = packet.timing_information.best_latency
-                            self.last_offset = packet.timing_information.best_offset
                         for s in sensors:
                             if s not in ["audio", "compressed_audio", "health", "image"]:
                                 self._sensors[s] += \
@@ -779,32 +836,6 @@ class StationModel:
         :param packet: API M packet of data to read
         :return: StationModel using the data from the packet
         """
-        first_location = None
-        first_loc_provider = ""
-        last_location = None
-        last_loc_provider = ""
-        num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
-        if _has_sensor(packet, _LOCATION_FIELD_NAME) and num_locs > 0:
-            has_lats = packet.sensors.location.HasField("latitude_samples")
-            has_lons = packet.sensors.location.HasField("longitude_samples")
-            has_alts = packet.sensors.location.HasField("altitude_samples")
-            if len(packet.sensors.location.location_providers) < 1:
-                first_loc_provider = "UNKNOWN"
-                last_loc_provider = "UNKNOWN"
-            else:
-                first_loc_provider = \
-                    COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[0])
-                last_loc_provider = \
-                    COLUMN_TO_ENUM_FN["location_provider"](packet.sensors.location.location_providers[-1])
-
-            first_location = (packet.sensors.location.latitude_samples.values[0] if has_lats else np.nan,
-                              packet.sensors.location.longitude_samples.values[0] if has_lons else np.nan,
-                              packet.sensors.location.altitude_samples.values[0] if has_alts else np.nan)
-
-            last_location = (packet.sensors.location.latitude_samples.values[-1] if has_lats else np.nan,
-                             packet.sensors.location.longitude_samples.values[-1] if has_lons else np.nan,
-                             packet.sensors.location.altitude_samples.values[-1] if has_alts else np.nan)
-
         try:
             result = StationModel(packet.station_information.id, packet.station_information.uuid,
                                   packet.timing_information.app_start_mach_timestamp, packet.api, packet.sub_api,
@@ -813,16 +844,13 @@ class StationModel:
                                   len(packet.sensors.audio.samples.values) / packet.sensors.audio.sample_rate,
                                   packet.station_information.description, True,
                                   packet.timing_information.packet_start_mach_timestamp,
-                                  packet.timing_information.packet_end_mach_timestamp,
-                                  first_location, first_loc_provider, last_location, last_loc_provider, None,
-                                  packet.timing_information.packet_start_mach_timestamp,
+                                  packet.timing_information.packet_end_mach_timestamp, None,
                                   packet.timing_information.best_latency,
-                                  packet.timing_information.best_offset,
-                                  packet.timing_information.packet_start_mach_timestamp,
-                                  packet.timing_information.best_latency,
-                                  packet.timing_information.best_offset,
                                   )
             result.set_sensor_data(packet)
+            result.mean_latency = packet.timing_information.best_latency
+            result.num_timesync_points = len(packet.timing_information.synch_exchanges)
+            result.mean_offset = packet.timing_information.best_offset
         except Exception as e:
             # result = StationModel(station_description=f"FAILED: {e}")
             raise e
@@ -878,52 +906,64 @@ class StationModel:
             return self._sensors[sensor]
         return None
 
-    def set_offset_model(self, model: OffsetModel):
+    def model_duration(self) -> float:
         """
-        set the offset model
+        :return: duration of model in microseconds
+        """
+        return self.last_data_timestamp - self.first_data_timestamp
 
-        :param model: model to set
+    def first_latency_timestamp(self) -> float:
         """
-        self._offset_model = model
+        :return: first latency timestamp of the data or np.nan if it doesn't exist
+        """
+        if self.first_timesync_data.size > 0:
+            return self.first_timesync_data.peek()[0]
+        return np.nan
+
+    def last_latency_timestamp(self) -> float:
+        """
+        :return: last latency timestamp of the data or np.nan if it doesn't exist
+        """
+        if self.last_timesync_data.size > 0:
+            return self.last_timesync_data.peek_tail()[0]
+        return np.nan
 
     def get_offset_model(self) -> OffsetModel:
         """
-        :return: the offset model of the station model
-        """
-        return self._offset_model
+        note: this uses a set of the first and last data points to approximate the timesync offset model over time.
+        For an in-depth analysis, use the entire timesync data set.
 
-    def get_gps_offsets(self) -> List[float]:
+        :return: estimated timesync offset model using first and last segments of timesync data
         """
-        :return: all gps offsets of the model
-        """
-        return self._gps_offsets
+        if self.first_timesync_data.size + self.last_timesync_data.size > 0:
+            first_data = self.first_timesync_data.look_at_data()
+            last_data = self.last_timesync_data.look_at_data()
+            timestamps = np.concatenate([np.array([first_data[i][0] for i in range(len(first_data))]),
+                                         np.array([last_data[i][0] for i in range(len(last_data))]),
+                                         np.array([self.first_data_timestamp + (self.model_duration() / 2)])])
+            latencies = np.concatenate([np.array([first_data[i][1] for i in range(len(first_data))]),
+                                        np.array([last_data[i][1] for i in range(len(last_data))]),
+                                        np.array([self.mean_latency])])
+            offsets = np.concatenate([np.array([first_data[i][2] for i in range(len(first_data))]),
+                                      np.array([last_data[i][2] for i in range(len(last_data))]),
+                                      np.array([self.mean_offset])])
+            return OffsetModel(latencies, offsets, timestamps, self.first_latency_timestamp(),
+                               self.last_latency_timestamp(), min_samples_per_bin=1)
+        return OffsetModel.empty_model()
 
-    def get_gps_timestamps(self) -> List[float]:
+    def get_gps_offset(self) -> Tuple[float, float]:
         """
-        :return: all gps timestamps of the model
-        """
-        return self._gps_timestamps
+        note: this uses a set of the first and last data points to approximate the gps offset model over time.
+        For an in-depth analysis, use the entire GPS data set.
 
-    def get_mean_gps_offsets(self) -> float:
+        :return: estimated gps offset model slope and intercept
         """
-        Uses only data points that are less than -1000 and greater than 1000 microseconds, due to forced correction
-        in gps timestamps causing some values to be "out of sync" with the rest.
-
-        :return: the mean gps offset or np.nan if it doesn't exist
-        """
-        valid_gps_points = []
-        for g in self._gps_offsets:
-            if g < -1000 + GPS_TRAVEL_MICROS or g > 1000 + GPS_TRAVEL_MICROS:
-                valid_gps_points.append(g)
-        if len(valid_gps_points) > 0:
-            return np.mean(valid_gps_points)
-        return np.nan
-
-    def get_gps_offset_model(self) -> Tuple[float, float]:
-        """
-        :return: the slope and intercept of the GPS offset model
-        """
-        if len(self._gps_offsets) == 0:
-            return np.nan, np.nan
-        return simple_offset_weighted_linear_regression(np.array(self._gps_offsets),
-                                                        np.array(self._gps_timestamps) - self.first_data_timestamp)
+        if self.first_gps_data.size + self.last_gps_data.size > 0:
+            first_data = self.first_gps_data.look_at_data()
+            last_data = self.last_gps_data.look_at_data()
+            timestamps = np.concatenate([np.array([first_data[i][0] for i in range(len(first_data))]),
+                                         np.array([last_data[i][0] for i in range(len(last_data))])])
+            offsets = np.concatenate([np.array([first_data[i][1] for i in range(len(first_data))]),
+                                      np.array([last_data[i][1] for i in range(len(last_data))])])
+            return simple_offset_weighted_linear_regression(offsets, timestamps)
+        return np.nan, np.nan

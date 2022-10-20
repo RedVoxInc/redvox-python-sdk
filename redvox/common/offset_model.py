@@ -170,9 +170,12 @@ class OffsetModel:
             get_min_valid_latency_micros() if min_valid_latency_us is None else min_valid_latency_us
         self.min_samples_per_bin = get_min_samples() if min_samples_per_bin is None else min_samples_per_bin
         self.min_timesync_dur_min = get_min_timesync_dur() if min_timesync_dur_min is None else min_timesync_dur_min
-        latencies = np.where(latencies < self.min_valid_latency_micros, np.nan, latencies)
-        use_model = timesync_quality_check(latencies, start_time, end_time, self.debug,
-                                           self.min_timesync_dur_min, self.min_samples_per_bin)
+        if len(latencies) > 0:
+            latencies = np.where(latencies < self.min_valid_latency_micros, np.nan, latencies)
+            use_model = timesync_quality_check(latencies, start_time, end_time, self.debug,
+                                               self.min_timesync_dur_min, self.min_samples_per_bin)
+        else:
+            use_model = False
         if use_model:
             # Organize the data into a data frame
             full_df = pd.DataFrame(data=times, columns=["times"])
@@ -399,8 +402,14 @@ def simple_offset_weighted_linear_regression(offsets: np.ndarray, times: np.ndar
     wls = LinearRegression()
     wls.fit(
         X=times.reshape(-1, 1), y=offsets.reshape(-1, 1))
+    intercept = get_offset_at_new_time(
+        new_time=times[0],
+        slope=wls.coef_[0][0],
+        intercept=wls.intercept_[0],
+        model_time=0,
+    )
     # return the slope and intercept
-    return wls.coef_[0][0], wls.intercept_[0]
+    return wls.coef_[0][0], intercept
 
 
 # Function to correct the intercept value
