@@ -12,10 +12,11 @@ import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 
 
-GPS_TRAVEL_MICROS = 60000  # Assumed GPS latency in microseconds
-GPS_VALIDITY_BUFFER = 2000  # microseconds before GPS offset is considered valid
+GPS_TRAVEL_MICROS = 60000.  # Assumed GPS latency in microseconds
+GPS_VALIDITY_BUFFER = 2000.  # microseconds before GPS offset is considered valid
 DEGREES_TO_METERS = 0.00001  # About 1 meter in degrees
 NUM_BUFFER_POINTS = 15  # number of data points to keep in a buffer
+MOVEMENT_METERS = 5.  # number of meters before station is considered moved
 
 COLUMN_TO_ENUM_FN = {"location_provider": lambda l: LocationProvider(l).name}
 
@@ -432,14 +433,6 @@ class StationModel:
 
         last_data_timestamp: float, Timestamp of the last data point.  Default np.nan
 
-        first_location: Tuple[float, float, float], Latitude, longitude, and altitude of first location.  Default None
-
-        first_location_source: str, Name of source of first location values.  Default ""
-
-        last_location: Tuple[float, float, float], Latitude, longitude, and altitude of last location.  Default None
-
-        last_location_source: str, Name of source of last location values.  Default ""
-
         has_moved: bool, If True, location changed during station operation.  Default False
 
         location_stats: LocationStats, Container for number of times a location source has appeared, the mean of
@@ -449,15 +442,21 @@ class StationModel:
 
         num_timesync_points: int, the number of timesync data points.  Default 0
 
-        offset_intercept: float, the offset at station start time.  Default np.nan
+        mean_latency: float, mean latency of the model.  Default np.nan
 
-        offset_slope: float, the slope of the offset line.  Default np.nan
+        mean_offset: float, mean offset of the model.  Default np.nan
+
+        first_timesync_data: CircularQueue, container for the first 15 points of timesync data;
+        timestamp, latency, offset.  Default empty
+
+        last_timesync_data: CircularQueue, container for the last 15 points of timesync data.  Default empty
 
         num_gps_points: int, the number of gps data points.  Default 0
 
-        gps_offset_intercept: float, the gps offset at station start time.  Default np.nan
+        first_gps_data: CircularQueue, container for the first 15 points of GPS offset data; timestamp and offset.
+        Default empty
 
-        gps_offset_slope: float, the slope of the gps offset line.  Default np.nan
+        last_gps_data: CircularQueue, container for the last 15 points of GPS offset data.  Default empty
     """
     def __init__(self,
                  station_id: str = "",
@@ -476,8 +475,6 @@ class StationModel:
                  location_stats: Optional[LocationStats] = None,
                  best_latency: float = np.nan,
                  num_timesync_points: int = 0,
-                 offset_intercept: float = np.nan,
-                 offset_slope: float = np.nan,
                  num_gps_points: int = 0
                  ):
         """
@@ -502,8 +499,6 @@ class StationModel:
                                 each type of location), default None
         :param best_latency: best latency of the station model, default np.nan
         :param num_timesync_points: number of timesync data points, default 0
-        :param offset_intercept: offset at station start time, default np.nan
-        :param offset_slope: slope of offset line, default np.nan
         :param num_gps_points: number of gps data points, default 0
         """
         self._id: str = station_id
@@ -528,8 +523,6 @@ class StationModel:
         self.mean_offset: float = np.nan
         self.first_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
         self.last_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
-        self.offset_intercept: float = offset_intercept
-        self.offset_slope: float = offset_slope
         self.num_gps_points: int = num_gps_points
         self.first_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
         self.last_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
@@ -555,8 +548,8 @@ class StationModel:
                f"location_stats: {self.location_stats}, " \
                f"has_moved: {self.has_moved}, " \
                f"best_latency: {self.best_latency}, " \
-               f"offset_intercept: {self.offset_intercept}, " \
-               f"offset_slope: {self.offset_slope}, " \
+               f"mean_latency: {self.mean_latency}, " \
+               f"mean_offset: {self.mean_offset}, " \
                f"sdk_version: {self._sdk_version}, " \
                f"sensors: {self._sensors}"
 
@@ -584,8 +577,8 @@ class StationModel:
                f"location_stats: {self.location_stats}, " \
                f"has_moved: {self.has_moved}, " \
                f"best_latency: {self.best_latency}, " \
-               f"offset_intercept: {self.offset_intercept}, " \
-               f"offset_slope: {self.offset_slope}, " \
+               f"mean_latency: {self.mean_latency}, " \
+               f"mean_offset: {self.mean_offset}, " \
                f"audio_sample_rate_hz: {self.audio_sample_rate_nominal_hz()}, " \
                f"sdk_version: {self._sdk_version}, " \
                f"sensors and sample rate (hz): {self._sensors}"
@@ -731,8 +724,9 @@ class StationModel:
                     self.num_gps_points += len(valid_data_points)
                 if not self.has_moved:
                     for lc in self.location_stats.get_all_stats():
-                        if lc.std_dev[0] > 5. * DEGREES_TO_METERS or lc.std_dev[1] > 5. * DEGREES_TO_METERS \
-                                or lc.std_dev[2] > 5.:
+                        if lc.std_dev[0] > MOVEMENT_METERS * DEGREES_TO_METERS \
+                                or lc.std_dev[1] > MOVEMENT_METERS * DEGREES_TO_METERS \
+                                or lc.std_dev[2] > MOVEMENT_METERS:
                             self.has_moved = True
             elif sensor == _MAGNETOMETER_FIELD_NAME:
                 v = packet.sensors.magnetometer.timestamps.mean_sample_rate
@@ -768,7 +762,6 @@ class StationModel:
                 if packet.timing_information.app_start_mach_timestamp == self._start_date:
                     packet_start = packet.timing_information.packet_start_mach_timestamp
                     packet_end = packet.timing_information.packet_end_mach_timestamp
-                    timing_info = packet.timing_information.synch_exchanges
                     secret = TimeSync().from_raw_packets([packet])
                     if np.isnan(packet.timing_information.best_latency):
                         packet_best_latency = secret.best_latency()
@@ -777,22 +770,23 @@ class StationModel:
                         packet_best_latency = packet.timing_information.best_latency
                         packet_best_offset = secret.best_offset() if np.isnan(packet.timing_information.best_offset) \
                             else packet.timing_information.best_offset
-                    self.num_timesync_points += len(timing_info)
-                    self.mean_latency = \
-                        (self.mean_latency * self.num_packets + packet_best_latency) / (self.num_packets + 1)
-                    self.mean_offset = \
-                        (self.mean_offset * self.num_packets + packet_best_offset) / (self.num_packets + 1)
-                    _secret_offsets = secret.offsets().flatten()
-                    _secret_timestamps = secret.get_device_exchanges_timestamps()
-                    _secret_latencies = secret.latencies().flatten()
-                    if self.first_timesync_data.is_full():
-                        for i in range(len(_secret_timestamps)):
-                            self.last_timesync_data.add((_secret_timestamps[i], _secret_latencies[i],
-                                                         _secret_offsets[i]))
-                    else:
-                        for i in range(len(_secret_timestamps)):
-                            self.first_timesync_data.add((_secret_timestamps[i], _secret_latencies[i],
-                                                          _secret_offsets[i]), True)
+                    if secret.num_tri_messages() > 0:
+                        self.num_timesync_points += secret.num_tri_messages()
+                        self.mean_latency = \
+                            (self.mean_latency * self.num_packets + packet_best_latency) / (self.num_packets + 1)
+                        self.mean_offset = \
+                            (self.mean_offset * self.num_packets + packet_best_offset) / (self.num_packets + 1)
+                        _secret_offsets = secret.offsets().flatten()
+                        _secret_timestamps = secret.get_device_exchanges_timestamps()
+                        _secret_latencies = secret.latencies().flatten()
+                        if self.first_timesync_data.is_full():
+                            for i in range(len(_secret_timestamps)):
+                                self.last_timesync_data.add((_secret_timestamps[i], _secret_latencies[i],
+                                                             _secret_offsets[i]))
+                        else:
+                            for i in range(len(_secret_timestamps)):
+                                self.first_timesync_data.add((_secret_timestamps[i], _secret_latencies[i],
+                                                              _secret_offsets[i]), True)
                     sensors = get_all_sensors_in_packet(packet)
                     sensors.append("health")
                     if list(self._sensors.keys()) != sensors:
@@ -842,12 +836,9 @@ class StationModel:
                                   packet.station_information.make, packet.station_information.model,
                                   packet.station_information.app_version,
                                   len(packet.sensors.audio.samples.values) / packet.sensors.audio.sample_rate,
-                                  packet.station_information.description, True,
-                                  packet.timing_information.packet_start_mach_timestamp,
-                                  packet.timing_information.packet_end_mach_timestamp, None,
-                                  packet.timing_information.best_latency,
+                                  packet.station_information.description,
                                   )
-            result.set_sensor_data(packet)
+            result.get_data_from_packet(packet)
             result.mean_latency = packet.timing_information.best_latency
             result.num_timesync_points = len(packet.timing_information.synch_exchanges)
             result.mean_offset = packet.timing_information.best_offset
