@@ -839,9 +839,6 @@ class StationModel:
                                   packet.station_information.description,
                                   )
             result.get_data_from_packet(packet)
-            result.mean_latency = packet.timing_information.best_latency
-            result.num_timesync_points = len(packet.timing_information.synch_exchanges)
-            result.mean_offset = packet.timing_information.best_offset
         except Exception as e:
             # result = StationModel(station_description=f"FAILED: {e}")
             raise e
