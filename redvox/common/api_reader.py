@@ -18,7 +18,7 @@ from redvox.common import offset_model as om,\
     file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
-from redvox.common.station_model import StationModel
+from redvox.common.station_model import SessionModel
 from redvox.common.errors import RedVoxExceptions
 
 
@@ -432,7 +432,7 @@ class ApiReaderModel:
         self.structured_dir = structured_dir
         self.debug = debug
         self.errors = RedVoxExceptions("APIReader")
-        self.station_models: List[StationModel] = []
+        self.station_models: List[SessionModel] = []
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
 
@@ -541,7 +541,7 @@ class ApiReaderModel:
             results[key].append(entries=[station_index.entries[v]])
 
         for s in results.values():
-            m = StationModel.create_from_stream(list(s.stream_raw()))
+            m = SessionModel.create_from_stream(s.read_contents())
             self.station_models.append(m)
 
         return list(results.values())

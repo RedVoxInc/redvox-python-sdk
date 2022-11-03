@@ -12,6 +12,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 
 
+SESSION_VERSION = "2022-11-02"  # Version of the SessionModel
 GPS_TRAVEL_MICROS = 60000.  # Assumed GPS latency in microseconds
 GPS_VALIDITY_BUFFER = 2000.  # microseconds before GPS offset is considered valid
 DEGREES_TO_METERS = 0.00001  # About 1 meter in degrees
@@ -387,9 +388,9 @@ class CircularQueue:
         return result
 
 
-class StationModel:
+class SessionModel:
     """
-    Station Model designed to summarize the entirety of a station's operational period
+    SessionModel is designed to summarize an operational period of a station
     Timestamps are in microseconds since epoch UTC
     Latitude and Longitude are in degrees
     Altitude is in meters
@@ -478,7 +479,7 @@ class StationModel:
                  num_gps_points: int = 0
                  ):
         """
-        Initialize a Station Model.  Does not include sensor statistics.  Use function create_from_packet() if you
+        Initialize a SessionModel.  Does not include sensor statistics.  Use function create_from_packet() if you
         already have a packet to read from to get a complete model from the packet.
 
         :param station_id: id of the station, default ""
@@ -501,6 +502,7 @@ class StationModel:
         :param num_timesync_points: number of timesync data points, default 0
         :param num_gps_points: number of gps data points, default 0
         """
+        self._session_version: str = SESSION_VERSION
         self._id: str = station_id
         self._uuid: str = uuid
         self._start_date: float = start_timestamp
@@ -526,12 +528,13 @@ class StationModel:
         self.num_gps_points: int = num_gps_points
         self.first_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
         self.last_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
-        self._errors: RedVoxExceptions = RedVoxExceptions("StationModel")
+        self._errors: RedVoxExceptions = RedVoxExceptions("SessionModel")
         self._sdk_version: str = redvox.version()
         self._sensors: Dict[str, float] = {}
 
     def __repr__(self):
-        return f"id: {self._id}, " \
+        return f"session_version: {self._session_version}, " \
+               f"id: {self._id}, " \
                f"uuid: {self._uuid}, " \
                f"start_date: {self._start_date}, " \
                f"app: {self.app}, " \
@@ -560,7 +563,8 @@ class StationModel:
             else datetime_from_epoch_microseconds_utc(self.first_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         last_timestamp = np.nan if np.isnan(self.last_data_timestamp) \
             else datetime_from_epoch_microseconds_utc(self.last_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        return f"id: {self._id}, " \
+        return f"session_version: {self._session_version}, " \
+               f"id: {self._id}, " \
                f"uuid: {self._uuid}, " \
                f"start_date: {s_d}, " \
                f"app: {self.app}, " \
@@ -585,25 +589,25 @@ class StationModel:
 
     def id(self) -> str:
         """
-        :return: the id of the StationModel
+        :return: the id of the SessionModel
         """
         return self._id
 
     def uuid(self) -> str:
         """
-        :return: the uuid of the StationModel
+        :return: the uuid of the SessionModel
         """
         return self._uuid
 
     def start_date(self) -> float:
         """
-        :return: the start_date of the StationModel
+        :return: the start_date of the SessionModel
         """
         return self._start_date
 
     def print_errors(self):
         """
-        Prints all errors in the StationModel to screen
+        Prints all errors in the SessionModel to screen
         """
         self._errors.print()
 
@@ -644,6 +648,7 @@ class StationModel:
                 v = packet.sensors.location.timestamps.mean_sample_rate
                 num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
                 gps_offsets = []
+                gps_timestamps = []
                 if num_locs > 0:
                     has_lats = packet.sensors.location.HasField("latitude_samples")
                     has_lons = packet.sensors.location.HasField("longitude_samples")
@@ -698,18 +703,17 @@ class StationModel:
                                    - packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach
                                    + GPS_TRAVEL_MICROS]
                     gps_timestamps = [packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps]
-                    only_loc = (packet.sensors.location.last_best_location.latitude,
+                    mean_loc = (packet.sensors.location.last_best_location.latitude,
                                 packet.sensors.location.last_best_location.longitude,
                                 packet.sensors.location.last_best_location.altitude)
                     only_prov = COLUMN_TO_ENUM_FN["location_provider"](
                         packet.sensors.location.last_best_location.location_provider)
-                    mean_loc = only_loc
                     std_loc = (0., 0., 0.)
                     if self.location_stats.has_source(only_prov):
                         self.location_stats.add_std_dev_by_source(only_prov, 1, mean_loc, std_loc)
                     else:
                         self.location_stats.add_loc_stat(LocationStat(only_prov, 1, mean_loc, None, std_loc))
-                if len(gps_offsets) > 0:
+                if len(gps_offsets) > 0 and len(gps_timestamps) > 0:
                     valid_data_points = [i for i in range(len(gps_offsets))
                                          if gps_offsets[i] < GPS_TRAVEL_MICROS - GPS_VALIDITY_BUFFER
                                          or gps_offsets[i] > GPS_TRAVEL_MICROS + GPS_VALIDITY_BUFFER]
@@ -748,15 +752,13 @@ class StationModel:
             return np.nan
         return v / 1e-6  # convert microseconds to seconds so rate is in hz
 
-    def get_data_from_packet(self, packet: api_m.RedvoxPacketM) -> "StationModel":
+    def get_data_from_packet(self, packet: api_m.RedvoxPacketM) -> "SessionModel":
         """
         loads data from a packet into the model.  stops reading data if there is an error
 
         :param packet: API M packet to add
-        :return: the updated StationModel
+        :return: the updated SessionModel
         """
-        if self.num_packets < 1:
-            return self.create_from_packet(packet)
         if packet.station_information.id == self._id:
             if packet.station_information.uuid == self._uuid:
                 if packet.timing_information.app_start_mach_timestamp == self._start_date:
@@ -812,7 +814,7 @@ class StationModel:
 
     def set_sensor_data(self, packet: api_m.RedvoxPacketM):
         """
-        set the sensor information of a StationModel from a single packet
+        set the sensor information of a SessionModel from a single packet
         CAUTION: Overwrites any existing data
 
         :param packet: API M packet of data to read
@@ -823,15 +825,15 @@ class StationModel:
             self._sensors[s] = self._get_sensor_data_from_packet(s, packet)
 
     @staticmethod
-    def create_from_packet(packet: api_m.RedvoxPacketM) -> "StationModel":
+    def create_from_packet(packet: api_m.RedvoxPacketM) -> "SessionModel":
         """
-        create a StationModel from a single packet
+        create a SessionModel from a single packet
 
         :param packet: API M packet of data to read
-        :return: StationModel using the data from the packet
+        :return: SessionModel using the data from the packet
         """
         try:
-            result = StationModel(packet.station_information.id, packet.station_information.uuid,
+            result = SessionModel(packet.station_information.id, packet.station_information.uuid,
                                   packet.timing_information.app_start_mach_timestamp, packet.api, packet.sub_api,
                                   packet.station_information.make, packet.station_information.model,
                                   packet.station_information.app_version,
@@ -840,13 +842,13 @@ class StationModel:
                                   )
             result.get_data_from_packet(packet)
         except Exception as e:
-            # result = StationModel(station_description=f"FAILED: {e}")
+            # result = SessionModel(station_description=f"FAILED: {e}")
             raise e
         return result
 
-    def stream_data(self, data_stream: List[api_m.RedvoxPacketM]) -> "StationModel":
+    def stream_data(self, data_stream: List[api_m.RedvoxPacketM]) -> "SessionModel":
         """
-        Read data from a stream into the StationModel
+        Read data from a stream into the SessionModel
 
         :param data_stream: series of files from a single station to read
         :return: updated model
@@ -856,15 +858,15 @@ class StationModel:
         return self
 
     @staticmethod
-    def create_from_stream(data_stream: List[api_m.RedvoxPacketM]) -> "StationModel":
+    def create_from_stream(data_stream: List[api_m.RedvoxPacketM]) -> "SessionModel":
         """
-        create a StationModel from a single stream of data
+        create a SessionModel from a single stream of data
 
         :param data_stream: series of API M files from a single station to read
-        :return: StationModel using the data from the stream
+        :return: SessionModel using the data from the stream
         """
         p1 = data_stream.pop(0)
-        model = StationModel.create_from_packet(p1)
+        model = SessionModel.create_from_packet(p1)
         for p in data_stream:
             model.get_data_from_packet(p)
         data_stream.insert(0, p1)

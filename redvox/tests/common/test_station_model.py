@@ -15,7 +15,7 @@ class StationModelTest(unittest.TestCase):
     def test_station_model(self):
         files = ApiReader(self.input_dir, read_filter=self.station_filter).read_files_by_id("0000000001")
 
-        model = sm.StationModel.create_from_stream(files)
+        model = sm.SessionModel.create_from_stream(files)
         self.assertEqual(model.num_packets, 3)
         self.assertEqual(model.app_version, "0.2.0")
         self.assertEqual(model.id(), "0000000001")
@@ -23,7 +23,7 @@ class StationModelTest(unittest.TestCase):
     def test_station_model_too(self):
         files = ApiReader(self.input_dir, read_filter=self.station_filter).read_files_by_id("0000000001")
 
-        model = sm.StationModel.create_from_stream(files)
+        model = sm.SessionModel.create_from_stream(files)
         self.assertEqual(model.num_sensors(), 3)
         self.assertEqual(model.list_of_sensors(), ["audio", "location", "health"])
         self.assertEqual(model.audio_sample_rate_nominal_hz(), 48000)
