@@ -306,7 +306,30 @@ class LocationStats:
 
 
 class CircularQueue:
+    """
+    Holds data in a fixed size queue that overwrites the oldest entry if allowed.
+
+    Properties:
+        capacity: int, size of the queue
+
+        data: List, the actual data being stored
+
+        head: int, index of the head of the queue.  Default 0
+
+        tail: int, index of the tail of the queue.  Default -1
+
+        size: int, number of actual data points in the queue.  Default 0.  Cannot be more than capacity.
+
+        debug: bool, if True, will output additional messages when errors occur.  Default False
+    """
     def __init__(self, capacity: int, debug: bool = False):
+        """
+        Initialize the queue.
+        Remember to only put the same type of data points into the queue.
+
+        :param capacity: size of the queue
+        :param debug: if True, output additional messages when errors occur, default False
+        """
         self.capacity: int = capacity
         self.data: List = [None] * capacity
         self.head: int = 0
@@ -339,6 +362,11 @@ class CircularQueue:
             self.size = np.minimum(self.size + 1, self.capacity)
 
     def remove(self) -> any:
+        """
+        removes the head of the queue
+
+        :return: data removed from the queue
+        """
         if self.is_empty():
             if self.debug:
                 print("Cannot remove from empty buffer.")
@@ -349,6 +377,9 @@ class CircularQueue:
         return result
 
     def peek(self) -> any:
+        """
+        :return: the data at the head index
+        """
         if self.is_empty():
             if self.debug:
                 print("Cannot look at empty buffer.")
@@ -356,6 +387,9 @@ class CircularQueue:
         return self.data[self.head]
 
     def peek_tail(self) -> any:
+        """
+        :return: the data at the tail index
+        """
         if self.is_empty():
             if self.debug:
                 print("Cannot look at empty buffer.")
@@ -364,7 +398,7 @@ class CircularQueue:
 
     def peek_index(self, index: int) -> any:
         """
-        converts index to be within the buffer's capacity
+        converts the index to be within the buffer's capacity if necessary
 
         :param index: index to look at
         :return: element at index
@@ -376,6 +410,9 @@ class CircularQueue:
         return self.data[index % self.capacity]
 
     def look_at_data(self) -> List:
+        """
+        :return: all data in the queue as a list
+        """
         if self.is_empty():
             if self.debug:
                 print("Buffer is empty.")
@@ -470,7 +507,6 @@ class SessionModel:
                  app_version: str = "",
                  packet_duration_s: float = np.nan,
                  station_description: str = "",
-                 created_from_packet: bool = False,
                  first_data_timestamp: float = np.nan,
                  last_data_timestamp: float = np.nan,
                  location_stats: Optional[LocationStats] = None,
@@ -479,8 +515,12 @@ class SessionModel:
                  num_gps_points: int = 0
                  ):
         """
-        Initialize a SessionModel.  Does not include sensor statistics.  Use function create_from_packet() if you
-        already have a packet to read from to get a complete model from the packet.
+        Initialize a SessionModel with non-sensor related metadata.  Use the get_data_from_packet() function if you use
+        this method to initialize a SessionModel to extract sensor related data from a packet.
+
+        Use function create_from_packet() instead of this if you already have a packet to read from.
+
+        Use function create_from_stream() instead of this if you already have several packets to read from.
 
         :param station_id: id of the station, default ""
         :param uuid: uuid of the station, default ""
@@ -492,8 +532,6 @@ class SessionModel:
         :param app_version: version of the app on station, default ""
         :param packet_duration_s: duration of data packets in seconds, default np.nan
         :param station_description: station description, default ""
-        :param created_from_packet: if True, the rest of the values came from a packet and sets num_packets to 1.
-                                    Default False
         :param first_data_timestamp: first timestamp from epoch UTC of the data, default np.nan
         :param last_data_timestamp: last timestamp from epoch UTC of the data, default np.nan
         :param location_stats: Optional LocationStats (source names and the count, mean and std deviation of
@@ -514,7 +552,7 @@ class SessionModel:
         self.app_version: str = app_version
         self.packet_duration_s: float = packet_duration_s
         self.station_description: str = station_description
-        self.num_packets: int = 1 if created_from_packet else 0
+        self.num_packets: int = 0
         self.first_data_timestamp: float = first_data_timestamp
         self.last_data_timestamp: float = last_data_timestamp
         self.has_moved: bool = False
@@ -646,6 +684,8 @@ class SessionModel:
                 v = packet.sensors.linear_acceleration.timestamps.mean_sample_rate
             elif sensor == _LOCATION_FIELD_NAME:
                 v = packet.sensors.location.timestamps.mean_sample_rate
+                if v == 0.0:
+                    v = packet.sensors.audio.sample_rate / len(packet.sensors.audio.samples.values) * 1e-6
                 num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
                 gps_offsets = []
                 gps_timestamps = []
@@ -791,18 +831,22 @@ class SessionModel:
                                                               _secret_offsets[i]), True)
                     sensors = get_all_sensors_in_packet(packet)
                     sensors.append("health")
-                    if list(self._sensors.keys()) != sensors:
+                    if len(self._sensors) > 0 and list(self._sensors.keys()) != sensors:
                         self._errors.append(f"packet sensors {sensors} does not match.")
                     else:
                         self.num_packets += 1
-                        if packet_start < self.first_data_timestamp:
+                        if packet_start < self.first_data_timestamp or np.isnan(self.first_data_timestamp):
                             self.first_data_timestamp = packet_start
-                        if packet_end > self.last_data_timestamp:
+                        if packet_end > self.last_data_timestamp or np.isnan(self.last_data_timestamp):
                             self.last_data_timestamp = packet_end
-                        for s in sensors:
-                            if s not in ["audio", "compressed_audio", "health", "image"]:
-                                self._sensors[s] += \
-                                    (self._get_sensor_data_from_packet(s, packet) - self._sensors[s]) / self.num_packets
+                        if len(self._sensors) == 0:
+                            for s in sensors:
+                                self._sensors[s] = self._get_sensor_data_from_packet(s, packet)
+                        else:
+                            for s in sensors:
+                                if s not in ["audio", "compressed_audio", "health", "image"]:
+                                    self._sensors[s] += (self._get_sensor_data_from_packet(s, packet)
+                                                         - self._sensors[s]) / self.num_packets
                 else:
                     self._errors.append(f"packet start date {packet.timing_information.app_start_mach_timestamp} "
                                         f"does not match.")

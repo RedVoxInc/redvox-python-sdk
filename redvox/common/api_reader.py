@@ -18,7 +18,7 @@ from redvox.common import offset_model as om,\
     file_statistics as fs
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
-from redvox.common.station_model import SessionModel
+from redvox.common.session_model import SessionModel
 from redvox.common.errors import RedVoxExceptions
 
 
@@ -530,14 +530,11 @@ class ApiReaderModel:
         #     return [station_index]
 
         results = {}
-        keys = []
 
         for v, e in enumerate(stats):
             key = e.app_start_dt
-            if key not in keys:
-                keys.append(key)
+            if key not in results.keys():
                 results[key] = io.Index()
-
             results[key].append(entries=[station_index.entries[v]])
 
         for s in results.values():
