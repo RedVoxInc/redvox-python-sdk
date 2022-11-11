@@ -337,6 +337,20 @@ class CircularQueue:
         self.size: int = 0
         self.debug: bool = debug
 
+    def __repr__(self):
+        return f"capacity: {self.capacity}, " \
+               f"head: {self.head}, " \
+               f"tail: {self.tail}, " \
+               f"size: {self.size}, " \
+               f"data: {self.look_at_data()}"
+
+    def __str__(self):
+        return f"capacity: {self.capacity}, " \
+               f"head: {self.head}, " \
+               f"tail: {self.tail}, " \
+               f"size: {self.size}, " \
+               f"data: {self.look_at_data()}"
+
     def _update_index(self, index: int):
         return (index + 1) % self.capacity
 
@@ -545,8 +559,8 @@ class SessionModel:
         self.num_packets: int = 0
         self.first_data_timestamp: float = np.nan
         self.last_data_timestamp: float = np.nan
-        self.has_moved: bool = False
         self.location_stats: LocationStats = LocationStats()
+        self.has_moved: bool = False
         self.num_timesync_points: int = 0
         self.mean_latency: float = 0.
         self.mean_offset: float = 0.
@@ -565,23 +579,30 @@ class SessionModel:
                f"uuid: {self.uuid}, " \
                f"start_date: {self.start_date}, " \
                f"app: {self.app_name}, " \
+               f"app_version: {self.app_version}, " \
                f"api: {self.api}, " \
                f"sub_api: {self.sub_api}, " \
                f"make: {self.make}, " \
                f"model: {self.model}, " \
-               f"app_version: {self.app_version}, " \
                f"packet_duration_s: {self.packet_duration_s}, " \
                f"station_description: {self.station_description}, " \
                f"num_packets: {self.num_packets}, " \
                f"first_data_timestamp: {self.first_data_timestamp}, " \
                f"last_data_timestamp: {self.last_data_timestamp}, " \
-               f"location_stats: {self.location_stats}, " \
-               f"has_moved: {self.has_moved}, " \
+               f"num_timesync_points: {self.num_timesync_points}, " \
                f"mean_latency: {self.mean_latency}, " \
                f"mean_offset: {self.mean_offset}, " \
+               f"first_timesync_data: {self.first_timesync_data}, " \
+               f"last_timesync_data: {self.last_timesync_data}, " \
+               f"location_stats: {self.location_stats}, " \
+               f"has_moved: {self.has_moved}, " \
+               f"num_gps_points: {self.num_gps_points}, " \
+               f"first_gps_data: {self.first_gps_data}, " \
+               f"last_gps_data: {self.last_gps_data}, " \
                f"sdk_version: {self._sdk_version}, " \
                f"sensors: {self._sensors}"
 
+    # todo: add the offset summaries to this output
     def __str__(self):
         s_d = np.nan if np.isnan(self.start_date) \
             else datetime_from_epoch_microseconds_utc(self.start_date).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
@@ -654,8 +675,8 @@ class SessionModel:
             elif sensor == _LOCATION_FIELD_NAME:
                 v = packet.sensors.location.timestamps.mean_sample_rate
                 if v == 0.0:
-                    v = packet.timing_information.packet_end_mach_timestamp - \
-                        packet.timing_information.packet_start_mach_timestamp
+                    v = (packet.timing_information.packet_end_mach_timestamp -
+                         packet.timing_information.packet_start_mach_timestamp) / 1e6
                 num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
                 gps_offsets = []
                 gps_timestamps = []
@@ -760,7 +781,7 @@ class SessionModel:
                 return np.nan
         else:
             return np.nan
-        return v / 1e-6  # convert microseconds to seconds so rate is in hz
+        return v  # convert microseconds to seconds so rate is in hz
 
     def _get_timesync_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -854,7 +875,7 @@ class SessionModel:
                                   )
             result.app_version = packet.station_information.app_version
             result.packet_duration_s = (packet.timing_information.packet_end_mach_timestamp -
-                                        packet.timing_information.packet_start_mach_timestamp) / 1e-6
+                                        packet.timing_information.packet_start_mach_timestamp) / 1e6
             result._get_timesync_from_packet(packet)
             result.set_sensor_data(packet)
         except Exception as e:
