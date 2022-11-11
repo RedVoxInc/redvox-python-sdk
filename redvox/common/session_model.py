@@ -449,7 +449,9 @@ class SessionModel:
         _sdk_version: str, the version of the SDK used to create the model
 
     Properties:
-        app: str, Name of the app the station is running.  Default ""
+        app_name: str, Name of the app the station is running.  Default "Redvox"
+
+        app_version: str, Version of the app the station is running.  Default ""
 
         api: float, Version number of the API the station is using.  Default np.nan
 
@@ -459,11 +461,9 @@ class SessionModel:
 
         model: str, Model of the station.  Default ""
 
-        app_version: str, Version of the app the station is running.  Default ""
+        station_description: str, Text description of the station.  Default ""
 
         packet_duration_s: float, Length of station's data packets in seconds.  Default np.nan
-
-        station_description: str, Text description of the station.  Default ""
 
         num_packets: int, Number of files used to create the model.  Default 0
 
@@ -504,23 +504,21 @@ class SessionModel:
                  sub_api: float = np.nan,
                  make: str = "",
                  model: str = "",
-                 app_version: str = "",
-                 packet_duration_s: float = np.nan,
                  station_description: str = "",
-                 first_data_timestamp: float = np.nan,
-                 last_data_timestamp: float = np.nan,
-                 location_stats: Optional[LocationStats] = None,
-                 best_latency: float = np.nan,
-                 num_timesync_points: int = 0,
-                 num_gps_points: int = 0
+                 app_name: str = "Redvox",
                  ):
         """
-        Initialize a SessionModel with non-sensor related metadata.  Use the get_data_from_packet() function if you use
-        this method to initialize a SessionModel to extract sensor related data from a packet.
+        Initialize a SessionModel with non-sensor related metadata.  This function uses only the most basic information
+        to create the SessionModel; use these other functions if you already have some form of data to read:
 
         Use function create_from_packet() instead of this if you already have a packet to read from.
 
         Use function create_from_stream() instead of this if you already have several packets to read from.
+
+        Use function create_from_json() instead of this if you already have a session_model.json to read from.
+
+        Lastly, if you create a SessionModel using init, you can only add to the model by using the function
+        get_data_from_packet() if you have a single packet or get_data_from_stream() if you have a stream of packets.
 
         :param station_id: id of the station, default ""
         :param uuid: uuid of the station, default ""
@@ -529,41 +527,32 @@ class SessionModel:
         :param sub_api: sub-api version of data, default np.nan
         :param make: make of station, default ""
         :param model: model of station, default ""
-        :param app_version: version of the app on station, default ""
-        :param packet_duration_s: duration of data packets in seconds, default np.nan
         :param station_description: station description, default ""
-        :param first_data_timestamp: first timestamp from epoch UTC of the data, default np.nan
-        :param last_data_timestamp: last timestamp from epoch UTC of the data, default np.nan
-        :param location_stats: Optional LocationStats (source names and the count, mean and std deviation of
-                                each type of location), default None
-        :param best_latency: best latency of the station model, default np.nan
-        :param num_timesync_points: number of timesync data points, default 0
-        :param num_gps_points: number of gps data points, default 0
+        :param app_name: name of the app on station, default "Redvox"
         """
         self._session_version: str = SESSION_VERSION
-        self._id: str = station_id
-        self._uuid: str = uuid
-        self._start_date: float = start_timestamp
-        self.app: str = "Redvox"
+        self.id: str = station_id
+        self.uuid: str = uuid
+        self.start_date: float = start_timestamp
+        self.app_name: str = app_name
+        self.app_version: str = ""
         self.api: float = api
         self.sub_api: float = sub_api
         self.make: str = make
         self.model: str = model
-        self.app_version: str = app_version
-        self.packet_duration_s: float = packet_duration_s
         self.station_description: str = station_description
+        self.packet_duration_s: float = np.nan
         self.num_packets: int = 0
-        self.first_data_timestamp: float = first_data_timestamp
-        self.last_data_timestamp: float = last_data_timestamp
+        self.first_data_timestamp: float = np.nan
+        self.last_data_timestamp: float = np.nan
         self.has_moved: bool = False
-        self.location_stats: LocationStats = LocationStats() if location_stats is None else location_stats
-        self.best_latency: float = best_latency
-        self.num_timesync_points: int = num_timesync_points
-        self.mean_latency: float = np.nan
-        self.mean_offset: float = np.nan
+        self.location_stats: LocationStats = LocationStats()
+        self.num_timesync_points: int = 0
+        self.mean_latency: float = 0.
+        self.mean_offset: float = 0.
         self.first_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
         self.last_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
-        self.num_gps_points: int = num_gps_points
+        self.num_gps_points: int = 0
         self.first_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
         self.last_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
         self._errors: RedVoxExceptions = RedVoxExceptions("SessionModel")
@@ -572,10 +561,10 @@ class SessionModel:
 
     def __repr__(self):
         return f"session_version: {self._session_version}, " \
-               f"id: {self._id}, " \
-               f"uuid: {self._uuid}, " \
-               f"start_date: {self._start_date}, " \
-               f"app: {self.app}, " \
+               f"id: {self.id}, " \
+               f"uuid: {self.uuid}, " \
+               f"start_date: {self.start_date}, " \
+               f"app: {self.app_name}, " \
                f"api: {self.api}, " \
                f"sub_api: {self.sub_api}, " \
                f"make: {self.make}, " \
@@ -588,24 +577,23 @@ class SessionModel:
                f"last_data_timestamp: {self.last_data_timestamp}, " \
                f"location_stats: {self.location_stats}, " \
                f"has_moved: {self.has_moved}, " \
-               f"best_latency: {self.best_latency}, " \
                f"mean_latency: {self.mean_latency}, " \
                f"mean_offset: {self.mean_offset}, " \
                f"sdk_version: {self._sdk_version}, " \
                f"sensors: {self._sensors}"
 
     def __str__(self):
-        s_d = np.nan if np.isnan(self._start_date) \
-            else datetime_from_epoch_microseconds_utc(self._start_date).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        s_d = np.nan if np.isnan(self.start_date) \
+            else datetime_from_epoch_microseconds_utc(self.start_date).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         first_timestamp = np.nan if np.isnan(self.first_data_timestamp) \
             else datetime_from_epoch_microseconds_utc(self.first_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         last_timestamp = np.nan if np.isnan(self.last_data_timestamp) \
             else datetime_from_epoch_microseconds_utc(self.last_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         return f"session_version: {self._session_version}, " \
-               f"id: {self._id}, " \
-               f"uuid: {self._uuid}, " \
+               f"id: {self.id}, " \
+               f"uuid: {self.uuid}, " \
                f"start_date: {s_d}, " \
-               f"app: {self.app}, " \
+               f"app: {self.app_name}, " \
                f"api: {self.api}, " \
                f"sub_api: {self.sub_api}, " \
                f"make: {self.make}, " \
@@ -618,30 +606,11 @@ class SessionModel:
                f"last_data_timestamp: {last_timestamp}, " \
                f"location_stats: {self.location_stats}, " \
                f"has_moved: {self.has_moved}, " \
-               f"best_latency: {self.best_latency}, " \
                f"mean_latency: {self.mean_latency}, " \
                f"mean_offset: {self.mean_offset}, " \
                f"audio_sample_rate_hz: {self.audio_sample_rate_nominal_hz()}, " \
                f"sdk_version: {self._sdk_version}, " \
                f"sensors and sample rate (hz): {self._sensors}"
-
-    def id(self) -> str:
-        """
-        :return: the id of the SessionModel
-        """
-        return self._id
-
-    def uuid(self) -> str:
-        """
-        :return: the uuid of the SessionModel
-        """
-        return self._uuid
-
-    def start_date(self) -> float:
-        """
-        :return: the start_date of the SessionModel
-        """
-        return self._start_date
 
     def print_errors(self):
         """
@@ -685,7 +654,8 @@ class SessionModel:
             elif sensor == _LOCATION_FIELD_NAME:
                 v = packet.sensors.location.timestamps.mean_sample_rate
                 if v == 0.0:
-                    v = packet.sensors.audio.sample_rate / len(packet.sensors.audio.samples.values) * 1e-6
+                    v = packet.timing_information.packet_end_mach_timestamp - \
+                        packet.timing_information.packet_start_mach_timestamp
                 num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
                 gps_offsets = []
                 gps_timestamps = []
@@ -792,6 +762,34 @@ class SessionModel:
             return np.nan
         return v / 1e-6  # convert microseconds to seconds so rate is in hz
 
+    def _get_timesync_from_packet(self, packet: api_m.RedvoxPacketM):
+        """
+        :param packet: packet to get data from
+        """
+        ts = TimeSync().from_raw_packets([packet])
+        if np.isnan(packet.timing_information.best_latency):
+            packet_best_latency = ts.best_latency()
+            packet_best_offset = ts.best_offset()
+        else:
+            packet_best_latency = packet.timing_information.best_latency
+            packet_best_offset = ts.best_offset() if np.isnan(packet.timing_information.best_offset) \
+                else packet.timing_information.best_offset
+        if ts.num_tri_messages() > 0:
+            self.num_timesync_points += ts.num_tri_messages()
+            self.mean_latency = \
+                (self.mean_latency * self.num_packets + packet_best_latency) / (self.num_packets + 1)
+            self.mean_offset = \
+                (self.mean_offset * self.num_packets + packet_best_offset) / (self.num_packets + 1)
+            _ts_offsets = ts.offsets().flatten()
+            _ts_timestamps = ts.get_device_exchanges_timestamps()
+            _ts_latencies = ts.latencies().flatten()
+            if self.first_timesync_data.is_full():
+                for i in range(len(_ts_timestamps)):
+                    self.last_timesync_data.add((_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i]))
+            else:
+                for i in range(len(_ts_timestamps)):
+                    self.first_timesync_data.add((_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i]), True)
+
     def get_data_from_packet(self, packet: api_m.RedvoxPacketM) -> "SessionModel":
         """
         loads data from a packet into the model.  stops reading data if there is an error
@@ -799,54 +797,26 @@ class SessionModel:
         :param packet: API M packet to add
         :return: the updated SessionModel
         """
-        if packet.station_information.id == self._id:
-            if packet.station_information.uuid == self._uuid:
-                if packet.timing_information.app_start_mach_timestamp == self._start_date:
-                    packet_start = packet.timing_information.packet_start_mach_timestamp
-                    packet_end = packet.timing_information.packet_end_mach_timestamp
-                    secret = TimeSync().from_raw_packets([packet])
-                    if np.isnan(packet.timing_information.best_latency):
-                        packet_best_latency = secret.best_latency()
-                        packet_best_offset = secret.best_offset()
-                    else:
-                        packet_best_latency = packet.timing_information.best_latency
-                        packet_best_offset = secret.best_offset() if np.isnan(packet.timing_information.best_offset) \
-                            else packet.timing_information.best_offset
-                    if secret.num_tri_messages() > 0:
-                        self.num_timesync_points += secret.num_tri_messages()
-                        self.mean_latency = \
-                            (self.mean_latency * self.num_packets + packet_best_latency) / (self.num_packets + 1)
-                        self.mean_offset = \
-                            (self.mean_offset * self.num_packets + packet_best_offset) / (self.num_packets + 1)
-                        _secret_offsets = secret.offsets().flatten()
-                        _secret_timestamps = secret.get_device_exchanges_timestamps()
-                        _secret_latencies = secret.latencies().flatten()
-                        if self.first_timesync_data.is_full():
-                            for i in range(len(_secret_timestamps)):
-                                self.last_timesync_data.add((_secret_timestamps[i], _secret_latencies[i],
-                                                             _secret_offsets[i]))
-                        else:
-                            for i in range(len(_secret_timestamps)):
-                                self.first_timesync_data.add((_secret_timestamps[i], _secret_latencies[i],
-                                                              _secret_offsets[i]), True)
+        if packet.station_information.id == self.id:
+            if packet.station_information.uuid == self.uuid:
+                if packet.timing_information.app_start_mach_timestamp == self.start_date:
+                    self._get_timesync_from_packet(packet)
                     sensors = get_all_sensors_in_packet(packet)
                     sensors.append("health")
-                    if len(self._sensors) > 0 and list(self._sensors.keys()) != sensors:
+                    if list(self._sensors.keys()) != sensors:
                         self._errors.append(f"packet sensors {sensors} does not match.")
                     else:
+                        packet_start = packet.timing_information.packet_start_mach_timestamp
+                        packet_end = packet.timing_information.packet_end_mach_timestamp
                         self.num_packets += 1
                         if packet_start < self.first_data_timestamp or np.isnan(self.first_data_timestamp):
                             self.first_data_timestamp = packet_start
                         if packet_end > self.last_data_timestamp or np.isnan(self.last_data_timestamp):
                             self.last_data_timestamp = packet_end
-                        if len(self._sensors) == 0:
-                            for s in sensors:
-                                self._sensors[s] = self._get_sensor_data_from_packet(s, packet)
-                        else:
-                            for s in sensors:
-                                if s not in ["audio", "compressed_audio", "health", "image"]:
-                                    self._sensors[s] += (self._get_sensor_data_from_packet(s, packet)
-                                                         - self._sensors[s]) / self.num_packets
+                        for s in sensors:
+                            if s not in ["audio", "compressed_audio", "health", "image"]:
+                                self._sensors[s] += (self._get_sensor_data_from_packet(s, packet)
+                                                     - self._sensors[s]) / self.num_packets
                 else:
                     self._errors.append(f"packet start date {packet.timing_information.app_start_mach_timestamp} "
                                         f"does not match.")
@@ -880,11 +850,13 @@ class SessionModel:
             result = SessionModel(packet.station_information.id, packet.station_information.uuid,
                                   packet.timing_information.app_start_mach_timestamp, packet.api, packet.sub_api,
                                   packet.station_information.make, packet.station_information.model,
-                                  packet.station_information.app_version,
-                                  len(packet.sensors.audio.samples.values) / packet.sensors.audio.sample_rate,
                                   packet.station_information.description,
                                   )
-            result.get_data_from_packet(packet)
+            result.app_version = packet.station_information.app_version
+            result.packet_duration_s = (packet.timing_information.packet_end_mach_timestamp -
+                                        packet.timing_information.packet_start_mach_timestamp) / 1e-6
+            result._get_timesync_from_packet(packet)
+            result.set_sensor_data(packet)
         except Exception as e:
             # result = SessionModel(station_description=f"FAILED: {e}")
             raise e
@@ -909,11 +881,13 @@ class SessionModel:
         :param data_stream: series of API M files from a single station to read
         :return: SessionModel using the data from the stream
         """
+        print(f"Processing {len(data_stream)} files...")
         p1 = data_stream.pop(0)
         model = SessionModel.create_from_packet(p1)
         for p in data_stream:
             model.get_data_from_packet(p)
         data_stream.insert(0, p1)
+        print(f"Completed SessionModel of {model.id}...")
         return model
 
     def num_sensors(self) -> int:
