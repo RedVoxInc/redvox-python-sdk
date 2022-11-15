@@ -15,7 +15,7 @@ from redvox.common.session_model_utils import LocationStat, LocationStats, Circu
 from redvox.common.offset_model import OffsetModel, simple_offset_weighted_linear_regression
 
 
-SESSION_VERSION = "2022-11-14"  # Version of the SessionModel
+SESSION_VERSION = "2022-11-15"  # Version of the SessionModel
 GPS_TRAVEL_MICROS = 60000.  # Assumed GPS latency in microseconds
 GPS_VALIDITY_BUFFER = 2000.  # microseconds before GPS offset is considered valid
 DEGREES_TO_METERS = 0.00001  # About 1 meter in degrees
@@ -167,6 +167,7 @@ class SessionModel:
                  model: str = "",
                  station_description: str = "",
                  app_name: str = "Redvox",
+                 sensors: Optional[Dict] = None
                  ):
         """
         Initialize a SessionModel with non-sensor related metadata.  This function uses only the most basic information
@@ -179,7 +180,7 @@ class SessionModel:
         Use function create_from_json() instead of this if you already have a session_model.json to read from.
 
         Lastly, if you create a SessionModel using init, you can only add to the model by using the function
-        get_data_from_packet() if you have a single packet or get_data_from_stream() if you have a stream of packets.
+        add_data_from_packet() if you have a single packet or add_data_from_stream() if you have a stream of packets.
 
         :param station_id: id of the station, default ""
         :param uuid: uuid of the station, default ""
@@ -190,6 +191,7 @@ class SessionModel:
         :param model: model of station, default ""
         :param station_description: station description, default ""
         :param app_name: name of the app on station, default "Redvox"
+        :param sensors: Optional dictionary of sensor name and sample rate in hz, default None
         """
         self._session_version: str = SESSION_VERSION
         self.id: str = station_id
@@ -220,7 +222,7 @@ class SessionModel:
         self.gps_offset: Optional[Tuple[float, float]] = None
         self._errors: RedVoxExceptions = RedVoxExceptions("SessionModel")
         self._sdk_version: str = redvox.version()
-        self._sensors: Dict[str, float] = {}
+        self._sensors: Dict[str, float] = sensors if sensors is not None else {}
         self.is_sealed: bool = False
 
     def __repr__(self):
@@ -605,10 +607,11 @@ class SessionModel:
                 for i in range(len(_ts_timestamps)):
                     self._first_timesync_data.add((_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i]), True)
 
-    def get_data_from_packet(self, packet: api_m.RedvoxPacketM) -> "SessionModel":
+    def add_data_from_packet(self, packet: api_m.RedvoxPacketM) -> "SessionModel":
         """
-        loads data from a packet into the model.  stops reading data if there is an error.
-        if SessionModel is sealed, this function does nothing.
+        adds data from a packet into the model.  Requires the model sensors to have been initialized.
+
+        Stops reading data if there is an error.  If SessionModel is sealed, this function does nothing.
 
         :param packet: API M packet to add
         :return: the updated SessionModel
@@ -682,30 +685,30 @@ class SessionModel:
             raise e
         return result
 
-    def stream_data(self, data_stream: List[api_m.RedvoxPacketM]) -> "SessionModel":
+    def add_from_data_stream(self, data_stream: List[api_m.RedvoxPacketM]) -> "SessionModel":
         """
-        Read data from a stream into the SessionModel
+        Add data from a stream of packets into the SessionModel
 
-        :param data_stream: series of files from a single station to read
-        :return: updated model
+        :param data_stream: list of packets from a single station to read
+        :return: updated SessionModel
         """
         for p in data_stream:
-            self.get_data_from_packet(p)
+            self.add_data_from_packet(p)
         return self
 
     @staticmethod
     def create_from_stream(data_stream: List[api_m.RedvoxPacketM]) -> "SessionModel":
         """
-        create a SessionModel from a single stream of data
+        create a SessionModel from a stream of data packets
 
-        :param data_stream: series of API M files from a single station to read
+        :param data_stream: series of API M packets from a single station to read
         :return: SessionModel using the data from the stream
         """
         print(f"Processing {len(data_stream)} files...")
         p1 = data_stream.pop(0)
         model = SessionModel.create_from_packet(p1)
         for p in data_stream:
-            model.get_data_from_packet(p)
+            model.add_data_from_packet(p)
         data_stream.insert(0, p1)
         print(f"Completed SessionModel of {model.id}...")
         return model
