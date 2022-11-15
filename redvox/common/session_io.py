@@ -3,7 +3,6 @@ This module provides IO primitives for working with session models.
 """
 from pathlib import Path
 import json
-import os
 import pickle
 from typing import (
     Optional,
@@ -12,23 +11,21 @@ from typing import (
 
 from redvox.common.io import get_json_file, json_file_to_dict, json_to_dict
 
-# two versions, one for reproducing the object and one for reporting/bulletins
-
 
 if TYPE_CHECKING:
     from redvox.common.session_model import SessionModel
 
 
-def to_json(session: "SessionModel",) -> str:
+def session_model_to_json(session: "SessionModel") -> str:
     """
     :return: station as json string
     """
     return json.dumps(session.as_dict())
 
 
-def to_json_file(session: "SessionModel",
-                 out_dir: str = ".",
-                 file_name: Optional[str] = None) -> Path:
+def session_model_to_json_file(session: "SessionModel",
+                               out_dir: str = ".",
+                               file_name: Optional[str] = None) -> Path:
     """
     saves the SessionModel as json.
 
@@ -46,19 +43,29 @@ def to_json_file(session: "SessionModel",
 
     file_path: Path = Path(out_dir).joinpath(_file_name)
     with open(file_path, "w") as f_p:
-        f_p.write(to_json(session))
+        f_p.write(session_model_to_json(session))
         return file_path.resolve(False)
 
 
-def from_json_file(file_path: str) -> dict:
+def session_model_from_json(json_str: str) -> "SessionModel":
     """
-    Returns a dictionary from the JSON string stored in the file at file_path
+    Convert a json file to a SessionModel
 
-    :param file_path: the full name and path to a JSON SessionModel file
-    :return: dictionary from JSON string of a SessionModel
+    :param json_str: string of json to read
+    :return: SessionModel from json
+    """
+    return SessionModel.from_json_dict(json.loads(json_str))
+
+
+def session_model_from_json_file(file_path: str) -> "SessionModel":
+    """
+    Read the contents of a json file and convert it into a SessionModel
+
+    :param file_path: full path to the file, including file name and extension
+    :return: SessionModel from json
     """
     with open(file_path, "r") as f_p:
-        return json_to_dict(f_p.read())
+        return session_model_from_json(f_p.read())
 
 
 def compress_session_model(
