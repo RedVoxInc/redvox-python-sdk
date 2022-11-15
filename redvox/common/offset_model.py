@@ -253,6 +253,50 @@ class OffsetModel:
                f"min_samples_per_bin: {self.min_samples_per_bin}, " \
                f"min_timesync_dur_min: {self.min_timesync_dur_min}"
 
+    def as_dict(self) -> dict:
+        """
+        :return: OffsetModel as a dictionary
+        """
+        return {
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "k_bins": self.k_bins,
+            "n_samples": self.n_samples,
+            "slope": self.slope,
+            "intercept": self.intercept,
+            "score": self.score,
+            "mean_latency": self.mean_latency,
+            "std_dev_latency": self.std_dev_latency,
+            "min_valid_latency_micros": self.min_valid_latency_micros,
+            "min_samples_per_bin": self.min_samples_per_bin,
+            "min_timesync_dur_min": self.min_timesync_dur_min,
+            "debug": self.debug
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> "OffsetModel":
+        """
+        create OffsetModel from a dictionary
+
+        :param data: dictionary to read
+        :return: OffsetModel
+        """
+        result = OffsetModel.empty_model()
+        result.start_time = data["start_time"]
+        result.end_time = data["end_time"]
+        result.k_bins = data["k_bins"]
+        result.n_samples = data["n_samples"]
+        result.slope = data["slope"]
+        result.intercept = data["intercept"]
+        result.score = data["score"]
+        result.mean_latency = data["mean_latency"]
+        result.std_dev_latency = data["std_dev_latency"]
+        result.min_valid_latency_micros = data["min_valid_latency_micros"]
+        result.min_samples_per_bin = data["min_samples_per_bin"]
+        result.min_timesync_dur_min = data["min_timesync_dur_min"]
+        result.debug = data["debug"]
+        return result
+
     @staticmethod
     def empty_model() -> "OffsetModel":
         """

@@ -1,4 +1,6 @@
+import os.path
 from typing import List, Dict, Optional, Tuple, Union
+from pathlib import Path
 from dataclasses import dataclass
 
 import numpy as np
@@ -10,9 +12,10 @@ from redvox.common.timesync import TimeSync
 from redvox.common.offset_model import OffsetModel, simple_offset_weighted_linear_regression
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+import redvox.common.session_io as s_io
 
 
-SESSION_VERSION = "2022-11-02"  # Version of the SessionModel
+SESSION_VERSION = "2022-11-14"  # Version of the SessionModel
 GPS_TRAVEL_MICROS = 60000.  # Assumed GPS latency in microseconds
 GPS_VALIDITY_BUFFER = 2000.  # microseconds before GPS offset is considered valid
 DEGREES_TO_METERS = 0.00001  # About 1 meter in degrees
@@ -140,6 +143,26 @@ class LocationStat:
                f"std_dev (lat, lon, alt): {self.std_dev}, " \
                f"variance (lat, lon, alt): {self.variance}"
 
+    def as_dict(self) -> dict:
+        """
+        :return: LocationStat as a dictionary
+        """
+        return {
+            "source_name": self.source_name,
+            "count": self.count,
+            "means": self.means,
+            "variance": self.variance,
+            "std_dev": self.std_dev,
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> "LocationStat":
+        """
+        LocationStat from dictionary
+        :param data: dictionary of LocationStat values
+        """
+        return LocationStat(data["source_name"], data["count"], data["means"], data["variance"], data["std_dev"])
+
 
 class LocationStats:
     """
@@ -161,6 +184,21 @@ class LocationStats:
 
     def __str__(self):
         return f"stats: {[n.__str__() for n in self._location_stats]}"
+
+    def as_dict(self) -> dict:
+        """
+        :return: LocationStats as a dictionary
+        """
+        return {"location_stats": [n.as_dict() for n in self._location_stats]}
+
+    @staticmethod
+    def from_dict(data: dict) -> "LocationStats":
+        """
+        Read LocationData from a LocationStats dictionary
+
+        :param data: dictionary to read from
+        """
+        return LocationStats([LocationStat.from_dict(n) for n in data["location_stats"]])
 
     def add_loc_stat(self, new_loc: LocationStat):
         """
@@ -276,7 +314,7 @@ class LocationStats:
                                                      val_to_add, varis_to_add[1], means_to_add[1]),
                               self._update_variances(n.count, n.variance[2], n.means[2],
                                                      val_to_add, varis_to_add[2], means_to_add[2]))
-                n.std_dev = np.sqrt(n.variance)
+                n.std_dev = tuple(np.sqrt(n.variance))
                 self.add_means_by_source(source, val_to_add, means_to_add)
                 return n
         return None
@@ -291,18 +329,10 @@ class LocationStats:
         :param stds_to_add: the std devs of the location to add
         :return: the updated LocationStat with the same source name as the input, or None if the source doesn't exist
         """
-        for n in self._location_stats:
-            if n.source_name == source:
-                n.variance = (self._update_variances(n.count, n.variance[0], n.means[0],
-                                                     val_to_add, stds_to_add[0]*stds_to_add[0], means_to_add[0]),
-                              self._update_variances(n.count, n.variance[1], n.means[1],
-                                                     val_to_add, stds_to_add[1]*stds_to_add[1], means_to_add[1]),
-                              self._update_variances(n.count, n.variance[2], n.means[2],
-                                                     val_to_add, stds_to_add[2]*stds_to_add[2], means_to_add[2]))
-                n.std_dev = np.sqrt(n.variance)
-                self.add_means_by_source(source, val_to_add, means_to_add)
-                return n
-        return None
+        return self.add_variance_by_source(source, val_to_add, means_to_add,
+                                           (stds_to_add[0]*stds_to_add[0],
+                                            stds_to_add[1]*stds_to_add[1],
+                                            stds_to_add[2]*stds_to_add[2]))
 
 
 class CircularQueue:
@@ -342,7 +372,7 @@ class CircularQueue:
                f"head: {self.head}, " \
                f"tail: {self.tail}, " \
                f"size: {self.size}, " \
-               f"data: {self.look_at_data()}"
+               f"data: {self.data}"
 
     def __str__(self):
         return f"capacity: {self.capacity}, " \
@@ -350,6 +380,31 @@ class CircularQueue:
                f"tail: {self.tail}, " \
                f"size: {self.size}, " \
                f"data: {self.look_at_data()}"
+
+    def as_dict(self) -> dict:
+        """
+        :return: CircularQueue as a dictionary
+        """
+        return {
+            "capacity": self.capacity,
+            "head": self.head,
+            "tail": self.tail,
+            "size": self.size,
+            "data": self.data
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> "CircularQueue":
+        """
+        :param data: dictionary to read from
+        :return: CircularQueue defined by the dictionary
+        """
+        result = CircularQueue(data["capacity"])
+        result.head = data["head"]
+        result.tail = data["tail"]
+        result.size = data["size"]
+        result.data = data["data"]
+        return result
 
     def _update_index(self, index: int):
         return (index + 1) % self.capacity
@@ -373,7 +428,9 @@ class CircularQueue:
         else:
             self.tail = self._update_index(self.tail)
             self.data[self.tail] = data
-            self.size = np.minimum(self.size + 1, self.capacity)
+            self.size = int(np.minimum(self.size + 1, self.capacity))
+            if self.size == self.capacity and self.tail == self.head:
+                self.head = self._update_index(self.head)
 
     def remove(self) -> any:
         """
@@ -441,7 +498,9 @@ class CircularQueue:
 
 class SessionModel:
     """
-    SessionModel is designed to summarize an operational period of a station
+    SessionModel is designed to summarize an operational period of a station.  SessionModel can be sealed, which means
+    no more data will be received for the model, and the properties of the SessionModel are valid and the best
+    available.  WARNING: Only seal a SessionModel when you are certain the session being modeled is finished.
     Timestamps are in microseconds since epoch UTC
     Latitude and Longitude are in degrees
     Altitude is in meters
@@ -509,6 +568,9 @@ class SessionModel:
         Default empty
 
         last_gps_data: CircularQueue, container for the last 15 points of GPS offset data.  Default empty
+
+        is_sealed: bool, if True, the SessionModel will not accept any more data.  This means the offset model and gps
+        offset values are the best they can be.  Default False
     """
     def __init__(self,
                  station_id: str = "",
@@ -564,16 +626,31 @@ class SessionModel:
         self.num_timesync_points: int = 0
         self.mean_latency: float = 0.
         self.mean_offset: float = 0.
-        self.first_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
-        self.last_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
+        self._first_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
+        self._last_timesync_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
+        self.offset_model: Optional[OffsetModel] = None
         self.num_gps_points: int = 0
-        self.first_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
-        self.last_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
+        self._first_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
+        self._last_gps_data: CircularQueue = CircularQueue(NUM_BUFFER_POINTS)
+        self.gps_offset: Optional[Tuple[float, float]] = None
         self._errors: RedVoxExceptions = RedVoxExceptions("SessionModel")
         self._sdk_version: str = redvox.version()
         self._sensors: Dict[str, float] = {}
+        self.is_sealed: bool = False
 
     def __repr__(self):
+        if self.is_sealed:
+            if self.offset_model is None:
+                _ = self.get_offset_model()
+            if self.gps_offset is None:
+                _ = self.get_gps_offset()
+            ts_section = f"offset_model: {self.offset_model}, "
+            gps_section = f"gps_offset: {self.gps_offset}, "
+        else:
+            ts_section = f"first_timesync_data: {self._first_timesync_data}, " \
+                         f"last_timesync_data: {self._last_timesync_data}, "
+            gps_section = f"first_gps_data: {self._first_gps_data}, " \
+                          f"last_gps_data: {self._last_gps_data}, "
         return f"session_version: {self._session_version}, " \
                f"id: {self.id}, " \
                f"uuid: {self.uuid}, " \
@@ -592,17 +669,15 @@ class SessionModel:
                f"num_timesync_points: {self.num_timesync_points}, " \
                f"mean_latency: {self.mean_latency}, " \
                f"mean_offset: {self.mean_offset}, " \
-               f"first_timesync_data: {self.first_timesync_data}, " \
-               f"last_timesync_data: {self.last_timesync_data}, " \
-               f"location_stats: {self.location_stats}, " \
+               f"{ts_section}" \
+               f"location_stats: {self.location_stats.__repr__()}, " \
                f"has_moved: {self.has_moved}, " \
                f"num_gps_points: {self.num_gps_points}, " \
-               f"first_gps_data: {self.first_gps_data}, " \
-               f"last_gps_data: {self.last_gps_data}, " \
+               f"{gps_section}" \
                f"sdk_version: {self._sdk_version}, " \
-               f"sensors: {self._sensors}"
+               f"sensors: {self._sensors}, " \
+               f"is_sealed: {self.is_sealed}"
 
-    # todo: add the offset summaries to this output
     def __str__(self):
         s_d = np.nan if np.isnan(self.start_date) \
             else datetime_from_epoch_microseconds_utc(self.start_date).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
@@ -610,28 +685,171 @@ class SessionModel:
             else datetime_from_epoch_microseconds_utc(self.first_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         last_timestamp = np.nan if np.isnan(self.last_data_timestamp) \
             else datetime_from_epoch_microseconds_utc(self.last_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        if self.offset_model is None:
+            _ = self.get_offset_model()
+        if self.gps_offset is None:
+            _ = self.get_gps_offset()
         return f"session_version: {self._session_version}, " \
                f"id: {self.id}, " \
                f"uuid: {self.uuid}, " \
                f"start_date: {s_d}, " \
                f"app: {self.app_name}, " \
+               f"app_version: {self.app_version}, " \
                f"api: {self.api}, " \
                f"sub_api: {self.sub_api}, " \
                f"make: {self.make}, " \
                f"model: {self.model}, " \
-               f"app_version: {self.app_version}, " \
                f"packet_duration_s: {self.packet_duration_s}, " \
                f"station_description: {self.station_description}, " \
                f"num_packets: {self.num_packets}, " \
                f"first_data_timestamp: {first_timestamp}, " \
                f"last_data_timestamp: {last_timestamp}, " \
-               f"location_stats: {self.location_stats}, " \
+               f"offset_model: {self.offset_model}, " \
+               f"location_stats: {self.location_stats.__str__()}, " \
                f"has_moved: {self.has_moved}, " \
-               f"mean_latency: {self.mean_latency}, " \
-               f"mean_offset: {self.mean_offset}, " \
+               f"num_gps_points: {self.num_gps_points}, " \
+               f"gps_offset: {self.gps_offset}, " \
                f"audio_sample_rate_hz: {self.audio_sample_rate_nominal_hz()}, " \
                f"sdk_version: {self._sdk_version}, " \
-               f"sensors and sample rate (hz): {self._sensors}"
+               f"sensors and sample rate (hz): {self._sensors}, " \
+               f"is_sealed: {self.is_sealed}"
+
+    def as_dict(self) -> dict:
+        """
+        :return: SessionModel as a dictionary
+        """
+        result = {
+            "session_version": self._session_version,
+            "id": self.id,
+            "uuid": self.uuid,
+            "start_date": self.start_date,
+            "app_name": self.app_name,
+            "app_version": self.app_version,
+            "api": self.api,
+            "sub_api": self.sub_api,
+            "make": self.make,
+            "model": self.model,
+            "station_description": self.station_description,
+            "packet_duration_s": self.packet_duration_s,
+            "num_packets": self.num_packets,
+            "first_data_timestamp": self.first_data_timestamp,
+            "last_data_timestamp": self.last_data_timestamp,
+            "location_stats": self.location_stats.as_dict(),
+            "has_moved": self.has_moved,
+            "num_timesync_points": self.num_timesync_points,
+            "mean_latency": self.mean_latency,
+            "mean_offset": self.mean_offset,
+            "num_gps_points": self.num_gps_points,
+            "errors": self._errors.as_dict(),
+            "sdk_version": self._sdk_version,
+            "sensors": self._sensors,
+            "is_sealed": self.is_sealed
+        }
+        if self.is_sealed:
+            result["gps_offset"] = self.gps_offset
+            result["offset_model"] = self.offset_model.as_dict()
+            result["first_timesync_data"] = self._first_timesync_data
+            result["last_timesync_data"] = self._last_timesync_data
+            result["first_gps_data"] = self._first_gps_data
+            result["last_gps_data"] = self._last_gps_data
+        else:
+            result["first_timesync_data"] = self._first_timesync_data.as_dict()
+            result["last_timesync_data"] = self._last_timesync_data.as_dict()
+            result["first_gps_data"] = self._first_gps_data.as_dict()
+            result["last_gps_data"] = self._last_gps_data.as_dict()
+        return result
+
+    def default_json_file_name(self) -> str:
+        """
+        :return: Default filename as [id]_[startdate], with startdate as integer of microseconds
+                    since epoch UTC.  File extension NOT included.
+        """
+        return f"{self.id}_{0 if np.isnan(self.start_date) else int(self.start_date)}"
+
+    @staticmethod
+    def from_json_dict(json_dict: dict) -> "SessionModel":
+        """
+        Reads a JSON dictionary and recreates the SessionModel.
+        If dictionary is improperly formatted, raises a ValueError.
+
+        :param json_dict: the dictionary to read
+        :return: SessionModel defined by the JSON
+        """
+        result = SessionModel(json_dict["id"], json_dict["uuid"], json_dict["start_date"],
+                              json_dict["api"], json_dict["sub_api"], json_dict["make"], json_dict["model"],
+                              json_dict["station_description"], json_dict["app_name"])
+
+        result._session_version = json_dict["session_version"]
+        result.app_version = json_dict["app_version"]
+        result.packet_duration_s = json_dict["packet_duration_s"]
+        result.num_packets = json_dict["num_packets"]
+        result.first_data_timestamp = json_dict["first_data_timestamp"]
+        result.last_data_timestamp = json_dict["last_data_timestamp"]
+        result.location_stats = LocationStats.from_dict(json_dict["location_stats"])
+        result.has_moved = json_dict["has_moved"]
+        result.num_timesync_points = json_dict["num_timesync_points"]
+        result.mean_latency = json_dict["mean_latency"]
+        result.mean_offset = json_dict["mean_offset"]
+        result.num_gps_points = json_dict["num_gps_points"]
+        result._errors = RedVoxExceptions.from_dict(json_dict["errors"])
+        result._sdk_version = json_dict["sdk_version"]
+        result._sensors = json_dict["sensors"]
+        result.is_sealed = json_dict["is_sealed"]
+        if result.is_sealed:
+            result._first_timesync_data = json_dict["first_timesync_data"]
+            result._last_timesync_data = json_dict["last_timesync_data"]
+            result._first_gps_data = json_dict["first_gps_data"]
+            result._last_gps_data = json_dict["last_gps_data"]
+        else:
+            result._first_timesync_data = CircularQueue.from_dict(json_dict["first_timesync_data"])
+            result._last_timesync_data = CircularQueue.from_dict(json_dict["last_timesync_data"])
+            result._first_gps_data = CircularQueue.from_dict(json_dict["first_gps_data"])
+            result._last_gps_data = CircularQueue.from_dict(json_dict["last_gps_data"])
+        if "offset_model" in json_dict.keys():
+            result.offset_model = OffsetModel.from_dict(json_dict["offset_model"])
+        if "gps_offset" in json_dict.keys():
+            result.gps_offset = json_dict["gps_offset"]
+
+        return result
+
+    def compress(self, out_dir: str = ".") -> Path:
+        """
+        Compresses this SessionModel to a file at out_dir.
+        Uses the id and start_date to name the file.
+
+        :param out_dir: Directory to save file to.  Default "." (current directory)
+        :return: The path to the written file.
+        """
+        return s_io.compress_session_model(self, out_dir)
+
+    def save(self, out_type: str = "json", out_dir: str = ".") -> Path:
+        """
+        Save the SessionModel to disk.  Options for out_type are "json" for JSON file and "pkl" for .pkl file.
+        Defaults to "json".  File will be named after id and start_date of the SessionModel
+
+        :param out_type: "json" for JSON file and "pkl" for .pkl file
+        :param out_dir: Directory to save file to.  Default "." (current directory)
+        :return: path to saved file
+        """
+        if out_type == "pkl":
+            return self.compress(out_dir)
+        return s_io.to_json_file(self, out_dir)
+
+    @staticmethod
+    def load(file_path: str) -> "SessionModel":
+        """
+        Load the SessionModel from a JSON or .pkl file.
+
+        :param file_path: full name and path to the SessionModel file
+        :return: SessionModel from file
+        """
+        ext = os.path.splitext(file_path)[1]
+        if ext == ".json":
+            return SessionModel.from_json_dict(s_io.from_json_file(file_path))
+        elif ext == ".pkl":
+            return s_io.decompress_session_model(file_path)
+        else:
+            raise ValueError(f"{file_path} has unknown file extension; this function only accepts json and pkl files.")
 
     def print_errors(self):
         """
@@ -750,12 +968,12 @@ class SessionModel:
                                          or gps_offsets[i] > GPS_TRAVEL_MICROS + GPS_VALIDITY_BUFFER]
                     if len(valid_data_points) > 0:
                         valid_data = [(gps_timestamps[i], gps_offsets[i]) for i in valid_data_points]
-                        if self.first_gps_data.is_full():
+                        if self._first_gps_data.is_full():
                             for i in valid_data:
-                                self.last_gps_data.add(i)
+                                self._last_gps_data.add(i)
                         else:
                             for i in valid_data:
-                                self.first_gps_data.add(i, True)
+                                self._first_gps_data.add(i, True)
                     self.num_gps_points += len(valid_data_points)
                 if not self.has_moved:
                     for lc in self.location_stats.get_all_stats():
@@ -804,47 +1022,49 @@ class SessionModel:
             _ts_offsets = ts.offsets().flatten()
             _ts_timestamps = ts.get_device_exchanges_timestamps()
             _ts_latencies = ts.latencies().flatten()
-            if self.first_timesync_data.is_full():
+            if self._first_timesync_data.is_full():
                 for i in range(len(_ts_timestamps)):
-                    self.last_timesync_data.add((_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i]))
+                    self._last_timesync_data.add((_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i]))
             else:
                 for i in range(len(_ts_timestamps)):
-                    self.first_timesync_data.add((_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i]), True)
+                    self._first_timesync_data.add((_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i]), True)
 
     def get_data_from_packet(self, packet: api_m.RedvoxPacketM) -> "SessionModel":
         """
-        loads data from a packet into the model.  stops reading data if there is an error
+        loads data from a packet into the model.  stops reading data if there is an error.
+        if SessionModel is sealed, this function does nothing.
 
         :param packet: API M packet to add
         :return: the updated SessionModel
         """
-        if packet.station_information.id == self.id:
-            if packet.station_information.uuid == self.uuid:
-                if packet.timing_information.app_start_mach_timestamp == self.start_date:
-                    self._get_timesync_from_packet(packet)
-                    sensors = get_all_sensors_in_packet(packet)
-                    sensors.append("health")
-                    if list(self._sensors.keys()) != sensors:
-                        self._errors.append(f"packet sensors {sensors} does not match.")
+        if not self.is_sealed:
+            if packet.station_information.id == self.id:
+                if packet.station_information.uuid == self.uuid:
+                    if packet.timing_information.app_start_mach_timestamp == self.start_date:
+                        self._get_timesync_from_packet(packet)
+                        sensors = get_all_sensors_in_packet(packet)
+                        sensors.append("health")
+                        if list(self._sensors.keys()) != sensors:
+                            self._errors.append(f"packet sensors {sensors} does not match.")
+                        else:
+                            packet_start = packet.timing_information.packet_start_mach_timestamp
+                            packet_end = packet.timing_information.packet_end_mach_timestamp
+                            self.num_packets += 1
+                            if packet_start < self.first_data_timestamp or np.isnan(self.first_data_timestamp):
+                                self.first_data_timestamp = packet_start
+                            if packet_end > self.last_data_timestamp or np.isnan(self.last_data_timestamp):
+                                self.last_data_timestamp = packet_end
+                            for s in sensors:
+                                if s not in ["audio", "compressed_audio", "health", "image"]:
+                                    self._sensors[s] += (self._get_sensor_data_from_packet(s, packet)
+                                                         - self._sensors[s]) / self.num_packets
                     else:
-                        packet_start = packet.timing_information.packet_start_mach_timestamp
-                        packet_end = packet.timing_information.packet_end_mach_timestamp
-                        self.num_packets += 1
-                        if packet_start < self.first_data_timestamp or np.isnan(self.first_data_timestamp):
-                            self.first_data_timestamp = packet_start
-                        if packet_end > self.last_data_timestamp or np.isnan(self.last_data_timestamp):
-                            self.last_data_timestamp = packet_end
-                        for s in sensors:
-                            if s not in ["audio", "compressed_audio", "health", "image"]:
-                                self._sensors[s] += (self._get_sensor_data_from_packet(s, packet)
-                                                     - self._sensors[s]) / self.num_packets
+                        self._errors.append(f"packet start date {packet.timing_information.app_start_mach_timestamp} "
+                                            f"does not match.")
                 else:
-                    self._errors.append(f"packet start date {packet.timing_information.app_start_mach_timestamp} "
-                                        f"does not match.")
+                    self._errors.append(f"packet uuid {packet.station_information.uuid} does not match.")
             else:
-                self._errors.append(f"packet uuid {packet.station_information.uuid} does not match.")
-        else:
-            self._errors.append(f"packet id {packet.station_information.id} does not match.")
+                self._errors.append(f"packet id {packet.station_information.id} does not match.")
         return self
 
     def set_sensor_data(self, packet: api_m.RedvoxPacketM):
@@ -945,28 +1165,33 @@ class SessionModel:
         """
         :return: first latency timestamp of the data or np.nan if it doesn't exist
         """
-        if self.first_timesync_data.size > 0:
-            return self.first_timesync_data.peek()[0]
+        if self._first_timesync_data.size > 0:
+            return self._first_timesync_data.peek()[0]
         return np.nan
 
     def last_latency_timestamp(self) -> float:
         """
         :return: last latency timestamp of the data or np.nan if it doesn't exist
         """
-        if self.last_timesync_data.size > 0:
-            return self.last_timesync_data.peek_tail()[0]
+        if self._last_timesync_data.size > 0:
+            return self._last_timesync_data.peek_tail()[0]
         return np.nan
 
     def get_offset_model(self) -> OffsetModel:
         """
+        update the session's offset model using partial timesync data.  If data exists, it will update the model.
+        Returns a model if it was updated or previously existed.
+        If data doesn't exist, and there is no existing model, an empty model will be returned.
+
         note: this uses a set of the first and last data points to approximate the timesync offset model over time.
         For an in-depth analysis, use the entire timesync data set.
 
         :return: estimated timesync offset model using first and last segments of timesync data
         """
-        if self.first_timesync_data.size + self.last_timesync_data.size > 0:
-            first_data = self.first_timesync_data.look_at_data()
-            last_data = self.last_timesync_data.look_at_data()
+        has_data = self._first_timesync_data.size + self._last_timesync_data.size > 0
+        if has_data:
+            first_data = self._first_timesync_data.look_at_data()
+            last_data = self._last_timesync_data.look_at_data()
             timestamps = np.concatenate([np.array([first_data[i][0] for i in range(len(first_data))]),
                                          np.array([last_data[i][0] for i in range(len(last_data))]),
                                          np.array([self.first_data_timestamp + (self.model_duration() / 2)])])
@@ -976,23 +1201,50 @@ class SessionModel:
             offsets = np.concatenate([np.array([first_data[i][2] for i in range(len(first_data))]),
                                       np.array([last_data[i][2] for i in range(len(last_data))]),
                                       np.array([self.mean_offset])])
-            return OffsetModel(latencies, offsets, timestamps, self.first_latency_timestamp(),
-                               self.last_latency_timestamp(), min_samples_per_bin=1)
-        return OffsetModel.empty_model()
+            self.offset_model = OffsetModel(latencies, offsets, timestamps, self.first_latency_timestamp(),
+                                            self.last_latency_timestamp(), min_samples_per_bin=1)
+        if self.offset_model is None:
+            return OffsetModel.empty_model()
+        return self.offset_model
 
     def get_gps_offset(self) -> Tuple[float, float]:
         """
+        update the session's gps offset model using partial gps data.  If data exists, it will update the model.
+        Returns a model if it was updated or previously existed.
+        If data doesn't exist, and there is no existing model, a model with nans will be returned.
+
         note: this uses a set of the first and last data points to approximate the gps offset model over time.
         For an in-depth analysis, use the entire GPS data set.
 
-        :return: estimated gps offset model slope and intercept
+        :return: estimated gps offset model slope and intercept using first and last segments of gps data
         """
-        if self.first_gps_data.size + self.last_gps_data.size > 0:
-            first_data = self.first_gps_data.look_at_data()
-            last_data = self.last_gps_data.look_at_data()
+        has_data = self._first_gps_data.size + self._last_gps_data.size > 0
+        if has_data:
+            first_data = self._first_gps_data.look_at_data()
+            last_data = self._last_gps_data.look_at_data()
             timestamps = np.concatenate([np.array([first_data[i][0] for i in range(len(first_data))]),
                                          np.array([last_data[i][0] for i in range(len(last_data))])])
             offsets = np.concatenate([np.array([first_data[i][1] for i in range(len(first_data))]),
                                       np.array([last_data[i][1] for i in range(len(last_data))])])
-            return simple_offset_weighted_linear_regression(offsets, timestamps)
-        return np.nan, np.nan
+            self.gps_offset = simple_offset_weighted_linear_regression(offsets, timestamps)
+        if self.gps_offset is None:
+            return np.nan, np.nan
+        return self.gps_offset
+
+    def seal_model(self):
+        """
+        WARNING: Invoking this function will prevent you from adding any more data to the model.
+
+        WARNING: Invoking this function will convert the following properties to None:
+                    * _first_timesync_data
+                    * _last_timesync_data
+                    * _first_gps_data
+                    * _last_gps_data
+        """
+        self.is_sealed = True
+        _ = self.get_offset_model()
+        _ = self.get_gps_offset()
+        self._first_timesync_data = None
+        self._last_timesync_data = None
+        self._first_gps_data = None
+        self._last_gps_data = None
