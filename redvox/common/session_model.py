@@ -670,6 +670,9 @@ class SessionModel:
                                   packet.station_information.description,
                                   )
             result.app_version = packet.station_information.app_version
+            result.num_packets = 1
+            result.first_data_timestamp = packet.timing_information.packet_start_mach_timestamp
+            result.last_data_timestamp = packet.timing_information.packet_end_mach_timestamp
             result.packet_duration_s = (packet.timing_information.packet_end_mach_timestamp -
                                         packet.timing_information.packet_start_mach_timestamp) / 1e6
             result._get_timesync_from_packet(packet)
@@ -809,6 +812,8 @@ class SessionModel:
 
     def seal_model(self):
         """
+        Calculates the offset model and gps offsets, then closes the model.
+
         WARNING: Invoking this function will prevent you from adding any more data to the model.
 
         WARNING: Invoking this function will convert the following properties to None:
