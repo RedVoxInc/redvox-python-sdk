@@ -92,21 +92,25 @@ class SessionModel:
     Sample rates are in hz
     Latency and offset are in microseconds
     Packet duration is in seconds
+    Timestamps are NEVER the corrected values; it is up to the user to apply any corrections derived from information
+    presented by this class
 
     Protected:
-        _id: str, id of the station.  Default ""
-
-        _uuid: str, uuid of the station.  Default ""
-
-        _start_date: float, Timestamp since epoch UTC of when station was started.  Default np.nan
+        _session_version: str, the version of the SessionModel.
 
         _sensors: Dict[str, float], The name of sensors and their mean sample rate as a dictionary.
 
-        _errors: RedVoxExceptions, Contains any errors found when creating the model
+        _errors: RedVoxExceptions, Contains any errors found when creating the model.
 
-        _sdk_version: str, the version of the SDK used to create the model
+        _sdk_version: str, the version of the SDK used to create the model.
 
     Properties:
+        id: str, id of the station.  Default ""
+
+        uuid: str, uuid of the station.  Default ""
+
+        start_date: float, Timestamp since epoch UTC of when station was started.  Default np.nan
+
         app_name: str, Name of the app the station is running.  Default "Redvox"
 
         app_version: str, Version of the app the station is running.  Default ""
@@ -432,7 +436,7 @@ class SessionModel:
         """
         ext = os.path.splitext(file_path)[1]
         if ext == ".json":
-            return s_io.session_model_from_json_file(file_path)
+            return SessionModel.from_json_dict(s_io.session_model_dict_from_json_file(file_path))
         elif ext == ".pkl":
             return s_io.decompress_session_model(file_path)
         else:
@@ -450,6 +454,7 @@ class SessionModel:
         """
         return self._sensors["audio"] if "audio" in self._sensors.keys() else np.nan
 
+    # todo: OH NO THE UNITS FOR SAMPLE RATE ARE OFF.  FIX FOR ANDROID
     def _get_sensor_data_from_packet(self, sensor: str, packet: api_m.RedvoxPacketM) -> float:
         """
         :param: sensor: the sensor to get data for
@@ -457,40 +462,40 @@ class SessionModel:
         :return: mean sample rate from packet for a sensor
         """
         if sensor == "health":
-            return packet.station_information.station_metrics.timestamps.mean_sample_rate
+            v = packet.station_information.station_metrics.timestamps.mean_sample_rate
         elif _has_sensor(packet, sensor):
             if sensor == _ACCELEROMETER_FIELD_NAME:
-                return packet.sensors.accelerometer.timestamps.mean_sample_rate
+                v = packet.sensors.accelerometer.timestamps.mean_sample_rate
             elif sensor == _AMBIENT_TEMPERATURE_FIELD_NAME:
-                return packet.sensors.ambient_temperature.timestamps.mean_sample_rate
+                v = packet.sensors.ambient_temperature.timestamps.mean_sample_rate
             elif sensor == _AUDIO_FIELD_NAME:
                 return packet.sensors.audio.sample_rate
             elif sensor == _COMPRESSED_AUDIO_FIELD_NAME:
                 return packet.sensors.compressed_audio.sample_rate
             elif sensor == _GRAVITY_FIELD_NAME:
-                return packet.sensors.gravity.timestamps.mean_sample_rate
+                v = packet.sensors.gravity.timestamps.mean_sample_rate
             elif sensor == _GYROSCOPE_FIELD_NAME:
-                return packet.sensors.gyroscope.timestamps.mean_sample_rate
+                v = packet.sensors.gyroscope.timestamps.mean_sample_rate
             elif sensor == _IMAGE_FIELD_NAME:
-                return packet.sensors.image.timestamps.mean_sample_rate
+                v = packet.sensors.image.timestamps.mean_sample_rate
             elif sensor == _LIGHT_FIELD_NAME:
-                return packet.sensors.light.timestamps.mean_sample_rate
+                v = packet.sensors.light.timestamps.mean_sample_rate
             elif sensor == _LINEAR_ACCELERATION_FIELD_NAME:
-                return packet.sensors.linear_acceleration.timestamps.mean_sample_rate
+                v = packet.sensors.linear_acceleration.timestamps.mean_sample_rate
             elif sensor == _MAGNETOMETER_FIELD_NAME:
-                return packet.sensors.magnetometer.timestamps.mean_sample_rate
+                v = packet.sensors.magnetometer.timestamps.mean_sample_rate
             elif sensor == _ORIENTATION_FIELD_NAME:
-                return packet.sensors.orientation.timestamps.mean_sample_rate
+                v = packet.sensors.orientation.timestamps.mean_sample_rate
             elif sensor == _PRESSURE_FIELD_NAME:
-                return packet.sensors.pressure.timestamps.mean_sample_rate
+                v = packet.sensors.pressure.timestamps.mean_sample_rate
             elif sensor == _PROXIMITY_FIELD_NAME:
-                return packet.sensors.proximity.timestamps.mean_sample_rate
+                v = packet.sensors.proximity.timestamps.mean_sample_rate
             elif sensor == _RELATIVE_HUMIDITY_FIELD_NAME:
-                return packet.sensors.relative_humidity.timestamps.mean_sample_rate
+                v = packet.sensors.relative_humidity.timestamps.mean_sample_rate
             elif sensor == _ROTATION_VECTOR_FIELD_NAME:
-                return packet.sensors.rotation_vector.timestamps.mean_sample_rate
+                v = packet.sensors.rotation_vector.timestamps.mean_sample_rate
             elif sensor == _VELOCITY_FIELD_NAME:
-                return packet.sensors.velocity.timestamps.mean_sample_rate
+                v = packet.sensors.velocity.timestamps.mean_sample_rate
             elif sensor == _LOCATION_FIELD_NAME:
                 # get all the location data
                 num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
@@ -573,11 +578,14 @@ class SessionModel:
                                 or lc.std_dev[1] > MOVEMENT_METERS * DEGREES_TO_METERS \
                                 or lc.std_dev[2] > MOVEMENT_METERS:
                             self.has_moved = True
+                # correct next line when android fix is known
                 v = packet.sensors.location.timestamps.mean_sample_rate
-                return (packet.timing_information.packet_end_mach_timestamp -
-                        packet.timing_information.packet_start_mach_timestamp) / 1e6 \
-                    if v == 0.0 else v
-        return np.nan
+                if v == 0.0:
+                    v = packet.timing_information.packet_end_mach_timestamp \
+                        - packet.timing_information.packet_start_mach_timestamp
+        else:
+            return np.nan
+        return v * (1e6 if packet.station_information.os == 1 and sensor != _LOCATION_FIELD_NAME else 1e-6)
 
     def _get_timesync_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -757,6 +765,8 @@ class SessionModel:
         """
         if self._last_timesync_data.size > 0:
             return self._last_timesync_data.peek_tail()[0]
+        elif self._first_timesync_data.size > 0:
+            return self._first_timesync_data.peek_tail()[0]
         return np.nan
 
     def get_offset_model(self) -> OffsetModel:

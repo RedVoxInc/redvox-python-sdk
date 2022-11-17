@@ -47,25 +47,25 @@ def session_model_to_json_file(session: "SessionModel",
         return file_path.resolve(False)
 
 
-def session_model_from_json(json_str: str) -> "SessionModel":
+def session_model_dict_from_json(json_str: str) -> dict:
     """
-    Convert a json file to a SessionModel
+    Convert a json file to a dictionary that can create a SessionModel
 
     :param json_str: string of json to read
-    :return: SessionModel from json
+    :return: dictionary of SessionModel from json
     """
-    return SessionModel.from_json_dict(json.loads(json_str))
+    return json.loads(json_str)
 
 
-def session_model_from_json_file(file_path: str) -> "SessionModel":
+def session_model_dict_from_json_file(file_path: str) -> dict:
     """
-    Read the contents of a json file and convert it into a SessionModel
+    Read the contents of a json file and convert it into a dictionary of a SessionModel
 
     :param file_path: full path to the file, including file name and extension
-    :return: SessionModel from json
+    :return: dictionary of SessionModel from json
     """
     with open(file_path, "r") as f_p:
-        return session_model_from_json(f_p.read())
+        return session_model_dict_from_json(f_p.read())
 
 
 def compress_session_model(

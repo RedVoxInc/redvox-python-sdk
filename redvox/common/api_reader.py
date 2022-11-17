@@ -451,6 +451,20 @@ class ApiReaderModel:
             result.append(i.entries)
         return result
 
+    def _get_session(self, s_id: str, uuid: str, start_date: float) -> Optional[SessionModel]:
+        """
+        get a session that matches all the inputs or None if no match
+
+        :param s_id: station id to get
+        :param uuid: station uuid to get
+        :param start_date: station start date to get
+        :return: SessionModel or None
+        """
+        for m in self.station_models:
+            if m.id == s_id and m.uuid == uuid and m.start_date == start_date:
+                return m
+        return None
+
     def _get_all_files(
             self, pool: Optional[multiprocessing.pool.Pool] = None
     ) -> List[io.Index]:
@@ -467,8 +481,13 @@ class ApiReaderModel:
         all_index = self._apply_filter(pool=_pool)
         for station_id in all_index.summarize().station_ids():
             id_index = all_index.get_index_for_station_id(station_id)
-            checked_index = self._check_station_stats(id_index, pool=_pool)
-            index.extend(checked_index)
+            for f in id_index.read_contents():
+                sd = f.timing_information.app_start_mach_timestamp
+                uid = f.station_information.uuid
+                n = self._get_session(station_id, uid, sd)
+                n.add_data_from_packet(f) if n is not None \
+                    else self.station_models.append(SessionModel.create_from_packet(f))
+            index.append(id_index)
 
         if pool is None:
             _pool.close()

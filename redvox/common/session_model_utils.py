@@ -42,7 +42,7 @@ class LocationStat:
                              self.std_dev[1] * self.std_dev[1],
                              self.std_dev[2] * self.std_dev[2])
         elif self.std_dev is None and self.variance:
-            self.std_dev = np.sqrt(self.variance)
+            self.std_dev = tuple(np.sqrt(self.variance))
         elif self.std_dev is None and self.variance is None:
             self.variance = (0., 0., 0.)
             self.std_dev = (0., 0., 0.)
