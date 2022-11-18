@@ -454,55 +454,89 @@ class SessionModel:
         """
         return self._sensors["audio"] if "audio" in self._sensors.keys() else np.nan
 
-    # todo: OH NO THE UNITS FOR SAMPLE RATE ARE OFF.  FIX FOR ANDROID
     def _get_sensor_data_from_packet(self, sensor: str, packet: api_m.RedvoxPacketM) -> float:
         """
+        note: sets the sample rate to np.nan if no data is found
+
         :param: sensor: the sensor to get data for
         :param: packet: the packet to get data from
         :return: mean sample rate from packet for a sensor
         """
+        v = np.nan
         if sensor == "health":
-            v = packet.station_information.station_metrics.timestamps.mean_sample_rate
+            num_pts = int(packet.station_information.station_metrics.timestamps.timestamp_statistics.count)
+            if num_pts > 1:
+                v = np.mean(np.diff(packet.station_information.station_metrics.timestamps.timestamps))
         elif _has_sensor(packet, sensor):
             if sensor == _ACCELEROMETER_FIELD_NAME:
-                v = packet.sensors.accelerometer.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.accelerometer.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.accelerometer.timestamps.timestamps))
             elif sensor == _AMBIENT_TEMPERATURE_FIELD_NAME:
-                v = packet.sensors.ambient_temperature.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.ambient_temperature.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.ambient_temperature.timestamps.timestamps))
             elif sensor == _AUDIO_FIELD_NAME:
                 return packet.sensors.audio.sample_rate
             elif sensor == _COMPRESSED_AUDIO_FIELD_NAME:
                 return packet.sensors.compressed_audio.sample_rate
             elif sensor == _GRAVITY_FIELD_NAME:
-                v = packet.sensors.gravity.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.gravity.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.gravity.timestamps.timestamps))
             elif sensor == _GYROSCOPE_FIELD_NAME:
-                v = packet.sensors.gyroscope.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.gyroscope.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.gyroscope.timestamps.timestamps))
             elif sensor == _IMAGE_FIELD_NAME:
-                v = packet.sensors.image.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.image.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.image.timestamps.timestamps))
             elif sensor == _LIGHT_FIELD_NAME:
-                v = packet.sensors.light.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.light.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.light.timestamps.timestamps))
             elif sensor == _LINEAR_ACCELERATION_FIELD_NAME:
-                v = packet.sensors.linear_acceleration.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.linear_acceleration.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.linear_acceleration.timestamps.timestamps))
             elif sensor == _MAGNETOMETER_FIELD_NAME:
-                v = packet.sensors.magnetometer.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.magnetometer.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.magnetometer.timestamps.timestamps))
             elif sensor == _ORIENTATION_FIELD_NAME:
-                v = packet.sensors.orientation.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.orientation.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.orientation.timestamps.timestamps))
             elif sensor == _PRESSURE_FIELD_NAME:
-                v = packet.sensors.pressure.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.pressure.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.pressure.timestamps.timestamps))
             elif sensor == _PROXIMITY_FIELD_NAME:
-                v = packet.sensors.proximity.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.proximity.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.proximity.timestamps.timestamps))
             elif sensor == _RELATIVE_HUMIDITY_FIELD_NAME:
-                v = packet.sensors.relative_humidity.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.relative_humidity.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.relative_humidity.timestamps.timestamps))
             elif sensor == _ROTATION_VECTOR_FIELD_NAME:
-                v = packet.sensors.rotation_vector.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.rotation_vector.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.rotation_vector.timestamps.timestamps))
             elif sensor == _VELOCITY_FIELD_NAME:
-                v = packet.sensors.velocity.timestamps.mean_sample_rate
+                num_pts = int(packet.sensors.velocity.timestamps.timestamp_statistics.count)
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.velocity.timestamps.timestamps))
             elif sensor == _LOCATION_FIELD_NAME:
                 # get all the location data
-                num_locs = int(packet.sensors.location.timestamps.timestamp_statistics.count)
+                num_pts = int(packet.sensors.location.timestamps.timestamp_statistics.count)
                 gps_offsets = []
                 gps_timestamps = []
+                if num_pts > 1:
+                    v = np.mean(np.diff(packet.sensors.location.timestamps.timestamps))
                 # check if there is data to read
-                if num_locs > 0:
+                if num_pts > 0:
                     has_lats = packet.sensors.location.HasField("latitude_samples")
                     has_lons = packet.sensors.location.HasField("longitude_samples")
                     has_alts = packet.sensors.location.HasField("altitude_samples")
@@ -518,16 +552,16 @@ class SessionModel:
                                    packet.sensors.location.longitude_samples.value_statistics.standard_deviation,
                                    packet.sensors.location.altitude_samples.value_statistics.standard_deviation)
                         if self.location_stats.has_source("UNKNOWN"):
-                            self.location_stats.add_std_dev_by_source("UNKNOWN", num_locs, mean_loc, std_loc)
+                            self.location_stats.add_std_dev_by_source("UNKNOWN", num_pts, mean_loc, std_loc)
                         else:
-                            self.location_stats.add_loc_stat(LocationStat("UNKNOWN", num_locs, mean_loc, None, std_loc))
+                            self.location_stats.add_loc_stat(LocationStat("UNKNOWN", num_pts, mean_loc, None, std_loc))
                     else:
                         # load the data into the stats objects
                         data_array = {}
-                        for n in range(num_locs):
+                        for n in range(num_pts):
                             lp = COLUMN_TO_ENUM_FN["location_provider"](
                                 packet.sensors.location.location_providers[
-                                    0 if num_locs != len(packet.sensors.location.location_providers) else n])
+                                    0 if num_pts != len(packet.sensors.location.location_providers) else n])
                             if lp not in data_array.keys():
                                 data_array[lp] = ([packet.sensors.location.latitude_samples.values[n]
                                                    if has_lats else np.nan],
@@ -578,14 +612,12 @@ class SessionModel:
                                 or lc.std_dev[1] > MOVEMENT_METERS * DEGREES_TO_METERS \
                                 or lc.std_dev[2] > MOVEMENT_METERS:
                             self.has_moved = True
-                # correct next line when android fix is known
-                v = packet.sensors.location.timestamps.mean_sample_rate
-                if v == 0.0:
-                    v = packet.timing_information.packet_end_mach_timestamp \
-                        - packet.timing_information.packet_start_mach_timestamp
         else:
             return np.nan
-        return v * (1e6 if packet.station_information.os == 1 and sensor != _LOCATION_FIELD_NAME else 1e-6)
+        if num_pts > 0 and np.isnan(v):
+            v = packet.timing_information.packet_end_mach_timestamp \
+                - packet.timing_information.packet_start_mach_timestamp
+        return 1e6 / v
 
     def _get_timesync_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -733,6 +765,12 @@ class SessionModel:
         """
         return list(self._sensors.keys())
 
+    def get_all_sensors(self) -> Dict:
+        """
+        :return: list of sensor names and mean sample rate
+        """
+        return self._sensors
+
     def get_sensor_data(self, sensor: str) -> Optional[float]:
         """
         Returns the data associated with a sensor or None if the data doesn't exist.
@@ -744,6 +782,12 @@ class SessionModel:
         if sensor in self._sensors.keys():
             return self._sensors[sensor]
         return None
+
+    def get_all_sensor_data(self) -> List[float]:
+        """
+        :return: list of sensor mean sample rates
+        """
+        return list(self._sensors.values())
 
     def model_duration(self) -> float:
         """
