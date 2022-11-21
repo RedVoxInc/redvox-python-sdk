@@ -19,39 +19,6 @@ from redvox.common.sensor_data import SensorType
 from redvox.common.errors import RedVoxExceptions
 
 
-# Maps a sensor type to a function that can extract that sensor for a particular packet.
-__SENSOR_NAME_TO_SENSOR_FN: Dict[
-    str,
-    Optional[
-        Callable[
-            [RedvoxPacketM],
-            srupa.SensorData,
-        ]
-    ],
-] = {
-    "health": None,
-    "accelerometer": lambda packet: packet.sensors.accelerometer,
-    "ambient_temperature": lambda packet: packet.sensors.ambient_temperature,
-    "audio": lambda packet: packet.sensors.audio,
-    "compressed_audio": lambda packet: packet.sensors.compressed_audio,
-    "gravity": lambda packet: packet.sensors.gravity,
-    "gyroscope": lambda packet: packet.sensors.gyroscope,
-    "image": lambda packet: packet.sensors.image,
-    "light": lambda packet: packet.sensors.light,
-    "linear_acceleration": lambda packet: packet.sensors.linear_acceleration,
-    "location": lambda packet: packet.sensors.location,
-    "best_location": lambda packet: packet.sensors.location,
-    "magnetometer": lambda packet: packet.sensors.magnetometer,
-    "orientation": lambda packet: packet.sensors.orientation,
-    "pressure": lambda packet: packet.sensors.pressure,
-    "proximity": lambda packet: packet.sensors.proximity,
-    "relative_humidity": lambda packet: packet.sensors.relative_humidity,
-    "rotation_vector": lambda packet: packet.sensors.rotation_vector,
-    "infrared": lambda packet: packet.sensors.proximity,
-    "velocity": lambda packet: packet.sensors.velocity,
-}
-
-
 packet_schema = pa.schema([("packet_start_mach_timestamp", pa.float64()),
                            ("packet_end_mach_timestamp", pa.float64()),
                            ("packet_start_os_timestamp", pa.float64()),

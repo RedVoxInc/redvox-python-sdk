@@ -1,5 +1,5 @@
 import os.path
-from typing import List, Dict, Optional, Tuple, Union
+from typing import List, Dict, Optional, Tuple, Union, Callable
 from pathlib import Path
 
 import numpy as np
@@ -42,6 +42,72 @@ _PROXIMITY_FIELD_NAME: str = "proximity"
 _RELATIVE_HUMIDITY_FIELD_NAME: str = "relative_humidity"
 _ROTATION_VECTOR_FIELD_NAME: str = "rotation_vector"
 _VELOCITY_FIELD_NAME: str = "velocity"
+_HEALTH_FIELD_NAME: str = "health"
+
+
+Sensor = Union[
+    api_m.RedvoxPacketM.Sensors.Xyz,
+    api_m.RedvoxPacketM.Sensors.Single,
+    api_m.RedvoxPacketM.Sensors.Audio,
+    api_m.RedvoxPacketM.Sensors.Image,
+    api_m.RedvoxPacketM.Sensors.Location,
+    api_m.RedvoxPacketM.Sensors.CompressedAudio,
+    api_m.RedvoxPacketM.StationInformation.StationMetrics
+]
+
+__SENSOR_NAME_TO_SENSOR_FN: Dict[
+    str,
+    Optional[
+        Callable[
+            [api_m.RedvoxPacketM],
+            Union[Sensor],
+        ]
+    ],
+] = {
+    "unknown": None,
+    _HEALTH_FIELD_NAME: lambda packet: packet.station_information.station_metrics,
+    _ACCELEROMETER_FIELD_NAME: lambda packet: packet.sensors.accelerometer,
+    _AMBIENT_TEMPERATURE_FIELD_NAME: lambda packet: packet.sensors.ambient_temperature,
+    _AUDIO_FIELD_NAME: lambda packet: packet.sensors.audio,
+    _COMPRESSED_AUDIO_FIELD_NAME: lambda packet: packet.sensors.compressed_audio,
+    _GRAVITY_FIELD_NAME: lambda packet: packet.sensors.gravity,
+    _GYROSCOPE_FIELD_NAME: lambda packet: packet.sensors.gyroscope,
+    _IMAGE_FIELD_NAME: lambda packet: packet.sensors.image,
+    _LIGHT_FIELD_NAME: lambda packet: packet.sensors.light,
+    _LINEAR_ACCELERATION_FIELD_NAME: lambda packet: packet.sensors.linear_acceleration,
+    _LOCATION_FIELD_NAME: lambda packet: packet.sensors.location,
+    _MAGNETOMETER_FIELD_NAME: lambda packet: packet.sensors.magnetometer,
+    _ORIENTATION_FIELD_NAME: lambda packet: packet.sensors.orientation,
+    _PRESSURE_FIELD_NAME: lambda packet: packet.sensors.pressure,
+    _PROXIMITY_FIELD_NAME: lambda packet: packet.sensors.proximity,
+    _RELATIVE_HUMIDITY_FIELD_NAME: lambda packet: packet.sensors.relative_humidity,
+    _ROTATION_VECTOR_FIELD_NAME: lambda packet: packet.sensors.rotation_vector,
+    _VELOCITY_FIELD_NAME: lambda packet: packet.sensors.velocity,
+}
+
+
+def _get_sensor_for_data_extraction(sensor_name: str, packet: api_m.RedvoxPacketM) -> Optional[Sensor]:
+    """
+    :param sensor_name: name of sensor to return
+    :param packet: the data packet to get the sensor from
+    :return: Sensor that matches the sensor_name or None if that Sensor doesn't exist
+    """
+    sensor_fn: Optional[
+        Callable[[api_m.RedvoxPacketM], Sensor]
+    ] = __SENSOR_NAME_TO_SENSOR_FN[sensor_name]
+    if (sensor_name == _HEALTH_FIELD_NAME or _has_sensor(packet, sensor_name)) and sensor_fn is not None:
+        return sensor_fn(packet)
+
+
+def _get_mean_sample_rate_from_sensor(sensor: Sensor) -> Tuple[int, float]:
+    """
+    :param sensor: Sensor to get data from
+    :return: number of samples and mean sample rate of the sensor; returns np.nan if sample rate doesn't exist
+    """
+    num_pts = int(sensor.timestamps.timestamp_statistics.count)
+    if num_pts > 1:
+        return num_pts, float(np.mean(np.diff(sensor.timestamps.timestamps)))
+    return num_pts, np.nan
 
 
 def _has_sensor(
@@ -71,10 +137,10 @@ def get_all_sensors_in_packet(packet: api_m.RedvoxPacketM) -> List[str]:
     :return: list of all sensors in the packet
     """
     result: List[str] = []
-    for s in [_ACCELEROMETER_FIELD_NAME, _AMBIENT_TEMPERATURE_FIELD_NAME, _AUDIO_FIELD_NAME,
+    for s in [_AUDIO_FIELD_NAME, _PRESSURE_FIELD_NAME, _ACCELEROMETER_FIELD_NAME, _AMBIENT_TEMPERATURE_FIELD_NAME,
               _COMPRESSED_AUDIO_FIELD_NAME, _GRAVITY_FIELD_NAME, _GYROSCOPE_FIELD_NAME, _IMAGE_FIELD_NAME,
               _LIGHT_FIELD_NAME, _LINEAR_ACCELERATION_FIELD_NAME, _LOCATION_FIELD_NAME, _MAGNETOMETER_FIELD_NAME,
-              _ORIENTATION_FIELD_NAME, _PRESSURE_FIELD_NAME, _PROXIMITY_FIELD_NAME, _RELATIVE_HUMIDITY_FIELD_NAME,
+              _ORIENTATION_FIELD_NAME, _PROXIMITY_FIELD_NAME, _RELATIVE_HUMIDITY_FIELD_NAME,
               _ROTATION_VECTOR_FIELD_NAME, _VELOCITY_FIELD_NAME]:
         if _has_sensor(packet, s):
             result.append(s)
@@ -462,162 +528,101 @@ class SessionModel:
         :param: packet: the packet to get data from
         :return: mean sample rate from packet for a sensor
         """
-        v = np.nan
-        if sensor == "health":
-            num_pts = int(packet.station_information.station_metrics.timestamps.timestamp_statistics.count)
-            if num_pts > 1:
-                v = np.mean(np.diff(packet.station_information.station_metrics.timestamps.timestamps))
-        elif _has_sensor(packet, sensor):
-            if sensor == _ACCELEROMETER_FIELD_NAME:
-                num_pts = int(packet.sensors.accelerometer.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.accelerometer.timestamps.timestamps))
-            elif sensor == _AMBIENT_TEMPERATURE_FIELD_NAME:
-                num_pts = int(packet.sensors.ambient_temperature.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.ambient_temperature.timestamps.timestamps))
-            elif sensor == _AUDIO_FIELD_NAME:
-                return packet.sensors.audio.sample_rate
-            elif sensor == _COMPRESSED_AUDIO_FIELD_NAME:
-                return packet.sensors.compressed_audio.sample_rate
-            elif sensor == _GRAVITY_FIELD_NAME:
-                num_pts = int(packet.sensors.gravity.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.gravity.timestamps.timestamps))
-            elif sensor == _GYROSCOPE_FIELD_NAME:
-                num_pts = int(packet.sensors.gyroscope.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.gyroscope.timestamps.timestamps))
-            elif sensor == _IMAGE_FIELD_NAME:
-                num_pts = int(packet.sensors.image.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.image.timestamps.timestamps))
-            elif sensor == _LIGHT_FIELD_NAME:
-                num_pts = int(packet.sensors.light.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.light.timestamps.timestamps))
-            elif sensor == _LINEAR_ACCELERATION_FIELD_NAME:
-                num_pts = int(packet.sensors.linear_acceleration.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.linear_acceleration.timestamps.timestamps))
-            elif sensor == _MAGNETOMETER_FIELD_NAME:
-                num_pts = int(packet.sensors.magnetometer.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.magnetometer.timestamps.timestamps))
-            elif sensor == _ORIENTATION_FIELD_NAME:
-                num_pts = int(packet.sensors.orientation.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.orientation.timestamps.timestamps))
-            elif sensor == _PRESSURE_FIELD_NAME:
-                num_pts = int(packet.sensors.pressure.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.pressure.timestamps.timestamps))
-            elif sensor == _PROXIMITY_FIELD_NAME:
-                num_pts = int(packet.sensors.proximity.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.proximity.timestamps.timestamps))
-            elif sensor == _RELATIVE_HUMIDITY_FIELD_NAME:
-                num_pts = int(packet.sensors.relative_humidity.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.relative_humidity.timestamps.timestamps))
-            elif sensor == _ROTATION_VECTOR_FIELD_NAME:
-                num_pts = int(packet.sensors.rotation_vector.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.rotation_vector.timestamps.timestamps))
-            elif sensor == _VELOCITY_FIELD_NAME:
-                num_pts = int(packet.sensors.velocity.timestamps.timestamp_statistics.count)
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.velocity.timestamps.timestamps))
-            elif sensor == _LOCATION_FIELD_NAME:
-                # get all the location data
-                num_pts = int(packet.sensors.location.timestamps.timestamp_statistics.count)
-                gps_offsets = []
-                gps_timestamps = []
-                if num_pts > 1:
-                    v = np.mean(np.diff(packet.sensors.location.timestamps.timestamps))
-                # check if there is data to read
-                if num_pts > 0:
-                    has_lats = packet.sensors.location.HasField("latitude_samples")
-                    has_lons = packet.sensors.location.HasField("longitude_samples")
-                    has_alts = packet.sensors.location.HasField("altitude_samples")
-                    gps_offsets = list(np.array(packet.sensors.location.timestamps_gps.timestamps)
-                                       - np.array(packet.sensors.location.timestamps.timestamps) + GPS_TRAVEL_MICROS)
-                    gps_timestamps = packet.sensors.location.timestamps_gps.timestamps
-                    # make sure we have provider data; no providers means using default UNKNOWN provider
-                    if len(packet.sensors.location.location_providers) < 1:
-                        mean_loc = (packet.sensors.location.latitude_samples.value_statistics.mean,
-                                    packet.sensors.location.longitude_samples.value_statistics.mean,
-                                    packet.sensors.location.altitude_samples.value_statistics.mean)
-                        std_loc = (packet.sensors.location.latitude_samples.value_statistics.standard_deviation,
-                                   packet.sensors.location.longitude_samples.value_statistics.standard_deviation,
-                                   packet.sensors.location.altitude_samples.value_statistics.standard_deviation)
-                        if self.location_stats.has_source("UNKNOWN"):
-                            self.location_stats.add_std_dev_by_source("UNKNOWN", num_pts, mean_loc, std_loc)
-                        else:
-                            self.location_stats.add_loc_stat(LocationStat("UNKNOWN", num_pts, mean_loc, None, std_loc))
-                    else:
-                        # load the data into the stats objects
-                        data_array = {}
-                        for n in range(num_pts):
-                            lp = COLUMN_TO_ENUM_FN["location_provider"](
-                                packet.sensors.location.location_providers[
-                                    0 if num_pts != len(packet.sensors.location.location_providers) else n])
-                            if lp not in data_array.keys():
-                                data_array[lp] = ([packet.sensors.location.latitude_samples.values[n]
-                                                   if has_lats else np.nan],
-                                                  [packet.sensors.location.longitude_samples.values[n]
-                                                   if has_lons else np.nan],
-                                                  [packet.sensors.location.altitude_samples.values[n]
-                                                   if has_alts else np.nan])
-                            else:
-                                data_array[lp][0].append(packet.sensors.location.latitude_samples.values[n]
-                                                         if has_lats else np.nan)
-                                data_array[lp][1].append(packet.sensors.location.longitude_samples.values[n]
-                                                         if has_lons else np.nan)
-                                data_array[lp][2].append(packet.sensors.location.altitude_samples.values[n]
-                                                         if has_alts else np.nan)
-                        for k, d in data_array.items():
-                            _ = self.location_stats.add_variance_by_source(
-                                k, len(d[0]), (float(np.mean(d[0])), float(np.mean(d[1])), float(np.mean(d[2]))),
-                                (float(np.var(d[0])), float(np.var(d[1])), float(np.var(d[2])))
-                            )
-                elif packet.sensors.location.last_best_location is not None:
-                    gps_offsets = [packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps
-                                   - packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach
-                                   + GPS_TRAVEL_MICROS]
-                    gps_timestamps = [packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps]
-                    mean_loc = (packet.sensors.location.last_best_location.latitude,
-                                packet.sensors.location.last_best_location.longitude,
-                                packet.sensors.location.last_best_location.altitude)
-                    only_prov = COLUMN_TO_ENUM_FN["location_provider"](
-                        packet.sensors.location.last_best_location.location_provider)
-                    std_loc = (0., 0., 0.)
-                    self.location_stats.add_std_dev_by_source(only_prov, 1, mean_loc, std_loc)
-                if len(gps_offsets) > 0 and len(gps_timestamps) > 0:
-                    valid_data_points = [i for i in range(len(gps_offsets))
-                                         if gps_offsets[i] < GPS_TRAVEL_MICROS - GPS_VALIDITY_BUFFER
-                                         or gps_offsets[i] > GPS_TRAVEL_MICROS + GPS_VALIDITY_BUFFER]
-                    if len(valid_data_points) > 0:
-                        valid_data = [(gps_timestamps[i], gps_offsets[i]) for i in valid_data_points]
-                        if self._first_gps_data.is_full():
-                            for i in valid_data:
-                                self._last_gps_data.add(i)
-                        else:
-                            for i in valid_data:
-                                self._first_gps_data.add(i, True)
-                    self.num_gps_points += len(valid_data_points)
-                if not self.has_moved:
-                    for lc in self.location_stats.get_all_stats():
-                        if lc.std_dev[0] > MOVEMENT_METERS * DEGREES_TO_METERS \
-                                or lc.std_dev[1] > MOVEMENT_METERS * DEGREES_TO_METERS \
-                                or lc.std_dev[2] > MOVEMENT_METERS:
-                            self.has_moved = True
+        if sensor == _AUDIO_FIELD_NAME:
+            return packet.sensors.audio.sample_rate
+        elif sensor == _COMPRESSED_AUDIO_FIELD_NAME:
+            return packet.sensors.compressed_audio.sample_rate
         else:
-            return np.nan
-        if num_pts > 0 and np.isnan(v):
-            v = packet.timing_information.packet_end_mach_timestamp \
+            snsr = _get_sensor_for_data_extraction(sensor, packet)
+            if snsr is not None:
+                num_pts, mean_sr = _get_mean_sample_rate_from_sensor(snsr)
+            else:
+                return np.nan
+        if sensor == _LOCATION_FIELD_NAME:
+            # get all the location data
+            gps_offsets = []
+            gps_timestamps = []
+            # check if there is data to read
+            if num_pts > 0:
+                has_lats = packet.sensors.location.HasField("latitude_samples")
+                has_lons = packet.sensors.location.HasField("longitude_samples")
+                has_alts = packet.sensors.location.HasField("altitude_samples")
+                gps_offsets = list(np.array(packet.sensors.location.timestamps_gps.timestamps)
+                                   - np.array(packet.sensors.location.timestamps.timestamps) + GPS_TRAVEL_MICROS)
+                gps_timestamps = packet.sensors.location.timestamps_gps.timestamps
+                # make sure we have provider data; no providers means using default UNKNOWN provider
+                if len(packet.sensors.location.location_providers) < 1:
+                    mean_loc = (packet.sensors.location.latitude_samples.value_statistics.mean,
+                                packet.sensors.location.longitude_samples.value_statistics.mean,
+                                packet.sensors.location.altitude_samples.value_statistics.mean)
+                    std_loc = (packet.sensors.location.latitude_samples.value_statistics.standard_deviation,
+                               packet.sensors.location.longitude_samples.value_statistics.standard_deviation,
+                               packet.sensors.location.altitude_samples.value_statistics.standard_deviation)
+                    self.location_stats.add_std_dev_by_source("UNKNOWN", num_pts, mean_loc, std_loc)
+                else:
+                    # load the data into the stats objects
+                    data_array = {}
+                    for n in range(num_pts):
+                        lp = COLUMN_TO_ENUM_FN["location_provider"](
+                            packet.sensors.location.location_providers[
+                                0 if num_pts != len(packet.sensors.location.location_providers) else n])
+                        if lp not in data_array.keys():
+                            data_array[lp] = ([packet.sensors.location.latitude_samples.values[n]
+                                               if has_lats else np.nan],
+                                              [packet.sensors.location.longitude_samples.values[n]
+                                               if has_lons else np.nan],
+                                              [packet.sensors.location.altitude_samples.values[n]
+                                               if has_alts else np.nan])
+                        else:
+                            data_array[lp][0].append(packet.sensors.location.latitude_samples.values[n]
+                                                     if has_lats else np.nan)
+                            data_array[lp][1].append(packet.sensors.location.longitude_samples.values[n]
+                                                     if has_lons else np.nan)
+                            data_array[lp][2].append(packet.sensors.location.altitude_samples.values[n]
+                                                     if has_alts else np.nan)
+                    for k, d in data_array.items():
+                        _ = self.location_stats.add_variance_by_source(
+                            k, len(d[0]), (float(np.mean(d[0])), float(np.mean(d[1])), float(np.mean(d[2]))),
+                            (float(np.var(d[0])), float(np.var(d[1])), float(np.var(d[2])))
+                        )
+            # use the last best location to populate the location data
+            elif packet.sensors.location.last_best_location is not None:
+                gps_offsets = [packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps
+                               - packet.sensors.location.last_best_location.latitude_longitude_timestamp.mach
+                               + GPS_TRAVEL_MICROS]
+                gps_timestamps = [packet.sensors.location.last_best_location.latitude_longitude_timestamp.gps]
+                mean_loc = (packet.sensors.location.last_best_location.latitude,
+                            packet.sensors.location.last_best_location.longitude,
+                            packet.sensors.location.last_best_location.altitude)
+                only_prov = COLUMN_TO_ENUM_FN["location_provider"](
+                    packet.sensors.location.last_best_location.location_provider)
+                std_loc = (0., 0., 0.)
+                self.location_stats.add_std_dev_by_source(only_prov, 1, mean_loc, std_loc)
+            # add gps points if they exist
+            if len(gps_offsets) > 0 and len(gps_timestamps) > 0:
+                valid_data_points = [i for i in range(len(gps_offsets))
+                                     if gps_offsets[i] < GPS_TRAVEL_MICROS - GPS_VALIDITY_BUFFER
+                                     or gps_offsets[i] > GPS_TRAVEL_MICROS + GPS_VALIDITY_BUFFER]
+                if len(valid_data_points) > 0:
+                    valid_data = [(gps_timestamps[i], gps_offsets[i]) for i in valid_data_points]
+                    if self._first_gps_data.is_full():
+                        for i in valid_data:
+                            self._last_gps_data.add(i)
+                    else:
+                        for i in valid_data:
+                            self._first_gps_data.add(i, True)
+                self.num_gps_points += len(valid_data_points)
+            # check for movement; currently just a large enough std_dev
+            if not self.has_moved:
+                for lc in self.location_stats.get_all_stats():
+                    if lc.std_dev[0] > MOVEMENT_METERS * DEGREES_TO_METERS \
+                            or lc.std_dev[1] > MOVEMENT_METERS * DEGREES_TO_METERS \
+                            or lc.std_dev[2] > MOVEMENT_METERS:
+                        self.has_moved = True
+        if num_pts > 0 and np.isnan(mean_sr):
+            mean_sr = packet.timing_information.packet_end_mach_timestamp \
                 - packet.timing_information.packet_start_mach_timestamp
-        return 1e6 / v
+        return 1e6 / mean_sr
 
     def _get_timesync_from_packet(self, packet: api_m.RedvoxPacketM):
         """
@@ -662,7 +667,7 @@ class SessionModel:
                     if packet.timing_information.app_start_mach_timestamp == self.start_date:
                         self._get_timesync_from_packet(packet)
                         sensors = get_all_sensors_in_packet(packet)
-                        sensors.append("health")
+                        sensors.insert(2, "health")
                         if list(self._sensors.keys()) != sensors:
                             self._errors.append(f"packet sensors {sensors} does not match.")
                         else:
@@ -694,7 +699,7 @@ class SessionModel:
         :param packet: API M packet of data to read
         """
         sensors = get_all_sensors_in_packet(packet)
-        sensors.append("health")
+        sensors.insert(2, "health")
         for s in sensors:
             self._sensors[s] = self._get_sensor_data_from_packet(s, packet)
 
