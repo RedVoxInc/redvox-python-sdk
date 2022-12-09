@@ -11,7 +11,7 @@ from redvox.common.timesync import TimeSync
 from redvox.common.errors import RedVoxExceptions
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
-from redvox.common.session_model_utils import LocationStat, LocationStats, CircularQueue
+from redvox.common.session_model_utils import LocationStats, CircularQueue
 from redvox.common.offset_model import OffsetModel, simple_offset_weighted_linear_regression
 
 
@@ -137,11 +137,11 @@ def get_all_sensors_in_packet(packet: api_m.RedvoxPacketM) -> List[str]:
     :return: list of all sensors in the packet
     """
     result: List[str] = []
-    for s in [_AUDIO_FIELD_NAME, _PRESSURE_FIELD_NAME, _ACCELEROMETER_FIELD_NAME, _AMBIENT_TEMPERATURE_FIELD_NAME,
-              _COMPRESSED_AUDIO_FIELD_NAME, _GRAVITY_FIELD_NAME, _GYROSCOPE_FIELD_NAME, _IMAGE_FIELD_NAME,
-              _LIGHT_FIELD_NAME, _LINEAR_ACCELERATION_FIELD_NAME, _LOCATION_FIELD_NAME, _MAGNETOMETER_FIELD_NAME,
-              _ORIENTATION_FIELD_NAME, _PROXIMITY_FIELD_NAME, _RELATIVE_HUMIDITY_FIELD_NAME,
-              _ROTATION_VECTOR_FIELD_NAME, _VELOCITY_FIELD_NAME]:
+    for s in [_AUDIO_FIELD_NAME, _PRESSURE_FIELD_NAME, _LOCATION_FIELD_NAME, _ACCELEROMETER_FIELD_NAME,
+              _AMBIENT_TEMPERATURE_FIELD_NAME, _COMPRESSED_AUDIO_FIELD_NAME, _GRAVITY_FIELD_NAME,
+              _GYROSCOPE_FIELD_NAME, _IMAGE_FIELD_NAME, _LIGHT_FIELD_NAME, _LINEAR_ACCELERATION_FIELD_NAME,
+              _MAGNETOMETER_FIELD_NAME, _ORIENTATION_FIELD_NAME, _PROXIMITY_FIELD_NAME,
+              _RELATIVE_HUMIDITY_FIELD_NAME, _ROTATION_VECTOR_FIELD_NAME, _VELOCITY_FIELD_NAME]:
         if _has_sensor(packet, s):
             result.append(s)
     return result
