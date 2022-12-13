@@ -221,8 +221,8 @@ class StationStat:
                 )
             )
             if not best_offset or not best_latency:
-                best_offset = tsd.best_offset
-                best_latency = tsd.best_latency
+                best_offset = tsd.best_offset()
+                best_latency = tsd.best_latency()
             best_latency_timestamp = tsd.get_best_latency_timestamp()
         else:
             best_latency_timestamp = np.nan
@@ -283,8 +283,8 @@ class StationStat:
                 time_sync_exchanges_list=timing_info.get_synch_exchange_array()
             )
             if not best_offset or not best_latency:
-                best_offset = tsd.best_offset
-                best_latency = tsd.best_latency
+                best_offset = tsd.best_offset()
+                best_latency = tsd.best_latency()
             best_latency_timestamp = tsd.get_best_latency_timestamp()
         else:
             best_latency_timestamp = np.nan
