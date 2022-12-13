@@ -15,7 +15,7 @@ from redvox.common.session_model_utils import LocationStats, CircularQueue
 from redvox.common.offset_model import OffsetModel, simple_offset_weighted_linear_regression
 
 
-SESSION_VERSION = "2022-11-15"  # Version of the SessionModel
+SESSION_VERSION = "2022-12-13"  # Version of the SessionModel
 GPS_TRAVEL_MICROS = 60000.  # Assumed GPS latency in microseconds
 GPS_VALIDITY_BUFFER = 2000.  # microseconds before GPS offset is considered valid
 DEGREES_TO_METERS = 0.00001  # About 1 meter in degrees
@@ -749,13 +749,13 @@ class SessionModel:
         :param data_stream: series of API M packets from a single station to read
         :return: SessionModel using the data from the stream
         """
-        print(f"Processing {len(data_stream)} files...")
+        # print(f"Processing {len(data_stream)} files...")
         p1 = data_stream.pop(0)
         model = SessionModel.create_from_packet(p1)
         for p in data_stream:
             model.add_data_from_packet(p)
         data_stream.insert(0, p1)
-        print(f"Completed SessionModel of {model.id}...")
+        # print(f"Completed SessionModel of {model.id}...")
         return model
 
     def num_sensors(self) -> int:
