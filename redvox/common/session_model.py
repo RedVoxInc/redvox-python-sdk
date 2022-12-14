@@ -597,7 +597,8 @@ class SessionModel:
                 only_prov = COLUMN_TO_ENUM_FN["location_provider"](
                     packet.sensors.location.last_best_location.location_provider)
                 std_loc = (0., 0., 0.)
-                self.location_stats.add_std_dev_by_source(only_prov, 1, mean_loc, std_loc)
+                num_pts = 1
+                self.location_stats.add_std_dev_by_source(only_prov, num_pts, mean_loc, std_loc)
             # add gps points if they exist
             if len(gps_offsets) > 0 and len(gps_timestamps) > 0:
                 valid_data_points = [i for i in range(len(gps_offsets))
