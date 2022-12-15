@@ -621,8 +621,8 @@ class SessionModel:
                             or lc.std_dev[2] > MOVEMENT_METERS:
                         self.has_moved = True
         if num_pts > 0 and np.isnan(mean_sr):
-            mean_sr = packet.timing_information.packet_end_mach_timestamp \
-                - packet.timing_information.packet_start_mach_timestamp
+            mean_sr = (packet.timing_information.packet_end_mach_timestamp
+                       - packet.timing_information.packet_start_mach_timestamp) / num_pts
         return 1e6 / mean_sr
 
     def _get_timesync_from_packet(self, packet: api_m.RedvoxPacketM):
