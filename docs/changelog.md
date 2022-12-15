@@ -1,8 +1,9 @@
 ## Changelog
 
-### 3.3.8 (2022-??-??)
+### 3.3.8 (2022-12-??)
 
-* Added StationModel module.  It is built iteratively by reading metadata from files belonging to one station.
+* Added SessionModel.  It is built iteratively by reading metadata from files belonging to one session of station.
+* Added StationModel.  It is built using metadata from a single station over a period of time.
 
 ### 3.3.7 (2022-9-20)
 
