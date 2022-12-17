@@ -7,6 +7,7 @@ The RedVox Python SDK contains routines for reading, creating, editing, and writ
 * [Installation](installation.md)
 * [Reading RedVox Data](data_window)
 * [Reading RedVox Data, Low Level](data_window/station)
+* [Creating a SessionModel to Summarize Data](session_model)
 * [Command Line Interface (CLI)](cli)
 * [Accessing RedVox Cloud Services](cloud)
 * [Low Level API](low_level_api.md)

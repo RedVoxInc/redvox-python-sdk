@@ -131,7 +131,7 @@ class LocationStats:
         """
         return [n.source_name for n in self._location_stats]
 
-    def get_source(self, source: str) -> Optional[LocationStat]:
+    def get_stats_for_source(self, source: str) -> Optional[LocationStat]:
         """
         :param source: source name to get
         :return: LocationStat of source requested or None if source doesn't exist
@@ -150,16 +150,6 @@ class LocationStats:
             if n.source_name == source:
                 return True
         return False
-
-    def find_loc_by_source(self, source: str) -> Optional[LocationStat]:
-        """
-        :param source: the source name to get
-        :return: the LocationStat with the same source name as the input, or None if the input doesn't exist
-        """
-        for n in self._location_stats:
-            if n.source_name == source:
-                return n
-        return None
 
     def add_count_by_source(self, source: str, val_to_add: int) -> Optional[LocationStat]:
         """
@@ -219,7 +209,7 @@ class LocationStats:
         :param varis_to_add: the variances of the location to add
         :return: the updated LocationStat with the same source name as the input
         """
-        n = self.get_source(source)
+        n = self.get_stats_for_source(source)
         if n is None:
             self.add_loc_stat(LocationStat(source, val_to_add, means_to_add, varis_to_add))
             return self._location_stats[-1]

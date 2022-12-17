@@ -152,12 +152,19 @@ class SessionModel:
     SessionModel is designed to summarize an operational period of a station.  SessionModel can be sealed, which means
     no more data will be received for the model, and the properties of the SessionModel are valid and the best
     available.  WARNING: Only seal a SessionModel when you are certain the session being modeled is finished.
+
     Timestamps are in microseconds since epoch UTC
+
     Latitude and Longitude are in degrees
+
     Altitude is in meters
+
     Sample rates are in hz
+
     Latency and offset are in microseconds
+
     Packet duration is in seconds
+
     Timestamps are NEVER the corrected values; it is up to the user to apply any corrections derived from information
     presented by this class
 
@@ -195,11 +202,11 @@ class SessionModel:
 
         num_packets: int, Number of files used to create the model.  Default 0
 
-        first_data_timestamp: float, Timestamp of the first data point.  Default np.nan
+        first_data_timestamp: float, Timestamp of the first data point used to create the model.  Default np.nan
 
-        last_data_timestamp: float, Timestamp of the last data point.  Default np.nan
+        last_data_timestamp: float, Timestamp of the last data point used to create the model.  Default np.nan
 
-        has_moved: bool, If True, location changed during station operation.  Default False
+        has_moved: bool, If True, location changed during session.  Default False
 
         location_stats: LocationStats, Container for number of times a location source has appeared, the mean of
         the data points, and the std deviation of the data points.  Default empty
@@ -212,20 +219,23 @@ class SessionModel:
 
         mean_offset: float, mean offset of the model.  Default np.nan
 
-        first_timesync_data: CircularQueue, container for the first 15 points of timesync data;
+        _first_timesync_data: CircularQueue, container for the first 15 points of timesync data;
         timestamp, latency, offset.  Default empty
 
-        last_timesync_data: CircularQueue, container for the last 15 points of timesync data.  Default empty
+        _last_timesync_data: CircularQueue, container for the last 15 points of timesync data.  Default empty
 
         num_gps_points: int, the number of gps data points.  Default 0
 
-        first_gps_data: CircularQueue, container for the first 15 points of GPS offset data; timestamp and offset.
+        gps_offset: optional tuple of float, the slope and intercept (in that order) of the gps timing calculations.
+        Default None
+
+        _first_gps_data: CircularQueue, container for the first 15 points of GPS offset data; timestamp and offset.
         Default empty
 
-        last_gps_data: CircularQueue, container for the last 15 points of GPS offset data.  Default empty
+        _last_gps_data: CircularQueue, container for the last 15 points of GPS offset data.  Default empty
 
         is_sealed: bool, if True, the SessionModel will not accept any more data.  This means the offset model and gps
-        offset values are the best they can be.  Default False
+        offset values are the best they can be, given the available data.  Default False
     """
     def __init__(self,
                  station_id: str = "",
@@ -247,7 +257,7 @@ class SessionModel:
 
         Use function create_from_stream() instead of this if you already have several packets to read from.
 
-        Use function create_from_json() instead of this if you already have a session_model.json to read from.
+        Use function load() instead of this if you already have a session_model.json to read from.
 
         Lastly, if you create a SessionModel using init, you can only add to the model by using the function
         add_data_from_packet() if you have a single packet or add_data_from_stream() if you have a stream of packets.
@@ -513,6 +523,12 @@ class SessionModel:
         Prints all errors in the SessionModel to screen
         """
         self._errors.print()
+
+    def session_version(self) -> str:
+        """
+        :return: SessionModel version
+        """
+        return self._session_version
 
     def audio_sample_rate_nominal_hz(self) -> float:
         """
@@ -797,7 +813,7 @@ class SessionModel:
 
     def model_duration(self) -> float:
         """
-        :return: duration of model in microseconds
+        :return: duration of data used to create model in microseconds
         """
         return self.last_data_timestamp - self.first_data_timestamp
 

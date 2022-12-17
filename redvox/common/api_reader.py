@@ -380,10 +380,14 @@ class ApiReader:
         return result
 
 
+# This class uses a slightly stripped down version of the above ApiReader meant to quickly create SessionModels.
+# Some of the checks used in ApiReader are not necessary when creating SessionModel, while the core functionality
+#  of finding and reading files remains.
 class ApiReaderModel:
     """
     Reads data from api 900 or api 1000 format, converting all data read into RedvoxPacketM for
     ease of comparison and use.
+    Creates SessionModels for each station session within the data read.
 
     Properties:
         filter: io.ReadFilter with the station ids, start and end time, start and end time padding, and
@@ -399,6 +403,8 @@ class ApiReaderModel:
         index_summary: io.IndexSummary of the filtered data
 
         debug: bool, if True, output additional information during function execution.  Default False.
+
+        errors: RedVoxExceptions, a container for any errors encountered during function execution.
     """
 
     def __init__(
@@ -432,7 +438,7 @@ class ApiReaderModel:
         self.structured_dir = structured_dir
         self.debug = debug
         self.errors = RedVoxExceptions("APIReader")
-        self.station_models: List[SessionModel] = []
+        self.session_models: List[SessionModel] = []
         self.files_index = self._get_all_files(_pool)
         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
 
@@ -460,7 +466,7 @@ class ApiReaderModel:
         :param start_date: station start date to get
         :return: SessionModel or None
         """
-        for m in self.station_models:
+        for m in self.session_models:
             if m.id == s_id and m.uuid == uuid and m.start_date == start_date:
                 return m
         return None
@@ -486,7 +492,7 @@ class ApiReaderModel:
                 uid = f.station_information.uuid
                 n = self._get_session(station_id, uid, sd)
                 n.add_data_from_packet(f) if n is not None \
-                    else self.station_models.append(SessionModel.create_from_packet(f))
+                    else self.session_models.append(SessionModel.create_from_packet(f))
             index.append(id_index)
 
         if pool is None:
@@ -528,25 +534,21 @@ class ApiReaderModel:
         The index should only request one station id
         If the station was restarted during the request period, a new group of indexes will be created
         to represent the change in station metadata.
+        Creates SessionModels for each station session found in the requested data.
 
         :param station_index: index representing the requested information
         :return: List of Indexes that includes as much information as possible that fits the request
         """
-        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
         # if we found nothing, return the index
         if len(station_index.entries) < 1:
             return [station_index]
+
+        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
         stats = fs.extract_stats(station_index, pool=_pool)
         # Close pool if created here
         if pool is None:
             _pool.close()
-
-        # offset_model = om.model_from_stats(stats)
-        #
-        # # punt if duration or other important values are invalid or if the latency array was empty
-        # if offset_model is None:
-        #     return [station_index]
 
         results = {}
 
@@ -558,6 +560,6 @@ class ApiReaderModel:
 
         for s in results.values():
             m = SessionModel.create_from_stream(s.read_contents())
-            self.station_models.append(m)
+            self.session_models.append(m)
 
         return list(results.values())
