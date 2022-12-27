@@ -31,7 +31,7 @@ SessionModel creates a short summary of a set of data, and provides this informa
 ## SessionModel
 
 SessionModel is a module designed to read files quickly and summarize the information within each file.  This summary 
-is compiled with other summaries within the same session.
+can be merged with other summaries within the same session.
 
 A session is defined as the period of a station that runs continuously from the moment the station starts recording to 
 the moment the station stops recording.  Depending on the availability of data, SessionModel may not capture the 
@@ -49,7 +49,7 @@ If you want a quick example to copy and paste into your Python IDE, check [here]
 
 ### Create SessionModel
 
-SessionModels are created using one or more packets of data.  There are three identifiers of a SessionModel.  If you 
+SessionModel is created using one or more packets of data.  There are three identifiers of a SessionModel.  If you 
 create a SessionModel with multiple packets, only the packets with identifiers that all match the first packet's will be 
 used.  The three identifiers are:
 * Station ID
@@ -163,7 +163,7 @@ at once.
 
 ### Using SessionModel
 
-SessionModels are intended to remain open and untouched as long as data for the session can be obtained.  You may 
+A SessionModel is intended to remain open and untouched as long as data for the session can be obtained.  You may 
 obtain information about the session at any point during this period, but any information obtained this way may become 
 obsolete at any moment.
 
@@ -413,13 +413,57 @@ than creating a SessionModel, but will provide a more complete view of the data.
 
 Ensure you have installed the latest [Redvox SDK](https://pypi.org/project/redvox/) before running this example.
 
-This example assumes you have downloaded data from [redvox.io](https://redvox.io/#/home).
+This example assumes you have downloaded a structured set of .rdvxm files.  Several methods are available to get such 
+files:
+* [Redvox website](https://redvox.io/#/home)
+* [CLI Cloud Download](https://github.com/RedVoxInc/redvox-python-sdk/tree/master/docs/python_sdk/cli#cloud-download-command-details)
+* [CLI data req](https://github.com/RedVoxInc/redvox-python-sdk/tree/master/docs/python_sdk/cli#data-req-command-details)
 
+We will use the ApiReaderModel module to access our data and automatically create as many SessionModel objects as 
+needed.
 ```python
-# CODE GOES HERE
+# Some sessions may not have enough data to create an offset model.  If any of the SessionModel does not
+# create a graph, try removing that station from the data or using a different data set.
+from redvox.common.api_reader import ApiReaderModel
+import redvox.common.date_time_utils as dt
+import matplotlib.pyplot as plt
+import numpy as np
 
+
+# Update this to match your environment
+files_path = "/PATH/TO/DATA"
+
+reader = ApiReaderModel(files_path, True)
+for m in reader.session_models:
+  print(m)
+  
+  # display the offset model as a plot
+  mos = m.get_offset_model()
+  # evenly spaced x values
+  lmts = np.linspace(0, m.last_latency_timestamp() - m.first_latency_timestamp(), m.num_timesync_points)
+  plt.plot(lmts / 1e6, (mos.slope * lmts + mos.intercept) / 1e6, label="offsetmodel")
+  plt.title(f"{m.id} offset model")
+  plt.ylabel("latency in seconds")
+  plt.xlabel(f"seconds from {dt.datetime_from_epoch_microseconds_utc(m.first_latency_timestamp())}")
+  
+  plt.show()
 ```
 
 ## Errors and Troubleshooting
 
-`todo:` HELP
+Any statistics calculated from SessionModel are subject to errors.  Use [DataWindow](../data_window) for best accuracy 
+of the whole data set.
+
+If you are not seeing any results from creating a SessionModel, check that the target directory contains the correct 
+files.
+
+You are more likely to use the ApiReaderModel module to create SessionModel from large sets of data.  The SessionModel 
+[constructor methods](#create-sessionmodel) are intended for advanced users who want to investigate specific sets of 
+data.  Refer to the [example code](#sessionmodel-example-code) for a quick example on how to use ApiReaderModel to get 
+SessionModel.
+
+Unless you are working with a stream of data, any SessionModel you create is the best summary given the existing data.
+You may want to [seal](#sealing-sessionmodel) any SessionModel created from a discrete set of files on disk.
+
+Remember that any SessionModel that can be fed more data is considered open, and the summary can change depending on 
+the added data.  Evaluate the summary only if the SessionModel is sealed.
