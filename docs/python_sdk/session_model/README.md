@@ -56,14 +56,12 @@ used.  The three identifiers are:
 * Station UUID
 * Station Start Date
 
-We recommend following the example [Create SessionModel From Files](#from-directory-of-files) if you have a fixed set 
-of files to work with.  If you are streaming files into a system, refer to the section 
-[Update SessionModel](#update-sessionmodel). 
+We recommend [creating SessionModel from files](#from-directory-of-files) if you have a fixed set of files to work 
+with.  If you are streaming files into a system, refer to the section [Update SessionModel](#update-sessionmodel). 
 
 #### From Directory of Files
 
-If you have a fixed set of files to work with; say from a download on [redvox.io](https://redvox.io/#/home), use the 
-ApiReaderModel module.
+If you have a directory of files, use the ApiReaderModel module to create a SessionModel for each session in the data.
 ```python
 from redvox.common.api_reader import ApiReaderModel
 
@@ -393,8 +391,9 @@ for each of the sessions it finds.
 * `base_dir`: string, the directory containing the files to read.
 * `structured_dir`: bool, if True, `base_dir` follows the Structured format listed below.  If False, data is 
   Unstructured.  Default False.
-* `read_filter`: ReadFilter for the data files, if None, gets everything.  You can read more about using ReadFilter
-  [here](https://github.com/RedVoxInc/redvox-python-sdk/blob/master/docs/python_sdk/low_level_api.md#selectively-filtering-data).  Default None.
+* `read_filter`: ReadFilter for the data files, if None, gets everything.  You can read more about using 
+  [ReadFilter here](https://github.com/RedVoxInc/redvox-python-sdk/blob/master/docs/python_sdk/low_level_api.md#selectively-filtering-data).
+  Default None.
 * `debug`: boolean, if True, output program warnings/errors during function execution.  Default False.
 
 #### A Note on Directory Structure

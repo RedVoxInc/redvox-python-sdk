@@ -1,6 +1,6 @@
 ## Changelog
 
-### 3.3.8 (2022-12-??)
+### 3.3.8 (2022-12-27)
 
 * Added SessionModel.  It is built iteratively by reading metadata from files belonging to one session of station.
 
