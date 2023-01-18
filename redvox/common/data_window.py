@@ -808,7 +808,6 @@ class DataWindow:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime)
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
-        # process events?
         self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
         if station.has_audio_data():
             for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
@@ -860,6 +859,7 @@ class DataWindow:
                     f"Data window for {station_id} {'Audio' if is_audio else sensor.type().name} "
                     f"sensor has truncated all data points"
                 )
+                # adjust data window to match the conditions of the remaining data
                 if is_audio:
                     sensor.empty_data_table()
                 elif last_before_start is not None and first_after_end is None:
