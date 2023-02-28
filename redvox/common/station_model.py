@@ -81,9 +81,11 @@ class StationModel:
             if self.end_date < session.last_data_timestamp:
                 self.end_date = session.last_data_timestamp
             first_timestamp = np.nan if np.isnan(session.first_data_timestamp) \
-                else datetime_from_epoch_microseconds_utc(session.first_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+                else datetime_from_epoch_microseconds_utc(
+                session.first_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
             last_timestamp = np.nan if np.isnan(session.last_data_timestamp) \
-                else datetime_from_epoch_microseconds_utc(session.last_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+                else datetime_from_epoch_microseconds_utc(
+                session.last_data_timestamp).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
             self.changelog.append(f"session from {first_timestamp}: {last_timestamp}")
 
     @staticmethod
