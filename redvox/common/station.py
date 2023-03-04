@@ -1,7 +1,7 @@
 """
 Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
-Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
+Utilizes RedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
 from typing import List, Optional, Tuple
 import os
@@ -567,6 +567,12 @@ class Station:
         else:
             self._data.append(sensor)
 
+    def get_num_packets(self) -> int:
+        """
+        :return: number of packets used to create station
+        """
+        return len(self._packet_metadata)
+
     def get_mean_packet_duration(self) -> float:
         """
         :return: mean duration of packets in microseconds
@@ -585,7 +591,7 @@ class Station:
         :return: mean number of audio samples per packet
         """
         # noinspection Mypy
-        return self.audio_sensor().num_samples() / len(self._packet_metadata)
+        return self.audio_sensor().num_samples() / self.get_num_packets()
 
     def has_timesync_data(self) -> bool:
         """
