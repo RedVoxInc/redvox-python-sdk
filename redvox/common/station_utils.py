@@ -9,10 +9,8 @@ import numpy as np
 
 from redvox.common.offset_model import OffsetModel
 from redvox.api1000.wrapped_redvox_packet.station_information import OsType
-from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet.timing_information import TimingScoreMethod
 from redvox.common.errors import RedVoxExceptions
-# from redvox.api1000.wrapped_redvox_packet import event_streams as es
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
 
@@ -23,7 +21,7 @@ def validate_station_key_list(
     Checks for consistency in the data packets.  Returns False if discrepancies are found.
     If debug is True, will output the discrepancies.
 
-    :param data_packets: list of WrappedRedvoxPacketM to look at
+    :param data_packets: list of RedvoxPacketM to look at
     :param errors: RedVoxExceptions detailing errors found while validating
     :return: True if no discrepancies found.  False otherwise
     """
@@ -162,7 +160,7 @@ class StationMetadata:
         initialize the metadata
 
         :param app: app name
-        :param packet: Optional WrappedRedvoxPacketM to read data from
+        :param packet: Optional RedvoxPacketM to read data from
         """
         self.app = app
         self.other_metadata = {}
@@ -277,78 +275,6 @@ class StationMetadata:
         return result
 
 
-class StationMetadataWrapped:
-    """
-    A container for all the packet metadata consistent across all packets
-    Properties:
-        api: float, api version, default np.nan
-        sub_api: float, sub api version, default np.nan
-        make: str, station make, default empty string
-        model: str, station model, default empty string
-        os: OsType enum, station OS, default OsType.UNKNOWN_OS
-        os_version: str, station OS version, default empty string
-        app: str, station app, default empty string
-        app_version: str, station app version, default empty string
-        is_private: bool, is station data private, default False
-        packet_duration_s: float, duration of the packet in seconds, default np.nan
-        station_description: str, description of the station, default empty string
-        other_metadata: dict, str: str of other metadata from the packet, default empty list
-    """
-
-    def __init__(self, app: str, packet: Optional[WrappedRedvoxPacketM] = None):
-        """
-        initialize the metadata
-
-        :param app: app name
-        :param packet: Optional WrappedRedvoxPacketM to read data from
-        """
-        self.app = app
-        self.other_metadata = {}
-        if packet:
-            self.api = packet.get_api()
-            self.sub_api = packet.get_sub_api()
-            self.make = packet.get_station_information().get_make()
-            self.model = packet.get_station_information().get_model()
-            self.os = packet.get_station_information().get_os()
-            self.os_version = packet.get_station_information().get_os_version()
-            self.app_version = packet.get_station_information().get_app_version()
-            self.is_private = packet.get_station_information().get_is_private()
-            self.packet_duration_s = packet.get_packet_duration_s()
-            self.station_description = (
-                packet.get_station_information().get_description()
-            )
-        else:
-            self.api = np.nan
-            self.sub_api = np.nan
-            self.make = ""
-            self.model = ""
-            self.os = OsType.UNKNOWN_OS
-            self.os_version = ""
-            self.app_version = ""
-            self.is_private = False
-            self.packet_duration_s = np.nan
-            self.station_description = ""
-
-    def validate_metadata(self, other_metadata: "StationMetadataWrapped") -> bool:
-        """
-        :param other_metadata: another StationMetadata object to compare
-        :return: True if other_metadata is equal to the calling metadata
-        """
-        return (
-                self.app == other_metadata.app
-                and self.api == other_metadata.api
-                and self.sub_api == other_metadata.sub_api
-                and self.make == other_metadata.make
-                and self.model == other_metadata.model
-                and self.os == other_metadata.os
-                and self.os_version == other_metadata.os_version
-                and self.app_version == other_metadata.app_version
-                and self.is_private == other_metadata.is_private
-                and self.packet_duration_s == other_metadata.packet_duration_s
-                and self.station_description == other_metadata.station_description
-        )
-
-
 class StationPacketMetadata:
     """
     A container for all the packet metadata that isn't consistent across all packets
@@ -378,7 +304,7 @@ class StationPacketMetadata:
         """
         initialize the metadata
 
-        :param packet: Optional WrappedRedvoxPacketM to read data from
+        :param packet: Optional RedvoxPacketM to read data from
         """
         self.other_metadata = {}
         if packet:
@@ -483,60 +409,3 @@ class StationPacketMetadata:
                                                        if "timing_score_method" in pmd_dict.keys()
                                                        else "UNKNOWN"]
         return result
-
-
-class StationPacketMetadataWrapped:
-    """
-    A container for all the packet metadata that isn't consistent across all packets
-    Properties:
-        packet_start_mach_timestamp: float, machine timestamp of packet start in microseconds since epoch UTC
-        packet_end_mach_timestamp: float, machine timestamp of packet end in microseconds since epoch UTC
-        packet_start_os_timestamp: float, os timestamp of packet start in microseconds since epoch UTC
-        packet_end_os_timestamp: float, os timestamp of packet end in microseconds since epoch UTC
-        timing_info_score: float, quality of timing information
-        timing_score_method: TimingScoreMethod, method used to determine timing score
-        other_metadata: dict, str: str of other metadata from the packet
-    """
-
-    def __init__(self, packet: Optional[WrappedRedvoxPacketM] = None):
-        """
-        initialize the metadata
-
-        :param packet: Optional WrappedRedvoxPacketM to read data from
-        """
-        self.other_metadata = {}
-        if packet:
-            self.packet_start_mach_timestamp = (
-                packet.get_timing_information().get_packet_start_mach_timestamp()
-            )
-            self.packet_end_mach_timestamp = (
-                packet.get_timing_information().get_packet_end_mach_timestamp()
-            )
-            self.packet_start_os_timestamp = (
-                packet.get_timing_information().get_packet_start_os_timestamp()
-            )
-            self.packet_end_os_timestamp = (
-                packet.get_timing_information().get_packet_end_os_timestamp()
-            )
-            self.timing_info_score = packet.get_timing_information().get_score()
-            self.timing_score_method = TimingScoreMethod(packet.get_timing_information().get_score_method())
-        else:
-            self.packet_start_mach_timestamp = np.nan
-            self.packet_end_mach_timestamp = np.nan
-            self.packet_start_os_timestamp = np.nan
-            self.packet_end_os_timestamp = np.nan
-            self.timing_info_score = np.nan
-            self.timing_score_method = TimingScoreMethod["UNKNOWN"]
-
-    def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
-        """
-        updates the timestamps in the metadata using the offset model
-
-        :param om: OffsetModel to apply to data
-        :param use_model_function: if True, use the offset model's correction function to correct time,
-                                    otherwise use best offset (model's intercept value).  default True
-        """
-        self.packet_start_mach_timestamp = om.update_time(self.packet_start_mach_timestamp, use_model_function)
-        self.packet_end_mach_timestamp = om.update_time(self.packet_end_mach_timestamp, use_model_function)
-        self.packet_start_os_timestamp = om.update_time(self.packet_start_os_timestamp, use_model_function)
-        self.packet_end_os_timestamp = om.update_time(self.packet_end_os_timestamp, use_model_function)
