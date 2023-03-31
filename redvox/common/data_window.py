@@ -25,7 +25,7 @@ from redvox.common import io
 from redvox.common import data_window_io as dw_io
 from redvox.common.data_window_configuration import DataWindowConfigFile
 from redvox.common.parallel_utils import maybe_parallel_map
-from redvox.common.station import Station
+from redvox.common.station import Station, STATION_ID_LENGTH
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader_dw import ApiReaderDw
 from redvox.common import gap_and_pad_utils as gpu
@@ -781,7 +781,7 @@ class DataWindow:
                                 f"\nPlease adjust parameters of DataWindow")
         elif len(self._stations) > 0 and self._config.station_ids:
             for ids in self._config.station_ids:
-                if ids.zfill(10) not in [i.id() for i in self._stations]:
+                if ids.zfill(STATION_ID_LENGTH) not in [i.id() for i in self._stations]:
                     self._errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )

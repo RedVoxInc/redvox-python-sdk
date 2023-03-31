@@ -25,6 +25,9 @@ from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc,\
 from redvox.common.event_stream import EventStreams
 
 
+STATION_ID_LENGTH = 10  # the length of a station ID string
+
+
 class Station:
     """
     generic station for api-independent stuff; uses API M as the core data object since its quite versatile
@@ -34,6 +37,7 @@ class Station:
         * Have the same start date
         * Have the same audio sample rate
         * Have the same metadata
+    Generally speaking, stations can be uniquely identified with a minimum of three values: id, uuid, and start date
     Properties:
         _data: list of sensor data associated with the station, default empty list
 
@@ -378,7 +382,7 @@ class Station:
         :param packet: API-M redvox packet to load metadata from
         """
         # self.id = packet.station_information.id
-        self._id = packet.station_information.id.zfill(10)
+        self._id = packet.station_information.id.zfill(STATION_ID_LENGTH)
         self._uuid = packet.station_information.uuid
         self._start_date = packet.timing_information.app_start_mach_timestamp
         if self._start_date < 0:
