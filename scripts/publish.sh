@@ -25,7 +25,7 @@ set -o errexit
 set -o xtrace
 
 cd ..
-python3 setup.py sdist bdist_wheel
+python3 -m build .
 
 twine upload -r pypi -u ${USER} -p ${PASS} --skip-existing dist/*
 

@@ -54,7 +54,7 @@ native = [
 ]
 
 full = [
-    "PySide6>=6.5.0",
+    "PySide6==6.5.0",
     "matplotlib==3.7.1",
     "redvox_native==0.2.3",
 ]
