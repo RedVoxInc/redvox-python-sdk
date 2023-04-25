@@ -1,7 +1,7 @@
-# Requirements for developing the RedVox Python SDK.
-pylint >= 2.8.2     # Python linting
-mypy >= 0.812       # Static type checking
-pdoc3 >= 0.8.4      # API documentation and generation
-coverage >= 5.5     # Test coverage
-twine >= 3.2.0      # For publishing to pypi
-wheel >= 0.34.2     # For building wheel distributions
+pylint==2.17.3
+mypy==1.2.0
+pdoc3==0.10.0
+coverage==7.2.3
+twine==4.0.2
+wheel==0.40.0
+build==0.10.0
