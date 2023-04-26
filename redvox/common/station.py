@@ -1362,7 +1362,7 @@ class Station:
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        float(np.mean(np.diff(timestamps))) if len(timestamps) > 1 else np.nan, True)
+                        float(np.mean(np.diff(timestamps))) if len(timestamps) > 1 else np.nan, "copy")
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
@@ -1372,7 +1372,7 @@ class Station:
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        s_to_us(sdata[0].smint_s), True)
+                        s_to_us(sdata[0].smint_s), "copy")
                     new_sensor = sd.SensorData(
                             sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,

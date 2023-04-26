@@ -148,7 +148,7 @@ def fill_gaps(
         arrow_df: pa.Table,
         gaps: List[Tuple[float, float]],
         sample_interval_micros: float,
-        copy: bool = False
+        fill_mode: str = "nan"
 ) -> Tuple[pa.Table, List[Tuple[float, float]]]:
     """
     fills gaps in the table with np.nan or interpolated values by interpolating timestamps based on the
@@ -157,7 +157,8 @@ def fill_gaps(
     :param arrow_df: pyarrow table with data.  first column is "timestamps"
     :param gaps: list of tuples of known non-inclusive start and end timestamps of the gaps
     :param sample_interval_micros: known sample interval of the data points
-    :param copy: if True, copy the data points, otherwise interpolate from edges, default False
+    :param fill_mode: must be one of: "nan", "interpolate", or "copy".  Other inputs result in "nan".  Default "nan".
+                        Will convert input to lowercase.
     :return: table without gaps and the list of gaps
     """
     # extract the necessary information to compute gap size and gap timestamps
@@ -168,8 +169,10 @@ def fill_gaps(
                             + (1 if data_duration % sample_interval_micros >=
                                sample_interval_micros * DEFAULT_GAP_UPPER_LIMIT else 0)) + 1
         if expected_samples > len(data_time_stamps):
-            if copy:
+            if fill_mode.lower() == "copy":
                 pcm = DataPointCreationMode["COPY"]
+            elif fill_mode.lower() == "interpolate":
+                pcm = DataPointCreationMode["INTERPOLATE"]
             else:
                 pcm = DataPointCreationMode["NAN"]
             # make it safe to alter the gap values
