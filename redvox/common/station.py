@@ -1,7 +1,7 @@
 """
 Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
-Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
+Utilizes RedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
 from typing import List, Optional, Tuple
 import os
@@ -25,6 +25,9 @@ from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc,\
 from redvox.common.event_stream import EventStreams
 
 
+STATION_ID_LENGTH = 10  # the length of a station ID string
+
+
 class Station:
     """
     generic station for api-independent stuff; uses API M as the core data object since its quite versatile
@@ -34,6 +37,7 @@ class Station:
         * Have the same start date
         * Have the same audio sample rate
         * Have the same metadata
+    Generally speaking, stations can be uniquely identified with a minimum of three values: id, uuid, and start date
     Properties:
         _data: list of sensor data associated with the station, default empty list
 
@@ -378,7 +382,7 @@ class Station:
         :param packet: API-M redvox packet to load metadata from
         """
         # self.id = packet.station_information.id
-        self._id = packet.station_information.id.zfill(10)
+        self._id = packet.station_information.id.zfill(STATION_ID_LENGTH)
         self._uuid = packet.station_information.uuid
         self._start_date = packet.timing_information.app_start_mach_timestamp
         if self._start_date < 0:
@@ -567,6 +571,12 @@ class Station:
         else:
             self._data.append(sensor)
 
+    def get_num_packets(self) -> int:
+        """
+        :return: number of packets used to create station
+        """
+        return len(self._packet_metadata)
+
     def get_mean_packet_duration(self) -> float:
         """
         :return: mean duration of packets in microseconds
@@ -585,7 +595,7 @@ class Station:
         :return: mean number of audio samples per packet
         """
         # noinspection Mypy
-        return self.audio_sensor().num_samples() / len(self._packet_metadata)
+        return self.audio_sensor().num_samples() / self.get_num_packets()
 
     def has_timesync_data(self) -> bool:
         """
@@ -1352,7 +1362,7 @@ class Station:
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        float(np.mean(np.diff(timestamps))) if len(timestamps) > 1 else np.nan, True)
+                        float(np.mean(np.diff(timestamps))) if len(timestamps) > 1 else np.nan, "copy")
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
@@ -1362,7 +1372,7 @@ class Station:
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        s_to_us(sdata[0].smint_s), True)
+                        s_to_us(sdata[0].smint_s), "copy")
                     new_sensor = sd.SensorData(
                             sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
@@ -1566,6 +1576,39 @@ class Station:
             self._is_timestamps_updated = True
         else:
             self._errors.append("Attempted to correct timestamps, but correction not enabled.")
+        return self
+
+    def undo_update_timestamps(self) -> "Station":
+        """
+        undoes non-sensor timestamp updates of the timestamps in the station using the offset model
+        sensors already have unaltered timestamps
+        """
+        if not self._is_timestamps_updated:
+            self._errors.append("Timestamps already not corrected!")
+        else:
+            self._start_date = self._timesync_data.offset_model().get_original_time(
+                self._start_date, self._use_model_correction
+            )
+            if self._fs_writer.file_name != self._get_id_key():
+                if self._fs_writer.is_save_disk():
+                    old_name = self.save_dir()
+                    self.set_save_dir(self._fs_writer.base_dir)
+                    if old_name != "." and os.path.exists(old_name):
+                        os.rename(old_name, self.save_dir())
+                else:
+                    self._fs_writer.file_name = self._get_id_key()
+            for sensor in self._data:
+                sensor.set_original_timestamps()
+            for packet in self._packet_metadata:
+                packet.original_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
+            for g in range(len(self._gaps)):
+                self._gaps[g] = (self._timesync_data.offset_model().get_original_time(self._gaps[g][0]),
+                                 self._timesync_data.offset_model().get_original_time(self._gaps[g][1]))
+            if hasattr(self, "_event_data"):
+                self._event_data.original_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
+            self.update_first_and_last_data_timestamps()
+            self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
+            self._is_timestamps_updated = True
         return self
 
     def as_dict(self) -> dict:

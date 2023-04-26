@@ -25,7 +25,7 @@ from redvox.common import io
 from redvox.common import data_window_io as dw_io
 from redvox.common.data_window_configuration import DataWindowConfigFile
 from redvox.common.parallel_utils import maybe_parallel_map
-from redvox.common.station import Station
+from redvox.common.station import Station, STATION_ID_LENGTH
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader_dw import ApiReaderDw
 from redvox.common import gap_and_pad_utils as gpu
@@ -768,7 +768,7 @@ class DataWindow:
 
     def _check_valid_ids(self):
         """
-        if there are stations, searches the station_ids for any ids not in the data collected
+        if there are stations, searches the config's station_ids for any ids not in the data collected
         and creates an error message for each id requested but has no data
         if there are no stations, creates a single error message declaring no data found
         """
@@ -781,7 +781,7 @@ class DataWindow:
                                 f"\nPlease adjust parameters of DataWindow")
         elif len(self._stations) > 0 and self._config.station_ids:
             for ids in self._config.station_ids:
-                if ids.zfill(10) not in [i.id() for i in self._stations]:
+                if ids.zfill(STATION_ID_LENGTH) not in [i.id() for i in self._stations]:
                     self._errors.append(
                         f"Requested {ids} but there is no data to read for that station"
                     )
@@ -808,7 +808,6 @@ class DataWindow:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime)
         else:
             end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
-        # process events?
         self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
         if station.has_audio_data():
             for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
@@ -860,6 +859,7 @@ class DataWindow:
                     f"Data window for {station_id} {'Audio' if is_audio else sensor.type().name} "
                     f"sensor has truncated all data points"
                 )
+                # adjust data window to match the conditions of the remaining data
                 if is_audio:
                     sensor.empty_data_table()
                 elif last_before_start is not None and first_after_end is None:

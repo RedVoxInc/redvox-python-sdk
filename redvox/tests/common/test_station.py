@@ -44,6 +44,8 @@ class StationTest(unittest.TestCase):
 
     def test_api900_station(self):
         self.assertEqual(len(self.api900_station._data), 6)
+        self.assertEqual(self.api900_station.metadata().api, 1000)
+        self.assertEqual(self.api900_station.metadata().sub_api, 900)
         self.assertEqual(
             self.api900_station.timesync_data().best_latency(), 70278.0
         )
@@ -57,6 +59,7 @@ class StationTest(unittest.TestCase):
 
     def test_apim_station(self):
         self.assertEqual(len(self.apim_station._data), 3)
+        self.assertEqual(self.apim_station.metadata().api, 1000)
         self.assertEqual(self.apim_station.timesync_data().best_latency(), 1296.0)
         audio_sensor = self.apim_station.audio_sensor()
         self.assertIsNotNone(audio_sensor)
@@ -137,3 +140,15 @@ class StationTest(unittest.TestCase):
         updated_station.update_timestamps()
         self.assertNotEqual(updated_station.first_data_timestamp(),
                             updated_station.audio_sensor().get_data_channel("unaltered_timestamps")[0])
+
+    def test_event_data(self):
+        events = self.api900_station.event_data()
+        for s in events.get_stream_names():
+            for e in events.get_stream(s).events:
+                self.assertEqual(e.name, s)
+                self.assertTrue(e.get_timestamp() >= self.api900_station.start_date())
+        events = self.apim_station.event_data()
+        for s in events.get_stream_names():
+            for e in events.get_stream(s).events:
+                self.assertEqual(e.name, s)
+                self.assertTrue(e.get_timestamp() >= self.apim_station.start_date())

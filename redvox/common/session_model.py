@@ -662,6 +662,7 @@ class SessionModel:
             _ts_offsets = ts.offsets().flatten()
             _ts_timestamps = ts.get_device_exchanges_timestamps()
             _ts_latencies = ts.latencies().flatten()
+            # add data to the appropriate circular queue
             if self._first_timesync_data.is_full():
                 for i in range(len(_ts_timestamps)):
                     self._last_timesync_data.add((_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i]))

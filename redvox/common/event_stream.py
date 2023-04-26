@@ -85,7 +85,7 @@ class Event:
                f"timestamp: {self._timestamp}, " \
                f"uncorrected_timestamp: {self._uncorrected_timestamp}, " \
                f"schema: {self.get_schema()}, " \
-               f"save_mode: {self._fs_writer.save_mode().value}"
+               f"save_mode: {self._fs_writer.save_mode()}"
 
     def __str__(self):
         return f"name: {self.name}, " \
@@ -432,6 +432,19 @@ class Event:
             self._errors.append("Timestamps already corrected!")
         else:
             self._timestamp = offset_model.update_time(self._timestamp, use_model_function)
+
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        """
+        undo the update to the timestamp of the Event
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model's slope function to update the timestamps.
+                                    otherwise uses the best offset (model's intercept value).  Default False
+        """
+        if not self.is_timestamp_corrected():
+            self._errors.append("Timestamps already not corrected!")
+        else:
+            self._timestamp = offset_model.get_original_time(self._timestamp, use_model_function)
 
     def default_json_file_name(self) -> str:
         """
@@ -799,6 +812,7 @@ class EventStream:
     def create_event_window(self, start: float = -np.inf, end: float = np.inf):
         """
         removes any event in the stream that doesn't match start <= event < end
+        adds empty events to beginning and end of data (as long as the corresponding input values are not infinity)
         default start is negative infinity, default end is infinity
         all times in microseconds since epoch UTC
 
@@ -807,9 +821,10 @@ class EventStream:
         """
         self.events = [s for s in self.events if start <= s.get_timestamp() < end]
         if self.num_events() > 0:
-            if start < self.events[0].get_timestamp():
+            if start < self.events[0].get_timestamp() and not np.isinf(start):
                 self.events.insert(0, Event(start, self.name))
-            self.events.append(Event(end, self.name))
+            if not np.isinf(end):
+                self.events.append(Event(end - 1, self.name))
 
     def get_file_names(self) -> List[str]:
         """
@@ -855,6 +870,17 @@ class EventStream:
         """
         for evnt in self.events:
             evnt.update_timestamps(offset_model, use_model_function)
+
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        """
+        undo the update to the timestamps in the data
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model's slope function to update the timestamps.
+                                    otherwise uses the best offset (model's intercept value).  Default False
+        """
+        for evnt in self.events:
+            evnt.original_timestamps(offset_model, use_model_function)
 
     @staticmethod
     def from_json_dict(json_dict: dict) -> "EventStream":
@@ -1046,6 +1072,17 @@ class EventStreams:
         """
         for evnt in self.streams:
             evnt.update_timestamps(offset_model, use_model_function)
+
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        """
+        undo the update to the timestamps in the data
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model's slope function to update the timestamps.
+                                    otherwise uses the best offset (model's intercept value).  Default False
+        """
+        for evnt in self.streams:
+            evnt.original_timestamps(offset_model, use_model_function)
 
     @staticmethod
     def from_json_file(file_dir: str, file_name: str) -> "EventStreams":

@@ -72,12 +72,3 @@ def is_native_extra_enabled() -> bool:
         return True
     except ModuleNotFoundError:
         return False
-
-
-def is_cpp_backend_enabled() -> bool:
-    """
-    :return: True if the protobuf CPP backend is enabled, False otherwise
-    """
-    # noinspection PyUnresolvedReferences
-    from google.protobuf.internal import api_implementation
-    return api_implementation.Type() == "cpp"

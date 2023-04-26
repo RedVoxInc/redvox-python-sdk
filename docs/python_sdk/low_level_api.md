@@ -12,6 +12,7 @@ The SDK provides a lower level API as well as direct access to the underlying pr
     + [Streaming data from the file system](#streaming-data-from-the-file-system)
     + [Selectively filtering data](#selectively-filtering-data)
   * [The WrappedRedvoxPacketM Type](#the-wrappedredvoxpacketm-type)
+  * [Working with API and Sub API Values](#working-with-api-and-sub-api-values)
   * [Working with Station Information](#working-with-station-information)
   * [Working with App Settings](#working-with-app-settings)
   * [Working with TimingPayloads, SamplePayloads, and ProtoRepeatedMessages](#working-with-timingpayloads-samplepayloads-and-protorepeatedmessages)
@@ -244,6 +245,28 @@ This type encapsulates the underlying protobuf and provides a mid-level interfac
 underlying protobuf data in a semi type-safe way. All API M data for a single packet is accessible through this type.
 
 The following sections will describe the `WrappedRedvoxPacketM` in detail.
+
+_[Table of Contents](#table-of-contents)_
+
+### Working with API and Sub API values
+
+The `api` value of the `WrappedRedvoxPacketM` denotes the major version of the packet.  As of API M, this value is 1000.
+
+The `sub_api` value denotes the minor version of the packet.  If this value is equal to `900.0`, then the packet was 
+converted from API 900 into API M format.
+
+Let's take a quick look at accessing these values and checking for API 900 conversions:
+
+```python
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+
+packet: WrappedRedvoxPacketM = WrappedRedvoxPacketM.from_compressed_path("data/1637610015_1608678009651382.rdvxm")
+api_version = packet.get_api()
+sub_api_version = packet.get_sub_api()
+print(api_version)
+if sub_api_version == 900.0:
+    print("This packet was converted from API 900 data.")
+```
 
 _[Table of Contents](#table-of-contents)_
 

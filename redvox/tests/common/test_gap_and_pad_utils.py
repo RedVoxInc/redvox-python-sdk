@@ -65,21 +65,19 @@ class AudioGapFillTest(unittest.TestCase):
                    (5000., pa.Table.from_pydict({"microphone": [5, 15, 25, 35]}))
                    ]
         result = gpu.fill_audio_gaps(my_data, self.sample_interval)
-        filled_df = result.result
-        gaps = result.gaps
+        filled_df = result.create_timestamps()
         self.assertEqual(len(filled_df["timestamps"]), 20)
-        self.assertEqual(len(gaps), 1)
+        self.assertEqual(len(result.gaps), 1)
 
     def test_misshapen_audio_gap_df(self):
         my_data = [(1000., pa.Table.from_pydict({"microphone": [10, 20, 30, 40]})),
-                   (2000., pa.Table.from_pydict({"microphone": [40, 30, 20, 10]})),
-                   (5000., pa.Table.from_pydict({"microphone": [5, 15, 25, 35]}))
+                   (3400., pa.Table.from_pydict({"microphone": [40, 30]})),
+                   (4400., pa.Table.from_pydict({"microphone": [5, 15, 25, 35, 65]}))
                    ]
         result = gpu.fill_audio_gaps(my_data, self.sample_interval)
-        filled_df = result.result
-        gaps = result.gaps
-        self.assertEqual(len(filled_df["timestamps"]), 20)
-        self.assertEqual(len(gaps), 1)
+        filled_df = result.create_timestamps()
+        self.assertEqual(len(filled_df["timestamps"]), 19)
+        self.assertEqual(len(result.gaps), 2)
 
     def test_tiny_audio_gap_df(self):
         my_data = [(1000., pa.Table.from_pydict({"microphone": [10, 20, 30, 40]})),
@@ -87,10 +85,9 @@ class AudioGapFillTest(unittest.TestCase):
                    (3005., pa.Table.from_pydict({"microphone": [5, 15, 25, 35]}))
                    ]
         result = gpu.fill_audio_gaps(my_data, self.sample_interval)
-        filled_df = result.result
-        gaps = result.gaps
+        filled_df = result.create_timestamps()
         self.assertEqual(len(filled_df["timestamps"]), 12)
-        self.assertEqual(len(gaps), 0)
+        self.assertEqual(len(result.gaps), 0)
 
     def test_undersized_audio_gap_df(self):
         my_data = [(1000., pa.Table.from_pydict({"microphone": [10, 20, 30, 40]})),
@@ -98,15 +95,13 @@ class AudioGapFillTest(unittest.TestCase):
                    (3100., pa.Table.from_pydict({"microphone": [5, 15, 25, 35]}))
                    ]
         result = gpu.fill_audio_gaps(my_data, self.sample_interval)
-        filled_df = result.result
-        gaps = result.gaps
+        filled_df = result.create_timestamps()
         self.assertEqual(len(filled_df["timestamps"]), 13)
-        self.assertEqual(len(gaps), 1)
+        self.assertEqual(len(result.gaps), 1)
 
     def test_failure_audio_gap_df(self):
         my_data = [(1000., pa.Table.from_pydict({"microphone": [10, 20, 30, 40]})),
                    (1500., pa.Table.from_pydict({"microphone": [40, 30, 20, 10]}))
                    ]
         result = gpu.fill_audio_gaps(my_data, self.sample_interval)
-        error = result.errors.get()
-        self.assertEqual(len(error), 1)
+        self.assertEqual(len(result.errors.get()), 1)

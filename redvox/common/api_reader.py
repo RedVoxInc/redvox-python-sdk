@@ -226,13 +226,13 @@ class ApiReader:
             return [station_index]
 
         # if our filtered files do not encompass the request even when the packet times are updated
-        # try getting 1.5 times the difference of the expected start/end and the start/end of the data
+        # try getting the difference of the expected start/end and the start/end of the data plus one packet
         insufficient_str = ""
         if (self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt) or \
                 (self.filter.end_dt and timing_offsets.adjusted_start >= self.filter.end_dt):
             insufficient_str += f" {self.filter.start_dt} (start)"
             new_end = self.filter.start_dt - self.filter.start_dt_buf
-            new_start = new_end - 1.5 * (timing_offsets.adjusted_start - self.filter.start_dt)
+            new_start = new_end - (timing_offsets.adjusted_start - self.filter.start_dt + stats[0].packet_duration)
             new_index = self._redo_index(set(station_index.summarize().station_ids()), new_start, new_end)
             if new_index:
                 station_index.append(new_index.entries)
@@ -242,7 +242,7 @@ class ApiReader:
                 (self.filter.start_dt and timing_offsets.adjusted_end <= self.filter.start_dt):
             insufficient_str += f" {self.filter.end_dt} (end)"
             new_start = self.filter.end_dt + self.filter.end_dt_buf
-            new_end = new_start + 1.5 * (self.filter.end_dt - timing_offsets.adjusted_end)
+            new_end = new_start + (self.filter.end_dt - timing_offsets.adjusted_end + stats[0].packet_duration)
             new_index = self._redo_index(set(station_index.summarize().station_ids()), new_start, new_end)
             if new_index:
                 station_index.append(new_index.entries)

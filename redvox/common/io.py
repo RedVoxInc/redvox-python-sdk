@@ -266,9 +266,8 @@ class FileSystemWriter:
 
     def create_dir(self):
         """
-        if saving to disk, remove the directory if it exists,
-        then create an empty directory to save things into
-        if saving to temp dir, remove any files in the temp dir
+        if saving to disk, remove the directory if it exists, then create an empty directory to save things into
+        if saving to temp dir, remove any files in the temp dir before saving to dir
         """
         if self.is_use_disk():
             if os.path.exists(self.save_dir()):

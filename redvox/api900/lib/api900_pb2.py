@@ -15,41 +15,40 @@ _sym_db = _symbol_database.Default()
 
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0c\x61pi900.proto\"\xf5\x05\n\x0cRedvoxPacket\x12\x0b\n\x03\x61pi\x18\x01 \x01(\r\x12\x0c\n\x04uuid\x18\x02 \x01(\t\x12\x11\n\tredvox_id\x18\x03 \x01(\t\x12\x1b\n\x13\x61uthenticated_email\x18\x04 \x01(\t\x12\x1c\n\x14\x61uthentication_token\x18\x05 \x01(\t\x12\x16\n\x0e\x66irebase_token\x18\x17 \x01(\t\x12\x15\n\ris_backfilled\x18\x06 \x01(\x08\x12\x12\n\nis_private\x18\x07 \x01(\x08\x12\x14\n\x0cis_scrambled\x18\x08 \x01(\x08\x12\x13\n\x0b\x64\x65vice_make\x18\t \x01(\t\x12\x14\n\x0c\x64\x65vice_model\x18\n \x01(\t\x12\x11\n\tdevice_os\x18\x0b \x01(\t\x12\x19\n\x11\x64\x65vice_os_version\x18\x0c \x01(\t\x12\x13\n\x0b\x61pp_version\x18\r \x01(\t\x12\x1d\n\x15\x62\x61ttery_level_percent\x18\x18 \x01(\x02\x12\x1c\n\x14\x64\x65vice_temperature_c\x18\x19 \x01(\x02\x12\x1a\n\x12\x61\x63quisition_server\x18\x0e \x01(\t\x12#\n\x1btime_synchronization_server\x18\x0f \x01(\t\x12\x1d\n\x15\x61uthentication_server\x18\x10 \x01(\t\x12\x37\n/app_file_start_timestamp_epoch_microseconds_utc\x18\x11 \x01(\x03\x12(\n app_file_start_timestamp_machine\x18\x12 \x01(\x03\x12/\n\'server_timestamp_epoch_microseconds_utc\x18\x13 \x01(\x03\x12\x36\n\x17\x65venly_sampled_channels\x18\x14 \x03(\x0b\x32\x15.EvenlySampledChannel\x12:\n\x19unevenly_sampled_channels\x18\x15 \x03(\x0b\x32\x17.UnevenlySampledChannel\x12\x10\n\x08metadata\x18\x16 \x03(\t\"\x1f\n\x0cInt32Payload\x12\x0f\n\x07payload\x18\x01 \x03(\x05\" \n\rUInt32Payload\x12\x0f\n\x07payload\x18\x01 \x03(\r\"\x1f\n\x0cInt64Payload\x12\x0f\n\x07payload\x18\x01 \x03(\x03\" \n\rUInt64Payload\x12\x0f\n\x07payload\x18\x01 \x03(\x04\"!\n\x0e\x46loat32Payload\x12\x0f\n\x07payload\x18\x01 \x03(\x02\"!\n\x0e\x46loat64Payload\x12\x0f\n\x07payload\x18\x01 \x03(\x01\"\x8c\x02\n\x0b\x42ytePayload\x12\x35\n\x0f\x62ytePayloadType\x18\x01 \x01(\x0e\x32\x1c.BytePayload.BytePayloadType\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\"\xb4\x01\n\x0f\x42ytePayloadType\x12\t\n\x05\x42YTES\x10\x00\x12\t\n\x05UINT8\x10\x01\x12\x0b\n\x07UNINT16\x10\x02\x12\x0b\n\x07UNINT24\x10\x03\x12\n\n\x06UINT32\x10\x04\x12\n\n\x06UINT64\x10\x05\x12\x08\n\x04INT8\x10\x06\x12\t\n\x05INT16\x10\x07\x12\t\n\x05INT24\x10\x08\x12\t\n\x05INT32\x10\t\x12\t\n\x05INT64\x10\n\x12\x0b\n\x07\x46LOAT32\x10\x0b\x12\x0b\n\x07\x46LOAT64\x10\x0c\x12\t\n\x05OTHER\x10\r\"\x9e\x04\n\x14\x45venlySampledChannel\x12#\n\rchannel_types\x18\x01 \x03(\x0e\x32\x0c.ChannelType\x12\x13\n\x0bsensor_name\x18\x02 \x01(\t\x12\x16\n\x0esample_rate_hz\x18\x03 \x01(\x01\x12\x35\n-first_sample_timestamp_epoch_microseconds_utc\x18\x04 \x01(\x03\x12$\n\x0c\x62yte_payload\x18\x05 \x01(\x0b\x32\x0c.BytePayloadH\x00\x12(\n\x0euint32_payload\x18\x06 \x01(\x0b\x32\x0e.UInt32PayloadH\x00\x12(\n\x0euint64_payload\x18\x07 \x01(\x0b\x32\x0e.UInt64PayloadH\x00\x12&\n\rint32_payload\x18\x08 \x01(\x0b\x32\r.Int32PayloadH\x00\x12&\n\rint64_payload\x18\t \x01(\x0b\x32\r.Int64PayloadH\x00\x12*\n\x0f\x66loat32_payload\x18\n \x01(\x0b\x32\x0f.Float32PayloadH\x00\x12*\n\x0f\x66loat64_payload\x18\x0b \x01(\x0b\x32\x0f.Float64PayloadH\x00\x12\x13\n\x0bvalue_means\x18\x0c \x03(\x01\x12\x12\n\nvalue_stds\x18\r \x03(\x01\x12\x15\n\rvalue_medians\x18\x0e \x03(\x01\x12\x10\n\x08metadata\x18\x0f \x03(\tB\t\n\x07payload\"\xd1\x04\n\x16UnevenlySampledChannel\x12#\n\rchannel_types\x18\x01 \x03(\x0e\x32\x0c.ChannelType\x12\x13\n\x0bsensor_name\x18\x02 \x01(\t\x12#\n\x1btimestamps_microseconds_utc\x18\x03 \x03(\x03\x12$\n\x0c\x62yte_payload\x18\x04 \x01(\x0b\x32\x0c.BytePayloadH\x00\x12(\n\x0euint32_payload\x18\x05 \x01(\x0b\x32\x0e.UInt32PayloadH\x00\x12(\n\x0euint64_payload\x18\x06 \x01(\x0b\x32\x0e.UInt64PayloadH\x00\x12&\n\rint32_payload\x18\x07 \x01(\x0b\x32\r.Int32PayloadH\x00\x12&\n\rint64_payload\x18\x08 \x01(\x0b\x32\r.Int64PayloadH\x00\x12*\n\x0f\x66loat32_payload\x18\t \x01(\x0b\x32\x0f.Float32PayloadH\x00\x12*\n\x0f\x66loat64_payload\x18\n \x01(\x0b\x32\x0f.Float64PayloadH\x00\x12\x1c\n\x14sample_interval_mean\x18\x0b \x01(\x01\x12\x1b\n\x13sample_interval_std\x18\x0c \x01(\x01\x12\x1e\n\x16sample_interval_median\x18\r \x01(\x01\x12\x13\n\x0bvalue_means\x18\x0e \x03(\x01\x12\x12\n\nvalue_stds\x18\x0f \x03(\x01\x12\x15\n\rvalue_medians\x18\x10 \x03(\x01\x12\x10\n\x08metadata\x18\x11 \x03(\tB\t\n\x07payload\"\xd7\x01\n\x14RedvoxPacketResponse\x12(\n\x04type\x18\x01 \x01(\x0e\x32\x1a.RedvoxPacketResponse.Type\x12\x10\n\x08\x63hecksum\x18\x02 \x01(\x03\x12+\n\x06\x65rrors\x18\x03 \x03(\x0e\x32\x1b.RedvoxPacketResponse.Error\x12\x10\n\x08metadata\x18\x04 \x03(\t\"\x19\n\x04Type\x12\x06\n\x02OK\x10\x00\x12\t\n\x05\x45RROR\x10\x01\")\n\x05\x45rror\x12\x15\n\x11NOT_AUTHENTICATED\x10\x00\x12\t\n\x05OTHER\x10\x01*\x97\x03\n\x0b\x43hannelType\x12\x0e\n\nMICROPHONE\x10\x00\x12\r\n\tBAROMETER\x10\x01\x12\x0c\n\x08LATITUDE\x10\x02\x12\r\n\tLONGITUDE\x10\x03\x12\t\n\x05SPEED\x10\x04\x12\x0c\n\x08\x41LTITUDE\x10\x05\x12\x0e\n\nRESERVED_0\x10\x06\x12\x0e\n\nRESERVED_1\x10\x07\x12\x0e\n\nRESERVED_2\x10\x08\x12\x18\n\x14TIME_SYNCHRONIZATION\x10\t\x12\x0c\n\x08\x41\x43\x43URACY\x10\n\x12\x13\n\x0f\x41\x43\x43\x45LEROMETER_X\x10\x0b\x12\x13\n\x0f\x41\x43\x43\x45LEROMETER_Y\x10\x0c\x12\x13\n\x0f\x41\x43\x43\x45LEROMETER_Z\x10\r\x12\x12\n\x0eMAGNETOMETER_X\x10\x0e\x12\x12\n\x0eMAGNETOMETER_Y\x10\x0f\x12\x12\n\x0eMAGNETOMETER_Z\x10\x10\x12\x0f\n\x0bGYROSCOPE_X\x10\x11\x12\x0f\n\x0bGYROSCOPE_Y\x10\x12\x12\x0f\n\x0bGYROSCOPE_Z\x10\x13\x12\t\n\x05OTHER\x10\x14\x12\t\n\x05LIGHT\x10\x15\x12\t\n\x05IMAGE\x10\x16\x12\x0c\n\x08INFRARED\x10\x17\x42\x10\n\x0eio.redvox.apisb\x06proto3')
 
-_globals = globals()
-_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'api900_pb2', _globals)
+_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'api900_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
   DESCRIPTOR._serialized_options = b'\n\016io.redvox.apis'
-  _globals['_CHANNELTYPE']._serialized_start=2611
-  _globals['_CHANNELTYPE']._serialized_end=3018
-  _globals['_REDVOXPACKET']._serialized_start=17
-  _globals['_REDVOXPACKET']._serialized_end=774
-  _globals['_INT32PAYLOAD']._serialized_start=776
-  _globals['_INT32PAYLOAD']._serialized_end=807
-  _globals['_UINT32PAYLOAD']._serialized_start=809
-  _globals['_UINT32PAYLOAD']._serialized_end=841
-  _globals['_INT64PAYLOAD']._serialized_start=843
-  _globals['_INT64PAYLOAD']._serialized_end=874
-  _globals['_UINT64PAYLOAD']._serialized_start=876
-  _globals['_UINT64PAYLOAD']._serialized_end=908
-  _globals['_FLOAT32PAYLOAD']._serialized_start=910
-  _globals['_FLOAT32PAYLOAD']._serialized_end=943
-  _globals['_FLOAT64PAYLOAD']._serialized_start=945
-  _globals['_FLOAT64PAYLOAD']._serialized_end=978
-  _globals['_BYTEPAYLOAD']._serialized_start=981
-  _globals['_BYTEPAYLOAD']._serialized_end=1249
-  _globals['_BYTEPAYLOAD_BYTEPAYLOADTYPE']._serialized_start=1069
-  _globals['_BYTEPAYLOAD_BYTEPAYLOADTYPE']._serialized_end=1249
-  _globals['_EVENLYSAMPLEDCHANNEL']._serialized_start=1252
-  _globals['_EVENLYSAMPLEDCHANNEL']._serialized_end=1794
-  _globals['_UNEVENLYSAMPLEDCHANNEL']._serialized_start=1797
-  _globals['_UNEVENLYSAMPLEDCHANNEL']._serialized_end=2390
-  _globals['_REDVOXPACKETRESPONSE']._serialized_start=2393
-  _globals['_REDVOXPACKETRESPONSE']._serialized_end=2608
-  _globals['_REDVOXPACKETRESPONSE_TYPE']._serialized_start=2540
-  _globals['_REDVOXPACKETRESPONSE_TYPE']._serialized_end=2565
-  _globals['_REDVOXPACKETRESPONSE_ERROR']._serialized_start=2567
-  _globals['_REDVOXPACKETRESPONSE_ERROR']._serialized_end=2608
+  _CHANNELTYPE._serialized_start=2611
+  _CHANNELTYPE._serialized_end=3018
+  _REDVOXPACKET._serialized_start=17
+  _REDVOXPACKET._serialized_end=774
+  _INT32PAYLOAD._serialized_start=776
+  _INT32PAYLOAD._serialized_end=807
+  _UINT32PAYLOAD._serialized_start=809
+  _UINT32PAYLOAD._serialized_end=841
+  _INT64PAYLOAD._serialized_start=843
+  _INT64PAYLOAD._serialized_end=874
+  _UINT64PAYLOAD._serialized_start=876
+  _UINT64PAYLOAD._serialized_end=908
+  _FLOAT32PAYLOAD._serialized_start=910
+  _FLOAT32PAYLOAD._serialized_end=943
+  _FLOAT64PAYLOAD._serialized_start=945
+  _FLOAT64PAYLOAD._serialized_end=978
+  _BYTEPAYLOAD._serialized_start=981
+  _BYTEPAYLOAD._serialized_end=1249
+  _BYTEPAYLOAD_BYTEPAYLOADTYPE._serialized_start=1069
+  _BYTEPAYLOAD_BYTEPAYLOADTYPE._serialized_end=1249
+  _EVENLYSAMPLEDCHANNEL._serialized_start=1252
+  _EVENLYSAMPLEDCHANNEL._serialized_end=1794
+  _UNEVENLYSAMPLEDCHANNEL._serialized_start=1797
+  _UNEVENLYSAMPLEDCHANNEL._serialized_end=2390
+  _REDVOXPACKETRESPONSE._serialized_start=2393
+  _REDVOXPACKETRESPONSE._serialized_end=2608
+  _REDVOXPACKETRESPONSE_TYPE._serialized_start=2540
+  _REDVOXPACKETRESPONSE_TYPE._serialized_end=2565
+  _REDVOXPACKETRESPONSE_ERROR._serialized_start=2567
+  _REDVOXPACKETRESPONSE_ERROR._serialized_end=2608
 # @@protoc_insertion_point(module_scope)
