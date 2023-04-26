@@ -30,6 +30,6 @@ python3 -m build .
 twine upload -r pypi -u ${USER} -p ${PASS} --skip-existing dist/*
 
 # Create a git tag for this version
-VERSION="v$(python3 setup.py --version)"
-git tag -a ${VERSION} -m"Release ${VERSION}"
-git push origin ${VERSION}
+#VERSION="v$(python3 setup.py --version)"
+#git tag -a ${VERSION} -m"Release ${VERSION}"
+#git push origin ${VERSION}
