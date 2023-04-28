@@ -4,6 +4,7 @@
 
 * Updated build tooling
 * Updated dependencies
+* Regenerated protobuf with latest protoc
 * Removed all references to older versions of certain functions
 * Updated requirements to match latest versions of packages
 * Minor fixes to classes, functions and comments
