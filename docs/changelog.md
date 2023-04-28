@@ -9,6 +9,7 @@
 * Updated requirements to match latest versions of packages
 * Minor fixes to classes, functions and comments
 * Updated data fetching method
+* Fixed bugs when filling gaps in data
 
 ### 3.3.8 (2022-12-27)
 
