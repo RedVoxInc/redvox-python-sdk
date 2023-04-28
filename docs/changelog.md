@@ -1,8 +1,10 @@
 ## Changelog
 
-### 3.3.9 (2023-??-??)
+### 3.4.0 (2023-4-28)
 
-* Updated stuff, right?
+* Updated build tooling
+* Updated dependencies
+* Regenerated protobuf with latest protoc
 
 ### 3.3.8 (2022-12-27)
 
