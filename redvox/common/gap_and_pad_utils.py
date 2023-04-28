@@ -1,3 +1,4 @@
+import sys
 from typing import List, Tuple, Optional, Dict
 import enum
 from math import modf
@@ -16,8 +17,6 @@ from redvox.api1000.wrapped_redvox_packet.sensors.image import ImageCodec
 from redvox.api1000.wrapped_redvox_packet.station_information import \
     NetworkType, PowerState, CellServiceState, WifiWakeLock, ScreenState
 
-# default maximum number of points required to brute force calculating gap timestamps
-DEFAULT_MAX_BRUTE_FORCE_GAP_TIMESTAMPS: int = 5000
 # percent of packet duration/sample rate required for gap to be considered a whole unit
 DEFAULT_GAP_UPPER_LIMIT: float = 0.8
 # percent of packet duration/sample rate required for gap to be considered nothing
@@ -304,10 +303,12 @@ def add_data_points_to_df(data_table: pa.Table,
             numeric_diff = \
                 (numeric_diff / numeric_diff["timestamps"]) * \
                 (new_timestamps - numeric_start) + numeric_start
-            # merge dicts (python 3.5 to 3.8)
-            empty_df = pa.Table.from_pydict({**numeric_diff, **non_numeric_diff})
-            # merge dicts (python 3.9):
-            # empty_df = pa.Table.from_pydict(numeric_diff | non_numeric_diff)
+            if sys.version_info[0] > 3 or (sys.version_info[0] == 3 and sys.version_info[1] >= 9):
+                # merge dicts (python 3.9):
+                empty_df = pa.Table.from_pydict(numeric_diff | non_numeric_diff)
+            else:
+                # merge dicts (python 3.5 to 3.8)
+                empty_df = pa.Table.from_pydict({**numeric_diff, **non_numeric_diff})
         else:
             # add nans and defaults
             empty_dict: Dict[str, List] = {}

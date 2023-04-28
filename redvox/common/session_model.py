@@ -149,9 +149,10 @@ def get_all_sensors_in_packet(packet: api_m.RedvoxPacketM) -> List[str]:
 
 class SessionModel:
     """
-    SessionModel is designed to summarize an operational period of a station.  SessionModel can be sealed, which means
-    no more data will be received for the model, and the properties of the SessionModel are valid and the best
-    available.  WARNING: Only seal a SessionModel when you are certain the session being modeled is finished.
+    SessionModel is designed to summarize an operational period of a station.  Summaries do not include data from
+    sensors, and only if necessary is limited amounts of data stored within the model.  SessionModel can be sealed,
+    which means no more data will be received for the model, and the properties of the SessionModel are valid and the
+    best available.  WARNING: Only seal a SessionModel when you are certain the session being modeled is finished.
 
     Timestamps are in microseconds since epoch UTC
 
@@ -172,6 +173,16 @@ class SessionModel:
         _session_version: str, the version of the SessionModel.
 
         _sensors: Dict[str, float], The name of sensors and their mean sample rate as a dictionary.
+
+        _first_timesync_data: CircularQueue, container for the first 15 points of timesync data;
+        timestamp, latency, offset.  Default empty
+
+        _last_timesync_data: CircularQueue, container for the last 15 points of timesync data.  Default empty
+
+        _first_gps_data: CircularQueue, container for the first 15 points of GPS offset data; timestamp and offset.
+        Default empty
+
+        _last_gps_data: CircularQueue, container for the last 15 points of GPS offset data.  Default empty
 
         _errors: RedVoxExceptions, Contains any errors found when creating the model.
 
@@ -219,20 +230,12 @@ class SessionModel:
 
         mean_offset: float, mean offset of the model.  Default np.nan
 
-        _first_timesync_data: CircularQueue, container for the first 15 points of timesync data;
-        timestamp, latency, offset.  Default empty
-
-        _last_timesync_data: CircularQueue, container for the last 15 points of timesync data.  Default empty
+        offset_model: OffsetModel with which the user can calculate corrected timestamps.  Default empty OffsetModel
 
         num_gps_points: int, the number of gps data points.  Default 0
 
         gps_offset: optional tuple of float, the slope and intercept (in that order) of the gps timing calculations.
         Default None
-
-        _first_gps_data: CircularQueue, container for the first 15 points of GPS offset data; timestamp and offset.
-        Default empty
-
-        _last_gps_data: CircularQueue, container for the last 15 points of GPS offset data.  Default empty
 
         is_sealed: bool, if True, the SessionModel will not accept any more data.  This means the offset model and gps
         offset values are the best they can be, given the available data.  Default False
@@ -250,7 +253,7 @@ class SessionModel:
                  sensors: Optional[Dict] = None
                  ):
         """
-        Initialize a SessionModel with non-sensor related metadata.  This function uses only the most basic information
+        Initialize a SessionModel with general status metadata.  This function uses only the most basic information
         to create the SessionModel; use these other functions if you already have some form of data to read:
 
         Use function create_from_packet() instead of this if you already have a packet to read from.
@@ -428,7 +431,7 @@ class SessionModel:
 
     def default_json_file_name(self) -> str:
         """
-        :return: Default filename as [id]_[startdate], with startdate as integer of microseconds
+        :return: Default filename as [id]_[start_date], with start_date as integer of microseconds
                     since epoch UTC.  File extension NOT included.
         """
         return f"{self.id}_{0 if np.isnan(self.start_date) else int(self.start_date)}"
