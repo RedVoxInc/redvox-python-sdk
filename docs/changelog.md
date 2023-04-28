@@ -4,6 +4,7 @@
 
 * Updated build tooling
 * Updated dependencies
+* Regenerated protobuf with latest protoc
 
 ### 3.3.8 (2022-12-27)
 
