@@ -3,7 +3,7 @@ Provides library level metadata and constants.
 """
 
 NAME: str = "redvox"
-VERSION: str = "3.3.9"
+VERSION: str = "3.4.0"
 
 
 def version() -> str:
@@ -27,4 +27,5 @@ def print_redvox_info() -> None:
     print(f"parallelism enabled: {redvox.settings.is_parallelism_enabled()}")
     print(f"native extra enabled: {redvox.settings.is_native_extra_enabled()}")
     print(f"gui extra enabled: {redvox.settings.is_gui_extra_enabled()}")
+    print(f"protobuf cpp backend enabled: {redvox.settings.is_cpp_backend_enabled()}")
     print()
