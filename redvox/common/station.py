@@ -1388,6 +1388,8 @@ class Station:
         :return: tuple of app version to 2 significant version numbers (i.e: version number x.y.z returns x and y)
         """
         nums = self.metadata().app_version.split(".")
+        if self.metadata().os == st_utils.OsType["IOS"]:
+            nums[1] = nums[1].split(" ")[0]
         return int(nums[0]), int(nums[1])
 
     def metadata(self) -> st_utils.StationMetadata:

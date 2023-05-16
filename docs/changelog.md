@@ -1,15 +1,17 @@
 ## Changelog
 
+### 3.4.1 (2023-5-11)
+* Removed all references to older versions of certain functions
+* Minor fixes to classes, functions and comments
+* Updated data fetching method
+* Fixed bugs when filling gaps in data
+* Fixed minor issue when reading iOS version numbers
+
 ### 3.4.0 (2023-4-28)
 
 * Updated build tooling
 * Updated dependencies
 * Regenerated protobuf with latest protoc
-* Removed all references to older versions of certain functions
-* Updated requirements to match latest versions of packages
-* Minor fixes to classes, functions and comments
-* Updated data fetching method
-* Fixed bugs when filling gaps in data
 
 ### 3.3.8 (2022-12-27)
 
