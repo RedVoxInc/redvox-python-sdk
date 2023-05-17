@@ -102,8 +102,7 @@ class TimeSync:
         :param offset_std: the standard deviation of all offsets, default np.nan
         :param data_start: the start timestamp of the data, default np.nan
         :param data_end: the end timestamp of the data, default np.nan
-        :param best_latency_index: index of best latency in latencies array, default -1 (valid array index,
-                                    invalid meaning)
+        :param best_latency_index: index of best latency in latencies array, default np.nan
         :param best_array_index: index of best latency array; must be either 1 (first array) or 3 (second array),
                                     any other value is invalid, default 0
         :param arrow_dir: directory to save timesync data in, default "."
@@ -329,12 +328,12 @@ class TimeSync:
         """
         :return: timestamp of best latency, or np.nan if no best latency.
         """
-        if self._best_msg_array_index == 1:
-            return self._time_sync_exchanges_list[3][self._best_latency_index]
-        elif self._best_msg_array_index == 3:
-            return self._time_sync_exchanges_list[5][self._best_latency_index]
-        else:
-            return np.nan
+        if not np.isnan(self._best_latency_index):
+            if self._best_msg_array_index == 1:
+                return self._time_sync_exchanges_list[3][self._best_latency_index]
+            elif self._best_msg_array_index == 3:
+                return self._time_sync_exchanges_list[5][self._best_latency_index]
+        return np.nan
 
     def append_timesync_arrow(self, new_data: "TimeSync"):
         """

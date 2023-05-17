@@ -117,6 +117,8 @@ class EventOrigin:
 
 class DataWindowConfig:
     """
+    Configuration of DataWindow properties
+
     Properties:
         input_dir: str, the directory that contains all the data.  REQUIRED
 
@@ -250,7 +252,10 @@ class DataWindowConfig:
 
 class DataWindow:
     """
-    Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
+    Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad the start and end values
+    If a start time is given, data starting from that time will be included.
+    If an end time is given, data up to but not including that time will be included.
+    Refer to the DataWindowConfig class for more details on DataWindow parameters.
 
     Properties:
         event_name: str, name of the DataWindow.  defaults to "dw"

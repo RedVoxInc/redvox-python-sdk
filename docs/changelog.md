@@ -1,11 +1,11 @@
 ## Changelog
 
-### 3.4.1 (2023-5-11)
+### 3.4.1 (2023-5-17)
 * Removed all references to older versions of certain functions
-* Minor fixes to classes, functions and comments
 * Updated data fetching method
 * Fixed bugs when filling gaps in data
 * Fixed minor issue when reading iOS version numbers
+* Updated comment sections of various classes and functions
 
 ### 3.4.0 (2023-4-28)
 
