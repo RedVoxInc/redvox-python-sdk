@@ -1,6 +1,6 @@
 ## Changelog
 
-### 3.4.1 (2023-5-17)
+### 3.4.2 (2023-5-17)
 * Removed all references to older versions of certain functions
 * Updated data fetching method
 * Fixed bugs when filling gaps in data
