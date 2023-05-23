@@ -30,14 +30,17 @@ STATION_ID_LENGTH = 10  # the length of a station ID string
 
 class Station:
     """
-    generic station for api-independent stuff; uses API M as the core data object since its quite versatile
-    In order for a list of data to be a station, all of the data packets must:
+    generic station for api-independent stuff; uses API M as the core data object since it's quite versatile
+
+    In order for a list of data to be a station, all the data packets must:
         * Have the same station id
         * Have the same station uuid
         * Have the same start date
         * Have the same audio sample rate
         * Have the same metadata
+
     Generally speaking, stations can be uniquely identified with a minimum of three values: id, uuid, and start date
+
     Properties:
         _data: list of sensor data associated with the station, default empty list
 
