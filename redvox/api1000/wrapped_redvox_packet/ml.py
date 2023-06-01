@@ -255,7 +255,7 @@ def label_at(
     score: float = num_payload[score_key]
 
     if not isfinite(score):
-        raise MlError(f"Invalid score={score}")
+        raise MlError(f"Invalid non-finite score={score}")
 
     return Label(class_name, score)
 
@@ -275,6 +275,9 @@ def extract_ml_windows(stream: EventStream) -> List[MlWindow]:
     windows: List[MlWindow] = []
 
     events: List[Event] = stream.get_events().get_values()
+
+    if len(timestamps) != len(events):
+        raise MlError(f"len(timestamps={len(timestamps)}) != len(events={len(events)})")
 
     idx_window: int
     timestamp: float
