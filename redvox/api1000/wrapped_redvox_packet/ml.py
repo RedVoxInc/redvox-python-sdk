@@ -5,9 +5,12 @@ This module provides methods and datatypes for the efficient extraction and mani
 
 from dataclasses import dataclass
 from enum import Enum
+from math import isfinite
 from typing import Optional, Dict, List
 
 import numpy as np
+from redvox.common.errors import RedVoxError
+
 from redvox.api1000.common.generic import ProtoRepeatedMessage
 from redvox.api1000.wrapped_redvox_packet.event_streams import EventStream, Event
 from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
@@ -19,6 +22,11 @@ ML_METADATA_MODEL_VERSION_KEY: str = "model_version"
 ML_METADATA_INPUT_SAMPLES_PER_HOP_KEY: str = "input_samples_per_hop"
 ML_METADATA_INPUT_SAMPLE_RATE_KEY: str = "input_sample_rate"
 ML_METADATA_INPUT_SAMPLES_PER_WINDOW_KEY: str = "input_samples_per_window"
+
+
+class MlError(RedVoxError):
+    def __init__(self, msg: str):
+        super().__init__(f"MlError: {msg}")
 
 
 @dataclass
@@ -53,6 +61,9 @@ class ExtractedMl:
         :param min_v: The minimum acceptable label score.
         :return: An updated instance of ExtractedMl.
         """
+        if min_v <= 0:
+            raise MlError(f"min_v={min_v} must be > 0")
+
         self.windows = list(map(lambda window: window.prune_lt(min_v), self.windows))
         return self
 
@@ -62,6 +73,9 @@ class ExtractedMl:
         :param n: The number of labels to keep.
         :return: An updated instance of ExtractedMl.
         """
+        if n <= 0:
+            raise MlError(f"n={n} must be > 0")
+
         self.windows = list(map(lambda window: window.retain_top(n), self.windows))
         return self
 
@@ -123,6 +137,9 @@ class MlWindow:
         :param min_v: The minimum acceptable label score.
         :return: An updated instance of MlWindow.
         """
+        if min_v <= 0:
+            raise MlError(f"min_v={min_v} must be > 0")
+
         self.labels = list(filter(lambda label: label.score >= min_v, self.labels))
         return self
 
@@ -132,6 +149,9 @@ class MlWindow:
         :param n: The number of labels to keep.
         :return: An updated instance of MlWindow.
         """
+        if n <= 0:
+            raise MlError(f"n={n} must be > 0")
+
         sorted_window: MlWindow = self.sort(SortBy.SCORE_DESC)
         sorted_window.labels = sorted_window.labels[:n]
         return sorted_window
@@ -164,15 +184,36 @@ def extract_ml_metadata(stream: EventStream) -> MlMetadata:
     :param stream: The event stream to extract the ML metadata from.
     :return: An instance of MlMetadata.
     """
-    meta: Dict[str, str] = stream.get_metadata().get_metadata()
+    if stream.get_name() != ML_EVENT_STREAM_NAME:
+        raise MlError(
+            f"Invalid ML event stream name={stream.get_name()} != {ML_EVENT_STREAM_NAME}"
+        )
+
+    if stream.get_events().get_count() == 0:
+        raise MlError("ML EventStream contains 0 Events")
+
     name: str = stream.get_events().get_values()[0].get_description()
-    return MlMetadata(
-        name,
-        meta[ML_METADATA_MODEL_VERSION_KEY],
-        int(meta[ML_METADATA_INPUT_SAMPLES_PER_HOP_KEY]),
-        int(meta[ML_METADATA_INPUT_SAMPLE_RATE_KEY]),
-        int(meta[ML_METADATA_INPUT_SAMPLES_PER_WINDOW_KEY]),
-    )
+    meta: Dict[str, str] = stream.get_metadata().get_metadata()
+
+    for key in [
+        ML_METADATA_MODEL_VERSION_KEY,
+        ML_METADATA_INPUT_SAMPLES_PER_HOP_KEY,
+        ML_METADATA_INPUT_SAMPLE_RATE_KEY,
+        ML_METADATA_INPUT_SAMPLES_PER_WINDOW_KEY,
+    ]:
+        if key not in meta:
+            raise MlError(f"Missing required ML metadata key={key}")
+
+    try:
+        return MlMetadata(
+            name,
+            meta[ML_METADATA_MODEL_VERSION_KEY],
+            int(meta[ML_METADATA_INPUT_SAMPLES_PER_HOP_KEY]),
+            int(meta[ML_METADATA_INPUT_SAMPLE_RATE_KEY]),
+            int(meta[ML_METADATA_INPUT_SAMPLES_PER_WINDOW_KEY]),
+        )
+    except ValueError:
+        raise MlError("Could not parse ML metadata")
 
 
 def find_ml_event_stream(packet: WrappedRedvoxPacketM) -> Optional[EventStream]:
@@ -204,20 +245,31 @@ def label_at(
     class_key: str = f"{ML_CLASS_PREFIX}{idx}"
     score_key: str = f"{ML_SCORE_PREFIX}{idx}"
 
+    if class_key not in str_payload:
+        raise MlError(f"Missing required class_key={class_key}")
+
+    if score_key not in num_payload:
+        raise MlError(f"Missing required score_key={score_key}")
+
     class_name: str = str_payload[class_key]
     score: float = num_payload[score_key]
+
+    if not isfinite(score):
+        raise MlError(f"Invalid score={score}")
 
     return Label(class_name, score)
 
 
-def extract_ml_windows(stream: EventStream) -> Optional[List[MlWindow]]:
+def extract_ml_windows(stream: EventStream) -> List[MlWindow]:
     """
     Extracts ML windows from an event stream.
     :param stream: The stream to extract windows from.
     :return: A list of ML windows.
     """
     if stream.get_name() != ML_EVENT_STREAM_NAME:
-        return None
+        raise MlError(
+            f"Invalid ML event stream name={stream.get_name()} != {ML_EVENT_STREAM_NAME}"
+        )
 
     timestamps: np.ndarray = stream.get_timestamps().get_timestamps()
     windows: List[MlWindow] = []
@@ -242,14 +294,16 @@ def extract_ml_windows(stream: EventStream) -> Optional[List[MlWindow]]:
     return windows
 
 
-def extract_ml_from_event_stream(stream: EventStream) -> Optional[ExtractedMl]:
+def extract_ml_from_event_stream(stream: EventStream) -> ExtractedMl:
     """
     Extract ML parameters from an event stream.
     :param stream: The event stream to extract ML parameters from.
     :return: The extracted ML parameters or None.
     """
     if stream.get_name() != ML_EVENT_STREAM_NAME:
-        return None
+        raise MlError(
+            f"Invalid ML event stream name={stream.get_name()} != {ML_EVENT_STREAM_NAME}"
+        )
 
     metadata: MlMetadata = extract_ml_metadata(stream)
     windows: List[MlWindow] = extract_ml_windows(stream)
