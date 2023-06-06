@@ -2,9 +2,14 @@
 Session Models
 """
 from dataclasses import dataclass
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Callable
 
+import requests
 from dataclasses_json import dataclass_json
+
+from redvox.cloud.api import post_req
+from redvox.cloud.config import RedVoxConfig
+from redvox.cloud.routes import RoutesV3
 
 
 @dataclass_json
@@ -157,3 +162,43 @@ class DynamicSessionModelReq:
 class DynamicSessionModelResp:
     err: Optional[str]
     dynamic_session: Optional[DynamicSession]
+
+
+def request_sessions(
+    redvox_config: RedVoxConfig,
+    req: SessionModelsReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> SessionModelsResp:
+    # noinspection Mypy
+    handle_resp: Callable[
+        [requests.Response], SessionModelsResp
+    ] = lambda resp: SessionModelsResp.from_json(resp.json())
+    return post_req(
+        redvox_config,
+        RoutesV3.SESSION_MODELS,
+        req,
+        handle_resp,
+        session,
+        timeout,
+    )
+
+
+def request_dynamic_session(
+    redvox_config: RedVoxConfig,
+    req: DynamicSessionModelReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> DynamicSessionModelResp:
+    # noinspection Mypy
+    handle_resp: Callable[
+        [requests.Response], DynamicSessionModelResp
+    ] = lambda resp: DynamicSessionModelResp.from_json(resp.json())
+    return post_req(
+        redvox_config,
+        RoutesV3.DYNAMIC_SESSION_MODEL,
+        req,
+        handle_resp,
+        session,
+        timeout,
+    )

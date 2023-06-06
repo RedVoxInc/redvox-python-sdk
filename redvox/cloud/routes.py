@@ -26,4 +26,10 @@ class RoutesV2:
     """
     Route definitions for version 2 of the RedVox Cloud API.
     """
+
     GEO_METADATA_REQ: str = "/api/v2/metadata/geo"
+
+
+class RoutesV3:
+    SESSION_MODELS: str = "/api/v3/session_models"
+    DYNAMIC_SESSION_MODEL: str = "/api/v3/dynamic_session_model"

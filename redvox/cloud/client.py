@@ -23,6 +23,7 @@ from redvox.cloud.query_timing_correction import (
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
 import redvox.cloud.station_stats as station_stats_api
+import redvox.cloud.session_model_api as session_model_api
 
 if TYPE_CHECKING:
     from redvox.cloud.query_timing_correction import CorrectedQuery
@@ -678,6 +679,36 @@ class CloudClient:
 
         return station_stats_api.request_station_stats(
             self.redvox_config, station_stats_req, self.__session, self.timeout
+        )
+
+    def request_session_models(
+        self,
+        id_uuids: Optional[List[str]],
+        owner: Optional[str],
+        start_ts: Optional[int],
+        end_ts: Optional[int],
+        include_public: bool,
+    ) -> session_model_api.SessionModelsResp:
+        req: session_model_api.SessionModelsReq = session_model_api.SessionModelsReq(
+            self.auth_token, id_uuids, owner, start_ts, end_ts, include_public
+        )
+        return session_model_api.request_sessions(
+            self.redvox_config, req, self.__session, self.timeout
+        )
+
+    def request_dynamic_session_model(
+        self,
+        session_key: str,
+        start_ts: int,
+        end_ts: int,
+    ) -> session_model_api.DynamicSessionModelResp:
+        req: session_model_api.DynamicSessionModelReq = (
+            session_model_api.DynamicSessionModelReq(
+                self.auth_token, session_key, start_ts, end_ts
+            )
+        )
+        return session_model_api.request_dynamic_session(
+            self.redvox_config, req, self.__session, self.timeout
         )
 
 
