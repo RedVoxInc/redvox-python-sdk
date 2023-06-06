@@ -2,7 +2,7 @@
 Session Models
 """
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Callable
+from typing import Optional, List, Dict, Callable, Tuple
 
 import requests
 from dataclasses_json import dataclass_json
@@ -23,9 +23,9 @@ class TimeSyncData:
 @dataclass_json
 @dataclass
 class FirstLastBufTimeSync:
-    fst: List[TimeSyncData]
+    fst: List[Tuple[int, TimeSyncData]]
     fst_max_size: int
-    lst: List[TimeSyncData]
+    lst: List[Tuple[int, TimeSyncData]]
     lst_max_size: int
 
 
@@ -100,9 +100,9 @@ class Location:
 @dataclass_json
 @dataclass
 class FirstLastBufLocation:
-    fst: List[Location]
+    fst: List[Tuple[int, Location]]
     fst_max_size: int
-    lst: List[Location]
+    lst: List[Tuple[int, Location]]
     lst_max_size: int
 
 
@@ -173,7 +173,7 @@ def request_sessions(
     # noinspection Mypy
     handle_resp: Callable[
         [requests.Response], SessionModelsResp
-    ] = lambda resp: SessionModelsResp.from_json(resp.json())
+    ] = lambda resp: SessionModelsResp.from_dict(resp.json())
     return post_req(
         redvox_config,
         RoutesV3.SESSION_MODELS,
@@ -193,7 +193,7 @@ def request_dynamic_session(
     # noinspection Mypy
     handle_resp: Callable[
         [requests.Response], DynamicSessionModelResp
-    ] = lambda resp: DynamicSessionModelResp.from_json(resp.json())
+    ] = lambda resp: DynamicSessionModelResp.from_dict(resp.json())
     return post_req(
         redvox_config,
         RoutesV3.DYNAMIC_SESSION_MODEL,
