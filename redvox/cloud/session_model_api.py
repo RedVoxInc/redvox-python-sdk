@@ -2,7 +2,7 @@
 Session Models
 """
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Callable, Tuple
+from typing import Optional, List, Dict, Callable, Tuple, TYPE_CHECKING
 
 import requests
 from dataclasses_json import dataclass_json
@@ -10,6 +10,9 @@ from dataclasses_json import dataclass_json
 from redvox.cloud.api import post_req
 from redvox.cloud.config import RedVoxConfig
 from redvox.cloud.routes import RoutesV3
+
+if TYPE_CHECKING:
+    from redvox.cloud.client import CloudClient
 
 
 @dataclass_json
@@ -91,6 +94,14 @@ class Session:
     def session_key(self) -> str:
         return f"{self.id}:{self.uuid}:{self.start_ts}"
 
+    def query_dynamic_session(
+        self, client: "CloudClient", sub: str
+    ) -> "DynamicSessionModelResp":
+        ts_parts: List[int] = list(map(int, sub.split(":")))
+        return client.request_dynamic_session_model(
+            self.session_key(), ts_parts[0], ts_parts[1]
+        )
+
 
 @dataclass_json
 @dataclass
@@ -131,6 +142,18 @@ class DynamicSession:
     end_ts: int
     dur: str
     sub: List[str]
+
+    def query_dynamic_session(
+        self, client: "CloudClient", sub: str
+    ) -> "DynamicSessionModelResp":
+        ts_parts: List[int] = list(map(int, sub.split(":")))
+        return client.request_dynamic_session_model(
+            self.session_key, ts_parts[0], ts_parts[1]
+        )
+
+    # TODO
+    def query_packet(self, client: "CloudClient", sub: str):
+        pass
 
 
 @dataclass_json
