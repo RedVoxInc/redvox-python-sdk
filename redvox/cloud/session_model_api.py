@@ -1,5 +1,5 @@
 """
-Session Models
+Session Models and API calls.
 """
 from dataclasses import dataclass
 from typing import Optional, List, Dict, Callable, Tuple, TYPE_CHECKING
