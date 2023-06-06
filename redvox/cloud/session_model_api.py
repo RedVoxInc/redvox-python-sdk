@@ -88,6 +88,9 @@ class Session:
     timing: Timing
     sub: List[str]
 
+    def session_key(self) -> str:
+        return f"{self.id}:{self.uuid}:{self.start_ts}"
+
 
 @dataclass_json
 @dataclass
