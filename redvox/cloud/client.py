@@ -5,11 +5,10 @@ This client provides convenient access to RedVox metadata and data. This client 
 an up-to-date authentication token for making authenticated API requests.
 """
 
-from collections import defaultdict
 import contextlib
 import threading
 from multiprocessing import Queue
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Iterator
+from typing import List, Optional, Tuple, TYPE_CHECKING, Iterator
 
 import requests
 
@@ -18,19 +17,14 @@ import redvox.cloud.auth_api as auth_api
 from redvox.cloud.config import RedVoxConfig
 import redvox.cloud.errors as cloud_errors
 import redvox.common.constants as constants
-from redvox.common.offset_model import compute_offsets
 from redvox.cloud.query_timing_correction import (
     correct_query_timing as do_correct_query_timing,
-    CorrectedQuery,
 )
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
 import redvox.cloud.station_stats as station_stats_api
 
 if TYPE_CHECKING:
-    from redvox.cloud.station_stats import StationStatsResp
-    from redvox.common.file_statistics import StationStat
-    from redvox.common.offset_model import TimingOffsets
     from redvox.cloud.query_timing_correction import CorrectedQuery
 
 
