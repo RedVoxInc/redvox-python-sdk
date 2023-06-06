@@ -683,11 +683,11 @@ class CloudClient:
 
     def request_session_models(
         self,
-        id_uuids: Optional[List[str]],
-        owner: Optional[str],
-        start_ts: Optional[int],
-        end_ts: Optional[int],
-        include_public: bool,
+        id_uuids: Optional[List[str]] = None,
+        owner: Optional[str] = None,
+        start_ts: Optional[int] = None,
+        end_ts: Optional[int] = None,
+        include_public: bool = False,
     ) -> session_model_api.SessionModelsResp:
         req: session_model_api.SessionModelsReq = session_model_api.SessionModelsReq(
             self.auth_token, id_uuids, owner, start_ts, end_ts, include_public

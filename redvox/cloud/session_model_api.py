@@ -160,11 +160,11 @@ class DynamicSession:
 @dataclass
 class SessionModelsReq:
     auth_token: str
-    id_uuids: Optional[List[str]]
-    owner: Optional[str]
-    start_ts: Optional[int]
-    end_ts: Optional[int]
-    include_public: bool
+    id_uuids: Optional[List[str]] = None
+    owner: Optional[str] = None
+    start_ts: Optional[int] = None
+    end_ts: Optional[int] = None
+    include_public: bool = False
 
 
 @dataclass_json
