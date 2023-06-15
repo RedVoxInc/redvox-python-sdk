@@ -2,6 +2,7 @@
 Session Models and API calls.
 """
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional, List, Dict, Callable, Tuple, TYPE_CHECKING
 
 import requests
@@ -10,6 +11,7 @@ from dataclasses_json import dataclass_json
 from redvox.cloud.api import post_req
 from redvox.cloud.config import RedVoxConfig
 from redvox.cloud.routes import RoutesV3
+from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as us2dt
 
 if TYPE_CHECKING:
     from redvox.cloud.client import CloudClient
@@ -41,6 +43,12 @@ class Timing:
     mean_lat: float
     mean_off: float
     fst_lst: FirstLastBufTimeSync
+
+    def first_data_dt(self) -> datetime:
+        return us2dt(self.first_data_ts)
+
+    def last_data_dt(self) -> datetime:
+        return us2dt(self.last_data_ts)
 
 
 @dataclass_json
