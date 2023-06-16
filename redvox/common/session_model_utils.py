@@ -1,5 +1,6 @@
 from typing import List, Optional, Tuple
 from dataclasses import dataclass
+from bisect import insort
 
 import numpy as np
 
@@ -240,6 +241,118 @@ class LocationStats:
                                            (stds_to_add[0]*stds_to_add[0],
                                             stds_to_add[1]*stds_to_add[1],
                                             stds_to_add[2]*stds_to_add[2]))
+
+
+class FirstLastBuffer:
+    """
+    Holds data in two fixed size queues.  You can put more than the maximum capacity of elements into a
+    queue, but it will remove elements until it reaches the capacity.
+
+    Properties:
+        capacity: int, maximum size of the queue
+
+        data: List of Tuples; Tuples consist of timestamp in microseconds since epoch UTC
+        and the actual data being stored
+
+        debug: bool, if True, will output additional messages when errors occur.  Default False
+    """
+    def __init__(self, capacity: int, debug: bool = False):
+        """
+        Initialize the queue.
+        Remember to only put the same type of data points into the queue.
+
+        :param capacity: size of the queue
+        :param debug: if True, output additional messages when errors occur, default False
+        """
+        self.capacity: int = capacity
+        self.first_data: List[Tuple] = [] * (capacity + 1)
+        self.last_data: List[Tuple] = [] * (capacity + 1)
+        self.debug: bool = debug
+
+    def __repr__(self):
+        return f"capacity: {self.capacity}, " \
+               f"first_data: {self.first_data}, " \
+               f"last_data: {self.last_data}"
+
+    def __str__(self):
+        return f"capacity: {self.capacity}, " \
+               f"\nfirst_data: [\n{self.first_data_as_string()}], " \
+               f"\nlast_data: [\n{self.last_data_as_string()}]"
+
+    def as_dict(self) -> dict:
+        """
+        :return: FirstLastBuffer as a dictionary
+        """
+        return {
+            "capacity": self.capacity,
+            "first_data": self.first_data,
+            "last_data": self.last_data
+        }
+
+    @staticmethod
+    def from_dict(data: dict) -> "FirstLastBuffer":
+        """
+        :param data: dictionary to read from
+        :return: CircularQueue defined by the dictionary
+        """
+        result = FirstLastBuffer(data["capacity"])
+        result.first_data = data["first_data"]
+        result.last_data = data["last_data"]
+        return result
+
+    def first_data_as_string(self) -> str:
+        """
+        :return: string representation of the first_data queue
+        """
+        return self._data_as_string(self.first_data)
+
+    def last_data_as_string(self) -> str:
+        """
+        :return: string representation of the last_data queue
+        """
+        return self._data_as_string(self.last_data)
+
+    @staticmethod
+    def _data_as_string(data_list: List[Tuple]) -> str:
+        """
+        :param data_list: the list of tuples to return as a string
+        :return: list as a string
+        """
+        result = ""
+        for t, v in data_list:
+            result += f"{t}: {str(v)}\n"
+        return result
+
+    @staticmethod
+    def __ordered_insert(buffer: List, value: Tuple):
+        """
+        inserts the value into the buffer using the timestamp as the key
+
+        :param value: value to add.  Must include a timestamp and the same data type as the other buffer elements
+        """
+        if len(buffer) < 1:
+            buffer.append(value)
+        else:
+            insort(buffer, value)
+
+    def add(self, timestamp: float, value):
+        """
+        add a value into one or more queues.
+        If a queue is not full, the value is added automatically
+        If the first_data queue is full, the value is only added if it comes before the last element.
+        If the last_data queue is full, the value is only added if it comes after the first element.
+
+        :param timestamp: timestamp in microseconds since epoch UTC to add.
+        :param value: value to add.  Must be the same type of data as the other elements in the queue.
+        """
+        if len(self.first_data) < self.capacity or timestamp < self.first_data[-1][0]:
+            self.__ordered_insert(self.first_data, (timestamp, value))
+            while len(self.first_data) > self.capacity:
+                self.first_data.pop()
+        if len(self.last_data) < self.capacity or timestamp > self.last_data[0][0]:
+            self.__ordered_insert(self.last_data, (timestamp, value))
+            while len(self.last_data) > self.capacity:
+                self.last_data.pop(0)
 
 
 class CircularQueue:
