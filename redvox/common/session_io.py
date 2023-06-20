@@ -20,7 +20,7 @@ def session_model_to_json(session: "SessionModel") -> str:
     """
     :return: station as json string
     """
-    return json.dumps(session.as_dict())
+    return json.dumps(session.to_dict())
 
 
 def session_model_to_json_file(session: "SessionModel",

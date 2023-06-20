@@ -1,11 +1,64 @@
+"""
+This module contains classes and functions that support SessionModel.
+"""
 from typing import List, Optional, Tuple
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from bisect import insort
 
 import numpy as np
 
+from redvox.common.timesync import TimeSync
+from redvox.common.stats_helper import WelfordStatsContainer
+
+
+class SensorModel:
+    """
+    A simple representation of a Sensor.  Sample rate data is in Hz
+
+    Properties:
+        name: str, name of the Sensor
+
+        description: str, description of the Sensor
+
+        sample_rate_stats: WelfordStatsContainer used to calculate the mean, std deviation, variance, etc. of the
+                            sensor's sample rate
+    """
+    def __init__(self, name: str, desc: str, mean_sample_rate: float):
+        """
+        initialize SensorModel
+
+        :param name: name of the sensor
+        :param desc: description of the sensor
+        :param mean_sample_rate: mean sample rate of the sensor in Hz
+        """
+        self.name: str = name
+        self.description: str = desc
+        self.sample_rate_stats: WelfordStatsContainer = WelfordStatsContainer()
+        self.sample_rate_stats.update(mean_sample_rate)
+
+    def __repr__(self):
+        return f"name: {self.name}, " \
+               f"description: {self.description}, " \
+               f"sample_rate_stats: {self.sample_rate_stats}"
+
+    def update(self, new_mean_sr: float):
+        """
+        adds a new mean sample rate to the SensorModel
+
+        :param new_mean_sr: new mean sample rate to add
+        """
+        self.sample_rate_stats.update(new_mean_sr)
+
+    def finalized(self) -> Tuple[float, float]:
+        """
+        :return: the mean and variance of the sample rate stats
+        """
+        return self.sample_rate_stats.finalized()
+
 
 @dataclass
+@dataclass_json
 class LocationStat:
     """
     Stores the stats of a single location source.
@@ -16,7 +69,7 @@ class LocationStat:
 
     If both are given, nothing is done to either value; we assume the user has provided the correct values.
 
-    properties:
+    Properties:
         source_name: str, name of the source of the location data.  Default empty string
 
         count: int, number of data points for that source.  Default 0
@@ -355,6 +408,71 @@ class FirstLastBuffer:
                 self.last_data.pop(0)
 
 
+class TimeSyncModel:
+    """
+    TimeSync data used to build models
+    All times and timestamps are in microseconds since epoch UTC
+
+    Properties:
+        first_timesync_timestamp: float, the first timestamp of the TimeSync data
+
+        last_timesync_timestamp: float, the last timestamp of the TimeSync data
+
+        mean_latency: float, the mean latency of the TimeSync data
+
+        mean_offset: float, the mean offset of the TimeSync data
+
+        num_exchanges: int, number of exchanges in the TimeSync data
+
+        first_last_timesync_data: FirstLastBuffer of TimeSync data, a fixed size list of timesync exchanges used to
+                                    calculate the offset model
+    """
+    def __init__(self,
+                 capacity: int,
+                 first_timesync_timestamp: float = 0.0,
+                 last_timesync_timestamp: float = 0.0,
+                 mean_latency: float = 0.0,
+                 mean_offset: float = 0.0,
+                 num_exchanges: int = 0
+                 ):
+        """
+        Initialize the TimeSyncModel
+
+        :param capacity: the number of data points to keep in each of the first and last data buffers
+        :param first_timesync_timestamp: the first timestamp of the TimeSync data.  Default 0.0
+        :param last_timesync_timestamp: the last timestamp of the TimeSync data.  Default 0.0
+        :param mean_latency: the mean latency of the TimeSync data.  Default 0.0
+        :param mean_offset: the mean offset of the TimeSync data.  Default 0.0
+        :param num_exchanges: the number of exchanges in the TimeSync data.  Default 0
+        """
+        self.first_timesync_timestamp = first_timesync_timestamp
+        self.last_timesync_timestamp = last_timesync_timestamp
+        self.mean_latency = mean_latency
+        self.mean_offset = mean_offset
+        self.num_exchanges = num_exchanges
+        self.first_last_timesync_data: FirstLastBuffer = FirstLastBuffer(capacity)
+
+    def update_model(self, ts: TimeSync):
+        """
+        Use a TimeSync object to update the TimeSyncModel
+
+        :param ts: TimeSync object to update the model with
+        """
+        if ts.num_tri_messages() > 0:
+            self.num_exchanges += ts.num_tri_messages()
+            self.mean_latency = \
+                (self.mean_latency * self.num_exchanges + ts.best_latency()) / (self.num_exchanges + 1)
+            self.mean_offset = \
+                (self.mean_offset * self.num_exchanges + ts.best_offset()) / (self.num_exchanges + 1)
+            _ts_latencies = ts.latencies().flatten()
+            _ts_offsets = ts.offsets().flatten()
+            _ts_timestamps = ts.get_device_exchanges_timestamps()
+            # add data to the buffers
+            for i in range(len(_ts_timestamps)):
+                self.first_last_timesync_data.add(_ts_timestamps[i], (_ts_latencies[i], _ts_offsets[i]))
+
+
+# todo: remove
 class CircularQueue:
     """
     Holds data in a fixed size queue that overwrites the oldest entry if allowed.

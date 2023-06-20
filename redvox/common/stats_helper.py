@@ -3,9 +3,106 @@ Support for computing statistics
 Requires numpy
 """
 
-from typing import List, Union
+from dataclasses import dataclass
+from dataclasses_json import dataclass_json
+from typing import List, Union, Tuple
 
 import numpy as np
+
+
+@dataclass
+@dataclass_json
+class WelfordAggregator:
+    """
+    Helper class to compute Welford stats for a single data stream
+
+    Properties:
+        m2: float, aggregate squared distance from the mean.  Default 0.0
+
+        mean: float, mean of the data.  Default 0.0
+
+        count: int, number of data points.  Default 0
+    """
+    m2: float = 0.0
+    mean: float = 0.0
+    count: int = 0
+
+    def update(self, val: float):
+        """
+        adds a new value to the WelfordAggregator
+
+        :param val: value to add
+        """
+        self.count += 1
+        delta = val - self.mean
+        self.mean += delta / float(self.count)
+        delta2 = val - self.mean
+        self.m2 += delta * delta2
+
+    def update_multiple(self, vals: List[float]):
+        """
+        adds each value from a list of values to the WelfordAggregator
+
+        :param vals: list of values to add
+        """
+        for v in vals:
+            self.update(v)
+
+    def finalize(self) -> Tuple[float, float]:
+        """
+        Note: If the count of elements is less than 2, returns a tuple containing np.nan values
+
+        :return: the mean, the m2 divided by the count as a tuple
+        """
+        if self.count < 2:
+            return np.nan, np.nan
+        return self.mean, self.m2 / float(self.count)
+
+
+@dataclass
+@dataclass_json
+class WelfordStatsContainer:
+    """
+    Helper class to compute statistics for objects with a single data stream
+    Stores the min, max and WelfordAggregator for the data
+
+    Properties:
+        min: float, minimum value of the data
+
+        max: float, maximum value of the data
+
+        welford: WelfordAggregator, collection of data used to compute mean, std deviation, variance, etc.
+    """
+    min: float = float("inf")
+    max: float = -float("inf")
+    welford: WelfordAggregator = WelfordAggregator()
+
+    def update(self, val: float):
+        """
+        adds a new mean to the WelfordAggregator and updates the minimum and maximum values
+
+        :param val: value to add
+        """
+        if val < self.min:
+            self.min = val
+        if val > self.max:
+            self.max = val
+        self.welford.update(val)
+
+    def update_multiple(self, vals: List[float]):
+        """
+        adds many new means to the WelfordAggregator and updates the minimum and maximum values
+
+        :param vals: values to add
+        """
+        for v in vals:
+            self.update(v)
+
+    def finalized(self) -> Tuple[float, float]:
+        """
+        :return: the mean and variance of the WelfordAggregator
+        """
+        return self.welford.finalize()
 
 
 class StatsContainer:
