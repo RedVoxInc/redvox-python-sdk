@@ -20,7 +20,7 @@ def session_model_to_json(session: "SessionModel") -> str:
     """
     :return: station as json string
     """
-    return json.dumps(session.to_dict())
+    return json.dumps(session.as_dict())
 
 
 def session_model_to_json_file(session: "SessionModel",
@@ -38,7 +38,7 @@ def session_model_to_json_file(session: "SessionModel",
     _file_name: str = (
         file_name
         if file_name is not None
-        else session.default_json_file_name()
+        else session.default_file_name()
     ) + ".json"
 
     file_path: Path = Path(out_dir).joinpath(_file_name)
@@ -86,7 +86,7 @@ def compress_session_model(
     _file_name: str = (
         file_name
         if file_name is not None
-        else f"{session.id}_{int(session.start_date)}_model"
+        else session.default_file_name()
     ) + ".pkl"
 
     file_path: Path = Path(base_dir).joinpath(_file_name)

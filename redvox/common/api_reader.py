@@ -7,11 +7,13 @@ from datetime import timedelta, datetime
 import multiprocessing
 import multiprocessing.pool
 
+import numpy as np
 import pyarrow as pa
 import psutil
 
 import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
+import redvox.common.date_time_utils as dtu
 from redvox.common import offset_model as om,\
     io,\
     api_conversions as ac,\
@@ -20,6 +22,9 @@ from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.session_model import SessionModel
 from redvox.common.errors import RedVoxExceptions
+from redvox.cloud.client import cloud_client
+from redvox.cloud.session_model_api import SessionModelsResp
+from redvox.cloud.errors import CloudApiError
 
 
 id_py_stct = pa.struct([("id", pa.string()), ("uuid", pa.string()), ("start_time", pa.float64()),
@@ -121,7 +126,7 @@ class ApiReader:
         """
         result = io.Index()
         for i in self.files_index:
-            result.append(i.entries)
+            result.append(iter(i.entries))
         return result
 
     def _get_all_files(
@@ -138,9 +143,97 @@ class ApiReader:
         index: List[io.Index] = []
         # this guarantees that all ids we search for are valid
         all_index = self._apply_filter(pool=_pool)
-        for station_id in all_index.summarize().station_ids():
-            id_index = all_index.get_index_for_station_id(station_id)
-            checked_index = self._check_station_stats(id_index, pool=_pool)
+        all_index_ids = all_index.summarize().station_ids()
+        # get models using the cloud to correct timing
+        resp_ids = []
+        try:
+            with cloud_client() as client:
+                resp: SessionModelsResp = client.request_session_models(
+                    owner=client.redvox_config.username,
+                    id_uuids=all_index_ids,
+                    start_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.start_dt))
+                    if self.filter.start_dt else None,
+                    end_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.end_dt))
+                    if self.filter.end_dt else None
+                )
+                if len(resp.sessions) < 1:
+                    self.errors.append("Unable to find sessions.  Check if the requested stations: belong to your "
+                                       "account or are public or if the request time starts after 30 April 2023.")
+                else:
+                    resp_ids = [n.id for n in resp.sessions]
+        except CloudApiError as e:
+            self.errors.append(f"Error while connecting to server.  Error message: {e}")
+        except Exception as e:
+            self.errors.append(f"An error occurred.  Error message: {e}")
+
+        for station_id in all_index_ids:
+            # if start and end are both not defined, just use what we got
+            if self.filter.start_dt is None and self.filter.end_dt is None:
+                checked_index = [all_index.get_index_for_station_id(station_id)]
+            # if we need to update the start or end, use the session model from cloud if it exists
+            elif station_id in resp_ids:
+                # use the first model available to update the index
+                model = [n for n in resp.sessions if n.id == station_id][0]
+                # reset the filter used to get files
+                new_filter = io.ReadFilter() \
+                    .with_extensions(self.filter.extensions) \
+                    .with_api_versions(self.filter.api_versions) \
+                    .with_station_ids({station_id}) \
+                    .with_start_dt_buf(dtu.timedelta(seconds=0)) \
+                    .with_end_dt_buf(dtu.timedelta(seconds=0))
+                # update the start and end times for the filter by the mean offset and the packet duration
+                if self.filter.start_dt is not None:
+                    new_filter.with_start_dt(self.filter.start_dt
+                                             + timedelta(microseconds=(model.timing.mean_off - model.packet_dur)))
+                if self.filter.end_dt is not None:
+                    new_filter.with_end_dt(self.filter.end_dt
+                                           + timedelta(microseconds=(model.timing.mean_off + model.packet_dur)))
+                # look for the files using the updated filter.  if both start and end is None, this will return
+                # the same results as before.  However, the outside if statement already covers this case, with
+                # or without the cloud's session model.
+                checked_index = [self._apply_filter(new_filter)]
+            # if no models from cloud, use the data available to update start and end of index
+            else:
+                id_index = all_index.get_index_for_station_id(station_id)
+                # check if there are any entries for the station_id
+                if len(id_index.entries) < 1:
+                    checked_index = []
+                else:
+                    try:
+                        stats = SessionModel().create_from_stream(self.read_files_in_index(id_index))
+                        mean_offset = stats.cloud_session.timing.mean_off
+                        insufficient_str = ""
+                        # if our filtered files do not encompass the request even when the packet times are updated
+                        # try getting the difference of the expected start/end and the start/end of the data plus one
+                        # packet
+                        new_filter = io.ReadFilter() \
+                            .with_extensions(self.filter.extensions) \
+                            .with_api_versions(self.filter.api_versions) \
+                            .with_station_ids({stats.cloud_session.id}) \
+                            .with_start_dt_buf(dtu.timedelta(seconds=0)) \
+                            .with_end_dt_buf(dtu.timedelta(seconds=0))
+                        # update the start and end times for the filter by the mean offset and the packet duration
+                        if self.filter.start_dt is not None \
+                                and timedelta(microseconds=-mean_offset) > self.filter.start_dt_buf:
+                            new_filter.with_start_dt(self.filter.start_dt
+                                                     + timedelta(microseconds=(stats.cloud_session.timing.mean_off
+                                                                               - stats.cloud_session.packet_dur)))
+                            insufficient_str += "start"
+                        if self.filter.end_dt is not None \
+                                and timedelta(microseconds=mean_offset) > self.filter.end_dt_buf:
+                            new_filter.with_end_dt(self.filter.end_dt
+                                                   + timedelta(microseconds=(stats.cloud_session.timing.mean_off
+                                                                             + stats.cloud_session.packet_dur)))
+                            insufficient_str += "end"
+                        # look for the files using the updated filter
+                        checked_index = [self._apply_filter(new_filter)]
+
+                        if len(insufficient_str) > 0:
+                            self.errors.append(f"Required more data for {station_id} at: {insufficient_str}")
+                    except Exception as e:
+                        checked_index = [id_index]
+
+            # add the updated list of files to the index
             index.extend(checked_index)
 
         if pool is None:
@@ -172,7 +265,12 @@ class ApiReader:
             _pool.close()
         return index
 
-    def _redo_index(self, station_ids: set, new_start: datetime, new_end: datetime):
+    def _redo_index(
+            self,
+            station_ids: set,
+            new_start: datetime,
+            new_end: datetime
+    ) -> Optional[io.Index]:
         """
         Redo the index for files using new start and end dates.  removes any buffer time at the start and end of the
         new query.  Returns the updated index or None
@@ -194,76 +292,6 @@ class ApiReader:
         if len(new_index.entries) > 0:
             return new_index
         return None
-
-    def _check_station_stats(
-            self,
-            station_index: io.Index,
-            pool: Optional[multiprocessing.pool.Pool] = None,
-    ) -> List[io.Index]:
-        """
-        check the index's results; if it has enough information, return it, otherwise search for more data.
-        The index should only request one station id
-        If the station was restarted during the request period, a new group of indexes will be created
-        to represent the change in station metadata.
-
-        :param station_index: index representing the requested information
-        :return: List of Indexes that includes as much information as possible that fits the request
-        """
-        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
-        # if we found nothing, return the index
-        if len(station_index.entries) < 1:
-            return [station_index]
-
-        stats = fs.extract_stats(station_index, pool=_pool)
-        # Close pool if created here
-        if pool is None:
-            _pool.close()
-
-        timing_offsets: Optional[om.TimingOffsets] = om.compute_offsets(stats)
-
-        # punt if duration or other important values are invalid or if the latency array was empty
-        if timing_offsets is None:
-            return [station_index]
-
-        # if our filtered files do not encompass the request even when the packet times are updated
-        # try getting the difference of the expected start/end and the start/end of the data plus one packet
-        insufficient_str = ""
-        if (self.filter.start_dt and timing_offsets.adjusted_start > self.filter.start_dt) or \
-                (self.filter.end_dt and timing_offsets.adjusted_start >= self.filter.end_dt):
-            insufficient_str += f" {self.filter.start_dt} (start)"
-            new_end = self.filter.start_dt - self.filter.start_dt_buf
-            new_start = new_end - (timing_offsets.adjusted_start - self.filter.start_dt + stats[0].packet_duration)
-            new_index = self._redo_index(set(station_index.summarize().station_ids()), new_start, new_end)
-            if new_index:
-                station_index.append(new_index.entries)
-                stats.extend(fs.extract_stats(new_index))
-
-        if (self.filter.end_dt and timing_offsets.adjusted_end < self.filter.end_dt) or \
-                (self.filter.start_dt and timing_offsets.adjusted_end <= self.filter.start_dt):
-            insufficient_str += f" {self.filter.end_dt} (end)"
-            new_start = self.filter.end_dt + self.filter.end_dt_buf
-            new_end = new_start + (self.filter.end_dt - timing_offsets.adjusted_end + stats[0].packet_duration)
-            new_index = self._redo_index(set(station_index.summarize().station_ids()), new_start, new_end)
-            if new_index:
-                station_index.append(new_index.entries)
-                stats.extend(fs.extract_stats(new_index))
-
-        if len(insufficient_str) > 0:
-            self.errors.append(f"Data for {station_index.summarize().station_ids()} exists, "
-                               f"but not at:{insufficient_str}")
-
-        results = {}
-        keys = []
-
-        for v, e in enumerate(stats):
-            key = e.app_start_dt
-            if key not in keys:
-                keys.append(key)
-                results[key] = io.Index()
-
-            results[key].append(entries=[station_index.entries[v]])
-
-        return list(results.values())
 
     def _split_workload(self, findex: io.Index) -> List[io.Index]:
         """
@@ -364,7 +392,7 @@ class ApiReader:
         """
         return list(maybe_parallel_map(pool,
                                        self._station_by_index,
-                                       self.files_index,
+                                       iter(self.files_index),
                                        chunk_size=1
                                        )
                     )
@@ -454,7 +482,7 @@ class ApiReaderModel:
         """
         result = io.Index()
         for i in self.files_index:
-            result.append(i.entries)
+            result.append(iter(i.entries))
         return result
 
     def _get_session(self, s_id: str, uuid: str, start_date: float) -> Optional[SessionModel]:
@@ -467,7 +495,7 @@ class ApiReaderModel:
         :return: SessionModel or None
         """
         for m in self.session_models:
-            if m.id == s_id and m.uuid == uuid and m.start_date == start_date:
+            if m.cloud_session.id == s_id and m.cloud_session.uuid == uuid and m.cloud_session.start_date == start_date:
                 return m
         return None
 
@@ -491,7 +519,7 @@ class ApiReaderModel:
                 sd = f.timing_information.app_start_mach_timestamp
                 uid = f.station_information.uuid
                 n = self._get_session(station_id, uid, sd)
-                n.add_data_from_packet(f) if n is not None \
+                n.create_from_packet(f) if n is not None \
                     else self.session_models.append(SessionModel.create_from_packet(f))
             index.append(id_index)
 
@@ -556,7 +584,7 @@ class ApiReaderModel:
             key = e.app_start_dt
             if key not in results.keys():
                 results[key] = io.Index()
-            results[key].append(entries=[station_index.entries[v]])
+            results[key].append(entries=iter([station_index.entries[v]]))
 
         for s in results.values():
             m = SessionModel.create_from_stream(s.read_contents())

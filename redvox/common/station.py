@@ -30,8 +30,8 @@ STATION_ID_LENGTH = 10  # the length of a station ID string
 
 class Station:
     """
-    generic station for api-independent stuff; uses API M as the core data object since its quite versatile
-    In order for a list of data to be a station, all of the data packets must:
+    generic station for api-independent stuff; uses API M as the core data object since it's quite versatile
+    In order for a list of data to be a station, all the data packets must:
         * Have the same station id
         * Have the same station uuid
         * Have the same start date
@@ -1483,6 +1483,7 @@ class Station:
     def append_error(self, error: str):
         """
         add an error to the station
+
         :param error: error to add
         """
         self._errors.append(error)
@@ -1610,7 +1611,7 @@ class Station:
                 self._event_data.original_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
             self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
-            self._is_timestamps_updated = True
+            self._is_timestamps_updated = False
         return self
 
     def as_dict(self) -> dict:

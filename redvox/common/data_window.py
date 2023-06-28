@@ -5,10 +5,11 @@ combines the base data files into a single composite object based on the user pa
 from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
+from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 import shutil
 import os
 import inspect
-from redvox.common import run_me
 
 import pprint
 import multiprocessing
@@ -17,18 +18,17 @@ import numpy as np
 import pyarrow as pa
 
 import redvox
-from redvox.common import date_time_utils as dtu
-from redvox.common.date_time_utils import (
-    datetime_to_epoch_microseconds_utc as us_dt,
-)
-from redvox.common import io
-from redvox.common import data_window_io as dw_io
+from redvox.common import \
+    run_me,\
+    io, \
+    data_window_io as dw_io, \
+    date_time_utils as dtu, \
+    gap_and_pad_utils as gpu
 from redvox.common.data_window_configuration import DataWindowConfigFile
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station, STATION_ID_LENGTH
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader_dw import ApiReaderDw
-from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.errors import RedVoxExceptions
 
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
@@ -37,6 +37,8 @@ DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to 
 DATA_DROP_DURATION_S: float = 0.2
 
 
+@dataclass_json
+@dataclass
 class EventOrigin:
     """
     The origin event's latitude, longitude, altitude and their standard deviations, the device used to measure
@@ -59,33 +61,14 @@ class EventOrigin:
 
         event_radius_m: float, radius of event in meters, default 0.0
     """
-    def __init__(self,
-                 provider: str = "UNKNOWN",
-                 lat: float = np.nan,
-                 lat_std: float = np.nan,
-                 lon: float = np.nan,
-                 lon_std: float = np.nan,
-                 alt: float = np.nan,
-                 alt_std: float = np.nan,
-                 event_radius_m: float = 0.0):
-        """
-        :param provider: name of device that provided the information
-        :param lat: latitude in +/- degrees
-        :param lat_std: standard deviation of latitude
-        :param lon: longitude in +/- degrees
-        :param lon_std: standard deviation of longitude
-        :param alt: altitude in meters
-        :param alt_std: standard deviation of altitude
-        :param event_radius_m: radius of event in meters
-        """
-        self.provider = provider
-        self.latitude = lat
-        self.longitude = lon
-        self.altitude = alt
-        self.latitude_std = lat_std
-        self.longitude_std = lon_std
-        self.altitude_std = alt_std
-        self.event_radius_m = event_radius_m
+    provider: str = "UNKNOWN"
+    latitude: float = np.nan
+    latitude_std: float = np.nan
+    longitude: float = np.nan
+    longitude_std: float = np.nan
+    altitude: float = np.nan
+    altitude_std: float = np.nan
+    event_radius_m: float = 0.0
 
     def __repr__(self):
         return str(self.as_dict())
@@ -115,6 +98,8 @@ class EventOrigin:
                            data_dict["altitude_std"], data_dict["event_radius_m"])
 
 
+@dataclass_json
+@dataclass
 class DataWindowConfig:
     """
     Configuration of DataWindow properties
@@ -141,7 +126,8 @@ class DataWindowConfig:
         Negative values are converted to default value.  Default DATA_DROP_DURATION_S (0.2 seconds)
 
         station_ids: optional set of strings, representing the station ids to filter on.
-        If empty or None, get any ids found in the input directory.  Default None
+        If empty or None, get any ids found in the input directory.  You may pass in any iterable, as long as it can be
+        turned into a set.  Default None
 
         extensions: optional set of strings, representing file extensions to filter on.
         If None, gets as much data as it can in the input directory.  Default None
@@ -157,37 +143,27 @@ class DataWindowConfig:
         use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
         offset.  Default True
     """
-    def __init__(
-            self,
-            input_dir: str,
-            structured_layout: bool = True,
-            start_datetime: Optional[dtu.datetime] = None,
-            end_datetime: Optional[dtu.datetime] = None,
-            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
-            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-            drop_time_s: float = DATA_DROP_DURATION_S,
-            station_ids: Optional[Iterable[str]] = None,
-            extensions: Optional[Set[str]] = None,
-            api_versions: Optional[Set[io.ApiVersion]] = None,
-            apply_correction: bool = True,
-            use_model_correction: bool = True,
-            copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
-    ):
-        self.input_dir: str = input_dir
-        self.structured_layout: bool = structured_layout
-        self.start_datetime: Optional[dtu.datetime] = start_datetime
-        self.end_datetime: Optional[dtu.datetime] = end_datetime
-        self.start_buffer_td: timedelta = start_buffer_td if start_buffer_td > timedelta(seconds=0) \
+    input_dir: str
+    structured_layout: bool = True
+    start_datetime: Optional[dtu.datetime] = None
+    end_datetime: Optional[dtu.datetime] = None
+    start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD
+    end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD
+    drop_time_s: float = DATA_DROP_DURATION_S
+    station_ids: Optional[Iterable[str]] = None
+    extensions: Optional[Set[str]] = None
+    api_versions: Optional[Set[io.ApiVersion]] = None
+    apply_correction: bool = True
+    use_model_correction: bool = True
+    copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY
+
+    def __post_init__(self):
+        self.start_buffer_td: timedelta = self.start_buffer_td if self.start_buffer_td > timedelta(seconds=0) \
             else timedelta(seconds=0)
-        self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td > timedelta(seconds=0) \
+        self.end_buffer_td: timedelta = self.end_buffer_td if self.end_buffer_td > timedelta(seconds=0) \
             else timedelta(seconds=0)
-        self.drop_time_s: float = drop_time_s if drop_time_s > 0 else DATA_DROP_DURATION_S
-        self.station_ids: Optional[Set[str]] = set(station_ids) if station_ids else None
-        self.extensions: Optional[Set[str]] = extensions
-        self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
-        self.apply_correction: bool = apply_correction
-        self.use_model_correction = use_model_correction
-        self.copy_edge_points = copy_edge_points
+        self.drop_time_s: float = self.drop_time_s if self.drop_time_s > 0 else DATA_DROP_DURATION_S
+        self.station_ids: Optional[Set[str]] = set(self.station_ids) if self.station_ids else None
 
     def __repr__(self):
         return f"input_dir: {self.input_dir}, " \
@@ -223,8 +199,8 @@ class DataWindowConfig:
     def as_dict(self) -> Dict:
         return {"input_dir": self.input_dir,
                 "structured_layout": self.structured_layout,
-                "start_datetime": us_dt(self.start_datetime),
-                "end_datetime": us_dt(self.end_datetime),
+                "start_datetime": dtu.datetime_to_epoch_microseconds_utc(self.start_datetime),
+                "end_datetime": dtu.datetime_to_epoch_microseconds_utc(self.end_datetime),
                 "start_buffer_td": self.start_buffer_td.total_seconds(),
                 "end_buffer_td": self.end_buffer_td.total_seconds(),
                 "drop_time_s": self.drop_time_s,

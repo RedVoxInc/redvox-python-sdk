@@ -1,13 +1,15 @@
 """
 This module contains classes and functions that support SessionModel.
 """
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 from bisect import insort
+import enum
 
 import numpy as np
 
+from redvox.common.offset_model import OffsetModel
 from redvox.common.timesync import TimeSync
 from redvox.common.stats_helper import WelfordStatsContainer
 
@@ -22,7 +24,7 @@ class SensorModel:
         description: str, description of the Sensor
 
         sample_rate_stats: WelfordStatsContainer used to calculate the mean, std deviation, variance, etc. of the
-                            sensor's sample rate
+        sensor's sample rate
     """
     def __init__(self, name: str, desc: str, mean_sample_rate: float):
         """
@@ -42,6 +44,26 @@ class SensorModel:
                f"description: {self.description}, " \
                f"sample_rate_stats: {self.sample_rate_stats}"
 
+    def to_dict(self) -> Dict:
+        """
+        :return: sensor model as dictionary
+        """
+        return {
+            "name": self.name,
+            "description": self.description,
+            "sample_rate_stats": self.sample_rate_stats.to_dict()
+        }
+
+    @staticmethod
+    def from_dict(source: dict) -> "SensorModel":
+        """
+        :param source: dictionary to read
+        :return: SensorModel from dictionary
+        """
+        result = SensorModel(source["name"], source["description"], 0)
+        result.sample_rate_stats = WelfordStatsContainer.from_dict(source["sample_rate_stats"])
+        return result
+
     def update(self, new_mean_sr: float):
         """
         adds a new mean sample rate to the SensorModel
@@ -55,245 +77,6 @@ class SensorModel:
         :return: the mean and variance of the sample rate stats
         """
         return self.sample_rate_stats.finalized()
-
-
-@dataclass
-@dataclass_json
-class LocationStat:
-    """
-    Stores the stats of a single location source.
-
-    Variance and standard deviation tuples are optional arguments and will be set to 0 if none are given.
-    If one is given when initialized, but not the other, the proper relational function will be applied to the
-    existing value to get the other.
-
-    If both are given, nothing is done to either value; we assume the user has provided the correct values.
-
-    Properties:
-        source_name: str, name of the source of the location data.  Default empty string
-
-        count: int, number of data points for that source.  Default 0
-
-        means: Tuple of float, the mean of the latitude, longitude, and altitude.  Default tuple of np.nan
-
-        variance: Optional Tuple of float, the variance of the latitude, longitude, and altitude.  Default tuple of 0
-
-        std_dev: Optional Tuple of float, the standard deviations of latitude, longitude, and altitude.
-        Default tuple of 0.
-    """
-    source_name: str = ""
-    count: int = 0
-    means: Tuple[float, float, float] = (np.nan, np.nan, np.nan)
-    variance: Optional[Tuple[float, float, float]] = None
-    std_dev: Optional[Tuple[float, float, float]] = None
-
-    def __post_init__(self):
-        """
-        ensures the variance and std_dev values are correctly set
-        """
-        if self.variance is None and self.std_dev:
-            self.variance = (self.std_dev[0] * self.std_dev[0],
-                             self.std_dev[1] * self.std_dev[1],
-                             self.std_dev[2] * self.std_dev[2])
-        elif self.std_dev is None and self.variance:
-            self.std_dev = tuple(np.sqrt(self.variance))
-        elif self.std_dev is None and self.variance is None:
-            self.variance = (0., 0., 0.)
-            self.std_dev = (0., 0., 0.)
-
-    def __str__(self):
-        return f"source_name: {self.source_name}, " \
-               f"count: {self.count}, " \
-               f"means (lat, lon, alt): {self.means}, " \
-               f"std_dev (lat, lon, alt): {self.std_dev}, " \
-               f"variance (lat, lon, alt): {self.variance}"
-
-    def as_dict(self) -> dict:
-        """
-        :return: LocationStat as a dictionary
-        """
-        return {
-            "source_name": self.source_name,
-            "count": self.count,
-            "means": self.means,
-            "variance": self.variance,
-            "std_dev": self.std_dev,
-        }
-
-    @staticmethod
-    def from_dict(data: dict) -> "LocationStat":
-        """
-        LocationStat from dictionary
-        :param data: dictionary of LocationStat values
-        """
-        return LocationStat(data["source_name"], data["count"], data["means"], data["variance"], data["std_dev"])
-
-
-class LocationStats:
-    """
-    Stores the stats of all locations
-
-    protected:
-        _location_stats: all the location stats, default empty list
-    """
-    def __init__(self, loc_stats: Optional[List[LocationStat]] = None):
-        """
-        initialize the stats
-
-        :param loc_stats: the list of stats to start with, default None
-        """
-        self._location_stats: List[LocationStat] = [] if loc_stats is None else loc_stats
-
-    def __repr__(self):
-        return f"_location_stats: {[n for n in self._location_stats]}"
-
-    def __str__(self):
-        return f"stats: {[n.__str__() for n in self._location_stats]}"
-
-    def as_dict(self) -> dict:
-        """
-        :return: LocationStats as a dictionary
-        """
-        return {"location_stats": [n.as_dict() for n in self._location_stats]}
-
-    @staticmethod
-    def from_dict(data: dict) -> "LocationStats":
-        """
-        Read LocationData from a LocationStats dictionary
-
-        :param data: dictionary to read from
-        """
-        return LocationStats([LocationStat.from_dict(n) for n in data["location_stats"]])
-
-    def add_loc_stat(self, new_loc: LocationStat):
-        """
-        adds a LocationStat to the stats
-
-        :param new_loc: LocationStat to add
-        """
-        self._location_stats.append(new_loc)
-
-    def get_all_stats(self) -> List[LocationStat]:
-        """
-        :return: all location stats
-        """
-        return self._location_stats.copy()
-
-    def get_sources(self) -> List[str]:
-        """
-        :return: the sources of all location stats
-        """
-        return [n.source_name for n in self._location_stats]
-
-    def get_stats_for_source(self, source: str) -> Optional[LocationStat]:
-        """
-        :param source: source name to get
-        :return: LocationStat of source requested or None if source doesn't exist
-        """
-        for n in self._location_stats:
-            if n.source_name == source:
-                return n
-        return None
-
-    def has_source(self, source: str) -> bool:
-        """
-        :param source: the source name to check for
-        :return: True if the source name is in the stats, False otherwise
-        """
-        for n in self._location_stats:
-            if n.source_name == source:
-                return True
-        return False
-
-    def add_count_by_source(self, source: str, val_to_add: int) -> Optional[LocationStat]:
-        """
-        :param source: the source name to update count for
-        :param val_to_add: the number of new points to add to the count
-        :return: the LocationStat with the same source name as the input, or None if the source doesn't exist
-        """
-        for n in self._location_stats:
-            if n.source_name == source:
-                n.count += val_to_add
-                return n
-        return None
-
-    def add_means_by_source(self, source: str, val_to_add: int,
-                            means_to_add: Tuple[float, float, float]) -> Optional[LocationStat]:
-        """
-        :param source: the source name to update count and means for
-        :param val_to_add: the number of new points to add to the count
-        :param means_to_add: the means of the location to add
-        :return: the updated LocationStat with the same source name as the input, or None if the source doesn't exist
-        """
-        for n in self._location_stats:
-            if n.source_name == source:
-                n.count += val_to_add
-                n.means = tuple(map(lambda i, j: i + ((j - i) / n.count), n.means, means_to_add))
-                return n
-        return None
-
-    @staticmethod
-    def _update_variances(num_old_samples: int, old_vari: float, old_mean: float,
-                          num_new_samples: int, new_vari: float, new_mean: float) -> float:
-        """
-        adds new variance to old variance to get variance of total set
-
-        :param num_old_samples: number of old samples
-        :param old_vari: old variance
-        :param num_new_samples: number of new samples
-        :param new_vari: new variance
-        :return: variance of total set
-        """
-        if num_old_samples + num_new_samples == 0:
-            return 0.
-        combined_mean = (num_old_samples * old_mean + num_new_samples * new_mean) / (num_old_samples + num_new_samples)
-        return ((num_old_samples * (old_vari + np.power((old_mean - combined_mean), 2))
-                 + num_new_samples * (new_vari + np.power((new_mean - combined_mean), 2)))
-                / (num_old_samples + num_new_samples))
-
-    def add_variance_by_source(self, source: str, val_to_add: int,
-                               means_to_add: Tuple[float, float, float],
-                               varis_to_add: Tuple[float, float, float]) -> LocationStat:
-        """
-        Adds data to a LocationStat with the same source, or creates a new LocationStat if source is not found.
-
-        :param source: the source name to update count, means, and std dev for
-        :param val_to_add: the number of new points to add to the count
-        :param means_to_add: the means of the location to add
-        :param varis_to_add: the variances of the location to add
-        :return: the updated LocationStat with the same source name as the input
-        """
-        n = self.get_stats_for_source(source)
-        if n is None:
-            self.add_loc_stat(LocationStat(source, val_to_add, means_to_add, varis_to_add))
-            return self._location_stats[-1]
-        else:
-            n.variance = (self._update_variances(n.count, n.variance[0], n.means[0],
-                                                 val_to_add, varis_to_add[0], means_to_add[0]),
-                          self._update_variances(n.count, n.variance[1], n.means[1],
-                                                 val_to_add, varis_to_add[1], means_to_add[1]),
-                          self._update_variances(n.count, n.variance[2], n.means[2],
-                                                 val_to_add, varis_to_add[2], means_to_add[2]))
-            n.std_dev = tuple(np.sqrt(n.variance))
-            self.add_means_by_source(source, val_to_add, means_to_add)
-            return n
-
-    def add_std_dev_by_source(self, source: str, val_to_add: int,
-                              means_to_add: Tuple[float, float, float],
-                              stds_to_add: Tuple[float, float, float]) -> LocationStat:
-        """
-        Adds data to a LocationStat with the same source, or creates a new LocationStat if source is not found.
-
-        :param source: the source name to update count, means, and std dev for
-        :param val_to_add: the number of new points to add to the count
-        :param means_to_add: the means of the location to add
-        :param stds_to_add: the std devs of the location to add
-        :return: the updated LocationStat with the same source name as the input
-        """
-        return self.add_variance_by_source(source, val_to_add, means_to_add,
-                                           (stds_to_add[0]*stds_to_add[0],
-                                            stds_to_add[1]*stds_to_add[1],
-                                            stds_to_add[2]*stds_to_add[2]))
 
 
 class FirstLastBuffer:
@@ -330,9 +113,9 @@ class FirstLastBuffer:
     def __str__(self):
         return f"capacity: {self.capacity}, " \
                f"\nfirst_data: [\n{self.first_data_as_string()}], " \
-               f"\nlast_data: [\n{self.last_data_as_string()}]"
+               f"\nlast_data: [\n{self.last_data_as_string()}]\n"
 
-    def as_dict(self) -> dict:
+    def to_dict(self) -> dict:
         """
         :return: FirstLastBuffer as a dictionary
         """
@@ -346,7 +129,7 @@ class FirstLastBuffer:
     def from_dict(data: dict) -> "FirstLastBuffer":
         """
         :param data: dictionary to read from
-        :return: CircularQueue defined by the dictionary
+        :return: FirstLastBuffer defined by the dictionary
         """
         result = FirstLastBuffer(data["capacity"])
         result.first_data = data["first_data"]
@@ -414,22 +197,22 @@ class TimeSyncModel:
     All times and timestamps are in microseconds since epoch UTC
 
     Properties:
-        first_timesync_timestamp: float, the first timestamp of the TimeSync data
+        first_timesync_timestamp: float, the first timestamp of the TimeSync data.  Default infinity
 
-        last_timesync_timestamp: float, the last timestamp of the TimeSync data
+        last_timesync_timestamp: float, the last timestamp of the TimeSync data.  Default 0.0
 
-        mean_latency: float, the mean latency of the TimeSync data
+        mean_latency: float, the mean latency of the TimeSync data.  Default 0.0
 
-        mean_offset: float, the mean offset of the TimeSync data
+        mean_offset: float, the mean offset of the TimeSync data.  Default 0.0
 
-        num_exchanges: int, number of exchanges in the TimeSync data
+        num_exchanges: int, number of exchanges in the TimeSync data.  Default 0
 
         first_last_timesync_data: FirstLastBuffer of TimeSync data, a fixed size list of timesync exchanges used to
-                                    calculate the offset model
+                                    calculate the offset model.
     """
     def __init__(self,
                  capacity: int,
-                 first_timesync_timestamp: float = 0.0,
+                 first_timesync_timestamp: float = float("inf"),
                  last_timesync_timestamp: float = 0.0,
                  mean_latency: float = 0.0,
                  mean_offset: float = 0.0,
@@ -439,7 +222,7 @@ class TimeSyncModel:
         Initialize the TimeSyncModel
 
         :param capacity: the number of data points to keep in each of the first and last data buffers
-        :param first_timesync_timestamp: the first timestamp of the TimeSync data.  Default 0.0
+        :param first_timesync_timestamp: the first timestamp of the TimeSync data.  Default infinity
         :param last_timesync_timestamp: the last timestamp of the TimeSync data.  Default 0.0
         :param mean_latency: the mean latency of the TimeSync data.  Default 0.0
         :param mean_offset: the mean offset of the TimeSync data.  Default 0.0
@@ -451,6 +234,40 @@ class TimeSyncModel:
         self.mean_offset = mean_offset
         self.num_exchanges = num_exchanges
         self.first_last_timesync_data: FirstLastBuffer = FirstLastBuffer(capacity)
+
+    def __repr__(self):
+        return f"first_timesync_timestamp: {self.first_timesync_timestamp}, " \
+               f"last_timesync_timestamp: {self.last_timesync_timestamp}, " \
+               f"mean_latency: {self.mean_latency}, " \
+               f"mean_offset: {self.mean_offset}, " \
+               f"num_exchanges: {self.num_exchanges}, " \
+               f"first_last_timesync_data: {self.first_last_timesync_data.to_dict()}"
+
+    def to_dict(self) -> dict:
+        """
+        :return: TimeSyncModel as a dictionary
+        """
+        return {
+            "first_timesync_timestamp": self.first_timesync_timestamp,
+            "last_timesync_timestamp": self.last_timesync_timestamp,
+            "mean_latency": self.mean_latency,
+            "mean_offset": self.mean_offset,
+            "num_exchanges": self.num_exchanges,
+            "first_last_timesync_data": self.first_last_timesync_data.to_dict()
+        }
+
+    @staticmethod
+    def from_dict(source: dict) -> "TimeSyncModel":
+        """
+        :param source: dictionary to read from
+        :return: TimeSyncModel from dictionary
+        """
+        flb = FirstLastBuffer.from_dict(source["first_last_timesync_data"])
+        result = TimeSyncModel(0, source["first_timesync_timestamp"],
+                               source["last_timesync_timestamp"], source["mean_latency"], source["mean_offset"],
+                               source["num_exchanges"])
+        result.first_last_timesync_data = flb
+        return result
 
     def update_model(self, ts: TimeSync):
         """
@@ -467,168 +284,203 @@ class TimeSyncModel:
             _ts_latencies = ts.latencies().flatten()
             _ts_offsets = ts.offsets().flatten()
             _ts_timestamps = ts.get_device_exchanges_timestamps()
+            if ts.data_start_timestamp() < self.first_timesync_timestamp:
+                self.first_timesync_timestamp = ts.data_start_timestamp()
+            if ts.data_end_timestamp() > self.last_timesync_timestamp:
+                self.last_timesync_timestamp = ts.data_end_timestamp()
             # add data to the buffers
             for i in range(len(_ts_timestamps)):
                 self.first_last_timesync_data.add(_ts_timestamps[i], (_ts_latencies[i], _ts_offsets[i]))
 
+    def create_offset_model(self) -> OffsetModel:
+        """
+        :return: OffsetModel using the data in the TimeSyncModel
+        """
+        latencies = []
+        offsets = []
+        timestamps = []
+        for n in self.first_last_timesync_data.first_data:
+            latencies.append(n[1][0])
+            offsets.append(n[1][0])
+            timestamps.append(n[0])
+        for n in self.first_last_timesync_data.last_data:
+            latencies.append(n[1][0])
+            offsets.append(n[1][0])
+            timestamps.append(n[0])
+        return OffsetModel(np.array(latencies), np.array(offsets), np.array(timestamps),
+                           self.first_timesync_timestamp, self.last_timesync_timestamp,
+                           min_samples_per_bin=1)
 
-# todo: remove
-class CircularQueue:
+
+class LocationModel:
     """
-    Holds data in a fixed size queue that overwrites the oldest entry if allowed.
+    Location data used to build models
+    All times and timestamps are in microseconds since epoch UTC
 
     Properties:
-        capacity: int, size of the queue
+        latitudes: WelfordStatsContainer for latitude values
 
-        data: List, the actual data being stored
+        longitudes: WelfordStatsContainer for longitude values
 
-        head: int, index of the head of the queue.  Default 0
+        altitudes: WelfordStatsContainer for altitude values
 
-        tail: int, index of the tail of the queue.  Default -1
-
-        size: int, number of actual data points in the queue.  Default 0.  Cannot be more than capacity.
-
-        debug: bool, if True, will output additional messages when errors occur.  Default False
+        first_last_location_data: FirstLastBuffer of Location data, a fixed size list of location data points.
     """
-    def __init__(self, capacity: int, debug: bool = False):
+    def __init__(self, capacity: int):
         """
-        Initialize the queue.
-        Remember to only put the same type of data points into the queue.
+        initialize a LocationModel
 
-        :param capacity: size of the queue
-        :param debug: if True, output additional messages when errors occur, default False
+        :param capacity: int, number of data points to store in the first and last buffers.
         """
-        self.capacity: int = capacity
-        self.data: List = [None] * capacity
-        self.head: int = 0
-        self.tail: int = -1
-        self.size: int = 0
-        self.debug: bool = debug
+        self.latitudes = WelfordStatsContainer()
+        self.longitudes = WelfordStatsContainer()
+        self.altitudes = WelfordStatsContainer()
+        self.first_last_location_data = FirstLastBuffer(capacity)
 
     def __repr__(self):
-        return f"capacity: {self.capacity}, " \
-               f"head: {self.head}, " \
-               f"tail: {self.tail}, " \
-               f"size: {self.size}, " \
-               f"data: {self.data}"
+        return f"latitudes: {self.latitudes}, " \
+               f"longitudes: {self.longitudes}, " \
+               f"altitudes: {self.altitudes}, " \
+               f"first_last_location_data: {self.first_last_location_data}"
 
     def __str__(self):
-        return f"capacity: {self.capacity}, " \
-               f"head: {self.head}, " \
-               f"tail: {self.tail}, " \
-               f"size: {self.size}, " \
-               f"data: {self.look_at_data()}"
+        return f"latitudes: {self.latitudes}, " \
+               f"longitudes: {self.longitudes}, " \
+               f"altitudes: {self.altitudes}, " \
+               f"location data: {self.first_last_location_data}"
 
-    def as_dict(self) -> dict:
+    def to_dict(self) -> dict:
         """
-        :return: CircularQueue as a dictionary
+        :return: LocationModel as a dictionary
         """
         return {
-            "capacity": self.capacity,
-            "head": self.head,
-            "tail": self.tail,
-            "size": self.size,
-            "data": self.data
+            "latitudes": self.latitudes.to_dict(),
+            "longitudes": self.longitudes.to_dict(),
+            "altitudes": self.altitudes.to_dict(),
+            "first_last_location_data": self.first_last_location_data.to_dict(),
         }
 
     @staticmethod
-    def from_dict(data: dict) -> "CircularQueue":
+    def from_dict(source: dict) -> "LocationModel":
         """
-        :param data: dictionary to read from
-        :return: CircularQueue defined by the dictionary
+        :param source: dictionary to read from
+        :return: LocationModel
         """
-        result = CircularQueue(data["capacity"])
-        result.head = data["head"]
-        result.tail = data["tail"]
-        result.size = data["size"]
-        result.data = data["data"]
+        flb = FirstLastBuffer.from_dict(source["first_last_location_data"])
+        result = LocationModel(0)
+        result.latitudes = WelfordStatsContainer.from_dict(source["latitudes"])
+        result.longitudes = WelfordStatsContainer.from_dict(source["longitudes"])
+        result.altitudes = WelfordStatsContainer.from_dict(source["altitudes"])
+        result.first_last_location_data = flb
         return result
 
-    def _update_index(self, index: int):
-        return (index + 1) % self.capacity
-
-    def is_full(self) -> bool:
-        return self.size == self.capacity
-
-    def is_empty(self) -> bool:
-        return self.size == 0
-
-    def add(self, data: any, limit_size: bool = False):
+    def update_location(self, lat: float, lon: float, alt: float, timestamp: float):
         """
-        adds data to the buffer.  Overwrites values unless limit_size is True
+        Add a location to the LocationStats
 
-        :param data: data to add
-        :param limit_size: if True, will not overwrite data if the buffer is full
+        :param lat: float, latitude in degrees
+        :param lon: float, longitude in degrees
+        :param alt: float, altitude in meters
+        :param timestamp: float, timestamp of location in microseconds since epoch UTC
         """
-        if limit_size and self.is_full():
-            if self.debug:
-                print("Cannot add to full buffer.")
-        else:
-            self.tail = self._update_index(self.tail)
-            self.data[self.tail] = data
-            self.size = int(np.minimum(self.size + 1, self.capacity))
-            if self.size == self.capacity and self.tail == self.head:
-                self.head = self._update_index(self.head)
+        self.latitudes.update(lat)
+        self.longitudes.update(lon)
+        self.altitudes.update(alt)
+        self.first_last_location_data.add(timestamp, (lat, lon, alt))
 
-    def remove(self) -> any:
+    def finalized_latitude(self) -> Tuple[float, float]:
         """
-        removes the head of the queue
+        :return: the mean and variance of the latitude
+        """
+        return self.latitudes.finalized()
 
-        :return: data removed from the queue
+    def finalized_longitude(self) -> Tuple[float, float]:
         """
-        if self.is_empty():
-            if self.debug:
-                print("Cannot remove from empty buffer.")
-            return None
-        result = self.data[self.head]
-        self.head = self._update_index(self.head)
-        self.size -= 1
+        :return: the mean and variance of the longitude
+        """
+        return self.longitudes.finalized()
+
+    def finalized_altitude(self) -> Tuple[float, float]:
+        """
+        :return: the mean and variance of the altitude
+        """
+        return self.altitudes.finalized()
+
+
+class MetricsSessionModel:
+    """
+    Metrics stored by the SessionModel
+    """
+    def __init__(self, capacity: int):
+        """
+        initialize the metrics stored by the session model
+
+        :param capacity: int, number of data points to store
+        """
+        self.capacity: int = capacity
+        self.location: Dict[str, LocationModel] = {}
+        self.battery: WelfordStatsContainer = WelfordStatsContainer()
+        self.temperature: WelfordStatsContainer = WelfordStatsContainer()
+
+    def __repr__(self):
+        return f"location: {self.location}, " \
+               f"battery: {self.battery}, " \
+               f"temperature: {self.temperature}"
+
+    def __str__(self):
+        return f"location: {self.location}, " \
+               f"battery percent: {self.battery}, " \
+               f"temperature (C): {self.temperature}"
+
+    def to_dict(self) -> dict:
+        """
+        :return: MetricsSessionModel as a dictionary
+        """
+        return {
+            "capacity": self.capacity,
+            "location": {n: m.to_dict() for n, m in self.location.items()},
+            "battery": self.battery.to_dict(),
+            "temperature": self.temperature.to_dict()
+        }
+
+    @staticmethod
+    def from_dict(source: dict) -> "MetricsSessionModel":
+        """
+        :param source: dictionary to read from
+        :return: MetricsSessionModel from dictionary
+        """
+        result = MetricsSessionModel(source["capacity"])
+        result.location = {n: LocationModel.from_dict(m) for n, m in source["location"].items()}
+        result.battery = WelfordStatsContainer.from_dict(source["battery"])
+        result.temperature = WelfordStatsContainer.from_dict(source["temperature"])
         return result
 
-    def peek(self) -> any:
+    def add_location(self, source: str, lat: float, lon: float, alt: float, timestamp: float):
         """
-        :return: the data at the head index
-        """
-        if self.is_empty():
-            if self.debug:
-                print("Cannot look at empty buffer.")
-            return None
-        return self.data[self.head]
+        add a location from the named source to the session model
 
-    def peek_tail(self) -> any:
+        :param source: str, name of the location data source
+        :param lat: float, latitude in degrees
+        :param lon: float, longitude in degrees
+        :param alt: float, altitude in meters
+        :param timestamp: float, timestamp of location in microseconds since epoch UTC
         """
-        :return: the data at the tail index
-        """
-        if self.is_empty():
-            if self.debug:
-                print("Cannot look at empty buffer.")
-            return None
-        return self.data[self.tail]
+        if source not in self.location.keys():
+            self.location[source] = LocationModel(self.capacity)
+        self.location[source].update_location(lat, lon, alt, timestamp)
 
-    def peek_index(self, index: int) -> any:
+    def add_battery(self, data: float):
         """
-        converts the index to be within the buffer's capacity if necessary
+        add battery data to the session model
 
-        :param index: index to look at
-        :return: element at index
+        :param data: float, battery percentage to add
         """
-        if self.is_empty():
-            if self.debug:
-                print("Cannot look at empty buffer.")
-            return None
-        return self.data[index % self.capacity]
+        self.battery.update(data)
 
-    def look_at_data(self) -> List:
+    def add_temperature(self, data: float):
         """
-        :return: all data in the queue as a list
+        add temperature data to the session model
+
+        :param data: float, temperature in Celsius to add
         """
-        if self.is_empty():
-            if self.debug:
-                print("Buffer is empty.")
-            return []
-        index = self.head
-        result = []
-        for i in range(self.size):
-            result.append(self.data[index])
-            index = self._update_index(index)
-        return result
+        self.temperature.update(data)

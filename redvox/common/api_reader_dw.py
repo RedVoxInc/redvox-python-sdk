@@ -64,7 +64,7 @@ class ApiReaderDw(ApiReader):
 
         if len(split_list) > 0:
             if self.debug and use_temp_dir:
-                print("Writing data to disk; this may take a few minutes to complete.")
+                print("Writing data to temporary disk; this may take a few minutes to complete.")
             stpa = Station.create_from_indexes(split_list,
                                                correct_timestamps=self.correct_timestamps,
                                                use_model_correction=self.use_model_correction,

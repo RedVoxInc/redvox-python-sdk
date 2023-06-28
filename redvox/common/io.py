@@ -282,7 +282,8 @@ class FileSystemWriter:
         """
         remove temp dir
         """
-        self._temp_dir.cleanup()
+        if self.is_use_temp():
+            self._temp_dir.cleanup()
 
     def as_dict(self) -> dict:
         """

@@ -102,8 +102,8 @@ class RedVoxExceptions:
     @staticmethod
     def from_dict(errors_dict: dict) -> "RedVoxExceptions":
         """
-        :param errors_dict: dictionary representing a RedvoxExceptions object
-        :return: RedvoxExceptions object
+        :param errors_dict: dictionary representing a RedVoxExceptions object
+        :return: a RedVoxExceptions object
         """
         if "obj_class" not in errors_dict.keys():
             result = RedVoxExceptions("ExceptionsLoadFailure")

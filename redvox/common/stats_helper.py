@@ -3,15 +3,15 @@ Support for computing statistics
 Requires numpy
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 from typing import List, Union, Tuple
 
 import numpy as np
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class WelfordAggregator:
     """
     Helper class to compute Welford stats for a single data stream
@@ -59,8 +59,8 @@ class WelfordAggregator:
         return self.mean, self.m2 / float(self.count)
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class WelfordStatsContainer:
     """
     Helper class to compute statistics for objects with a single data stream
@@ -75,7 +75,17 @@ class WelfordStatsContainer:
     """
     min: float = float("inf")
     max: float = -float("inf")
-    welford: WelfordAggregator = WelfordAggregator()
+    welford: WelfordAggregator = field(default_factory=WelfordAggregator)
+
+    def __repr__(self):
+        return f"min: {self.min}, " \
+               f"max: {self.max}, " \
+               f"welford: {self.welford}"
+
+    def __str__(self):
+        return f"min: {self.min}, " \
+               f"max: {self.max}, " \
+               f"stats: {self.welford}"
 
     def update(self, val: float):
         """

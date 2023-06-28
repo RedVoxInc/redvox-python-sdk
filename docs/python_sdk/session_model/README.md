@@ -1,6 +1,9 @@
 # <img src="../img/redvox_logo.png" height="25"> **RedVox Python SDK SessionModel Manual**
 
-SessionModel creates a short summary of a set of data, and provides this information faster than creating a 
+This readme is about the SDK specific SessionModel built from local files.  We recommend that you use the cloud 
+to obtain updated Session Model(s).  For more information about cloud Session Models, refer to this (LINK GOES HERE).
+
+SessionModel creates a short summary of a set of local files, in a faster time than creating a 
 [DataWindow](../data_window).  SessionModel can be used to determine the usefulness of a set or subset of data.
 
 ## Table of Contents
@@ -41,9 +44,8 @@ SessionModel presents the data as is, and will never adjust or correct the data.
 information obtained from SessionModel to arrive at their own conclusions or perform corrections for future data 
 queries.
 
-SessionModel is intended to be an open object until the end of the session, with new information constantly being added 
-as it becomes available.  If the information flow stops and the session ends, SessionModel can be 
-[sealed](#sealing-sessionmodel) to prevent any future changes to the SessionModel.
+The SDK version of SessionModel is provided specifically for use with local Redvox files.  We recommend utilizing the 
+cloud version of Session Model to get more accurate data.  More information about cloud Session Models (LINK GOES HERE).
 
 If you want a quick example to copy and paste into your Python IDE, check [here](#sessionmodel-example-code)
 
@@ -89,7 +91,7 @@ from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 
 
 # This function only works if the packet is in API M format.
-# Note that this is a trivial example and you will have to load the packet using your preferred method.
+# Note that this is a trivial example, and you will have to load the packet using your preferred method.
 my_packet: RedvoxPacketM = RedvoxPacketM()
 s_model = SessionModel.create_from_packet(my_packet)
 ```
@@ -106,7 +108,7 @@ from typing import List
 
 
 # This function only works if the packets are in API M format.
-# Note that this is a trivial example and you will have to load the packets using your preferred method.
+# Note that this is a trivial example, and you will have to load the packets using your preferred method.
 my_packets: List[RedvoxPacketM] = [RedvoxPacketM()]
 s_model = SessionModel.create_from_stream(my_packets)
 ```
@@ -161,15 +163,18 @@ at once.
 
 ### Using SessionModel
 
-A SessionModel is intended to remain open and untouched as long as data for the session can be obtained.  You may 
-obtain information about the session at any point during this period, but any information obtained this way may become 
-obsolete at any moment.
+We recommend using the Session Model available from the cloud, as that provides the most updated models.  Follow the 
+instructions (LINK GOES HERE) to access the cloud's Session Models.  If you only have access to local RedVox files, the 
+SDK's SessionModel will suffice.
+
+Please note that a local SessionModel is limited to the availability of your data, and may not accurately represent the
+session over a longer period of time.
 
 ```python
 from redvox.common.session_model import SessionModel
 
 
-# Note that this is a trivial example and you will need to create a SessionModel using one of the methods above
+# Note that this is a trivial example, and you will need to create a SessionModel using one of the methods above
 s_model: SessionModel = SessionModel()
 # Print all the information
 print(s_model)
@@ -179,18 +184,17 @@ print(s_model.session_version())
 print(s_model.id)
 print(s_model.uuid)
 print(s_model.start_date)
+print(s_model.station_description)
 print(s_model.app_name)
-print(s_model.app_version)
 print(s_model.api)
 print(s_model.sub_api)
 print(s_model.make)
 print(s_model.model)
-print(s_model.station_description)
-print(s_model.packet_duration_s)
+print(s_model.app_version)
+print(s_model.owner)
+print(s_model.is_private)
 print(s_model.num_packets)
-print(s_model.first_data_timestamp)
-print(s_model.last_data_timestamp)
-print(s_model.is_sealed)
+print(s_model.packet_duration)
 
 # Print the nominal audio sample rate in hz
 print(s_model.audio_sample_rate_nominal_hz())
@@ -208,36 +212,10 @@ print(s_model.get_sensor_data(sensor_name))
 print(s_model.model_duration())
 
 # Print time synchronization information
-print(s_model.num_timesync_points)
-print(s_model.first_latency_timestamp())
-print(s_model.last_latency_timestamp())
-print(s_model.mean_latency)
-print(s_model.mean_offset)
-print(s_model.offset_model)
+print(s_model.timesync_model)
 
-# Print GPS time synchronization information
-print(s_model.num_gps_points)
-print(s_model.gps_offset)
-
-# Print location information
-print(s_model.location_stats)
-print(s_model.has_moved)
-```
-
-You may finalize a SessionModel by sealing it.  Sealing a model prevents any more data from being added and causes all 
-statistics about the model to be calculated.
-
-#### Sealing SessionModel
-
-Sealing a SessionModel requires calling the function `seal_model()`.
-
-```python
-from redvox.common.session_model import SessionModel
-
-
-# Note that this is a trivial example and you will need to create a SessionModel using one of the methods above
-s_model: SessionModel = SessionModel()
-s_model.seal_model()
+# Print other information
+print(s_model.metrics)
 ```
 
 ### SessionModel Parameters
@@ -246,16 +224,21 @@ This section will cover the parameters required by the base SessionModel module.
 metadata for a session.  It is unlikely you will create a SessionModel without any data.
 This section is included for your reference.
 
-* `station_id`: string, id of the station.  Default "" (empty string).
+* `id`: string, id of the station.  Default "" (empty string).
 * `uuid`: string, uuid of the station.  Default "" (empty string).
-* `start_timestamp`: float, timestamp from epoch UTC when station was started.  Default np.nan.
+* `start_date`: float, timestamp from epoch UTC when station was started.  Default np.nan.
+* `station_description`: string, station description.  Default "" (empty string).
+* `app_name`: string, name of the app.  Default "RedVox".
 * `api`: float, api version of data.  Default np.nan.
 * `sub_api`: float, sub-api version of data.  Default np.nan.
 * `make`: string, make of station.  Default "" (empty string).
 * `model`: string, model of station.  Default "" (empty string).
-* `station_description`: string, station description.  Default "" (empty string).
-* `app_name`: string, name of the app on station.  Default "Redvox".
-* `sensors`: Optional dictionary of sensor name and sample rate in hz.  Default None.
+* `app_version`: string, version of the app.  Default "" (empty string).
+* `owner`: string, owner of the station.  Default "" (empty string).
+* `is_private`: bool, True if the station is private.  Default False.
+* `packet_duration`: float, length of the packet in microseconds.  Default np.nan.
+* `sensors`: Optional list of SensorModels, the data associated with each sensor.  Default empty list.
+* `num_packets`: int, number of packets in the SessionModel.  Default 0.
 
 ### SessionModel Properties
 
@@ -264,52 +247,36 @@ This section details all properties of the SessionModel.
 * `id`: string, id of the station.  Default "" (empty string).
 * `uuid`: string, uuid of the station.  Default "" (empty string).
 * `start_date`: float, timestamp since epoch UTC of when station was started.  Default np.nan.
+* `station_description`: string, text description of the station.  Default "" (empty string).
 * `app_name`: string, name of the app the station is running.  Default "Redvox".
-* `app_version`: string, version of the app the station is running.  Default "" (empty string).
 * `api`: float, version number of the API the station is using.  Default np.nan.
 * `sub_api`: float, version number of the sub-API the station in using.  Default np.nan.
 * `make`: string, make of the station.  Default "" (empty string).
 * `model`: string, model of the station.  Default "" (empty string).
-* `station_description`: string, text description of the station.  Default "" (empty string).
-* `packet_duration_s`: float, length of station's data packets in seconds.  Default np.nan.
+* `app_version`: string, version of the app the station is running.  Default "" (empty string).
+* `owner`: string, owner of the station.  Default "" (empty string).
+* `is_private`: bool, True if the station is private.  Default False.
+* `packet_duration`: float, length of station's data packets in microseconds.  Default np.nan.
+* `sensors`: list of SensorModels, the data associated with each sensor.  Default empty list.
 * `num_packets`: int, number of files used to create the model.  Default 0.
-* `first_data_timestamp`: float, timestamp of the first data point used to create the model.  Default np.nan.
-* `last_data_timestamp`: float, timestamp of the last data point used to create the model.  Default np.nan.
-* `has_moved`: bool, if True, location changed during session.  Default False.
-* `location_stats`: LocationStats, container for number of times a location source has appeared the mean, and the 
-  standard deviation of the data points.  Default empty LocationStats.
-* `best_latency`: float, the best latency of the model.  Default np.nan.
-* `num_timesync_points`: int, the number of timesync data points.  Default 0.
-* `mean_latency`: float, mean latency of the model.  Default np.nan.
-* `mean_offset`: float, mean offset of the model.  Default np.nan.
-* `num_gps_points`: int, the number of gps data points.  Default 0.
-* `gps_offset`: optional tuple of (float, float), the slope and intercept (in that order) of the gps timing 
-  calculations.  Default None.
-* `is_sealed`: bool, if True, the SessionModel will not accept any more data.  This means the offset model and gps
-  offset values are the best they can be, given the available data.  Default False.
+* `metrics`: MetricsSessionModel, contains information about the station's location, battery, and temperature.
+  Default empty MetricsSessionModel.
+* `timesync_model`: TimeSyncModel, contains information about the station's timesync.  Default empty TimeSyncModel.
 
 These are privatized properties that users cannot edit:
 
 * `_session_version`: string, the version of the SessionModel.
-* `_first_timesync_data`: CircularQueue, container for the first 15 points of timesync data; timestamp, latency, offset.  
-  Default empty CircularQueue.
-* `_last_timesync_data`: CircularQueue, container for the last 15 points of timesync data.  Default empty CircularQueue.
-* `_first_gps_data`: CircularQueue, container for the first 15 points of GPS offset data; timestamp and offset.
-  Default empty CircularQueue.
-* `_last_gps_data`: CircularQueue, container for the last 15 points of GPS offset data.  Default empty CircularQueue.
-* `_sensors`: dictionary of str: float, the name of sensors and their mean sample rate as a dictionary.  Default empty.
+* `_client`: string, the client used to create the SessionModel.
+* `_client_version`: string, the version of the client used to create the model.
 * `_sdk_version`: string, the version of the SDK used to create the model.
 * `_errors`: RedVoxExceptions, contains any errors found when creating the model.
-
-CircularQueue is a structure designed to hold up to a specified amount of values.  If the queue is full, it can either 
-deny adding new values or overwrite the oldest value with a new value.
 
 ### SessionModel Functions
 
 These are the functions SessionModel can invoke:
 
 * `as_dict() -> dict`: returns the SessionModel as a dictionary.
-* `from_json_dict(json_dict: dict) -> "SessionModel"`: converts the `json_dict` into a SessionModel returns it.
+* `from_json_dict(source: dict) -> "SessionModel"`: converts the `json_dict` into a SessionModel returns it.
 * `compress(self, out_dir: str = ".") -> Path`: compresses the SessionModel into a .pkl file and saved in directory 
   named `out_dir`.  Returns the path to the saved file.
 * `save(self, out_type: str = "json", out_dir: str = ".") -> Path`: saves the SessionModel as a JSON or pickle file in
