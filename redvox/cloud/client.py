@@ -681,6 +681,16 @@ class CloudClient:
             self.redvox_config, station_stats_req, self.__session, self.timeout
         )
 
+    def request_session_model(
+        self, session_key: str
+    ) -> session_model_api.SessionModelResp:
+        req: session_model_api.SessionModelReq = session_model_api.SessionModelReq(
+            self.auth_token, session_key
+        )
+        return session_model_api.request_session(
+            self.redvox_config, req, self.__session, self.timeout
+        )
+
     def request_session_models(
         self,
         id_uuids: Optional[List[str]] = None,

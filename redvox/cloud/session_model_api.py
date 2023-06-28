@@ -12,6 +12,7 @@ from redvox.cloud.api import post_req
 from redvox.cloud.config import RedVoxConfig
 from redvox.cloud.routes import RoutesV3
 from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc as us2dt
+from redvox.common.errors import RedVoxError
 
 if TYPE_CHECKING:
     from redvox.cloud.client import CloudClient
@@ -161,7 +162,21 @@ class DynamicSession:
 
     # TODO
     def query_packet(self, client: "CloudClient", sub: str):
-        pass
+        raise RedVoxError("Method not yet implemented")
+
+
+@dataclass_json
+@dataclass
+class SessionModelReq:
+    auth_token: str
+    session_key: str
+
+
+@dataclass_json
+@dataclass
+class SessionModelResp:
+    err: Optional[str]
+    session: Optional[Session]
 
 
 @dataclass_json
@@ -196,6 +211,26 @@ class DynamicSessionModelReq:
 class DynamicSessionModelResp:
     err: Optional[str]
     dynamic_session: Optional[DynamicSession]
+
+
+def request_session(
+    redvox_config: RedVoxConfig,
+    req: SessionModelReq,
+    session: Optional[requests.Session] = None,
+    timeout: Optional[float] = None,
+) -> SessionModelResp:
+    # noinspection Mypy
+    handle_resp: Callable[
+        [requests.Response], SessionModelResp
+    ] = lambda resp: SessionModelResp.from_dict(resp.json())
+    return post_req(
+        redvox_config,
+        RoutesV3.SESSION_MODEL,
+        req,
+        handle_resp,
+        session,
+        timeout,
+    )
 
 
 def request_sessions(

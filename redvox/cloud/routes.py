@@ -31,5 +31,6 @@ class RoutesV2:
 
 
 class RoutesV3:
+    SESSION_MODEL: str = "/api/v3/session_model"
     SESSION_MODELS: str = "/api/v3/session_models"
     DYNAMIC_SESSION_MODEL: str = "/api/v3/dynamic_session_model"
