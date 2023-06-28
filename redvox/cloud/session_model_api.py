@@ -8,6 +8,9 @@ from typing import Optional, List, Dict, Callable, Tuple, TYPE_CHECKING
 import requests
 from dataclasses_json import dataclass_json
 
+from redvox.api1000.wrapped_redvox_packet.station_information import StationInformation
+from redvox.api1000.wrapped_redvox_packet.timing_information import TimingInformation
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.cloud.api import post_req
 from redvox.cloud.config import RedVoxConfig
 from redvox.cloud.routes import RoutesV3
@@ -271,3 +274,15 @@ def request_dynamic_session(
         session,
         timeout,
     )
+
+
+def session_key_from_packet(packet: WrappedRedvoxPacketM) -> str:
+    station_info: StationInformation = packet.get_station_information()
+    if station_info is None:
+        raise RedVoxError("Missing required station information")
+    timing_info: TimingInformation = packet.get_timing_information()
+    if timing_info is None:
+        raise RedVoxError("Missing required timing information")
+
+    start_ts: int = round(timing_info.get_app_start_mach_timestamp())
+    return f"{station_info.get_id()}:{station_info.get_uuid()}:{start_ts}"
