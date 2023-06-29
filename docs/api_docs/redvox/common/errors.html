@@ -131,8 +131,8 @@ class RedVoxExceptions:
     @staticmethod
     def from_dict(errors_dict: dict) -&gt; &#34;RedVoxExceptions&#34;:
         &#34;&#34;&#34;
-        :param errors_dict: dictionary representing a RedvoxExceptions object
-        :return: RedvoxExceptions object
+        :param errors_dict: dictionary representing a RedVoxExceptions object
+        :return: a RedVoxExceptions object
         &#34;&#34;&#34;
         if &#34;obj_class&#34; not in errors_dict.keys():
             result = RedVoxExceptions(&#34;ExceptionsLoadFailure&#34;)
@@ -176,6 +176,10 @@ class RedVoxExceptions:
 <ul class="hlist">
 <li>builtins.Exception</li>
 <li>builtins.BaseException</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="redvox.api1000.wrapped_redvox_packet.ml.MlError" href="../api1000/wrapped_redvox_packet/ml.html#redvox.api1000.wrapped_redvox_packet.ml.MlError">MlError</a></li>
 </ul>
 </dd>
 <dt id="redvox.common.errors.RedVoxExceptions"><code class="flex name class">
@@ -276,8 +280,8 @@ class RedVoxExceptions:
     @staticmethod
     def from_dict(errors_dict: dict) -&gt; &#34;RedVoxExceptions&#34;:
         &#34;&#34;&#34;
-        :param errors_dict: dictionary representing a RedvoxExceptions object
-        :return: RedvoxExceptions object
+        :param errors_dict: dictionary representing a RedVoxExceptions object
+        :return: a RedVoxExceptions object
         &#34;&#34;&#34;
         if &#34;obj_class&#34; not in errors_dict.keys():
             result = RedVoxExceptions(&#34;ExceptionsLoadFailure&#34;)
@@ -295,8 +299,8 @@ class RedVoxExceptions:
 <span>def <span class="ident">from_dict</span></span>(<span>errors_dict: dict) ‑> <a title="redvox.common.errors.RedVoxExceptions" href="#redvox.common.errors.RedVoxExceptions">RedVoxExceptions</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>:param errors_dict: dictionary representing a RedvoxExceptions object
-:return: RedvoxExceptions object</p></div>
+<div class="desc"><p>:param errors_dict: dictionary representing a RedVoxExceptions object
+:return: a RedVoxExceptions object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -304,8 +308,8 @@ class RedVoxExceptions:
 <pre><code class="python">@staticmethod
 def from_dict(errors_dict: dict) -&gt; &#34;RedVoxExceptions&#34;:
     &#34;&#34;&#34;
-    :param errors_dict: dictionary representing a RedvoxExceptions object
-    :return: RedvoxExceptions object
+    :param errors_dict: dictionary representing a RedVoxExceptions object
+    :return: a RedVoxExceptions object
     &#34;&#34;&#34;
     if &#34;obj_class&#34; not in errors_dict.keys():
         result = RedVoxExceptions(&#34;ExceptionsLoadFailure&#34;)

@@ -37,35 +37,54 @@ class EventTest(unittest.TestCase):
     def setUpClass(cls) -&gt; None:
         cls.input_dir = tests.TEST_DATA_DIR
         cls.event = es.Event(0, &#34;testevent&#34;)
-        cls.real = es.Event(0, &#34;testreal&#34;)
+        cls.real = es.Event(0, &#34;testreal&#34;, {es.EventDataTypes.STRING: {&#34;class_0&#34;: &#34;myclass&#34;},
+                                            es.EventDataTypes.NUMERIC: {&#34;score_0&#34;: 55},
+                                            es.EventDataTypes.BOOLEAN: {&#34;is_true&#34;: False},
+                                            es.EventDataTypes.BYTE: {&#34;byte_code&#34;: b&#34;1&#34;}})
 
     def test_get_values(self):
         self.assertEqual(self.event.get_string_values(), {})
         self.assertEqual(self.event.get_numeric_values(), {})
         self.assertEqual(self.event.get_boolean_values(), {})
         self.assertEqual(self.event.get_byte_values(), {})
+        self.assertEqual(self.real.get_string_values(), {&#34;class_0&#34;: &#34;myclass&#34;})
+        self.assertEqual(self.real.get_numeric_values(), {&#34;score_0&#34;: 55})
 
     def test_get_columns(self):
         self.assertEqual(len(self.event.get_string_column(&#34;fail&#34;)), 0)
+        self.assertEqual(len(self.real.get_string_column(&#34;class&#34;)), 1)
 
     def test_get_classification(self):
         self.assertEqual(len(self.event.get_classification(0)), 0)
+        self.assertEqual(len(self.real.get_classification(0)), 2)
 
     def test_get_string_item(self):
         self.assertEqual(self.event.get_string_item(&#34;fail&#34;), None)
+        self.assertEqual(self.real.get_string_item(&#34;class_0&#34;), &#34;myclass&#34;)
 
     def test_get_numeric_item(self):
         self.assertEqual(self.event.get_numeric_item(&#34;fail&#34;), None)
+        self.assertEqual(self.real.get_numeric_item(&#34;score_0&#34;), 55)
 
     def test_get_boolean_item(self):
         self.assertEqual(self.event.get_boolean_item(&#34;fail&#34;), None)
+        self.assertEqual(self.real.get_boolean_item(&#34;is_true&#34;), False)
 
     def test_get_byte_item(self):
         self.assertEqual(self.event.get_byte_item(&#34;fail&#34;), None)
+        self.assertEqual(self.real.get_byte_item(&#34;byte_code&#34;), b&#34;1&#34;)
 
     def test_get_timestamps(self):
         self.assertEqual(self.event.get_timestamp(), 0)
         self.assertEqual(self.event.get_uncorrected_timestamp(), 0)
+
+    def test_get_item(self):
+        self.assertEqual(0, len(self.event.get_item(&#34;fail&#34;)))
+        columns = self.real.get_item(&#34;fail&#34;)
+        self.assertEqual(4, len(columns))
+        for c in columns:
+            val = self.real.get_item(c)
+            self.assertIsNotNone(val)
 
 
 class EventStreamTest(unittest.TestCase):
@@ -220,35 +239,54 @@ not have a method with the specified name.</p></div>
     def setUpClass(cls) -&gt; None:
         cls.input_dir = tests.TEST_DATA_DIR
         cls.event = es.Event(0, &#34;testevent&#34;)
-        cls.real = es.Event(0, &#34;testreal&#34;)
+        cls.real = es.Event(0, &#34;testreal&#34;, {es.EventDataTypes.STRING: {&#34;class_0&#34;: &#34;myclass&#34;},
+                                            es.EventDataTypes.NUMERIC: {&#34;score_0&#34;: 55},
+                                            es.EventDataTypes.BOOLEAN: {&#34;is_true&#34;: False},
+                                            es.EventDataTypes.BYTE: {&#34;byte_code&#34;: b&#34;1&#34;}})
 
     def test_get_values(self):
         self.assertEqual(self.event.get_string_values(), {})
         self.assertEqual(self.event.get_numeric_values(), {})
         self.assertEqual(self.event.get_boolean_values(), {})
         self.assertEqual(self.event.get_byte_values(), {})
+        self.assertEqual(self.real.get_string_values(), {&#34;class_0&#34;: &#34;myclass&#34;})
+        self.assertEqual(self.real.get_numeric_values(), {&#34;score_0&#34;: 55})
 
     def test_get_columns(self):
         self.assertEqual(len(self.event.get_string_column(&#34;fail&#34;)), 0)
+        self.assertEqual(len(self.real.get_string_column(&#34;class&#34;)), 1)
 
     def test_get_classification(self):
         self.assertEqual(len(self.event.get_classification(0)), 0)
+        self.assertEqual(len(self.real.get_classification(0)), 2)
 
     def test_get_string_item(self):
         self.assertEqual(self.event.get_string_item(&#34;fail&#34;), None)
+        self.assertEqual(self.real.get_string_item(&#34;class_0&#34;), &#34;myclass&#34;)
 
     def test_get_numeric_item(self):
         self.assertEqual(self.event.get_numeric_item(&#34;fail&#34;), None)
+        self.assertEqual(self.real.get_numeric_item(&#34;score_0&#34;), 55)
 
     def test_get_boolean_item(self):
         self.assertEqual(self.event.get_boolean_item(&#34;fail&#34;), None)
+        self.assertEqual(self.real.get_boolean_item(&#34;is_true&#34;), False)
 
     def test_get_byte_item(self):
         self.assertEqual(self.event.get_byte_item(&#34;fail&#34;), None)
+        self.assertEqual(self.real.get_byte_item(&#34;byte_code&#34;), b&#34;1&#34;)
 
     def test_get_timestamps(self):
         self.assertEqual(self.event.get_timestamp(), 0)
-        self.assertEqual(self.event.get_uncorrected_timestamp(), 0)</code></pre>
+        self.assertEqual(self.event.get_uncorrected_timestamp(), 0)
+
+    def test_get_item(self):
+        self.assertEqual(0, len(self.event.get_item(&#34;fail&#34;)))
+        columns = self.real.get_item(&#34;fail&#34;)
+        self.assertEqual(4, len(columns))
+        for c in columns:
+            val = self.real.get_item(c)
+            self.assertIsNotNone(val)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -269,7 +307,10 @@ not have a method with the specified name.</p></div>
 def setUpClass(cls) -&gt; None:
     cls.input_dir = tests.TEST_DATA_DIR
     cls.event = es.Event(0, &#34;testevent&#34;)
-    cls.real = es.Event(0, &#34;testreal&#34;)</code></pre>
+    cls.real = es.Event(0, &#34;testreal&#34;, {es.EventDataTypes.STRING: {&#34;class_0&#34;: &#34;myclass&#34;},
+                                        es.EventDataTypes.NUMERIC: {&#34;score_0&#34;: 55},
+                                        es.EventDataTypes.BOOLEAN: {&#34;is_true&#34;: False},
+                                        es.EventDataTypes.BYTE: {&#34;byte_code&#34;: b&#34;1&#34;}})</code></pre>
 </details>
 </dd>
 </dl>
@@ -285,7 +326,8 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_get_boolean_item(self):
-    self.assertEqual(self.event.get_boolean_item(&#34;fail&#34;), None)</code></pre>
+    self.assertEqual(self.event.get_boolean_item(&#34;fail&#34;), None)
+    self.assertEqual(self.real.get_boolean_item(&#34;is_true&#34;), False)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_event_stream.EventTest.test_get_byte_item"><code class="name flex">
@@ -298,7 +340,8 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_get_byte_item(self):
-    self.assertEqual(self.event.get_byte_item(&#34;fail&#34;), None)</code></pre>
+    self.assertEqual(self.event.get_byte_item(&#34;fail&#34;), None)
+    self.assertEqual(self.real.get_byte_item(&#34;byte_code&#34;), b&#34;1&#34;)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_event_stream.EventTest.test_get_classification"><code class="name flex">
@@ -311,7 +354,8 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_get_classification(self):
-    self.assertEqual(len(self.event.get_classification(0)), 0)</code></pre>
+    self.assertEqual(len(self.event.get_classification(0)), 0)
+    self.assertEqual(len(self.real.get_classification(0)), 2)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_event_stream.EventTest.test_get_columns"><code class="name flex">
@@ -324,7 +368,26 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_get_columns(self):
-    self.assertEqual(len(self.event.get_string_column(&#34;fail&#34;)), 0)</code></pre>
+    self.assertEqual(len(self.event.get_string_column(&#34;fail&#34;)), 0)
+    self.assertEqual(len(self.real.get_string_column(&#34;class&#34;)), 1)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_event_stream.EventTest.test_get_item"><code class="name flex">
+<span>def <span class="ident">test_get_item</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_item(self):
+    self.assertEqual(0, len(self.event.get_item(&#34;fail&#34;)))
+    columns = self.real.get_item(&#34;fail&#34;)
+    self.assertEqual(4, len(columns))
+    for c in columns:
+        val = self.real.get_item(c)
+        self.assertIsNotNone(val)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_event_stream.EventTest.test_get_numeric_item"><code class="name flex">
@@ -337,7 +400,8 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_get_numeric_item(self):
-    self.assertEqual(self.event.get_numeric_item(&#34;fail&#34;), None)</code></pre>
+    self.assertEqual(self.event.get_numeric_item(&#34;fail&#34;), None)
+    self.assertEqual(self.real.get_numeric_item(&#34;score_0&#34;), 55)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_event_stream.EventTest.test_get_string_item"><code class="name flex">
@@ -350,7 +414,8 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_get_string_item(self):
-    self.assertEqual(self.event.get_string_item(&#34;fail&#34;), None)</code></pre>
+    self.assertEqual(self.event.get_string_item(&#34;fail&#34;), None)
+    self.assertEqual(self.real.get_string_item(&#34;class_0&#34;), &#34;myclass&#34;)</code></pre>
 </details>
 </dd>
 <dt id="redvox.tests.common.test_event_stream.EventTest.test_get_timestamps"><code class="name flex">
@@ -380,7 +445,9 @@ def setUpClass(cls) -&gt; None:
     self.assertEqual(self.event.get_string_values(), {})
     self.assertEqual(self.event.get_numeric_values(), {})
     self.assertEqual(self.event.get_boolean_values(), {})
-    self.assertEqual(self.event.get_byte_values(), {})</code></pre>
+    self.assertEqual(self.event.get_byte_values(), {})
+    self.assertEqual(self.real.get_string_values(), {&#34;class_0&#34;: &#34;myclass&#34;})
+    self.assertEqual(self.real.get_numeric_values(), {&#34;score_0&#34;: 55})</code></pre>
 </details>
 </dd>
 </dl>
@@ -416,6 +483,7 @@ def setUpClass(cls) -&gt; None:
 <li><code><a title="redvox.tests.common.test_event_stream.EventTest.test_get_byte_item" href="#redvox.tests.common.test_event_stream.EventTest.test_get_byte_item">test_get_byte_item</a></code></li>
 <li><code><a title="redvox.tests.common.test_event_stream.EventTest.test_get_classification" href="#redvox.tests.common.test_event_stream.EventTest.test_get_classification">test_get_classification</a></code></li>
 <li><code><a title="redvox.tests.common.test_event_stream.EventTest.test_get_columns" href="#redvox.tests.common.test_event_stream.EventTest.test_get_columns">test_get_columns</a></code></li>
+<li><code><a title="redvox.tests.common.test_event_stream.EventTest.test_get_item" href="#redvox.tests.common.test_event_stream.EventTest.test_get_item">test_get_item</a></code></li>
 <li><code><a title="redvox.tests.common.test_event_stream.EventTest.test_get_numeric_item" href="#redvox.tests.common.test_event_stream.EventTest.test_get_numeric_item">test_get_numeric_item</a></code></li>
 <li><code><a title="redvox.tests.common.test_event_stream.EventTest.test_get_string_item" href="#redvox.tests.common.test_event_stream.EventTest.test_get_string_item">test_get_string_item</a></code></li>
 <li><code><a title="redvox.tests.common.test_event_stream.EventTest.test_get_timestamps" href="#redvox.tests.common.test_event_stream.EventTest.test_get_timestamps">test_get_timestamps</a></code></li>

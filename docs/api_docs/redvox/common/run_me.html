@@ -37,7 +37,6 @@ This file is expected to be in the same directory as the JSON file being loaded,
 and there is only one JSON file to load.
 This file is expected to work with SDK version 3.1.4 and higher
 &#34;&#34;&#34;
-
 import redvox.common.data_window as dwa
 from redvox.common.io import get_json_file
 
@@ -46,12 +45,12 @@ def main():
     files = get_json_file(&#34;.&#34;)
     if files is None:
         raise KeyError(&#34;Missing .json file to load!&#34;)
-    dw = dwa.DataWindow.load(files)
+    dw = dwa.DataWindow.load(f&#34;./{files}&#34;)
 
     print(&#34;Stations by ID in Data Window:&#34;, [sttn.id() for sttn in dw.stations()])
     st = dw.first_station()
 
-    print(f&#34;Sensors in Station {st.id()}:&#34;, st.get_sensor_names())
+    print(f&#34;Sensors in Station {st.id()}:&#34;, st.get_sensors())
     audio = st.audio_sensor()
     print(f&#34;Audio Sensor {audio.name} Data: &#34;, audio.get_microphone_data())
 
@@ -92,12 +91,12 @@ if __name__ == &#34;__main__&#34;:
     files = get_json_file(&#34;.&#34;)
     if files is None:
         raise KeyError(&#34;Missing .json file to load!&#34;)
-    dw = dwa.DataWindow.load(files)
+    dw = dwa.DataWindow.load(f&#34;./{files}&#34;)
 
     print(&#34;Stations by ID in Data Window:&#34;, [sttn.id() for sttn in dw.stations()])
     st = dw.first_station()
 
-    print(f&#34;Sensors in Station {st.id()}:&#34;, st.get_sensor_names())
+    print(f&#34;Sensors in Station {st.id()}:&#34;, st.get_sensors())
     audio = st.audio_sensor()
     print(f&#34;Audio Sensor {audio.name} Data: &#34;, audio.get_microphone_data())
 

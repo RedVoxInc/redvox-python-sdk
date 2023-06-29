@@ -36,11 +36,10 @@ This client provides convenient access to RedVox metadata and data. This client 
 an up-to-date authentication token for making authenticated API requests.
 &#34;&#34;&#34;
 
-from collections import defaultdict
 import contextlib
 import threading
 from multiprocessing import Queue
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, Iterator
+from typing import List, Optional, Tuple, TYPE_CHECKING, Iterator
 
 import requests
 
@@ -49,19 +48,15 @@ import redvox.cloud.auth_api as auth_api
 from redvox.cloud.config import RedVoxConfig
 import redvox.cloud.errors as cloud_errors
 import redvox.common.constants as constants
-from redvox.common.offset_model import compute_offsets
 from redvox.cloud.query_timing_correction import (
     correct_query_timing as do_correct_query_timing,
-    CorrectedQuery,
 )
 import redvox.cloud.data_api as data_api
 import redvox.cloud.metadata_api as metadata_api
 import redvox.cloud.station_stats as station_stats_api
+import redvox.cloud.session_model_api as session_model_api
 
 if TYPE_CHECKING:
-    from redvox.cloud.station_stats import StationStatsResp
-    from redvox.common.file_statistics import StationStat
-    from redvox.common.offset_model import TimingOffsets
     from redvox.cloud.query_timing_correction import CorrectedQuery
 
 
@@ -715,6 +710,67 @@ class CloudClient:
 
         return station_stats_api.request_station_stats(
             self.redvox_config, station_stats_req, self.__session, self.timeout
+        )
+
+    def request_session_model(
+        self, session_key: str
+    ) -&gt; session_model_api.SessionModelResp:
+        &#34;&#34;&#34;
+        Requests a session model.
+        :param session_key: The session key.
+        :return: An instance of a SessionModelResp.
+        &#34;&#34;&#34;
+        req: session_model_api.SessionModelReq = session_model_api.SessionModelReq(
+            self.auth_token, session_key
+        )
+        return session_model_api.request_session(
+            self.redvox_config, req, self.__session, self.timeout
+        )
+
+    def request_session_models(
+        self,
+        id_uuids: Optional[List[str]] = None,
+        owner: Optional[str] = None,
+        start_ts: Optional[int] = None,
+        end_ts: Optional[int] = None,
+        include_public: bool = False,
+    ) -&gt; session_model_api.SessionModelsResp:
+        &#34;&#34;&#34;
+        Requests a range of session models.
+        :param id_uuids: An optional list of IDs or ID:UUIDs.
+        :param owner: An optional owner.
+        :param start_ts: An optional start timestamp (microseconds).
+        :param end_ts: An optional end timestamp (microseconds).
+        :param include_public: Additionally include public sessions that may not be the same as the owner.
+        :return: An instance of SessionModelsResp.
+        &#34;&#34;&#34;
+        req: session_model_api.SessionModelsReq = session_model_api.SessionModelsReq(
+            self.auth_token, id_uuids, owner, start_ts, end_ts, include_public
+        )
+        return session_model_api.request_sessions(
+            self.redvox_config, req, self.__session, self.timeout
+        )
+
+    def request_dynamic_session_model(
+        self,
+        session_key: str,
+        start_ts: int,
+        end_ts: int,
+    ) -&gt; session_model_api.DynamicSessionModelResp:
+        &#34;&#34;&#34;
+        Requests a dynamic session given the fields that make up its key.
+        :param session_key: The parent session model key.
+        :param start_ts: The start of the dynamic session (microseconds).
+        :param end_ts: The end of the dynamic session (microseconds).
+        :return: An instance of DynamicSessionModelResp.
+        &#34;&#34;&#34;
+        req: session_model_api.DynamicSessionModelReq = (
+            session_model_api.DynamicSessionModelReq(
+                self.auth_token, session_key, start_ts, end_ts
+            )
+        )
+        return session_model_api.request_dynamic_session(
+            self.redvox_config, req, self.__session, self.timeout
         )
 
 
@@ -1485,6 +1541,67 @@ def cloud_client(
 
         return station_stats_api.request_station_stats(
             self.redvox_config, station_stats_req, self.__session, self.timeout
+        )
+
+    def request_session_model(
+        self, session_key: str
+    ) -&gt; session_model_api.SessionModelResp:
+        &#34;&#34;&#34;
+        Requests a session model.
+        :param session_key: The session key.
+        :return: An instance of a SessionModelResp.
+        &#34;&#34;&#34;
+        req: session_model_api.SessionModelReq = session_model_api.SessionModelReq(
+            self.auth_token, session_key
+        )
+        return session_model_api.request_session(
+            self.redvox_config, req, self.__session, self.timeout
+        )
+
+    def request_session_models(
+        self,
+        id_uuids: Optional[List[str]] = None,
+        owner: Optional[str] = None,
+        start_ts: Optional[int] = None,
+        end_ts: Optional[int] = None,
+        include_public: bool = False,
+    ) -&gt; session_model_api.SessionModelsResp:
+        &#34;&#34;&#34;
+        Requests a range of session models.
+        :param id_uuids: An optional list of IDs or ID:UUIDs.
+        :param owner: An optional owner.
+        :param start_ts: An optional start timestamp (microseconds).
+        :param end_ts: An optional end timestamp (microseconds).
+        :param include_public: Additionally include public sessions that may not be the same as the owner.
+        :return: An instance of SessionModelsResp.
+        &#34;&#34;&#34;
+        req: session_model_api.SessionModelsReq = session_model_api.SessionModelsReq(
+            self.auth_token, id_uuids, owner, start_ts, end_ts, include_public
+        )
+        return session_model_api.request_sessions(
+            self.redvox_config, req, self.__session, self.timeout
+        )
+
+    def request_dynamic_session_model(
+        self,
+        session_key: str,
+        start_ts: int,
+        end_ts: int,
+    ) -&gt; session_model_api.DynamicSessionModelResp:
+        &#34;&#34;&#34;
+        Requests a dynamic session given the fields that make up its key.
+        :param session_key: The parent session model key.
+        :param start_ts: The start of the dynamic session (microseconds).
+        :param end_ts: The end of the dynamic session (microseconds).
+        :return: An instance of DynamicSessionModelResp.
+        &#34;&#34;&#34;
+        req: session_model_api.DynamicSessionModelReq = (
+            session_model_api.DynamicSessionModelReq(
+                self.auth_token, session_key, start_ts, end_ts
+            )
+        )
+        return session_model_api.request_dynamic_session(
+            self.redvox_config, req, self.__session, self.timeout
         )</code></pre>
 </details>
 <h3>Methods</h3>
@@ -1622,7 +1739,7 @@ def cloud_client(
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_data_range"><code class="name flex">
-<span>def <span class="ident">request_data_range</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900_1000, correct_query_timing: bool = True, out_queue: Optional[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x7fa34d111450>>] = None) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="data_api.html#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
+<span>def <span class="ident">request_data_range</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str], req_type: <a title="redvox.cloud.data_api.DataRangeReqType" href="data_api.html#redvox.cloud.data_api.DataRangeReqType">DataRangeReqType</a> = DataRangeReqType.API_900_1000, correct_query_timing: bool = True, out_queue: Optional[<bound method BaseContext.Queue of <multiprocessing.context.DefaultContext object at 0x7fb9c977ba60>>] = None) ‑> <a title="redvox.cloud.data_api.DataRangeResp" href="data_api.html#redvox.cloud.data_api.DataRangeResp">DataRangeResp</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Request signed URLs for RedVox packets.
@@ -1730,6 +1847,42 @@ correct_timing queried.
     else:
         # No timing correction requested, go ahead just make the original uncorrected request
         return _make_req(start_ts_s, end_ts_s, station_ids)</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.client.CloudClient.request_dynamic_session_model"><code class="name flex">
+<span>def <span class="ident">request_dynamic_session_model</span></span>(<span>self, session_key: str, start_ts: int, end_ts: int) ‑> <a title="redvox.cloud.session_model_api.DynamicSessionModelResp" href="session_model_api.html#redvox.cloud.session_model_api.DynamicSessionModelResp">DynamicSessionModelResp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Requests a dynamic session given the fields that make up its key.
+:param session_key: The parent session model key.
+:param start_ts: The start of the dynamic session (microseconds).
+:param end_ts: The end of the dynamic session (microseconds).
+:return: An instance of DynamicSessionModelResp.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def request_dynamic_session_model(
+    self,
+    session_key: str,
+    start_ts: int,
+    end_ts: int,
+) -&gt; session_model_api.DynamicSessionModelResp:
+    &#34;&#34;&#34;
+    Requests a dynamic session given the fields that make up its key.
+    :param session_key: The parent session model key.
+    :param start_ts: The start of the dynamic session (microseconds).
+    :param end_ts: The end of the dynamic session (microseconds).
+    :return: An instance of DynamicSessionModelResp.
+    &#34;&#34;&#34;
+    req: session_model_api.DynamicSessionModelReq = (
+        session_model_api.DynamicSessionModelReq(
+            self.auth_token, session_key, start_ts, end_ts
+        )
+    )
+    return session_model_api.request_dynamic_session(
+        self.redvox_config, req, self.__session, self.timeout
+    )</code></pre>
 </details>
 </dd>
 <dt id="redvox.cloud.client.CloudClient.request_geo_metadata_stream"><code class="name flex">
@@ -2035,6 +2188,73 @@ correct_timing queried.
     )</code></pre>
 </details>
 </dd>
+<dt id="redvox.cloud.client.CloudClient.request_session_model"><code class="name flex">
+<span>def <span class="ident">request_session_model</span></span>(<span>self, session_key: str) ‑> <a title="redvox.cloud.session_model_api.SessionModelResp" href="session_model_api.html#redvox.cloud.session_model_api.SessionModelResp">SessionModelResp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Requests a session model.
+:param session_key: The session key.
+:return: An instance of a SessionModelResp.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def request_session_model(
+    self, session_key: str
+) -&gt; session_model_api.SessionModelResp:
+    &#34;&#34;&#34;
+    Requests a session model.
+    :param session_key: The session key.
+    :return: An instance of a SessionModelResp.
+    &#34;&#34;&#34;
+    req: session_model_api.SessionModelReq = session_model_api.SessionModelReq(
+        self.auth_token, session_key
+    )
+    return session_model_api.request_session(
+        self.redvox_config, req, self.__session, self.timeout
+    )</code></pre>
+</details>
+</dd>
+<dt id="redvox.cloud.client.CloudClient.request_session_models"><code class="name flex">
+<span>def <span class="ident">request_session_models</span></span>(<span>self, id_uuids: Optional[List[str]] = None, owner: Optional[str] = None, start_ts: Optional[int] = None, end_ts: Optional[int] = None, include_public: bool = False) ‑> <a title="redvox.cloud.session_model_api.SessionModelsResp" href="session_model_api.html#redvox.cloud.session_model_api.SessionModelsResp">SessionModelsResp</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Requests a range of session models.
+:param id_uuids: An optional list of IDs or ID:UUIDs.
+:param owner: An optional owner.
+:param start_ts: An optional start timestamp (microseconds).
+:param end_ts: An optional end timestamp (microseconds).
+:param include_public: Additionally include public sessions that may not be the same as the owner.
+:return: An instance of SessionModelsResp.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def request_session_models(
+    self,
+    id_uuids: Optional[List[str]] = None,
+    owner: Optional[str] = None,
+    start_ts: Optional[int] = None,
+    end_ts: Optional[int] = None,
+    include_public: bool = False,
+) -&gt; session_model_api.SessionModelsResp:
+    &#34;&#34;&#34;
+    Requests a range of session models.
+    :param id_uuids: An optional list of IDs or ID:UUIDs.
+    :param owner: An optional owner.
+    :param start_ts: An optional start timestamp (microseconds).
+    :param end_ts: An optional end timestamp (microseconds).
+    :param include_public: Additionally include public sessions that may not be the same as the owner.
+    :return: An instance of SessionModelsResp.
+    &#34;&#34;&#34;
+    req: session_model_api.SessionModelsReq = session_model_api.SessionModelsReq(
+        self.auth_token, id_uuids, owner, start_ts, end_ts, include_public
+    )
+    return session_model_api.request_sessions(
+        self.redvox_config, req, self.__session, self.timeout
+    )</code></pre>
+</details>
+</dd>
 <dt id="redvox.cloud.client.CloudClient.request_station_stats"><code class="name flex">
 <span>def <span class="ident">request_station_stats</span></span>(<span>self, start_ts_s: int, end_ts_s: int, station_ids: List[str]) ‑> Optional[<a title="redvox.cloud.station_stats.StationStatsResp" href="station_stats.html#redvox.cloud.station_stats.StationStatsResp">StationStatsResp</a>]</span>
 </code></dt>
@@ -2277,11 +2497,14 @@ The end epoch of the window.
 <li><code><a title="redvox.cloud.client.CloudClient.refresh_auth_token" href="#redvox.cloud.client.CloudClient.refresh_auth_token">refresh_auth_token</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.refresh_own_auth_token" href="#redvox.cloud.client.CloudClient.refresh_own_auth_token">refresh_own_auth_token</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_data_range" href="#redvox.cloud.client.CloudClient.request_data_range">request_data_range</a></code></li>
+<li><code><a title="redvox.cloud.client.CloudClient.request_dynamic_session_model" href="#redvox.cloud.client.CloudClient.request_dynamic_session_model">request_dynamic_session_model</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_geo_metadata_stream" href="#redvox.cloud.client.CloudClient.request_geo_metadata_stream">request_geo_metadata_stream</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_metadata" href="#redvox.cloud.client.CloudClient.request_metadata">request_metadata</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_metadata_m" href="#redvox.cloud.client.CloudClient.request_metadata_m">request_metadata_m</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_metadata_m_stream" href="#redvox.cloud.client.CloudClient.request_metadata_m_stream">request_metadata_m_stream</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_report_data" href="#redvox.cloud.client.CloudClient.request_report_data">request_report_data</a></code></li>
+<li><code><a title="redvox.cloud.client.CloudClient.request_session_model" href="#redvox.cloud.client.CloudClient.request_session_model">request_session_model</a></code></li>
+<li><code><a title="redvox.cloud.client.CloudClient.request_session_models" href="#redvox.cloud.client.CloudClient.request_session_models">request_session_models</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_station_stats" href="#redvox.cloud.client.CloudClient.request_station_stats">request_station_stats</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_station_statuses" href="#redvox.cloud.client.CloudClient.request_station_statuses">request_station_statuses</a></code></li>
 <li><code><a title="redvox.cloud.client.CloudClient.request_timing_metadata" href="#redvox.cloud.client.CloudClient.request_timing_metadata">request_timing_metadata</a></code></li>

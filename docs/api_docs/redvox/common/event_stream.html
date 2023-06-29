@@ -26,7 +26,7 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from typing import List, Optional, Dict
+<pre><code class="python">from typing import List, Optional, Dict, Union
 from dataclasses import dataclass, field
 from pathlib import Path
 import enum
@@ -78,7 +78,7 @@ class Event:
     def __init__(self,
                  timestamp: float,
                  name: str = &#34;event&#34;,
-                 data: Optional[Dict[str, dict]] = None,
+                 data: Optional[Dict[EventDataTypes, dict]] = None,
                  save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
                  base_dir: str = &#34;.&#34;):
         &#34;&#34;&#34;
@@ -113,7 +113,7 @@ class Event:
                f&#34;timestamp: {self._timestamp}, &#34; \
                f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34; \
                f&#34;schema: {self.get_schema()}, &#34; \
-               f&#34;save_mode: {self._fs_writer.save_mode().value}&#34;
+               f&#34;save_mode: {self._fs_writer.save_mode()}&#34;
 
     def __str__(self):
         return f&#34;name: {self.name}, &#34; \
@@ -255,6 +255,15 @@ class Event:
             result[f] = [k for k in self._data[f].keys()]
         return result
 
+    def get_data_keys(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: the keys of the data in the event
+        &#34;&#34;&#34;
+        result = []
+        for f in self._data.keys():
+            result.extend([k for k in self._data[f].keys()])
+        return result
+
     def get_string_values(self) -&gt; dict:
         &#34;&#34;&#34;
         :return: the string data as a dictionary
@@ -312,7 +321,7 @@ class Event:
         :param data_key: the name of the data value to look for
         :return: boolean data if it exists, None otherwise
         &#34;&#34;&#34;
-        boos = self.get_string_values()
+        boos = self.get_boolean_values()
         for s in boos.keys():
             if s == data_key:
                 return boos[s]
@@ -325,15 +334,26 @@ class Event:
         :param data_key: the name of the data value to look for
         :return: byte data if it exists, None otherwise
         &#34;&#34;&#34;
-        byts = self.get_string_values()
+        byts = self.get_byte_values()
         for s in byts.keys():
             if s == data_key:
                 return byts[s]
         return None
 
+    def get_item(self, data_key: str) -&gt; Union[List[str], str, bool, float]:
+        &#34;&#34;&#34;
+        :param data_key: key of data to get
+        :return: data with matching data_key or the list of all possible data keys
+        &#34;&#34;&#34;
+        for r in [self.get_string_item(data_key), self.get_numeric_item(data_key),
+                  self.get_boolean_item(data_key), self.get_byte_item(data_key)]:
+            if r is not None:
+                return r
+        return self.get_data_keys()
+
     def get_classification(self, index: int = 0) -&gt; dict:
         &#34;&#34;&#34;
-        get a classification from an event
+        get a classification from an event (anything that ends with &#34;_X&#34; where X is the index value)
 
         :param index: index of classification, default 0
         :return: dictionary of data
@@ -341,7 +361,7 @@ class Event:
         result = {}
         for s in self._data.keys():
             for b, v in self._data[s].items():
-                match = re.match(f&#34;*_{index}&#34;, b)
+                match = re.search(f&#34;_{index}$&#34;, b)
                 if match is not None:
                     result[b] = v
         return result
@@ -440,6 +460,19 @@ class Event:
             self._errors.append(&#34;Timestamps already corrected!&#34;)
         else:
             self._timestamp = offset_model.update_time(self._timestamp, use_model_function)
+
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        &#34;&#34;&#34;
+        undo the update to the timestamp of the Event
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model&#39;s slope function to update the timestamps.
+                                    otherwise uses the best offset (model&#39;s intercept value).  Default False
+        &#34;&#34;&#34;
+        if not self.is_timestamp_corrected():
+            self._errors.append(&#34;Timestamps already not corrected!&#34;)
+        else:
+            self._timestamp = offset_model.get_original_time(self._timestamp, use_model_function)
 
     def default_json_file_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -624,29 +657,42 @@ class EventStream:
 
         events: List[Event]; all events in the stream.  Default empty list
 
-        sample_rate_hz: float; the sample rate of the events.  Default np.nan
+        input_sample_rate: int; audio sample rate.  Default 0
 
-        sample_rate_std_hz: float; std deviation of the sample rate.  Default 0.0
+        samples_per_window: int; samples per window of the events.  Default 0
+
+        samples_per_hop: int; samples per hop of the events.  Default 0
+
+        model_version: string; version of the model.  Default &#34;0.0&#34;
 
         metadata: Dict[str, str]; metadata as dict of strings.  Default empty dict
+
+        debug: boolean; if True, outputs additional information at runtime.  Default False.
     &#34;&#34;&#34;
     name: str = &#34;stream&#34;
     events: List[Event] = field(default_factory=lambda: [])
-    sample_rate_hz: float = np.nan
-    sample_rate_std_hz: float = 0.0
+    input_sample_rate: int = 0
+    samples_per_window: int = 0
+    samples_per_hop: int = 0
+    model_version: str = &#34;n/a&#34;
     metadata: Dict[str, str] = field(default_factory=lambda: {})
+    debug: bool = False
 
     def __repr__(self):
         return f&#34;name: {self.name}, &#34; \
                f&#34;events: {[s.__repr__() for s in self.events]}, &#34; \
-               f&#34;sample_rate_hz: {self.sample_rate_hz}, &#34; \
-               f&#34;sample_rate_std_hz: {self.sample_rate_std_hz}&#34;
+               f&#34;input_sample_rate: {self.input_sample_rate}, &#34; \
+               f&#34;samples_per_window: {self.samples_per_window}, &#34; \
+               f&#34;samples_per_hop: {self.samples_per_hop}, &#34; \
+               f&#34;model_version: {self.model_version}&#34;
 
     def __str__(self):
         return f&#34;name: {self.name}, &#34; \
                f&#34;events: {[s.__str__() for s in self.events]}, &#34; \
-               f&#34;sample_rate_hz: {self.sample_rate_hz}, &#34; \
-               f&#34;sample_rate_std_hz: {self.sample_rate_std_hz}&#34;
+               f&#34;input_sample_rate: {self.input_sample_rate}, &#34; \
+               f&#34;samples_per_window: {self.samples_per_window}, &#34; \
+               f&#34;samples_per_hop: {self.samples_per_hop}, &#34; \
+               f&#34;model_version: {self.model_version}&#34;
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -655,8 +701,10 @@ class EventStream:
         return {
             &#34;name&#34;: self.name,
             &#34;events&#34;: [e.as_dict() for e in self.events],
-            &#34;sample_rate_hz&#34;: self.sample_rate_hz,
-            &#34;sample_rate_std_hz&#34;: self.sample_rate_std_hz,
+            &#34;input_sample_rate&#34;: self.input_sample_rate,
+            &#34;samples_per_window&#34;: self.samples_per_window,
+            &#34;samples_per_hop&#34;: self.samples_per_hop,
+            &#34;model_version&#34;: self.model_version,
             &#34;metadata&#34;: self.metadata
         }
 
@@ -666,14 +714,44 @@ class EventStream:
         &#34;&#34;&#34;
         return len(self.events) &gt; 0
 
+    def has_events(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: True if there are one or more events in the stream
+        &#34;&#34;&#34;
+        return len(self.events) &gt; 0
+
     def get_event(self, index: int = 0) -&gt; Optional[Event]:
         &#34;&#34;&#34;
-        :param index: index of event to get.  Use non-negative values only.  Default 0 (first event)
+        :param index: index of event to get.  Use negative values to select from the end of the list.
+                        Default 0 (first event)
         :return: Event at the index, or None if the event/index doesn&#39;t exist
         &#34;&#34;&#34;
-        if index &gt;= len(self.events) or index &lt; 0:
-            return None
-        return self.events[index]
+        if 0 &gt; index:
+            index += len(self.events)
+        if 0 &lt;= index &lt; len(self.events):
+            return self.events[index]
+        return None
+
+    def get_data_column(self, column_name: str) -&gt; list:
+        &#34;&#34;&#34;
+        return a list of data with key column_name from each of the events
+        if column_name doesn&#39;t exist, gets a list of valid column_names
+
+        :param column_name: key of data to get
+        :return: list of data named column_name or the list of all possible column names
+        &#34;&#34;&#34;
+        result = []
+        column_list = set()
+        for r in self.events:
+            val = r.get_item(column_name)
+            if type(val) != list:
+                result.append(val)
+            else:
+                for v in val:
+                    column_list.add(v)
+        if len(result) &gt; 0:
+            return result
+        return list(column_list)
 
     @staticmethod
     def from_eventstream(stream: RedvoxPacketM.EventStream,
@@ -690,10 +768,15 @@ class EventStream:
                             Default current directory (&#34;.&#34;)
         :return: EventStream (sdk version)
         &#34;&#34;&#34;
-        result = EventStream(stream.name, sample_rate_hz=stream.timestamps.mean_sample_rate,
-                             sample_rate_std_hz=stream.timestamps.stdev_sample_rate,
-                             metadata=dict(stream.metadata)
-                             )
+        result = EventStream(stream.name, metadata=dict(stream.metadata))
+        if &#34;input_sample_rate&#34; in stream.metadata.keys():
+            result.input_sample_rate = int(stream.metadata.get(&#34;input_sample_rate&#34;))
+        if &#34;input_samples_per_window&#34; in stream.metadata.keys():
+            result.samples_per_window = int(stream.metadata.get(&#34;input_samples_per_window&#34;))
+        if &#34;input_samples_per_hop&#34; in stream.metadata.keys():
+            result.samples_per_hop = int(stream.metadata.get(&#34;input_samples_per_hop&#34;))
+        if &#34;model_version&#34; in stream.metadata.keys():
+            result.model_version = stream.metadata.get(&#34;model_version&#34;)
         result.add_events(stream,
                           save_mode=save_mode,
                           base_dir=base_dir)
@@ -719,6 +802,8 @@ class EventStream:
             for i in range(len(timestamps)):
                 self.events.append(Event(timestamps[i], save_mode=save_mode,
                                          base_dir=base_dir).read_raw(events[i]))
+        elif self.debug:
+            print(f&#34;Stream name mismatch while adding to EventStream.  Expected {self.name}, got {stream.name}.&#34;)
 
     def sort_events(self, asc: bool = True):
         &#34;&#34;&#34;
@@ -726,7 +811,48 @@ class EventStream:
 
         :param asc: if True, data is sorted in ascending order
         &#34;&#34;&#34;
-        self.events.sort(key=lambda e: e.timestamp, reverse=not asc)
+        self.events.sort(key=lambda e: e.get_timestamp(), reverse=not asc)
+
+    def num_events(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: number of events in stream
+        &#34;&#34;&#34;
+        return len(self.events)
+
+    def sample_rate_hz(self):
+        &#34;&#34;&#34;
+        :return: sample rate of events in the stream in hz
+        &#34;&#34;&#34;
+        return np.mean(np.diff([e.get_timestamp() for e in self.events]))
+
+    def window_sample_rate_hz(self):
+        &#34;&#34;&#34;
+        :return: idealized event sample window rate in hz
+        &#34;&#34;&#34;
+        return self.input_sample_rate / self.samples_per_window
+
+    def hop_sample_rate_hz(self):
+        &#34;&#34;&#34;
+        :return: idealized event sample hop rate in hz
+        &#34;&#34;&#34;
+        return self.input_sample_rate / self.samples_per_hop
+
+    def create_event_window(self, start: float = -np.inf, end: float = np.inf):
+        &#34;&#34;&#34;
+        removes any event in the stream that doesn&#39;t match start &lt;= event &lt; end
+        adds empty events to beginning and end of data (as long as the corresponding input values are not infinity)
+        default start is negative infinity, default end is infinity
+        all times in microseconds since epoch UTC
+
+        :param start: inclusive start time of events to keep
+        :param end: exclusive end time of events to keep
+        &#34;&#34;&#34;
+        self.events = [s for s in self.events if start &lt;= s.get_timestamp() &lt; end]
+        if self.num_events() &gt; 0:
+            if start &lt; self.events[0].get_timestamp() and not np.isinf(start):
+                self.events.insert(0, Event(start, self.name))
+            if not np.isinf(end):
+                self.events.append(Event(end - 1, self.name))
 
     def get_file_names(self) -&gt; List[str]:
         &#34;&#34;&#34;
@@ -773,6 +899,17 @@ class EventStream:
         for evnt in self.events:
             evnt.update_timestamps(offset_model, use_model_function)
 
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        &#34;&#34;&#34;
+        undo the update to the timestamps in the data
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model&#39;s slope function to update the timestamps.
+                                    otherwise uses the best offset (model&#39;s intercept value).  Default False
+        &#34;&#34;&#34;
+        for evnt in self.events:
+            evnt.original_timestamps(offset_model, use_model_function)
+
     @staticmethod
     def from_json_dict(json_dict: dict) -&gt; &#34;EventStream&#34;:
         &#34;&#34;&#34;
@@ -781,7 +918,8 @@ class EventStream:
         &#34;&#34;&#34;
         if &#34;name&#34; in json_dict.keys():
             result = EventStream(json_dict[&#34;name&#34;], [Event.from_json_dict(e) for e in json_dict[&#34;events&#34;]],
-                                 json_dict[&#34;sample_rate_hz&#34;], json_dict[&#34;sample_rate_std_hz&#34;], json_dict[&#34;metadata&#34;])
+                                 json_dict[&#34;input_sample_rate&#34;], json_dict[&#34;samples_per_window&#34;],
+                                 json_dict[&#34;samples_per_hop&#34;], json_dict[&#34;model_version&#34;], json_dict[&#34;metadata&#34;])
         else:
             result = EventStream(&#34;Empty Stream; no name for identification&#34;)
         return result
@@ -795,8 +933,9 @@ class EventStream:
         &#34;&#34;&#34;
         json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
         if &#34;name&#34; in json_data.keys():
-            result = EventStream(json_data[&#34;name&#34;], json_data[&#34;events&#34;], json_data[&#34;sample_rate_hz&#34;],
-                                 json_data[&#34;sample_rate_std_hz&#34;], json_data[&#34;metadata&#34;])
+            result = EventStream(json_data[&#34;name&#34;], json_data[&#34;events&#34;], json_data[&#34;input_sample_rate&#34;],
+                                 json_data[&#34;samples_per_window&#34;], json_data[&#34;samples_per_hop&#34;],
+                                 json_data[&#34;model_version&#34;], json_data[&#34;metadata&#34;])
             result.set_save_mode(FileSystemSaveMode.DISK)
             result.set_save_dir(file_dir)
         else:
@@ -921,6 +1060,18 @@ class EventStreams:
         &#34;&#34;&#34;
         return [s.name for s in self.streams]
 
+    def create_event_window(self, start: float = -np.inf, end: float = np.inf):
+        &#34;&#34;&#34;
+        removes any event in the streams that doesn&#39;t match start &lt;= event &lt; end
+        default start is negative infinity, default end is infinity
+        all times in microseconds since epoch UTC
+
+        :param start: inclusive start time of events to keep
+        :param end: exclusive end time of events to keep
+        &#34;&#34;&#34;
+        for s in self.streams:
+            s.create_event_window(start, end)
+
     def set_save_dir(self, new_dir: str):
         &#34;&#34;&#34;
         change the directory where events are saved to
@@ -949,6 +1100,17 @@ class EventStreams:
         &#34;&#34;&#34;
         for evnt in self.streams:
             evnt.update_timestamps(offset_model, use_model_function)
+
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        &#34;&#34;&#34;
+        undo the update to the timestamps in the data
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model&#39;s slope function to update the timestamps.
+                                    otherwise uses the best offset (model&#39;s intercept value).  Default False
+        &#34;&#34;&#34;
+        for evnt in self.streams:
+            evnt.original_timestamps(offset_model, use_model_function)
 
     @staticmethod
     def from_json_file(file_dir: str, file_name: str) -&gt; &#34;EventStreams&#34;:
@@ -1009,7 +1171,7 @@ class EventStreams:
 <dl>
 <dt id="redvox.common.event_stream.Event"><code class="flex name class">
 <span>class <span class="ident">Event</span></span>
-<span>(</span><span>timestamp: float, name: str = 'event', data: Optional[Dict[str, dict]] = None, save_mode: <a title="redvox.common.io.FileSystemSaveMode" href="io.html#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a> = FileSystemSaveMode.MEM, base_dir: str = '.')</span>
+<span>(</span><span>timestamp: float, name: str = 'event', data: Optional[Dict[<a title="redvox.common.event_stream.EventDataTypes" href="#redvox.common.event_stream.EventDataTypes">EventDataTypes</a>, dict]] = None, save_mode: <a title="redvox.common.io.FileSystemSaveMode" href="io.html#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a> = FileSystemSaveMode.MEM, base_dir: str = '.')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>stores event data from Redvox Api1000 packets</p>
@@ -1044,7 +1206,7 @@ Default current directory (".")</p></div>
     def __init__(self,
                  timestamp: float,
                  name: str = &#34;event&#34;,
-                 data: Optional[Dict[str, dict]] = None,
+                 data: Optional[Dict[EventDataTypes, dict]] = None,
                  save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
                  base_dir: str = &#34;.&#34;):
         &#34;&#34;&#34;
@@ -1079,7 +1241,7 @@ Default current directory (".")</p></div>
                f&#34;timestamp: {self._timestamp}, &#34; \
                f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34; \
                f&#34;schema: {self.get_schema()}, &#34; \
-               f&#34;save_mode: {self._fs_writer.save_mode().value}&#34;
+               f&#34;save_mode: {self._fs_writer.save_mode()}&#34;
 
     def __str__(self):
         return f&#34;name: {self.name}, &#34; \
@@ -1221,6 +1383,15 @@ Default current directory (".")</p></div>
             result[f] = [k for k in self._data[f].keys()]
         return result
 
+    def get_data_keys(self) -&gt; List[str]:
+        &#34;&#34;&#34;
+        :return: the keys of the data in the event
+        &#34;&#34;&#34;
+        result = []
+        for f in self._data.keys():
+            result.extend([k for k in self._data[f].keys()])
+        return result
+
     def get_string_values(self) -&gt; dict:
         &#34;&#34;&#34;
         :return: the string data as a dictionary
@@ -1278,7 +1449,7 @@ Default current directory (".")</p></div>
         :param data_key: the name of the data value to look for
         :return: boolean data if it exists, None otherwise
         &#34;&#34;&#34;
-        boos = self.get_string_values()
+        boos = self.get_boolean_values()
         for s in boos.keys():
             if s == data_key:
                 return boos[s]
@@ -1291,15 +1462,26 @@ Default current directory (".")</p></div>
         :param data_key: the name of the data value to look for
         :return: byte data if it exists, None otherwise
         &#34;&#34;&#34;
-        byts = self.get_string_values()
+        byts = self.get_byte_values()
         for s in byts.keys():
             if s == data_key:
                 return byts[s]
         return None
 
+    def get_item(self, data_key: str) -&gt; Union[List[str], str, bool, float]:
+        &#34;&#34;&#34;
+        :param data_key: key of data to get
+        :return: data with matching data_key or the list of all possible data keys
+        &#34;&#34;&#34;
+        for r in [self.get_string_item(data_key), self.get_numeric_item(data_key),
+                  self.get_boolean_item(data_key), self.get_byte_item(data_key)]:
+            if r is not None:
+                return r
+        return self.get_data_keys()
+
     def get_classification(self, index: int = 0) -&gt; dict:
         &#34;&#34;&#34;
-        get a classification from an event
+        get a classification from an event (anything that ends with &#34;_X&#34; where X is the index value)
 
         :param index: index of classification, default 0
         :return: dictionary of data
@@ -1307,7 +1489,7 @@ Default current directory (".")</p></div>
         result = {}
         for s in self._data.keys():
             for b, v in self._data[s].items():
-                match = re.match(f&#34;*_{index}&#34;, b)
+                match = re.search(f&#34;_{index}$&#34;, b)
                 if match is not None:
                     result[b] = v
         return result
@@ -1406,6 +1588,19 @@ Default current directory (".")</p></div>
             self._errors.append(&#34;Timestamps already corrected!&#34;)
         else:
             self._timestamp = offset_model.update_time(self._timestamp, use_model_function)
+
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        &#34;&#34;&#34;
+        undo the update to the timestamp of the Event
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model&#39;s slope function to update the timestamps.
+                                    otherwise uses the best offset (model&#39;s intercept value).  Default False
+        &#34;&#34;&#34;
+        if not self.is_timestamp_corrected():
+            self._errors.append(&#34;Timestamps already not corrected!&#34;)
+        else:
+            self._timestamp = offset_model.get_original_time(self._timestamp, use_model_function)
 
     def default_json_file_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -1850,7 +2045,7 @@ this function will return all boolean data points with keys that start with [col
     :param data_key: the name of the data value to look for
     :return: boolean data if it exists, None otherwise
     &#34;&#34;&#34;
-    boos = self.get_string_values()
+    boos = self.get_boolean_values()
     for s in boos.keys():
         if s == data_key:
             return boos[s]
@@ -1936,7 +2131,7 @@ this function will return all byte data points with keys that start with [column
     :param data_key: the name of the data value to look for
     :return: byte data if it exists, None otherwise
     &#34;&#34;&#34;
-    byts = self.get_string_values()
+    byts = self.get_byte_values()
     for s in byts.keys():
         if s == data_key:
             return byts[s]
@@ -1979,7 +2174,7 @@ this function will return all byte data points with keys that start with [column
 <span>def <span class="ident">get_classification</span></span>(<span>self, index: int = 0) ‑> dict</span>
 </code></dt>
 <dd>
-<div class="desc"><p>get a classification from an event</p>
+<div class="desc"><p>get a classification from an event (anything that ends with "_X" where X is the index value)</p>
 <p>:param index: index of classification, default 0
 :return: dictionary of data</p></div>
 <details class="source">
@@ -1988,7 +2183,7 @@ this function will return all byte data points with keys that start with [column
 </summary>
 <pre><code class="python">def get_classification(self, index: int = 0) -&gt; dict:
     &#34;&#34;&#34;
-    get a classification from an event
+    get a classification from an event (anything that ends with &#34;_X&#34; where X is the index value)
 
     :param index: index of classification, default 0
     :return: dictionary of data
@@ -1996,10 +2191,51 @@ this function will return all byte data points with keys that start with [column
     result = {}
     for s in self._data.keys():
         for b, v in self._data[s].items():
-            match = re.match(f&#34;*_{index}&#34;, b)
+            match = re.search(f&#34;_{index}$&#34;, b)
             if match is not None:
                 result[b] = v
     return result</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.Event.get_data_keys"><code class="name flex">
+<span>def <span class="ident">get_data_keys</span></span>(<span>self) ‑> List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the keys of the data in the event</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_data_keys(self) -&gt; List[str]:
+    &#34;&#34;&#34;
+    :return: the keys of the data in the event
+    &#34;&#34;&#34;
+    result = []
+    for f in self._data.keys():
+        result.extend([k for k in self._data[f].keys()])
+    return result</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.Event.get_item"><code class="name flex">
+<span>def <span class="ident">get_item</span></span>(<span>self, data_key: str) ‑> Union[List[str], str, bool, float]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:param data_key: key of data to get
+:return: data with matching data_key or the list of all possible data keys</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_item(self, data_key: str) -&gt; Union[List[str], str, bool, float]:
+    &#34;&#34;&#34;
+    :param data_key: key of data to get
+    :return: data with matching data_key or the list of all possible data keys
+    &#34;&#34;&#34;
+    for r in [self.get_string_item(data_key), self.get_numeric_item(data_key),
+              self.get_boolean_item(data_key), self.get_byte_item(data_key)]:
+        if r is not None:
+            return r
+    return self.get_data_keys()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.Event.get_numeric_column"><code class="name flex">
@@ -2271,6 +2507,33 @@ this function will return all string data points with keys that start with [colu
     :return: if timestamp of Event is updated
     &#34;&#34;&#34;
     return self._timestamp != self._uncorrected_timestamp</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.Event.original_timestamps"><code class="name flex">
+<span>def <span class="ident">original_timestamps</span></span>(<span>self, offset_model: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, use_model_function: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>undo the update to the timestamp of the Event</p>
+<p>:param offset_model: model used to update the timestamps
+:param use_model_function: if True, use the model's slope function to update the timestamps.
+otherwise uses the best offset (model's intercept value).
+Default False</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+    &#34;&#34;&#34;
+    undo the update to the timestamp of the Event
+
+    :param offset_model: model used to update the timestamps
+    :param use_model_function: if True, use the model&#39;s slope function to update the timestamps.
+                                otherwise uses the best offset (model&#39;s intercept value).  Default False
+    &#34;&#34;&#34;
+    if not self.is_timestamp_corrected():
+        self._errors.append(&#34;Timestamps already not corrected!&#34;)
+    else:
+        self._timestamp = offset_model.get_original_time(self._timestamp, use_model_function)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.Event.print_errors"><code class="name flex">
@@ -2576,7 +2839,7 @@ def types_list() -&gt; List[&#39;EventDataTypes&#39;]:
 </dd>
 <dt id="redvox.common.event_stream.EventStream"><code class="flex name class">
 <span>class <span class="ident">EventStream</span></span>
-<span>(</span><span>name: str = 'stream', events: List[<a title="redvox.common.event_stream.Event" href="#redvox.common.event_stream.Event">Event</a>] = &lt;factory&gt;, sample_rate_hz: float = nan, sample_rate_std_hz: float = 0.0, metadata: Dict[str, str] = &lt;factory&gt;)</span>
+<span>(</span><span>name: str = 'stream', events: List[<a title="redvox.common.event_stream.Event" href="#redvox.common.event_stream.Event">Event</a>] = &lt;factory&gt;, input_sample_rate: int = 0, samples_per_window: int = 0, samples_per_hop: int = 0, model_version: str = 'n/a', metadata: Dict[str, str] = &lt;factory&gt;, debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>stores multiple events.</p>
@@ -2586,12 +2849,18 @@ def types_list() -&gt; List[&#39;EventDataTypes&#39;]:
 Default "stream"</p>
 <p>events: List[Event]; all events in the stream.
 Default empty list</p>
-<p>sample_rate_hz: float; the sample rate of the events.
-Default np.nan</p>
-<p>sample_rate_std_hz: float; std deviation of the sample rate.
-Default 0.0</p>
+<p>input_sample_rate: int; audio sample rate.
+Default 0</p>
+<p>samples_per_window: int; samples per window of the events.
+Default 0</p>
+<p>samples_per_hop: int; samples per hop of the events.
+Default 0</p>
+<p>model_version: string; version of the model.
+Default "0.0"</p>
 <p>metadata: Dict[str, str]; metadata as dict of strings.
-Default empty dict</p></div>
+Default empty dict</p>
+<p>debug: boolean; if True, outputs additional information at runtime.
+Default False.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -2609,29 +2878,42 @@ class EventStream:
 
         events: List[Event]; all events in the stream.  Default empty list
 
-        sample_rate_hz: float; the sample rate of the events.  Default np.nan
+        input_sample_rate: int; audio sample rate.  Default 0
 
-        sample_rate_std_hz: float; std deviation of the sample rate.  Default 0.0
+        samples_per_window: int; samples per window of the events.  Default 0
+
+        samples_per_hop: int; samples per hop of the events.  Default 0
+
+        model_version: string; version of the model.  Default &#34;0.0&#34;
 
         metadata: Dict[str, str]; metadata as dict of strings.  Default empty dict
+
+        debug: boolean; if True, outputs additional information at runtime.  Default False.
     &#34;&#34;&#34;
     name: str = &#34;stream&#34;
     events: List[Event] = field(default_factory=lambda: [])
-    sample_rate_hz: float = np.nan
-    sample_rate_std_hz: float = 0.0
+    input_sample_rate: int = 0
+    samples_per_window: int = 0
+    samples_per_hop: int = 0
+    model_version: str = &#34;n/a&#34;
     metadata: Dict[str, str] = field(default_factory=lambda: {})
+    debug: bool = False
 
     def __repr__(self):
         return f&#34;name: {self.name}, &#34; \
                f&#34;events: {[s.__repr__() for s in self.events]}, &#34; \
-               f&#34;sample_rate_hz: {self.sample_rate_hz}, &#34; \
-               f&#34;sample_rate_std_hz: {self.sample_rate_std_hz}&#34;
+               f&#34;input_sample_rate: {self.input_sample_rate}, &#34; \
+               f&#34;samples_per_window: {self.samples_per_window}, &#34; \
+               f&#34;samples_per_hop: {self.samples_per_hop}, &#34; \
+               f&#34;model_version: {self.model_version}&#34;
 
     def __str__(self):
         return f&#34;name: {self.name}, &#34; \
                f&#34;events: {[s.__str__() for s in self.events]}, &#34; \
-               f&#34;sample_rate_hz: {self.sample_rate_hz}, &#34; \
-               f&#34;sample_rate_std_hz: {self.sample_rate_std_hz}&#34;
+               f&#34;input_sample_rate: {self.input_sample_rate}, &#34; \
+               f&#34;samples_per_window: {self.samples_per_window}, &#34; \
+               f&#34;samples_per_hop: {self.samples_per_hop}, &#34; \
+               f&#34;model_version: {self.model_version}&#34;
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -2640,8 +2922,10 @@ class EventStream:
         return {
             &#34;name&#34;: self.name,
             &#34;events&#34;: [e.as_dict() for e in self.events],
-            &#34;sample_rate_hz&#34;: self.sample_rate_hz,
-            &#34;sample_rate_std_hz&#34;: self.sample_rate_std_hz,
+            &#34;input_sample_rate&#34;: self.input_sample_rate,
+            &#34;samples_per_window&#34;: self.samples_per_window,
+            &#34;samples_per_hop&#34;: self.samples_per_hop,
+            &#34;model_version&#34;: self.model_version,
             &#34;metadata&#34;: self.metadata
         }
 
@@ -2651,14 +2935,44 @@ class EventStream:
         &#34;&#34;&#34;
         return len(self.events) &gt; 0
 
+    def has_events(self) -&gt; bool:
+        &#34;&#34;&#34;
+        :return: True if there are one or more events in the stream
+        &#34;&#34;&#34;
+        return len(self.events) &gt; 0
+
     def get_event(self, index: int = 0) -&gt; Optional[Event]:
         &#34;&#34;&#34;
-        :param index: index of event to get.  Use non-negative values only.  Default 0 (first event)
+        :param index: index of event to get.  Use negative values to select from the end of the list.
+                        Default 0 (first event)
         :return: Event at the index, or None if the event/index doesn&#39;t exist
         &#34;&#34;&#34;
-        if index &gt;= len(self.events) or index &lt; 0:
-            return None
-        return self.events[index]
+        if 0 &gt; index:
+            index += len(self.events)
+        if 0 &lt;= index &lt; len(self.events):
+            return self.events[index]
+        return None
+
+    def get_data_column(self, column_name: str) -&gt; list:
+        &#34;&#34;&#34;
+        return a list of data with key column_name from each of the events
+        if column_name doesn&#39;t exist, gets a list of valid column_names
+
+        :param column_name: key of data to get
+        :return: list of data named column_name or the list of all possible column names
+        &#34;&#34;&#34;
+        result = []
+        column_list = set()
+        for r in self.events:
+            val = r.get_item(column_name)
+            if type(val) != list:
+                result.append(val)
+            else:
+                for v in val:
+                    column_list.add(v)
+        if len(result) &gt; 0:
+            return result
+        return list(column_list)
 
     @staticmethod
     def from_eventstream(stream: RedvoxPacketM.EventStream,
@@ -2675,10 +2989,15 @@ class EventStream:
                             Default current directory (&#34;.&#34;)
         :return: EventStream (sdk version)
         &#34;&#34;&#34;
-        result = EventStream(stream.name, sample_rate_hz=stream.timestamps.mean_sample_rate,
-                             sample_rate_std_hz=stream.timestamps.stdev_sample_rate,
-                             metadata=dict(stream.metadata)
-                             )
+        result = EventStream(stream.name, metadata=dict(stream.metadata))
+        if &#34;input_sample_rate&#34; in stream.metadata.keys():
+            result.input_sample_rate = int(stream.metadata.get(&#34;input_sample_rate&#34;))
+        if &#34;input_samples_per_window&#34; in stream.metadata.keys():
+            result.samples_per_window = int(stream.metadata.get(&#34;input_samples_per_window&#34;))
+        if &#34;input_samples_per_hop&#34; in stream.metadata.keys():
+            result.samples_per_hop = int(stream.metadata.get(&#34;input_samples_per_hop&#34;))
+        if &#34;model_version&#34; in stream.metadata.keys():
+            result.model_version = stream.metadata.get(&#34;model_version&#34;)
         result.add_events(stream,
                           save_mode=save_mode,
                           base_dir=base_dir)
@@ -2704,6 +3023,8 @@ class EventStream:
             for i in range(len(timestamps)):
                 self.events.append(Event(timestamps[i], save_mode=save_mode,
                                          base_dir=base_dir).read_raw(events[i]))
+        elif self.debug:
+            print(f&#34;Stream name mismatch while adding to EventStream.  Expected {self.name}, got {stream.name}.&#34;)
 
     def sort_events(self, asc: bool = True):
         &#34;&#34;&#34;
@@ -2711,7 +3032,48 @@ class EventStream:
 
         :param asc: if True, data is sorted in ascending order
         &#34;&#34;&#34;
-        self.events.sort(key=lambda e: e.timestamp, reverse=not asc)
+        self.events.sort(key=lambda e: e.get_timestamp(), reverse=not asc)
+
+    def num_events(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: number of events in stream
+        &#34;&#34;&#34;
+        return len(self.events)
+
+    def sample_rate_hz(self):
+        &#34;&#34;&#34;
+        :return: sample rate of events in the stream in hz
+        &#34;&#34;&#34;
+        return np.mean(np.diff([e.get_timestamp() for e in self.events]))
+
+    def window_sample_rate_hz(self):
+        &#34;&#34;&#34;
+        :return: idealized event sample window rate in hz
+        &#34;&#34;&#34;
+        return self.input_sample_rate / self.samples_per_window
+
+    def hop_sample_rate_hz(self):
+        &#34;&#34;&#34;
+        :return: idealized event sample hop rate in hz
+        &#34;&#34;&#34;
+        return self.input_sample_rate / self.samples_per_hop
+
+    def create_event_window(self, start: float = -np.inf, end: float = np.inf):
+        &#34;&#34;&#34;
+        removes any event in the stream that doesn&#39;t match start &lt;= event &lt; end
+        adds empty events to beginning and end of data (as long as the corresponding input values are not infinity)
+        default start is negative infinity, default end is infinity
+        all times in microseconds since epoch UTC
+
+        :param start: inclusive start time of events to keep
+        :param end: exclusive end time of events to keep
+        &#34;&#34;&#34;
+        self.events = [s for s in self.events if start &lt;= s.get_timestamp() &lt; end]
+        if self.num_events() &gt; 0:
+            if start &lt; self.events[0].get_timestamp() and not np.isinf(start):
+                self.events.insert(0, Event(start, self.name))
+            if not np.isinf(end):
+                self.events.append(Event(end - 1, self.name))
 
     def get_file_names(self) -&gt; List[str]:
         &#34;&#34;&#34;
@@ -2758,6 +3120,17 @@ class EventStream:
         for evnt in self.events:
             evnt.update_timestamps(offset_model, use_model_function)
 
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        &#34;&#34;&#34;
+        undo the update to the timestamps in the data
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model&#39;s slope function to update the timestamps.
+                                    otherwise uses the best offset (model&#39;s intercept value).  Default False
+        &#34;&#34;&#34;
+        for evnt in self.events:
+            evnt.original_timestamps(offset_model, use_model_function)
+
     @staticmethod
     def from_json_dict(json_dict: dict) -&gt; &#34;EventStream&#34;:
         &#34;&#34;&#34;
@@ -2766,7 +3139,8 @@ class EventStream:
         &#34;&#34;&#34;
         if &#34;name&#34; in json_dict.keys():
             result = EventStream(json_dict[&#34;name&#34;], [Event.from_json_dict(e) for e in json_dict[&#34;events&#34;]],
-                                 json_dict[&#34;sample_rate_hz&#34;], json_dict[&#34;sample_rate_std_hz&#34;], json_dict[&#34;metadata&#34;])
+                                 json_dict[&#34;input_sample_rate&#34;], json_dict[&#34;samples_per_window&#34;],
+                                 json_dict[&#34;samples_per_hop&#34;], json_dict[&#34;model_version&#34;], json_dict[&#34;metadata&#34;])
         else:
             result = EventStream(&#34;Empty Stream; no name for identification&#34;)
         return result
@@ -2780,8 +3154,9 @@ class EventStream:
         &#34;&#34;&#34;
         json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
         if &#34;name&#34; in json_data.keys():
-            result = EventStream(json_data[&#34;name&#34;], json_data[&#34;events&#34;], json_data[&#34;sample_rate_hz&#34;],
-                                 json_data[&#34;sample_rate_std_hz&#34;], json_data[&#34;metadata&#34;])
+            result = EventStream(json_data[&#34;name&#34;], json_data[&#34;events&#34;], json_data[&#34;input_sample_rate&#34;],
+                                 json_data[&#34;samples_per_window&#34;], json_data[&#34;samples_per_hop&#34;],
+                                 json_data[&#34;model_version&#34;], json_data[&#34;metadata&#34;])
             result.set_save_mode(FileSystemSaveMode.DISK)
             result.set_save_dir(file_dir)
         else:
@@ -2809,7 +3184,15 @@ class EventStream:
 </details>
 <h3>Class variables</h3>
 <dl>
+<dt id="redvox.common.event_stream.EventStream.debug"><code class="name">var <span class="ident">debug</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="redvox.common.event_stream.EventStream.events"><code class="name">var <span class="ident">events</span> : List[<a title="redvox.common.event_stream.Event" href="#redvox.common.event_stream.Event">Event</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.event_stream.EventStream.input_sample_rate"><code class="name">var <span class="ident">input_sample_rate</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2817,15 +3200,19 @@ class EventStream:
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="redvox.common.event_stream.EventStream.model_version"><code class="name">var <span class="ident">model_version</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="redvox.common.event_stream.EventStream.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.event_stream.EventStream.sample_rate_hz"><code class="name">var <span class="ident">sample_rate_hz</span> : float</code></dt>
+<dt id="redvox.common.event_stream.EventStream.samples_per_hop"><code class="name">var <span class="ident">samples_per_hop</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="redvox.common.event_stream.EventStream.sample_rate_std_hz"><code class="name">var <span class="ident">sample_rate_std_hz</span> : float</code></dt>
+<dt id="redvox.common.event_stream.EventStream.samples_per_window"><code class="name">var <span class="ident">samples_per_window</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2882,10 +3269,15 @@ def from_eventstream(stream: RedvoxPacketM.EventStream,
                         Default current directory (&#34;.&#34;)
     :return: EventStream (sdk version)
     &#34;&#34;&#34;
-    result = EventStream(stream.name, sample_rate_hz=stream.timestamps.mean_sample_rate,
-                         sample_rate_std_hz=stream.timestamps.stdev_sample_rate,
-                         metadata=dict(stream.metadata)
-                         )
+    result = EventStream(stream.name, metadata=dict(stream.metadata))
+    if &#34;input_sample_rate&#34; in stream.metadata.keys():
+        result.input_sample_rate = int(stream.metadata.get(&#34;input_sample_rate&#34;))
+    if &#34;input_samples_per_window&#34; in stream.metadata.keys():
+        result.samples_per_window = int(stream.metadata.get(&#34;input_samples_per_window&#34;))
+    if &#34;input_samples_per_hop&#34; in stream.metadata.keys():
+        result.samples_per_hop = int(stream.metadata.get(&#34;input_samples_per_hop&#34;))
+    if &#34;model_version&#34; in stream.metadata.keys():
+        result.model_version = stream.metadata.get(&#34;model_version&#34;)
     result.add_events(stream,
                       save_mode=save_mode,
                       base_dir=base_dir)
@@ -2936,7 +3328,8 @@ def from_json_dict(json_dict: dict) -&gt; &#34;EventStream&#34;:
     &#34;&#34;&#34;
     if &#34;name&#34; in json_dict.keys():
         result = EventStream(json_dict[&#34;name&#34;], [Event.from_json_dict(e) for e in json_dict[&#34;events&#34;]],
-                             json_dict[&#34;sample_rate_hz&#34;], json_dict[&#34;sample_rate_std_hz&#34;], json_dict[&#34;metadata&#34;])
+                             json_dict[&#34;input_sample_rate&#34;], json_dict[&#34;samples_per_window&#34;],
+                             json_dict[&#34;samples_per_hop&#34;], json_dict[&#34;model_version&#34;], json_dict[&#34;metadata&#34;])
     else:
         result = EventStream(&#34;Empty Stream; no name for identification&#34;)
     return result</code></pre>
@@ -2962,8 +3355,9 @@ def from_json_file(file_dir: str, file_name: str) -&gt; &#34;EventStream&#34;:
     &#34;&#34;&#34;
     json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
     if &#34;name&#34; in json_data.keys():
-        result = EventStream(json_data[&#34;name&#34;], json_data[&#34;events&#34;], json_data[&#34;sample_rate_hz&#34;],
-                             json_data[&#34;sample_rate_std_hz&#34;], json_data[&#34;metadata&#34;])
+        result = EventStream(json_data[&#34;name&#34;], json_data[&#34;events&#34;], json_data[&#34;input_sample_rate&#34;],
+                             json_data[&#34;samples_per_window&#34;], json_data[&#34;samples_per_hop&#34;],
+                             json_data[&#34;model_version&#34;], json_data[&#34;metadata&#34;])
         result.set_save_mode(FileSystemSaveMode.DISK)
         result.set_save_dir(file_dir)
     else:
@@ -3050,7 +3444,9 @@ Default current directory (".")</p></div>
         events = stream.events
         for i in range(len(timestamps)):
             self.events.append(Event(timestamps[i], save_mode=save_mode,
-                                     base_dir=base_dir).read_raw(events[i]))</code></pre>
+                                     base_dir=base_dir).read_raw(events[i]))
+    elif self.debug:
+        print(f&#34;Stream name mismatch while adding to EventStream.  Expected {self.name}, got {stream.name}.&#34;)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStream.as_dict"><code class="name flex">
@@ -3069,10 +3465,78 @@ Default current directory (".")</p></div>
     return {
         &#34;name&#34;: self.name,
         &#34;events&#34;: [e.as_dict() for e in self.events],
-        &#34;sample_rate_hz&#34;: self.sample_rate_hz,
-        &#34;sample_rate_std_hz&#34;: self.sample_rate_std_hz,
+        &#34;input_sample_rate&#34;: self.input_sample_rate,
+        &#34;samples_per_window&#34;: self.samples_per_window,
+        &#34;samples_per_hop&#34;: self.samples_per_hop,
+        &#34;model_version&#34;: self.model_version,
         &#34;metadata&#34;: self.metadata
     }</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.EventStream.create_event_window"><code class="name flex">
+<span>def <span class="ident">create_event_window</span></span>(<span>self, start: float = -inf, end: float = inf)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>removes any event in the stream that doesn't match start &lt;= event &lt; end
+adds empty events to beginning and end of data (as long as the corresponding input values are not infinity)
+default start is negative infinity, default end is infinity
+all times in microseconds since epoch UTC</p>
+<p>:param start: inclusive start time of events to keep
+:param end: exclusive end time of events to keep</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_event_window(self, start: float = -np.inf, end: float = np.inf):
+    &#34;&#34;&#34;
+    removes any event in the stream that doesn&#39;t match start &lt;= event &lt; end
+    adds empty events to beginning and end of data (as long as the corresponding input values are not infinity)
+    default start is negative infinity, default end is infinity
+    all times in microseconds since epoch UTC
+
+    :param start: inclusive start time of events to keep
+    :param end: exclusive end time of events to keep
+    &#34;&#34;&#34;
+    self.events = [s for s in self.events if start &lt;= s.get_timestamp() &lt; end]
+    if self.num_events() &gt; 0:
+        if start &lt; self.events[0].get_timestamp() and not np.isinf(start):
+            self.events.insert(0, Event(start, self.name))
+        if not np.isinf(end):
+            self.events.append(Event(end - 1, self.name))</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.EventStream.get_data_column"><code class="name flex">
+<span>def <span class="ident">get_data_column</span></span>(<span>self, column_name: str) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>return a list of data with key column_name from each of the events
+if column_name doesn't exist, gets a list of valid column_names</p>
+<p>:param column_name: key of data to get
+:return: list of data named column_name or the list of all possible column names</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_data_column(self, column_name: str) -&gt; list:
+    &#34;&#34;&#34;
+    return a list of data with key column_name from each of the events
+    if column_name doesn&#39;t exist, gets a list of valid column_names
+
+    :param column_name: key of data to get
+    :return: list of data named column_name or the list of all possible column names
+    &#34;&#34;&#34;
+    result = []
+    column_list = set()
+    for r in self.events:
+        val = r.get_item(column_name)
+        if type(val) != list:
+            result.append(val)
+        else:
+            for v in val:
+                column_list.add(v)
+    if len(result) &gt; 0:
+        return result
+    return list(column_list)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStream.get_event"><code class="name flex">
@@ -3080,7 +3544,7 @@ Default current directory (".")</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>:param index: index of event to get.
-Use non-negative values only.
+Use negative values to select from the end of the list.
 Default 0 (first event)
 :return: Event at the index, or None if the event/index doesn't exist</p></div>
 <details class="source">
@@ -3089,12 +3553,15 @@ Default 0 (first event)
 </summary>
 <pre><code class="python">def get_event(self, index: int = 0) -&gt; Optional[Event]:
     &#34;&#34;&#34;
-    :param index: index of event to get.  Use non-negative values only.  Default 0 (first event)
+    :param index: index of event to get.  Use negative values to select from the end of the list.
+                    Default 0 (first event)
     :return: Event at the index, or None if the event/index doesn&#39;t exist
     &#34;&#34;&#34;
-    if index &gt;= len(self.events) or index &lt; 0:
-        return None
-    return self.events[index]</code></pre>
+    if 0 &gt; index:
+        index += len(self.events)
+    if 0 &lt;= index &lt; len(self.events):
+        return self.events[index]
+    return None</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStream.get_file_names"><code class="name flex">
@@ -3129,6 +3596,79 @@ Default 0 (first event)
     return len(self.events) &gt; 0</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.event_stream.EventStream.has_events"><code class="name flex">
+<span>def <span class="ident">has_events</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: True if there are one or more events in the stream</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def has_events(self) -&gt; bool:
+    &#34;&#34;&#34;
+    :return: True if there are one or more events in the stream
+    &#34;&#34;&#34;
+    return len(self.events) &gt; 0</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.EventStream.hop_sample_rate_hz"><code class="name flex">
+<span>def <span class="ident">hop_sample_rate_hz</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: idealized event sample hop rate in hz</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def hop_sample_rate_hz(self):
+    &#34;&#34;&#34;
+    :return: idealized event sample hop rate in hz
+    &#34;&#34;&#34;
+    return self.input_sample_rate / self.samples_per_hop</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.EventStream.num_events"><code class="name flex">
+<span>def <span class="ident">num_events</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: number of events in stream</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def num_events(self) -&gt; int:
+    &#34;&#34;&#34;
+    :return: number of events in stream
+    &#34;&#34;&#34;
+    return len(self.events)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.EventStream.original_timestamps"><code class="name flex">
+<span>def <span class="ident">original_timestamps</span></span>(<span>self, offset_model: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, use_model_function: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>undo the update to the timestamps in the data</p>
+<p>:param offset_model: model used to update the timestamps
+:param use_model_function: if True, use the model's slope function to update the timestamps.
+otherwise uses the best offset (model's intercept value).
+Default False</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+    &#34;&#34;&#34;
+    undo the update to the timestamps in the data
+
+    :param offset_model: model used to update the timestamps
+    :param use_model_function: if True, use the model&#39;s slope function to update the timestamps.
+                                otherwise uses the best offset (model&#39;s intercept value).  Default False
+    &#34;&#34;&#34;
+    for evnt in self.events:
+        evnt.original_timestamps(offset_model, use_model_function)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.event_stream.EventStream.print_errors"><code class="name flex">
 <span>def <span class="ident">print_errors</span></span>(<span>self)</span>
 </code></dt>
@@ -3144,6 +3684,22 @@ Default 0 (first event)
     &#34;&#34;&#34;
     for e in self.events:
         e.print_errors()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.EventStream.sample_rate_hz"><code class="name flex">
+<span>def <span class="ident">sample_rate_hz</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: sample rate of events in the stream in hz</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sample_rate_hz(self):
+    &#34;&#34;&#34;
+    :return: sample rate of events in the stream in hz
+    &#34;&#34;&#34;
+    return np.mean(np.diff([e.get_timestamp() for e in self.events]))</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStream.save_streams"><code class="name flex">
@@ -3223,7 +3779,7 @@ Default 0 (first event)
 
     :param asc: if True, data is sorted in ascending order
     &#34;&#34;&#34;
-    self.events.sort(key=lambda e: e.timestamp, reverse=not asc)</code></pre>
+    self.events.sort(key=lambda e: e.get_timestamp(), reverse=not asc)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStream.to_dict"><code class="name flex">
@@ -3324,6 +3880,22 @@ Default False</p></div>
     &#34;&#34;&#34;
     for evnt in self.events:
         evnt.update_timestamps(offset_model, use_model_function)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.EventStream.window_sample_rate_hz"><code class="name flex">
+<span>def <span class="ident">window_sample_rate_hz</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: idealized event sample window rate in hz</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def window_sample_rate_hz(self):
+    &#34;&#34;&#34;
+    :return: idealized event sample window rate in hz
+    &#34;&#34;&#34;
+    return self.input_sample_rate / self.samples_per_window</code></pre>
 </details>
 </dd>
 </dl>
@@ -3442,6 +4014,18 @@ class EventStreams:
         &#34;&#34;&#34;
         return [s.name for s in self.streams]
 
+    def create_event_window(self, start: float = -np.inf, end: float = np.inf):
+        &#34;&#34;&#34;
+        removes any event in the streams that doesn&#39;t match start &lt;= event &lt; end
+        default start is negative infinity, default end is infinity
+        all times in microseconds since epoch UTC
+
+        :param start: inclusive start time of events to keep
+        :param end: exclusive end time of events to keep
+        &#34;&#34;&#34;
+        for s in self.streams:
+            s.create_event_window(start, end)
+
     def set_save_dir(self, new_dir: str):
         &#34;&#34;&#34;
         change the directory where events are saved to
@@ -3470,6 +4054,17 @@ class EventStreams:
         &#34;&#34;&#34;
         for evnt in self.streams:
             evnt.update_timestamps(offset_model, use_model_function)
+
+    def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+        &#34;&#34;&#34;
+        undo the update to the timestamps in the data
+
+        :param offset_model: model used to update the timestamps
+        :param use_model_function: if True, use the model&#39;s slope function to update the timestamps.
+                                    otherwise uses the best offset (model&#39;s intercept value).  Default False
+        &#34;&#34;&#34;
+        for evnt in self.streams:
+            evnt.original_timestamps(offset_model, use_model_function)
 
     @staticmethod
     def from_json_file(file_dir: str, file_name: str) -&gt; &#34;EventStreams&#34;:
@@ -3683,6 +4278,32 @@ def schema(cls: Type[A],
     return {&#34;streams&#34;: [s.as_dict() for s in self.streams]}</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.event_stream.EventStreams.create_event_window"><code class="name flex">
+<span>def <span class="ident">create_event_window</span></span>(<span>self, start: float = -inf, end: float = inf)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>removes any event in the streams that doesn't match start &lt;= event &lt; end
+default start is negative infinity, default end is infinity
+all times in microseconds since epoch UTC</p>
+<p>:param start: inclusive start time of events to keep
+:param end: exclusive end time of events to keep</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_event_window(self, start: float = -np.inf, end: float = np.inf):
+    &#34;&#34;&#34;
+    removes any event in the streams that doesn&#39;t match start &lt;= event &lt; end
+    default start is negative infinity, default end is infinity
+    all times in microseconds since epoch UTC
+
+    :param start: inclusive start time of events to keep
+    :param end: exclusive end time of events to keep
+    &#34;&#34;&#34;
+    for s in self.streams:
+        s.create_event_window(start, end)</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.event_stream.EventStreams.get_stream"><code class="name flex">
 <span>def <span class="ident">get_stream</span></span>(<span>self, stream_name: str) ‑> Optional[<a title="redvox.common.event_stream.EventStream" href="#redvox.common.event_stream.EventStream">EventStream</a>]</span>
 </code></dt>
@@ -3720,6 +4341,31 @@ def schema(cls: Type[A],
     :return: names of all streams
     &#34;&#34;&#34;
     return [s.name for s in self.streams]</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.EventStreams.original_timestamps"><code class="name flex">
+<span>def <span class="ident">original_timestamps</span></span>(<span>self, offset_model: <a title="redvox.common.offset_model.OffsetModel" href="offset_model.html#redvox.common.offset_model.OffsetModel">OffsetModel</a>, use_model_function: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>undo the update to the timestamps in the data</p>
+<p>:param offset_model: model used to update the timestamps
+:param use_model_function: if True, use the model's slope function to update the timestamps.
+otherwise uses the best offset (model's intercept value).
+Default False</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
+    &#34;&#34;&#34;
+    undo the update to the timestamps in the data
+
+    :param offset_model: model used to update the timestamps
+    :param use_model_function: if True, use the model&#39;s slope function to update the timestamps.
+                                otherwise uses the best offset (model&#39;s intercept value).  Default False
+    &#34;&#34;&#34;
+    for evnt in self.streams:
+        evnt.original_timestamps(offset_model, use_model_function)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStreams.read_from_packet"><code class="name flex">
@@ -3936,31 +4582,11 @@ Default False</p></div>
 <div class="desc"><p>A ProtocolMessage</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>google.protobuf.pyext._message.CMessage</li>
+<li>google._upb._message.Message</li>
 <li>google.protobuf.message.Message</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.event_stream.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="redvox.common.event_stream.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -3973,65 +4599,9 @@ Default False</p></div>
 <dd>
 <div class="desc"><p>A ProtocolMessage</p></div>
 </dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="redvox.common.event_stream.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
 <dd>
 <div class="desc"><p>A ProtocolMessage</p></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
-<dd>
-<div class="desc"></div>
 </dd>
 <dt id="redvox.common.event_stream.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
 <dd>
@@ -4057,48 +4627,9 @@ Default False</p></div>
 <dd>
 <div class="desc"><p>A ProtocolMessage</p></div>
 </dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="redvox.common.event_stream.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-</dl>
-<h3>Instance variables</h3>
-<dl>
-<dt id="redvox.common.event_stream.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.api</p></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.event_streams</p></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.metadata</p></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sensors</p></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.station_information</p></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sub_api</p></div>
-</dd>
-<dt id="redvox.common.event_stream.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.timing_information</p></div>
 </dd>
 </dl>
 </dd>
@@ -4146,6 +4677,8 @@ Default False</p></div>
 <li><code><a title="redvox.common.event_stream.Event.get_byte_schema" href="#redvox.common.event_stream.Event.get_byte_schema">get_byte_schema</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.get_byte_values" href="#redvox.common.event_stream.Event.get_byte_values">get_byte_values</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.get_classification" href="#redvox.common.event_stream.Event.get_classification">get_classification</a></code></li>
+<li><code><a title="redvox.common.event_stream.Event.get_data_keys" href="#redvox.common.event_stream.Event.get_data_keys">get_data_keys</a></code></li>
+<li><code><a title="redvox.common.event_stream.Event.get_item" href="#redvox.common.event_stream.Event.get_item">get_item</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.get_numeric_column" href="#redvox.common.event_stream.Event.get_numeric_column">get_numeric_column</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.get_numeric_item" href="#redvox.common.event_stream.Event.get_numeric_item">get_numeric_item</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.get_numeric_schema" href="#redvox.common.event_stream.Event.get_numeric_schema">get_numeric_schema</a></code></li>
@@ -4160,6 +4693,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.event_stream.Event.has_data" href="#redvox.common.event_stream.Event.has_data">has_data</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.is_save_to_disk" href="#redvox.common.event_stream.Event.is_save_to_disk">is_save_to_disk</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.is_timestamp_corrected" href="#redvox.common.event_stream.Event.is_timestamp_corrected">is_timestamp_corrected</a></code></li>
+<li><code><a title="redvox.common.event_stream.Event.original_timestamps" href="#redvox.common.event_stream.Event.original_timestamps">original_timestamps</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.print_errors" href="#redvox.common.event_stream.Event.print_errors">print_errors</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.read_event" href="#redvox.common.event_stream.Event.read_event">read_event</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.read_raw" href="#redvox.common.event_stream.Event.read_raw">read_raw</a></code></li>
@@ -4185,23 +4719,33 @@ Default False</p></div>
 </li>
 <li>
 <h4><code><a title="redvox.common.event_stream.EventStream" href="#redvox.common.event_stream.EventStream">EventStream</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="redvox.common.event_stream.EventStream.add_events" href="#redvox.common.event_stream.EventStream.add_events">add_events</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.as_dict" href="#redvox.common.event_stream.EventStream.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.create_event_window" href="#redvox.common.event_stream.EventStream.create_event_window">create_event_window</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.debug" href="#redvox.common.event_stream.EventStream.debug">debug</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.events" href="#redvox.common.event_stream.EventStream.events">events</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.from_dict" href="#redvox.common.event_stream.EventStream.from_dict">from_dict</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.from_eventstream" href="#redvox.common.event_stream.EventStream.from_eventstream">from_eventstream</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.from_json" href="#redvox.common.event_stream.EventStream.from_json">from_json</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.from_json_dict" href="#redvox.common.event_stream.EventStream.from_json_dict">from_json_dict</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.from_json_file" href="#redvox.common.event_stream.EventStream.from_json_file">from_json_file</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.get_data_column" href="#redvox.common.event_stream.EventStream.get_data_column">get_data_column</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.get_event" href="#redvox.common.event_stream.EventStream.get_event">get_event</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.get_file_names" href="#redvox.common.event_stream.EventStream.get_file_names">get_file_names</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.has_data" href="#redvox.common.event_stream.EventStream.has_data">has_data</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.has_events" href="#redvox.common.event_stream.EventStream.has_events">has_events</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.hop_sample_rate_hz" href="#redvox.common.event_stream.EventStream.hop_sample_rate_hz">hop_sample_rate_hz</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.input_sample_rate" href="#redvox.common.event_stream.EventStream.input_sample_rate">input_sample_rate</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.metadata" href="#redvox.common.event_stream.EventStream.metadata">metadata</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.model_version" href="#redvox.common.event_stream.EventStream.model_version">model_version</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.name" href="#redvox.common.event_stream.EventStream.name">name</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.num_events" href="#redvox.common.event_stream.EventStream.num_events">num_events</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.original_timestamps" href="#redvox.common.event_stream.EventStream.original_timestamps">original_timestamps</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.print_errors" href="#redvox.common.event_stream.EventStream.print_errors">print_errors</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.sample_rate_hz" href="#redvox.common.event_stream.EventStream.sample_rate_hz">sample_rate_hz</a></code></li>
-<li><code><a title="redvox.common.event_stream.EventStream.sample_rate_std_hz" href="#redvox.common.event_stream.EventStream.sample_rate_std_hz">sample_rate_std_hz</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.samples_per_hop" href="#redvox.common.event_stream.EventStream.samples_per_hop">samples_per_hop</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.samples_per_window" href="#redvox.common.event_stream.EventStream.samples_per_window">samples_per_window</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.save_streams" href="#redvox.common.event_stream.EventStream.save_streams">save_streams</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.schema" href="#redvox.common.event_stream.EventStream.schema">schema</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.set_save_dir" href="#redvox.common.event_stream.EventStream.set_save_dir">set_save_dir</a></code></li>
@@ -4211,6 +4755,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.event_stream.EventStream.to_json" href="#redvox.common.event_stream.EventStream.to_json">to_json</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.to_json_file" href="#redvox.common.event_stream.EventStream.to_json_file">to_json_file</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStream.update_timestamps" href="#redvox.common.event_stream.EventStream.update_timestamps">update_timestamps</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStream.window_sample_rate_hz" href="#redvox.common.event_stream.EventStream.window_sample_rate_hz">window_sample_rate_hz</a></code></li>
 </ul>
 </li>
 <li>
@@ -4219,12 +4764,14 @@ Default False</p></div>
 <li><code><a title="redvox.common.event_stream.EventStreams.append" href="#redvox.common.event_stream.EventStreams.append">append</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.append_streams" href="#redvox.common.event_stream.EventStreams.append_streams">append_streams</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.as_dict" href="#redvox.common.event_stream.EventStreams.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStreams.create_event_window" href="#redvox.common.event_stream.EventStreams.create_event_window">create_event_window</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.debug" href="#redvox.common.event_stream.EventStreams.debug">debug</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.from_dict" href="#redvox.common.event_stream.EventStreams.from_dict">from_dict</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.from_json" href="#redvox.common.event_stream.EventStreams.from_json">from_json</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.from_json_file" href="#redvox.common.event_stream.EventStreams.from_json_file">from_json_file</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.get_stream" href="#redvox.common.event_stream.EventStreams.get_stream">get_stream</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.get_stream_names" href="#redvox.common.event_stream.EventStreams.get_stream_names">get_stream_names</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStreams.original_timestamps" href="#redvox.common.event_stream.EventStreams.original_timestamps">original_timestamps</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.read_from_packet" href="#redvox.common.event_stream.EventStreams.read_from_packet">read_from_packet</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.read_from_packets_list" href="#redvox.common.event_stream.EventStreams.read_from_packets_list">read_from_packets_list</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.remove_stream" href="#redvox.common.event_stream.EventStreams.remove_stream">remove_stream</a></code></li>
@@ -4240,46 +4787,18 @@ Default False</p></div>
 </li>
 <li>
 <h4><code><a title="redvox.common.event_stream.RedvoxPacketM" href="#redvox.common.event_stream.RedvoxPacketM">RedvoxPacketM</a></code></h4>
-<ul class="">
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.BYTE" href="#redvox.common.event_stream.RedvoxPacketM.BYTE">BYTE</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.CENTIMETERS" href="#redvox.common.event_stream.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.DECIBEL" href="#redvox.common.event_stream.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.common.event_stream.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.common.event_stream.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<ul class="two-column">
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.DESCRIPTOR" href="#redvox.common.event_stream.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.DoubleSamplePayload" href="#redvox.common.event_stream.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.EventStream" href="#redvox.common.event_stream.RedvoxPacketM.EventStream">EventStream</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.KILOPASCAL" href="#redvox.common.event_stream.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.common.event_stream.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.LUX" href="#redvox.common.event_stream.RedvoxPacketM.LUX">LUX</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.METERS" href="#redvox.common.event_stream.RedvoxPacketM.METERS">METERS</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.common.event_stream.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.common.event_stream.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.MICROAMPERES" href="#redvox.common.event_stream.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.common.event_stream.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.MICROTESLA" href="#redvox.common.event_stream.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.MetadataEntry" href="#redvox.common.event_stream.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.common.event_stream.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.PCM" href="#redvox.common.event_stream.RedvoxPacketM.PCM">PCM</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.PERCENTAGE" href="#redvox.common.event_stream.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.RADIANS" href="#redvox.common.event_stream.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.common.event_stream.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.SamplePayload" href="#redvox.common.event_stream.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.Sensors" href="#redvox.common.event_stream.RedvoxPacketM.Sensors">Sensors</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.StationInformation" href="#redvox.common.event_stream.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.SummaryStatistics" href="#redvox.common.event_stream.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.TimingInformation" href="#redvox.common.event_stream.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.TimingPayload" href="#redvox.common.event_stream.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.UNITLESS" href="#redvox.common.event_stream.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.UNKNOWN" href="#redvox.common.event_stream.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
 <li><code><a title="redvox.common.event_stream.RedvoxPacketM.Unit" href="#redvox.common.event_stream.RedvoxPacketM.Unit">Unit</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.api" href="#redvox.common.event_stream.RedvoxPacketM.api">api</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.event_streams" href="#redvox.common.event_stream.RedvoxPacketM.event_streams">event_streams</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.metadata" href="#redvox.common.event_stream.RedvoxPacketM.metadata">metadata</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.sensors" href="#redvox.common.event_stream.RedvoxPacketM.sensors">sensors</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.station_information" href="#redvox.common.event_stream.RedvoxPacketM.station_information">station_information</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.sub_api" href="#redvox.common.event_stream.RedvoxPacketM.sub_api">sub_api</a></code></li>
-<li><code><a title="redvox.common.event_stream.RedvoxPacketM.timing_information" href="#redvox.common.event_stream.RedvoxPacketM.timing_information">timing_information</a></code></li>
 </ul>
 </li>
 </ul>

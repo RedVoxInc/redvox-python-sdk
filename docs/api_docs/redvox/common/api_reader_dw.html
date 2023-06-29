@@ -99,8 +99,9 @@ class ApiReaderDw(ApiReader):
 
         if len(split_list) &gt; 0:
             if self.debug and use_temp_dir:
-                print(&#34;Writing data to disk; this may take a few minutes to complete.&#34;)
+                print(&#34;Writing data to temporary disk; this may take a few minutes to complete.&#34;)
             stpa = Station.create_from_indexes(split_list,
+                                               correct_timestamps=self.correct_timestamps,
                                                use_model_correction=self.use_model_correction,
                                                base_out_dir=self.dw_base_dir,
                                                use_temp_dir=use_temp_dir
@@ -111,8 +112,6 @@ class ApiReaderDw(ApiReader):
                     print(f&#34;required making {len(split_list)} smaller segments due to memory restraints&#34;)
             if self.dw_save_mode == io.FileSystemSaveMode.MEM and use_temp_dir:
                 self.dw_save_mode = io.FileSystemSaveMode.TEMP
-            if self.correct_timestamps:
-                stpa.set_correct_timestamps()
             return stpa
         self.errors.append(&#34;No files found to create station.&#34;)
         return Station()
@@ -237,8 +236,9 @@ Default False.</p></div>
 
         if len(split_list) &gt; 0:
             if self.debug and use_temp_dir:
-                print(&#34;Writing data to disk; this may take a few minutes to complete.&#34;)
+                print(&#34;Writing data to temporary disk; this may take a few minutes to complete.&#34;)
             stpa = Station.create_from_indexes(split_list,
+                                               correct_timestamps=self.correct_timestamps,
                                                use_model_correction=self.use_model_correction,
                                                base_out_dir=self.dw_base_dir,
                                                use_temp_dir=use_temp_dir
@@ -249,8 +249,6 @@ Default False.</p></div>
                     print(f&#34;required making {len(split_list)} smaller segments due to memory restraints&#34;)
             if self.dw_save_mode == io.FileSystemSaveMode.MEM and use_temp_dir:
                 self.dw_save_mode = io.FileSystemSaveMode.TEMP
-            if self.correct_timestamps:
-                stpa.set_correct_timestamps()
             return stpa
         self.errors.append(&#34;No files found to create station.&#34;)
         return Station()

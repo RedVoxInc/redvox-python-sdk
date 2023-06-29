@@ -36,10 +36,11 @@ combines the base data files into a single composite object based on the user pa
 from pathlib import Path
 from typing import Optional, Set, List, Dict, Iterable
 from datetime import timedelta
+from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 import shutil
 import os
 import inspect
-from redvox.common import run_me
 
 import pprint
 import multiprocessing
@@ -48,18 +49,17 @@ import numpy as np
 import pyarrow as pa
 
 import redvox
-from redvox.common import date_time_utils as dtu
-from redvox.common.date_time_utils import (
-    datetime_to_epoch_microseconds_utc as us_dt,
-)
-from redvox.common import io
-from redvox.common import data_window_io as dw_io
+from redvox.common import \
+    run_me,\
+    io, \
+    data_window_io as dw_io, \
+    date_time_utils as dtu, \
+    gap_and_pad_utils as gpu
 from redvox.common.data_window_configuration import DataWindowConfigFile
 from redvox.common.parallel_utils import maybe_parallel_map
-from redvox.common.station import Station
+from redvox.common.station import Station, STATION_ID_LENGTH
 from redvox.common.sensor_data import SensorType, SensorData
 from redvox.common.api_reader_dw import ApiReaderDw
-from redvox.common import gap_and_pad_utils as gpu
 from redvox.common.errors import RedVoxExceptions
 
 DEFAULT_START_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to start time of data
@@ -68,6 +68,8 @@ DEFAULT_END_BUFFER_TD: timedelta = timedelta(minutes=2.0)  # default padding to 
 DATA_DROP_DURATION_S: float = 0.2
 
 
+@dataclass_json
+@dataclass
 class EventOrigin:
     &#34;&#34;&#34;
     The origin event&#39;s latitude, longitude, altitude and their standard deviations, the device used to measure
@@ -90,33 +92,14 @@ class EventOrigin:
 
         event_radius_m: float, radius of event in meters, default 0.0
     &#34;&#34;&#34;
-    def __init__(self,
-                 provider: str = &#34;UNKNOWN&#34;,
-                 lat: float = np.nan,
-                 lat_std: float = np.nan,
-                 lon: float = np.nan,
-                 lon_std: float = np.nan,
-                 alt: float = np.nan,
-                 alt_std: float = np.nan,
-                 event_radius_m: float = 0.0):
-        &#34;&#34;&#34;
-        :param provider: name of device that provided the information
-        :param lat: latitude in +/- degrees
-        :param lat_std: standard deviation of latitude
-        :param lon: longitude in +/- degrees
-        :param lon_std: standard deviation of longitude
-        :param alt: altitude in meters
-        :param alt_std: standard deviation of altitude
-        :param event_radius_m: radius of event in meters
-        &#34;&#34;&#34;
-        self.provider = provider
-        self.latitude = lat
-        self.longitude = lon
-        self.altitude = alt
-        self.latitude_std = lat_std
-        self.longitude_std = lon_std
-        self.altitude_std = alt_std
-        self.event_radius_m = event_radius_m
+    provider: str = &#34;UNKNOWN&#34;
+    latitude: float = np.nan
+    latitude_std: float = np.nan
+    longitude: float = np.nan
+    longitude_std: float = np.nan
+    altitude: float = np.nan
+    altitude_std: float = np.nan
+    event_radius_m: float = 0.0
 
     def __repr__(self):
         return str(self.as_dict())
@@ -146,8 +129,12 @@ class EventOrigin:
                            data_dict[&#34;altitude_std&#34;], data_dict[&#34;event_radius_m&#34;])
 
 
+@dataclass_json
+@dataclass
 class DataWindowConfig:
     &#34;&#34;&#34;
+    Configuration of DataWindow properties
+
     Properties:
         input_dir: str, the directory that contains all the data.  REQUIRED
 
@@ -170,7 +157,8 @@ class DataWindowConfig:
         Negative values are converted to default value.  Default DATA_DROP_DURATION_S (0.2 seconds)
 
         station_ids: optional set of strings, representing the station ids to filter on.
-        If empty or None, get any ids found in the input directory.  Default None
+        If empty or None, get any ids found in the input directory.  You may pass in any iterable, as long as it can be
+        turned into a set.  Default None
 
         extensions: optional set of strings, representing file extensions to filter on.
         If None, gets as much data as it can in the input directory.  Default None
@@ -186,37 +174,27 @@ class DataWindowConfig:
         use_model_correction: bool, if True, use the offset model&#39;s correction functions, otherwise use the best
         offset.  Default True
     &#34;&#34;&#34;
-    def __init__(
-            self,
-            input_dir: str,
-            structured_layout: bool = True,
-            start_datetime: Optional[dtu.datetime] = None,
-            end_datetime: Optional[dtu.datetime] = None,
-            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
-            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-            drop_time_s: float = DATA_DROP_DURATION_S,
-            station_ids: Optional[Iterable[str]] = None,
-            extensions: Optional[Set[str]] = None,
-            api_versions: Optional[Set[io.ApiVersion]] = None,
-            apply_correction: bool = True,
-            use_model_correction: bool = True,
-            copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
-    ):
-        self.input_dir: str = input_dir
-        self.structured_layout: bool = structured_layout
-        self.start_datetime: Optional[dtu.datetime] = start_datetime
-        self.end_datetime: Optional[dtu.datetime] = end_datetime
-        self.start_buffer_td: timedelta = start_buffer_td if start_buffer_td &gt; timedelta(seconds=0) \
+    input_dir: str
+    structured_layout: bool = True
+    start_datetime: Optional[dtu.datetime] = None
+    end_datetime: Optional[dtu.datetime] = None
+    start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD
+    end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD
+    drop_time_s: float = DATA_DROP_DURATION_S
+    station_ids: Optional[Iterable[str]] = None
+    extensions: Optional[Set[str]] = None
+    api_versions: Optional[Set[io.ApiVersion]] = None
+    apply_correction: bool = True
+    use_model_correction: bool = True
+    copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY
+
+    def __post_init__(self):
+        self.start_buffer_td: timedelta = self.start_buffer_td if self.start_buffer_td &gt; timedelta(seconds=0) \
             else timedelta(seconds=0)
-        self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td &gt; timedelta(seconds=0) \
+        self.end_buffer_td: timedelta = self.end_buffer_td if self.end_buffer_td &gt; timedelta(seconds=0) \
             else timedelta(seconds=0)
-        self.drop_time_s: float = drop_time_s if drop_time_s &gt; 0 else DATA_DROP_DURATION_S
-        self.station_ids: Optional[Set[str]] = set(station_ids) if station_ids else None
-        self.extensions: Optional[Set[str]] = extensions
-        self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
-        self.apply_correction: bool = apply_correction
-        self.use_model_correction = use_model_correction
-        self.copy_edge_points = copy_edge_points
+        self.drop_time_s: float = self.drop_time_s if self.drop_time_s &gt; 0 else DATA_DROP_DURATION_S
+        self.station_ids: Optional[Set[str]] = set(self.station_ids) if self.station_ids else None
 
     def __repr__(self):
         return f&#34;input_dir: {self.input_dir}, &#34; \
@@ -252,8 +230,8 @@ class DataWindowConfig:
     def as_dict(self) -&gt; Dict:
         return {&#34;input_dir&#34;: self.input_dir,
                 &#34;structured_layout&#34;: self.structured_layout,
-                &#34;start_datetime&#34;: us_dt(self.start_datetime),
-                &#34;end_datetime&#34;: us_dt(self.end_datetime),
+                &#34;start_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.start_datetime),
+                &#34;end_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.end_datetime),
                 &#34;start_buffer_td&#34;: self.start_buffer_td.total_seconds(),
                 &#34;end_buffer_td&#34;: self.end_buffer_td.total_seconds(),
                 &#34;drop_time_s&#34;: self.drop_time_s,
@@ -281,7 +259,10 @@ class DataWindowConfig:
 
 class DataWindow:
     &#34;&#34;&#34;
-    Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
+    Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad the start and end values
+    If a start time is given, data starting from that time will be included.
+    If an end time is given, data up to but not including that time will be included.
+    Refer to the DataWindowConfig class for more details on DataWindow parameters.
 
     Properties:
         event_name: str, name of the DataWindow.  defaults to &#34;dw&#34;
@@ -571,7 +552,9 @@ class DataWindow:
         :return: DataWindow from json metadata
         &#34;&#34;&#34;
         cur_path = os.getcwd()
-        os.chdir(os.path.dirname(file_path))
+        path_dir = os.path.dirname(file_path)
+        if path_dir:
+            os.chdir(os.path.dirname(file_path))
         result = DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
         os.chdir(cur_path)
         return result
@@ -705,10 +688,6 @@ class DataWindow:
             print(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
         return None
 
-    # def _add_sensor_to_window(self, station: Station):
-        # set the window start and end if they were specified, otherwise use the bounds of the data
-        # self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
-
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         &#34;&#34;&#34;
         updates the DataWindow to contain only the data within the window parameters
@@ -801,7 +780,7 @@ class DataWindow:
 
     def _check_valid_ids(self):
         &#34;&#34;&#34;
-        if there are stations, searches the station_ids for any ids not in the data collected
+        if there are stations, searches the config&#39;s station_ids for any ids not in the data collected
         and creates an error message for each id requested but has no data
         if there are no stations, creates a single error message declaring no data found
         &#34;&#34;&#34;
@@ -814,7 +793,7 @@ class DataWindow:
                                 f&#34;\nPlease adjust parameters of DataWindow&#34;)
         elif len(self._stations) &gt; 0 and self._config.station_ids:
             for ids in self._config.station_ids:
-                if ids.zfill(10) not in [i.id() for i in self._stations]:
+                if ids.zfill(STATION_ID_LENGTH) not in [i.id() for i in self._stations]:
                     self._errors.append(
                         f&#34;Requested {ids} but there is no data to read for that station&#34;
                     )
@@ -851,6 +830,7 @@ class DataWindow:
             station.set_packet_metadata([meta for meta in station.packet_metadata()
                                          if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
                                          meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+            station.event_data().create_event_window(station.first_data_timestamp(), station.last_data_timestamp())
             if self._fs_writer.is_save_disk():
                 station.set_save_mode(io.FileSystemSaveMode.DISK)
                 station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
@@ -859,7 +839,7 @@ class DataWindow:
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
         &#34;&#34;&#34;
-        process a non audio sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
+        process a sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
 
         :param sensor: sensor to process
         :param station_id: station id
@@ -891,6 +871,7 @@ class DataWindow:
                     f&#34;Data window for {station_id} {&#39;Audio&#39; if is_audio else sensor.type().name} &#34;
                     f&#34;sensor has truncated all data points&#34;
                 )
+                # adjust data window to match the conditions of the remaining data
                 if is_audio:
                     sensor.empty_data_table()
                 elif last_before_start is not None and first_after_end is None:
@@ -972,7 +953,10 @@ class DataWindow:
 <span>(</span><span>event_name: str = 'dw', event_origin: Optional[<a title="redvox.common.data_window.EventOrigin" href="#redvox.common.data_window.EventOrigin">EventOrigin</a>] = None, config: Optional[<a title="redvox.common.data_window.DataWindowConfig" href="#redvox.common.data_window.DataWindowConfig">DataWindowConfig</a>] = None, output_dir: str = '.', out_type: str = 'NONE', make_runme: bool = False, debug: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values</p>
+<div class="desc"><p>Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad the start and end values
+If a start time is given, data starting from that time will be included.
+If an end time is given, data up to but not including that time will be included.
+Refer to the DataWindowConfig class for more details on DataWindow parameters.</p>
 <h2 id="properties">Properties</h2>
 <p>event_name: str, name of the DataWindow.
 defaults to "dw"</p>
@@ -1014,7 +998,10 @@ Default False</p></div>
 </summary>
 <pre><code class="python">class DataWindow:
     &#34;&#34;&#34;
-    Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad start and end values
+    Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad the start and end values
+    If a start time is given, data starting from that time will be included.
+    If an end time is given, data up to but not including that time will be included.
+    Refer to the DataWindowConfig class for more details on DataWindow parameters.
 
     Properties:
         event_name: str, name of the DataWindow.  defaults to &#34;dw&#34;
@@ -1304,7 +1291,9 @@ Default False</p></div>
         :return: DataWindow from json metadata
         &#34;&#34;&#34;
         cur_path = os.getcwd()
-        os.chdir(os.path.dirname(file_path))
+        path_dir = os.path.dirname(file_path)
+        if path_dir:
+            os.chdir(os.path.dirname(file_path))
         result = DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
         os.chdir(cur_path)
         return result
@@ -1438,10 +1427,6 @@ Default False</p></div>
             print(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
         return None
 
-    # def _add_sensor_to_window(self, station: Station):
-        # set the window start and end if they were specified, otherwise use the bounds of the data
-        # self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)
-
     def create_data_window(self, pool: Optional[multiprocessing.pool.Pool] = None):
         &#34;&#34;&#34;
         updates the DataWindow to contain only the data within the window parameters
@@ -1534,7 +1519,7 @@ Default False</p></div>
 
     def _check_valid_ids(self):
         &#34;&#34;&#34;
-        if there are stations, searches the station_ids for any ids not in the data collected
+        if there are stations, searches the config&#39;s station_ids for any ids not in the data collected
         and creates an error message for each id requested but has no data
         if there are no stations, creates a single error message declaring no data found
         &#34;&#34;&#34;
@@ -1547,7 +1532,7 @@ Default False</p></div>
                                 f&#34;\nPlease adjust parameters of DataWindow&#34;)
         elif len(self._stations) &gt; 0 and self._config.station_ids:
             for ids in self._config.station_ids:
-                if ids.zfill(10) not in [i.id() for i in self._stations]:
+                if ids.zfill(STATION_ID_LENGTH) not in [i.id() for i in self._stations]:
                     self._errors.append(
                         f&#34;Requested {ids} but there is no data to read for that station&#34;
                     )
@@ -1584,6 +1569,7 @@ Default False</p></div>
             station.set_packet_metadata([meta for meta in station.packet_metadata()
                                          if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
                                          meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+            station.event_data().create_event_window(station.first_data_timestamp(), station.last_data_timestamp())
             if self._fs_writer.is_save_disk():
                 station.set_save_mode(io.FileSystemSaveMode.DISK)
                 station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
@@ -1592,7 +1578,7 @@ Default False</p></div>
     def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                        end_date_timestamp: float):
         &#34;&#34;&#34;
-        process a non audio sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
+        process a sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
 
         :param sensor: sensor to process
         :param station_id: station id
@@ -1624,6 +1610,7 @@ Default False</p></div>
                     f&#34;Data window for {station_id} {&#39;Audio&#39; if is_audio else sensor.type().name} &#34;
                     f&#34;sensor has truncated all data points&#34;
                 )
+                # adjust data window to match the conditions of the remaining data
                 if is_audio:
                     sensor.empty_data_table()
                 elif last_before_start is not None and first_after_end is None:
@@ -1855,7 +1842,9 @@ def load(file_path: str) -&gt; &#34;DataWindow&#34;:
     :return: DataWindow from json metadata
     &#34;&#34;&#34;
     cur_path = os.getcwd()
-    os.chdir(os.path.dirname(file_path))
+    path_dir = os.path.dirname(file_path)
+    if path_dir:
+        os.chdir(os.path.dirname(file_path))
     result = DataWindow.from_json_dict(dw_io.json_file_to_data_window(file_path))
     os.chdir(cur_path)
     return result</code></pre>
@@ -2063,6 +2052,7 @@ returns nothing, updates the station in place</p>
         station.set_packet_metadata([meta for meta in station.packet_metadata()
                                      if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
                                      meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+        station.event_data().create_event_window(station.first_data_timestamp(), station.last_data_timestamp())
         if self._fs_writer.is_save_disk():
             station.set_save_mode(io.FileSystemSaveMode.DISK)
             station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
@@ -2170,11 +2160,7 @@ Results will match all non-None parameters given.</p>
     self._errors.append(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
     if self.debug:
         print(f&#34;Attempted to get station {station_id}, but that station is not in this data window!&#34;)
-    return None
-
-# def _add_sensor_to_window(self, station: Station):
-    # set the window start and end if they were specified, otherwise use the bounds of the data
-    # self.create_window_in_sensors(station, self._config.start_datetime, self._config.end_datetime)</code></pre>
+    return None</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.is_make_runme"><code class="name flex">
@@ -2248,7 +2234,7 @@ Results will match all non-None parameters given.</p>
 <span>def <span class="ident">process_sensor</span></span>(<span>self, sensor: <a title="redvox.common.sensor_data.SensorData" href="sensor_data.html#redvox.common.sensor_data.SensorData">SensorData</a>, station_id: str, start_date_timestamp: float, end_date_timestamp: float)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>process a non audio sensor to fit within the DataWindow.
+<div class="desc"><p>process a sensor to fit within the DataWindow.
 Updates sensor in place, returns nothing.</p>
 <p>:param sensor: sensor to process
 :param station_id: station id
@@ -2261,7 +2247,7 @@ Updates sensor in place, returns nothing.</p>
 <pre><code class="python">def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
                    end_date_timestamp: float):
     &#34;&#34;&#34;
-    process a non audio sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
+    process a sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
 
     :param sensor: sensor to process
     :param station_id: station id
@@ -2293,6 +2279,7 @@ Updates sensor in place, returns nothing.</p>
                 f&#34;Data window for {station_id} {&#39;Audio&#39; if is_audio else sensor.type().name} &#34;
                 f&#34;sensor has truncated all data points&#34;
             )
+            # adjust data window to match the conditions of the remaining data
             if is_audio:
                 sensor.empty_data_table()
             elif last_before_start is not None and first_after_end is None:
@@ -2635,7 +2622,8 @@ invalid values become "NONE"</p>
 <span>(</span><span>input_dir: str, structured_layout: bool = True, start_datetime: Optional[datetime.datetime] = None, end_datetime: Optional[datetime.datetime] = None, start_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), end_buffer_td: datetime.timedelta = datetime.timedelta(seconds=120), drop_time_s: float = 0.2, station_ids: Optional[Iterable[str]] = None, extensions: Optional[Set[str]] = None, api_versions: Optional[Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]] = None, apply_correction: bool = True, use_model_correction: bool = True, copy_edge_points: <a title="redvox.common.gap_and_pad_utils.DataPointCreationMode" href="gap_and_pad_utils.html#redvox.common.gap_and_pad_utils.DataPointCreationMode">DataPointCreationMode</a> = DataPointCreationMode.COPY)</span>
 </code></dt>
 <dd>
-<div class="desc"><h2 id="properties">Properties</h2>
+<div class="desc"><p>Configuration of DataWindow properties</p>
+<h2 id="properties">Properties</h2>
 <p>input_dir: str, the directory that contains all the data.
 REQUIRED</p>
 <p>structured_layout: bool, if True, the input_dir contains specially named and organized
@@ -2658,6 +2646,8 @@ Negative values are converted to default value.
 Default DATA_DROP_DURATION_S (0.2 seconds)</p>
 <p>station_ids: optional set of strings, representing the station ids to filter on.
 If empty or None, get any ids found in the input directory.
+You may pass in any iterable, as long as it can be
+turned into a set.
 Default None</p>
 <p>extensions: optional set of strings, representing file extensions to filter on.
 If None, gets as much data as it can in the input directory.
@@ -2678,8 +2668,12 @@ Default True</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class DataWindowConfig:
+<pre><code class="python">@dataclass_json
+@dataclass
+class DataWindowConfig:
     &#34;&#34;&#34;
+    Configuration of DataWindow properties
+
     Properties:
         input_dir: str, the directory that contains all the data.  REQUIRED
 
@@ -2702,7 +2696,8 @@ Default True</p></div>
         Negative values are converted to default value.  Default DATA_DROP_DURATION_S (0.2 seconds)
 
         station_ids: optional set of strings, representing the station ids to filter on.
-        If empty or None, get any ids found in the input directory.  Default None
+        If empty or None, get any ids found in the input directory.  You may pass in any iterable, as long as it can be
+        turned into a set.  Default None
 
         extensions: optional set of strings, representing file extensions to filter on.
         If None, gets as much data as it can in the input directory.  Default None
@@ -2718,37 +2713,27 @@ Default True</p></div>
         use_model_correction: bool, if True, use the offset model&#39;s correction functions, otherwise use the best
         offset.  Default True
     &#34;&#34;&#34;
-    def __init__(
-            self,
-            input_dir: str,
-            structured_layout: bool = True,
-            start_datetime: Optional[dtu.datetime] = None,
-            end_datetime: Optional[dtu.datetime] = None,
-            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
-            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
-            drop_time_s: float = DATA_DROP_DURATION_S,
-            station_ids: Optional[Iterable[str]] = None,
-            extensions: Optional[Set[str]] = None,
-            api_versions: Optional[Set[io.ApiVersion]] = None,
-            apply_correction: bool = True,
-            use_model_correction: bool = True,
-            copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
-    ):
-        self.input_dir: str = input_dir
-        self.structured_layout: bool = structured_layout
-        self.start_datetime: Optional[dtu.datetime] = start_datetime
-        self.end_datetime: Optional[dtu.datetime] = end_datetime
-        self.start_buffer_td: timedelta = start_buffer_td if start_buffer_td &gt; timedelta(seconds=0) \
+    input_dir: str
+    structured_layout: bool = True
+    start_datetime: Optional[dtu.datetime] = None
+    end_datetime: Optional[dtu.datetime] = None
+    start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD
+    end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD
+    drop_time_s: float = DATA_DROP_DURATION_S
+    station_ids: Optional[Iterable[str]] = None
+    extensions: Optional[Set[str]] = None
+    api_versions: Optional[Set[io.ApiVersion]] = None
+    apply_correction: bool = True
+    use_model_correction: bool = True
+    copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY
+
+    def __post_init__(self):
+        self.start_buffer_td: timedelta = self.start_buffer_td if self.start_buffer_td &gt; timedelta(seconds=0) \
             else timedelta(seconds=0)
-        self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td &gt; timedelta(seconds=0) \
+        self.end_buffer_td: timedelta = self.end_buffer_td if self.end_buffer_td &gt; timedelta(seconds=0) \
             else timedelta(seconds=0)
-        self.drop_time_s: float = drop_time_s if drop_time_s &gt; 0 else DATA_DROP_DURATION_S
-        self.station_ids: Optional[Set[str]] = set(station_ids) if station_ids else None
-        self.extensions: Optional[Set[str]] = extensions
-        self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
-        self.apply_correction: bool = apply_correction
-        self.use_model_correction = use_model_correction
-        self.copy_edge_points = copy_edge_points
+        self.drop_time_s: float = self.drop_time_s if self.drop_time_s &gt; 0 else DATA_DROP_DURATION_S
+        self.station_ids: Optional[Set[str]] = set(self.station_ids) if self.station_ids else None
 
     def __repr__(self):
         return f&#34;input_dir: {self.input_dir}, &#34; \
@@ -2784,8 +2769,8 @@ Default True</p></div>
     def as_dict(self) -&gt; Dict:
         return {&#34;input_dir&#34;: self.input_dir,
                 &#34;structured_layout&#34;: self.structured_layout,
-                &#34;start_datetime&#34;: us_dt(self.start_datetime),
-                &#34;end_datetime&#34;: us_dt(self.end_datetime),
+                &#34;start_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.start_datetime),
+                &#34;end_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.end_datetime),
                 &#34;start_buffer_td&#34;: self.start_buffer_td.total_seconds(),
                 &#34;end_buffer_td&#34;: self.end_buffer_td.total_seconds(),
                 &#34;drop_time_s&#34;: self.drop_time_s,
@@ -2810,10 +2795,65 @@ Default True</p></div>
                                 gpu.DataPointCreationMode(data_dict[&#34;copy_edge_points&#34;])
                                 )</code></pre>
 </details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.data_window.DataWindowConfig.api_versions"><code class="name">var <span class="ident">api_versions</span> : Optional[Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.apply_correction"><code class="name">var <span class="ident">apply_correction</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.copy_edge_points"><code class="name">var <span class="ident">copy_edge_points</span> : <a title="redvox.common.gap_and_pad_utils.DataPointCreationMode" href="gap_and_pad_utils.html#redvox.common.gap_and_pad_utils.DataPointCreationMode">DataPointCreationMode</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.drop_time_s"><code class="name">var <span class="ident">drop_time_s</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.end_buffer_td"><code class="name">var <span class="ident">end_buffer_td</span> : datetime.timedelta</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.end_datetime"><code class="name">var <span class="ident">end_datetime</span> : Optional[datetime.datetime]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.extensions"><code class="name">var <span class="ident">extensions</span> : Optional[Set[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.input_dir"><code class="name">var <span class="ident">input_dir</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.start_buffer_td"><code class="name">var <span class="ident">start_buffer_td</span> : datetime.timedelta</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.start_datetime"><code class="name">var <span class="ident">start_datetime</span> : Optional[datetime.datetime]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.station_ids"><code class="name">var <span class="ident">station_ids</span> : Optional[Iterable[str]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.structured_layout"><code class="name">var <span class="ident">structured_layout</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.use_model_correction"><code class="name">var <span class="ident">use_model_correction</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.common.data_window.DataWindowConfig.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>data_dict: Dict) ‑> <a title="redvox.common.data_window.DataWindowConfig" href="#redvox.common.data_window.DataWindowConfig">DataWindowConfig</a></span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, ForwardRef(None)], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2821,18 +2861,77 @@ Default True</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@staticmethod
-def from_dict(data_dict: Dict) -&gt; &#34;DataWindowConfig&#34;:
-    return DataWindowConfig(data_dict[&#34;input_dir&#34;], data_dict[&#34;structured_layout&#34;],
-                            dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;start_datetime&#34;]),
-                            dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;end_datetime&#34;]),
-                            timedelta(seconds=data_dict[&#34;start_buffer_td&#34;]),
-                            timedelta(seconds=data_dict[&#34;end_buffer_td&#34;]),
-                            data_dict[&#34;drop_time_s&#34;], data_dict[&#34;station_ids&#34;], set(data_dict[&#34;extensions&#34;]),
-                            set([io.ApiVersion.from_str(v) for v in data_dict[&#34;api_versions&#34;]]),
-                            data_dict[&#34;apply_correction&#34;], data_dict[&#34;use_model_correction&#34;],
-                            gpu.DataPointCreationMode(data_dict[&#34;copy_edge_points&#34;])
-                            )</code></pre>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
 </details>
 </dd>
 </dl>
@@ -2850,8 +2949,8 @@ def from_dict(data_dict: Dict) -&gt; &#34;DataWindowConfig&#34;:
 <pre><code class="python">def as_dict(self) -&gt; Dict:
     return {&#34;input_dir&#34;: self.input_dir,
             &#34;structured_layout&#34;: self.structured_layout,
-            &#34;start_datetime&#34;: us_dt(self.start_datetime),
-            &#34;end_datetime&#34;: us_dt(self.end_datetime),
+            &#34;start_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.start_datetime),
+            &#34;end_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.end_datetime),
             &#34;start_buffer_td&#34;: self.start_buffer_td.total_seconds(),
             &#34;end_buffer_td&#34;: self.end_buffer_td.total_seconds(),
             &#34;drop_time_s&#34;: self.drop_time_s,
@@ -2864,11 +2963,57 @@ def from_dict(data_dict: Dict) -&gt; &#34;DataWindowConfig&#34;:
             }</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.data_window.DataWindowConfig.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, ForwardRef(None)]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.DataWindowConfig.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, ForwardRef(None)] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(encode_json=False),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 <dt id="redvox.common.data_window.EventOrigin"><code class="flex name class">
 <span>class <span class="ident">EventOrigin</span></span>
-<span>(</span><span>provider: str = 'UNKNOWN', lat: float = nan, lat_std: float = nan, lon: float = nan, lon_std: float = nan, alt: float = nan, alt_std: float = nan, event_radius_m: float = 0.0)</span>
+<span>(</span><span>provider: str = 'UNKNOWN', latitude: float = nan, latitude_std: float = nan, longitude: float = nan, longitude_std: float = nan, altitude: float = nan, altitude_std: float = nan, event_radius_m: float = 0.0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The origin event's latitude, longitude, altitude and their standard deviations, the device used to measure
@@ -2881,20 +3026,14 @@ the location data and the radius of the event</p>
 <p>longitude_std: float, standard deviation of best estimate of longitude, default np.nan</p>
 <p>altitude: float, best estimate of altitude in meters, default np.nan</p>
 <p>altitude_std: float, standard deviation of best estimate of altitude, default np.nan</p>
-<p>event_radius_m: float, radius of event in meters, default 0.0</p>
-<p>:param provider: name of device that provided the information
-:param lat: latitude in +/- degrees
-:param lat_std: standard deviation of latitude
-:param lon: longitude in +/- degrees
-:param lon_std: standard deviation of longitude
-:param alt: altitude in meters
-:param alt_std: standard deviation of altitude
-:param event_radius_m: radius of event in meters</p></div>
+<p>event_radius_m: float, radius of event in meters, default 0.0</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class EventOrigin:
+<pre><code class="python">@dataclass_json
+@dataclass
+class EventOrigin:
     &#34;&#34;&#34;
     The origin event&#39;s latitude, longitude, altitude and their standard deviations, the device used to measure
     the location data and the radius of the event
@@ -2916,33 +3055,14 @@ the location data and the radius of the event</p>
 
         event_radius_m: float, radius of event in meters, default 0.0
     &#34;&#34;&#34;
-    def __init__(self,
-                 provider: str = &#34;UNKNOWN&#34;,
-                 lat: float = np.nan,
-                 lat_std: float = np.nan,
-                 lon: float = np.nan,
-                 lon_std: float = np.nan,
-                 alt: float = np.nan,
-                 alt_std: float = np.nan,
-                 event_radius_m: float = 0.0):
-        &#34;&#34;&#34;
-        :param provider: name of device that provided the information
-        :param lat: latitude in +/- degrees
-        :param lat_std: standard deviation of latitude
-        :param lon: longitude in +/- degrees
-        :param lon_std: standard deviation of longitude
-        :param alt: altitude in meters
-        :param alt_std: standard deviation of altitude
-        :param event_radius_m: radius of event in meters
-        &#34;&#34;&#34;
-        self.provider = provider
-        self.latitude = lat
-        self.longitude = lon
-        self.altitude = alt
-        self.latitude_std = lat_std
-        self.longitude_std = lon_std
-        self.altitude_std = alt_std
-        self.event_radius_m = event_radius_m
+    provider: str = &#34;UNKNOWN&#34;
+    latitude: float = np.nan
+    latitude_std: float = np.nan
+    longitude: float = np.nan
+    longitude_std: float = np.nan
+    altitude: float = np.nan
+    altitude_std: float = np.nan
+    event_radius_m: float = 0.0
 
     def __repr__(self):
         return str(self.as_dict())
@@ -2971,10 +3091,45 @@ the location data and the radius of the event</p>
                            data_dict[&#34;longitude&#34;], data_dict[&#34;longitude_std&#34;], data_dict[&#34;altitude&#34;],
                            data_dict[&#34;altitude_std&#34;], data_dict[&#34;event_radius_m&#34;])</code></pre>
 </details>
+<h3>Class variables</h3>
+<dl>
+<dt id="redvox.common.data_window.EventOrigin.altitude"><code class="name">var <span class="ident">altitude</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.altitude_std"><code class="name">var <span class="ident">altitude_std</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.event_radius_m"><code class="name">var <span class="ident">event_radius_m</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.latitude"><code class="name">var <span class="ident">latitude</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.latitude_std"><code class="name">var <span class="ident">latitude_std</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.longitude"><code class="name">var <span class="ident">longitude</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.longitude_std"><code class="name">var <span class="ident">longitude_std</span> : float</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.provider"><code class="name">var <span class="ident">provider</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 <h3>Static methods</h3>
 <dl>
 <dt id="redvox.common.data_window.EventOrigin.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>data_dict: Dict) ‑> <a title="redvox.common.data_window.EventOrigin" href="#redvox.common.data_window.EventOrigin">EventOrigin</a></span>
+<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, ForwardRef(None)], *, infer_missing=False) ‑> ~A</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2982,11 +3137,77 @@ the location data and the radius of the event</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@staticmethod
-def from_dict(data_dict: Dict) -&gt; &#34;EventOrigin&#34;:
-    return EventOrigin(data_dict[&#34;provider&#34;], data_dict[&#34;latitude&#34;], data_dict[&#34;latitude_std&#34;],
-                       data_dict[&#34;longitude&#34;], data_dict[&#34;longitude_std&#34;], data_dict[&#34;altitude&#34;],
-                       data_dict[&#34;altitude_std&#34;], data_dict[&#34;event_radius_m&#34;])</code></pre>
+<pre><code class="python">@classmethod
+def from_dict(cls: Type[A],
+              kvs: Json,
+              *,
+              infer_missing=False) -&gt; A:
+    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.from_json"><code class="name flex">
+<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_json(cls: Type[A],
+              s: JsonData,
+              *,
+              parse_float=None,
+              parse_int=None,
+              parse_constant=None,
+              infer_missing=False,
+              **kw) -&gt; A:
+    kvs = json.loads(s,
+                     parse_float=parse_float,
+                     parse_int=parse_int,
+                     parse_constant=parse_constant,
+                     **kw)
+    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.schema"><code class="name flex">
+<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def schema(cls: Type[A],
+           *,
+           infer_missing: bool = False,
+           only=None,
+           exclude=(),
+           many: bool = False,
+           context=None,
+           load_only=(),
+           dump_only=(),
+           partial: bool = False,
+           unknown=None) -&gt; SchemaType:
+    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
+
+    if unknown is None:
+        undefined_parameter_action = _undefined_parameter_action_safe(cls)
+        if undefined_parameter_action is not None:
+            # We can just make use of the same-named mm keywords
+            unknown = undefined_parameter_action.name.lower()
+
+    return Schema(only=only,
+                  exclude=exclude,
+                  many=many,
+                  context=context,
+                  load_only=load_only,
+                  dump_only=dump_only,
+                  partial=partial,
+                  unknown=unknown)</code></pre>
 </details>
 </dd>
 </dl>
@@ -3015,6 +3236,52 @@ def from_dict(data_dict: Dict) -&gt; &#34;EventOrigin&#34;:
         &#34;altitude_std&#34;: self.altitude_std,
         &#34;event_radius_m&#34;: self.event_radius_m
     }</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, ForwardRef(None)]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
+    return _asdict(self, encode_json=encode_json)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.data_window.EventOrigin.to_json"><code class="name flex">
+<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, ForwardRef(None)] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_json(self,
+            *,
+            skipkeys: bool = False,
+            ensure_ascii: bool = True,
+            check_circular: bool = True,
+            allow_nan: bool = True,
+            indent: Optional[Union[int, str]] = None,
+            separators: Tuple[str, str] = None,
+            default: Callable = None,
+            sort_keys: bool = False,
+            **kw) -&gt; str:
+    return json.dumps(self.to_dict(encode_json=False),
+                      cls=_ExtendedEncoder,
+                      skipkeys=skipkeys,
+                      ensure_ascii=ensure_ascii,
+                      check_circular=check_circular,
+                      allow_nan=allow_nan,
+                      indent=indent,
+                      separators=separators,
+                      default=default,
+                      sort_keys=sort_keys,
+                      **kw)</code></pre>
 </details>
 </dd>
 </dl>
@@ -3076,15 +3343,44 @@ def from_dict(data_dict: Dict) -&gt; &#34;EventOrigin&#34;:
 <li>
 <h4><code><a title="redvox.common.data_window.DataWindowConfig" href="#redvox.common.data_window.DataWindowConfig">DataWindowConfig</a></code></h4>
 <ul class="">
+<li><code><a title="redvox.common.data_window.DataWindowConfig.api_versions" href="#redvox.common.data_window.DataWindowConfig.api_versions">api_versions</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.apply_correction" href="#redvox.common.data_window.DataWindowConfig.apply_correction">apply_correction</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindowConfig.as_dict" href="#redvox.common.data_window.DataWindowConfig.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.copy_edge_points" href="#redvox.common.data_window.DataWindowConfig.copy_edge_points">copy_edge_points</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.drop_time_s" href="#redvox.common.data_window.DataWindowConfig.drop_time_s">drop_time_s</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.end_buffer_td" href="#redvox.common.data_window.DataWindowConfig.end_buffer_td">end_buffer_td</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.end_datetime" href="#redvox.common.data_window.DataWindowConfig.end_datetime">end_datetime</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.extensions" href="#redvox.common.data_window.DataWindowConfig.extensions">extensions</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindowConfig.from_dict" href="#redvox.common.data_window.DataWindowConfig.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.from_json" href="#redvox.common.data_window.DataWindowConfig.from_json">from_json</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.input_dir" href="#redvox.common.data_window.DataWindowConfig.input_dir">input_dir</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.schema" href="#redvox.common.data_window.DataWindowConfig.schema">schema</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.start_buffer_td" href="#redvox.common.data_window.DataWindowConfig.start_buffer_td">start_buffer_td</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.start_datetime" href="#redvox.common.data_window.DataWindowConfig.start_datetime">start_datetime</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.station_ids" href="#redvox.common.data_window.DataWindowConfig.station_ids">station_ids</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.structured_layout" href="#redvox.common.data_window.DataWindowConfig.structured_layout">structured_layout</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.to_dict" href="#redvox.common.data_window.DataWindowConfig.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.to_json" href="#redvox.common.data_window.DataWindowConfig.to_json">to_json</a></code></li>
+<li><code><a title="redvox.common.data_window.DataWindowConfig.use_model_correction" href="#redvox.common.data_window.DataWindowConfig.use_model_correction">use_model_correction</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="redvox.common.data_window.EventOrigin" href="#redvox.common.data_window.EventOrigin">EventOrigin</a></code></h4>
-<ul class="">
+<ul class="two-column">
+<li><code><a title="redvox.common.data_window.EventOrigin.altitude" href="#redvox.common.data_window.EventOrigin.altitude">altitude</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.altitude_std" href="#redvox.common.data_window.EventOrigin.altitude_std">altitude_std</a></code></li>
 <li><code><a title="redvox.common.data_window.EventOrigin.as_dict" href="#redvox.common.data_window.EventOrigin.as_dict">as_dict</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.event_radius_m" href="#redvox.common.data_window.EventOrigin.event_radius_m">event_radius_m</a></code></li>
 <li><code><a title="redvox.common.data_window.EventOrigin.from_dict" href="#redvox.common.data_window.EventOrigin.from_dict">from_dict</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.from_json" href="#redvox.common.data_window.EventOrigin.from_json">from_json</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.latitude" href="#redvox.common.data_window.EventOrigin.latitude">latitude</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.latitude_std" href="#redvox.common.data_window.EventOrigin.latitude_std">latitude_std</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.longitude" href="#redvox.common.data_window.EventOrigin.longitude">longitude</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.longitude_std" href="#redvox.common.data_window.EventOrigin.longitude_std">longitude_std</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.provider" href="#redvox.common.data_window.EventOrigin.provider">provider</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.schema" href="#redvox.common.data_window.EventOrigin.schema">schema</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.to_dict" href="#redvox.common.data_window.EventOrigin.to_dict">to_dict</a></code></li>
+<li><code><a title="redvox.common.data_window.EventOrigin.to_json" href="#redvox.common.data_window.EventOrigin.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>
