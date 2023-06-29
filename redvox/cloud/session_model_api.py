@@ -423,10 +423,14 @@ def session_key_from_packet(packet: WrappedRedvoxPacketM) -> str:
     :return: A session key.
     """
     station_info: StationInformation = packet.get_station_information()
-    if station_info is None:
+    if (
+        station_info is None
+        or station_info.get_id() == ""
+        or station_info.get_uuid() == ""
+    ):
         raise RedVoxError("Missing required station information")
     timing_info: TimingInformation = packet.get_timing_information()
-    if timing_info is None:
+    if timing_info is None or timing_info.get_app_start_mach_timestamp() == 0:
         raise RedVoxError("Missing required timing information")
 
     start_ts: int = round(timing_info.get_app_start_mach_timestamp())
