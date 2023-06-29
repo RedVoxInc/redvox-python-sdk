@@ -684,6 +684,11 @@ class CloudClient:
     def request_session_model(
         self, session_key: str
     ) -> session_model_api.SessionModelResp:
+        """
+        Requests a session model.
+        :param session_key: The session key.
+        :return: An instance of a SessionModelResp.
+        """
         req: session_model_api.SessionModelReq = session_model_api.SessionModelReq(
             self.auth_token, session_key
         )
@@ -699,6 +704,15 @@ class CloudClient:
         end_ts: Optional[int] = None,
         include_public: bool = False,
     ) -> session_model_api.SessionModelsResp:
+        """
+        Requests a range of session models.
+        :param id_uuids: An optional list of IDs or ID:UUIDs.
+        :param owner: An optional owner.
+        :param start_ts: An optional start timestamp (microseconds).
+        :param end_ts: An optional end timestamp (microseconds).
+        :param include_public: Additionally include public sessions that may not be the same as the owner.
+        :return: An instance of SessionModelsResp.
+        """
         req: session_model_api.SessionModelsReq = session_model_api.SessionModelsReq(
             self.auth_token, id_uuids, owner, start_ts, end_ts, include_public
         )
@@ -712,6 +726,13 @@ class CloudClient:
         start_ts: int,
         end_ts: int,
     ) -> session_model_api.DynamicSessionModelResp:
+        """
+        Requests a dynamic session given the fields that make up its key.
+        :param session_key: The parent session model key.
+        :param start_ts: The start of the dynamic session (microseconds).
+        :param end_ts: The end of the dynamic session (microseconds).
+        :return: An instance of DynamicSessionModelResp.
+        """
         req: session_model_api.DynamicSessionModelReq = (
             session_model_api.DynamicSessionModelReq(
                 self.auth_token, session_key, start_ts, end_ts
