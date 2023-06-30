@@ -155,19 +155,21 @@ class FileSystemWriter:
         return f&#34;file_name: {self.file_name}, &#34; \
                f&#34;extension: {self.file_extension}, &#34; \
                f&#34;base_dir: {self.base_dir}, &#34; \
-               f&#34;save_mode: {self._save_mode.value}&#34;
+               f&#34;save_mode: {self._save_mode.value if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP.value}&#34;
 
     def __str__(self):
         return f&#34;file_name: {self.file_name}, &#34; \
                f&#34;extension: {self.file_extension}, &#34; \
                f&#34;base_dir: {self.base_dir}, &#34; \
-               f&#34;save_mode: {self._save_mode.name}&#34;
+               f&#34;save_mode: {self._save_mode.name if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP.name}&#34;
 
     def is_use_temp(self) -&gt; bool:
         &#34;&#34;&#34;
         :return: if writing to temp dir
         &#34;&#34;&#34;
-        return self._save_mode == FileSystemSaveMode.TEMP
+        if hasattr(self, &#34;_save_mode&#34;):
+            return self._save_mode == FileSystemSaveMode.TEMP
+        return False
 
     def set_use_temp(self, use_temp: bool):
         &#34;&#34;&#34;
@@ -186,7 +188,9 @@ class FileSystemWriter:
         &#34;&#34;&#34;
         :return: if writing to path on disk
         &#34;&#34;&#34;
-        return self._save_mode == FileSystemSaveMode.DISK
+        if hasattr(self, &#34;_save_mode&#34;):
+            return self._save_mode == FileSystemSaveMode.DISK
+        return False
 
     def set_use_disk(self, use_disk: bool):
         &#34;&#34;&#34;
@@ -199,7 +203,9 @@ class FileSystemWriter:
         &#34;&#34;&#34;
         :return: if writing data to memory
         &#34;&#34;&#34;
-        return self._save_mode == FileSystemSaveMode.MEM
+        if hasattr(self, &#34;_save_mode&#34;):
+            return self._save_mode == FileSystemSaveMode.MEM
+        return False
 
     def set_use_mem(self, use_mem: bool):
         &#34;&#34;&#34;
@@ -212,7 +218,9 @@ class FileSystemWriter:
         &#34;&#34;&#34;
         :return: if writing data to disk (temp dir or user defined path) instead of using memory
         &#34;&#34;&#34;
-        return self._save_mode != FileSystemSaveMode.MEM
+        if hasattr(self, &#39;_save_mode&#39;):
+            return self._save_mode != FileSystemSaveMode.MEM
+        return False
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -236,7 +244,7 @@ class FileSystemWriter:
         &#34;&#34;&#34;
         :return: the save mode
         &#34;&#34;&#34;
-        return self._save_mode
+        return self._save_mode.name if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP
 
     def full_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -287,9 +295,8 @@ class FileSystemWriter:
 
     def create_dir(self):
         &#34;&#34;&#34;
-        if saving to disk, remove the directory if it exists,
-        then create an empty directory to save things into
-        if saving to temp dir, remove any files in the temp dir
+        if saving to disk, remove the directory if it exists, then create an empty directory to save things into
+        if saving to temp dir, remove any files in the temp dir before saving to dir
         &#34;&#34;&#34;
         if self.is_use_disk():
             if os.path.exists(self.save_dir()):
@@ -297,13 +304,15 @@ class FileSystemWriter:
             else:
                 os.makedirs(self.save_dir())
         elif self.is_use_temp():
-            remove_dir_contents(Path(self._temp_dir.name))
+            self._temp_dir.cleanup()
+            self._temp_dir = tempfile.TemporaryDirectory()
 
     def __del__(self):
         &#34;&#34;&#34;
         remove temp dir
         &#34;&#34;&#34;
-        self._temp_dir.cleanup()
+        if self.is_use_temp():
+            self._temp_dir.cleanup()
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -313,7 +322,7 @@ class FileSystemWriter:
             &#34;file_name&#34;: self.file_name,
             &#34;file_extension&#34;: self.file_extension,
             &#34;base_dir&#34;: self.base_dir,
-            &#34;save_mode&#34;: self._save_mode.name
+            &#34;save_mode&#34;: self._save_mode.name if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP.name
         }
 
     @staticmethod
@@ -1700,7 +1709,7 @@ def sort_unstructured_redvox_data(
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured"><code class="name flex">
-<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Indexes both API 900 and API 1000 structured directory layouts.</p>
@@ -1731,7 +1740,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_1000"><code class="name flex">
-<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_1000</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API M directory structure and identifies files that match the provided filter.</p>
@@ -1763,7 +1772,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_1000_py"><code class="name flex">
-<span>def <span class="ident">index_structured_api_1000_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_1000_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API M directory structure and identifies files that match the provided filter.</p>
@@ -1828,7 +1837,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_900"><code class="name flex">
-<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_900</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API 900 directory structure and identifies files that match the provided filter.</p>
@@ -1860,7 +1869,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_api_900_py"><code class="name flex">
-<span>def <span class="ident">index_structured_api_900_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_api_900_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This parses a structured API 900 directory structure and identifies files that match the provided filter.</p>
@@ -1921,7 +1930,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_structured_py"><code class="name flex">
-<span>def <span class="ident">index_structured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_structured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Indexes both API 900 and API 1000 structured directory layouts.</p>
@@ -1994,7 +2003,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_unstructured"><code class="name flex">
-<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_unstructured</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the list of file paths that match the given filter for unstructured data.</p>
@@ -2026,7 +2035,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.index_unstructured_py"><code class="name flex">
-<span>def <span class="ident">index_unstructured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
+<span>def <span class="ident">index_unstructured_py</span></span>(<span>base_dir: str, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), sort: bool = True, pool: Optional[multiprocessing.pool.Pool] = None) ‑> <a title="redvox.common.io.Index" href="#redvox.common.io.Index">Index</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns the list of file paths that match the given filter for unstructured data.</p>
@@ -2166,7 +2175,7 @@ API 900 and API 1000.
 </details>
 </dd>
 <dt id="redvox.common.io.sort_unstructured_redvox_data"><code class="name flex">
-<span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: Optional[str] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;}), copy: bool = True) ‑> bool</span>
+<span>def <span class="ident">sort_unstructured_redvox_data</span></span>(<span>input_dir: str, output_dir: Optional[str] = None, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;}), copy: bool = True) ‑> bool</span>
 </code></dt>
 <dd>
 <div class="desc"><p>takes all redvox files in input_dir and sorts them into appropriate sub-directories</p>
@@ -2414,19 +2423,21 @@ Default "." (current dir)</p>
         return f&#34;file_name: {self.file_name}, &#34; \
                f&#34;extension: {self.file_extension}, &#34; \
                f&#34;base_dir: {self.base_dir}, &#34; \
-               f&#34;save_mode: {self._save_mode.value}&#34;
+               f&#34;save_mode: {self._save_mode.value if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP.value}&#34;
 
     def __str__(self):
         return f&#34;file_name: {self.file_name}, &#34; \
                f&#34;extension: {self.file_extension}, &#34; \
                f&#34;base_dir: {self.base_dir}, &#34; \
-               f&#34;save_mode: {self._save_mode.name}&#34;
+               f&#34;save_mode: {self._save_mode.name if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP.name}&#34;
 
     def is_use_temp(self) -&gt; bool:
         &#34;&#34;&#34;
         :return: if writing to temp dir
         &#34;&#34;&#34;
-        return self._save_mode == FileSystemSaveMode.TEMP
+        if hasattr(self, &#34;_save_mode&#34;):
+            return self._save_mode == FileSystemSaveMode.TEMP
+        return False
 
     def set_use_temp(self, use_temp: bool):
         &#34;&#34;&#34;
@@ -2445,7 +2456,9 @@ Default "." (current dir)</p>
         &#34;&#34;&#34;
         :return: if writing to path on disk
         &#34;&#34;&#34;
-        return self._save_mode == FileSystemSaveMode.DISK
+        if hasattr(self, &#34;_save_mode&#34;):
+            return self._save_mode == FileSystemSaveMode.DISK
+        return False
 
     def set_use_disk(self, use_disk: bool):
         &#34;&#34;&#34;
@@ -2458,7 +2471,9 @@ Default "." (current dir)</p>
         &#34;&#34;&#34;
         :return: if writing data to memory
         &#34;&#34;&#34;
-        return self._save_mode == FileSystemSaveMode.MEM
+        if hasattr(self, &#34;_save_mode&#34;):
+            return self._save_mode == FileSystemSaveMode.MEM
+        return False
 
     def set_use_mem(self, use_mem: bool):
         &#34;&#34;&#34;
@@ -2471,7 +2486,9 @@ Default "." (current dir)</p>
         &#34;&#34;&#34;
         :return: if writing data to disk (temp dir or user defined path) instead of using memory
         &#34;&#34;&#34;
-        return self._save_mode != FileSystemSaveMode.MEM
+        if hasattr(self, &#39;_save_mode&#39;):
+            return self._save_mode != FileSystemSaveMode.MEM
+        return False
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -2495,7 +2512,7 @@ Default "." (current dir)</p>
         &#34;&#34;&#34;
         :return: the save mode
         &#34;&#34;&#34;
-        return self._save_mode
+        return self._save_mode.name if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP
 
     def full_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -2546,9 +2563,8 @@ Default "." (current dir)</p>
 
     def create_dir(self):
         &#34;&#34;&#34;
-        if saving to disk, remove the directory if it exists,
-        then create an empty directory to save things into
-        if saving to temp dir, remove any files in the temp dir
+        if saving to disk, remove the directory if it exists, then create an empty directory to save things into
+        if saving to temp dir, remove any files in the temp dir before saving to dir
         &#34;&#34;&#34;
         if self.is_use_disk():
             if os.path.exists(self.save_dir()):
@@ -2556,13 +2572,15 @@ Default "." (current dir)</p>
             else:
                 os.makedirs(self.save_dir())
         elif self.is_use_temp():
-            remove_dir_contents(Path(self._temp_dir.name))
+            self._temp_dir.cleanup()
+            self._temp_dir = tempfile.TemporaryDirectory()
 
     def __del__(self):
         &#34;&#34;&#34;
         remove temp dir
         &#34;&#34;&#34;
-        self._temp_dir.cleanup()
+        if self.is_use_temp():
+            self._temp_dir.cleanup()
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -2572,7 +2590,7 @@ Default "." (current dir)</p>
             &#34;file_name&#34;: self.file_name,
             &#34;file_extension&#34;: self.file_extension,
             &#34;base_dir&#34;: self.base_dir,
-            &#34;save_mode&#34;: self._save_mode.name
+            &#34;save_mode&#34;: self._save_mode.name if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP.name
         }
 
     @staticmethod
@@ -2630,7 +2648,7 @@ def from_dict(data_dict: Dict) -&gt; &#34;FileSystemWriter&#34;:
         &#34;file_name&#34;: self.file_name,
         &#34;file_extension&#34;: self.file_extension,
         &#34;base_dir&#34;: self.base_dir,
-        &#34;save_mode&#34;: self._save_mode.name
+        &#34;save_mode&#34;: self._save_mode.name if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP.name
     }</code></pre>
 </details>
 </dd>
@@ -2638,18 +2656,16 @@ def from_dict(data_dict: Dict) -&gt; &#34;FileSystemWriter&#34;:
 <span>def <span class="ident">create_dir</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>if saving to disk, remove the directory if it exists,
-then create an empty directory to save things into
-if saving to temp dir, remove any files in the temp dir</p></div>
+<div class="desc"><p>if saving to disk, remove the directory if it exists, then create an empty directory to save things into
+if saving to temp dir, remove any files in the temp dir before saving to dir</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_dir(self):
     &#34;&#34;&#34;
-    if saving to disk, remove the directory if it exists,
-    then create an empty directory to save things into
-    if saving to temp dir, remove any files in the temp dir
+    if saving to disk, remove the directory if it exists, then create an empty directory to save things into
+    if saving to temp dir, remove any files in the temp dir before saving to dir
     &#34;&#34;&#34;
     if self.is_use_disk():
         if os.path.exists(self.save_dir()):
@@ -2657,7 +2673,8 @@ if saving to temp dir, remove any files in the temp dir</p></div>
         else:
             os.makedirs(self.save_dir())
     elif self.is_use_temp():
-        remove_dir_contents(Path(self._temp_dir.name))</code></pre>
+        self._temp_dir.cleanup()
+        self._temp_dir = tempfile.TemporaryDirectory()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.FileSystemWriter.full_name"><code class="name flex">
@@ -2721,7 +2738,9 @@ if saving to temp dir, remove any files in the temp dir</p></div>
     &#34;&#34;&#34;
     :return: if writing data to disk (temp dir or user defined path) instead of using memory
     &#34;&#34;&#34;
-    return self._save_mode != FileSystemSaveMode.MEM</code></pre>
+    if hasattr(self, &#39;_save_mode&#39;):
+        return self._save_mode != FileSystemSaveMode.MEM
+    return False</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.FileSystemWriter.is_use_disk"><code class="name flex">
@@ -2737,7 +2756,9 @@ if saving to temp dir, remove any files in the temp dir</p></div>
     &#34;&#34;&#34;
     :return: if writing to path on disk
     &#34;&#34;&#34;
-    return self._save_mode == FileSystemSaveMode.DISK</code></pre>
+    if hasattr(self, &#34;_save_mode&#34;):
+        return self._save_mode == FileSystemSaveMode.DISK
+    return False</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.FileSystemWriter.is_use_mem"><code class="name flex">
@@ -2753,7 +2774,9 @@ if saving to temp dir, remove any files in the temp dir</p></div>
     &#34;&#34;&#34;
     :return: if writing data to memory
     &#34;&#34;&#34;
-    return self._save_mode == FileSystemSaveMode.MEM</code></pre>
+    if hasattr(self, &#34;_save_mode&#34;):
+        return self._save_mode == FileSystemSaveMode.MEM
+    return False</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.FileSystemWriter.is_use_temp"><code class="name flex">
@@ -2769,7 +2792,9 @@ if saving to temp dir, remove any files in the temp dir</p></div>
     &#34;&#34;&#34;
     :return: if writing to temp dir
     &#34;&#34;&#34;
-    return self._save_mode == FileSystemSaveMode.TEMP</code></pre>
+    if hasattr(self, &#34;_save_mode&#34;):
+        return self._save_mode == FileSystemSaveMode.TEMP
+    return False</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.FileSystemWriter.json_file_name"><code class="name flex">
@@ -2837,7 +2862,7 @@ if saving to temp dir, remove any files in the temp dir</p></div>
     &#34;&#34;&#34;
     :return: the save mode
     &#34;&#34;&#34;
-    return self._save_mode</code></pre>
+    return self._save_mode.name if hasattr(self, &#39;_save_mode&#39;) else FileSystemSaveMode.TEMP</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.io.FileSystemWriter.set_extension"><code class="name flex">
@@ -3306,7 +3331,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.read"><code class="name flex">
-<span>def <span class="ident">read</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> List[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">read</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> List[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, and wrap RedVox data pointed to by this index.</p>
@@ -3405,7 +3430,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.read_raw"><code class="name flex">
-<span>def <span class="ident">read_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> List[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
+<span>def <span class="ident">read_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> List[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, and deserialize RedVox data pointed to by this index.</p>
@@ -3447,7 +3472,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.stream"><code class="name flex">
-<span>def <span class="ident">stream</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> Iterator[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
+<span>def <span class="ident">stream</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> Iterator[Union[WrappedRedvoxPacket, <a title="redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM" href="../api1000/wrapped_redvox_packet/wrapped_packet.html#redvox.api1000.wrapped_redvox_packet.wrapped_packet.WrappedRedvoxPacketM">WrappedRedvoxPacketM</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, wrap, and then stream RedVox data pointed to by this index.</p>
@@ -3472,7 +3497,7 @@ def from_native(index_native) -&gt; &#34;Index&#34;:
 </details>
 </dd>
 <dt id="redvox.common.io.Index.stream_raw"><code class="name flex">
-<span>def <span class="ident">stream_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;, &lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;})) ‑> Iterator[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
+<span>def <span class="ident">stream_raw</span></span>(<span>self, read_filter: <a title="redvox.common.io.ReadFilter" href="#redvox.common.io.ReadFilter">ReadFilter</a> = ReadFilter(start_dt=None, end_dt=None, station_ids=None, extensions={&#x27;.rdvxm&#x27;, &#x27;.rdvxz&#x27;}, start_dt_buf=datetime.timedelta(seconds=120), end_dt_buf=datetime.timedelta(seconds=120), api_versions={&lt;ApiVersion.API_1000: &#x27;API_1000&#x27;&gt;, &lt;ApiVersion.API_900: &#x27;API_900&#x27;&gt;})) ‑> Iterator[Union[RedvoxPacket, src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read, decompress, deserialize, and then stream RedVox data pointed to by this index.</p>
@@ -4875,31 +4900,11 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 <div class="desc"><p>A ProtocolMessage</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>google.protobuf.pyext._message.CMessage</li>
+<li>google._upb._message.Message</li>
 <li>google.protobuf.message.Message</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.io.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="redvox.common.io.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -4912,65 +4917,9 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 <dd>
 <div class="desc"><p>A ProtocolMessage</p></div>
 </dd>
-<dt id="redvox.common.io.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="redvox.common.io.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
 <dd>
 <div class="desc"><p>A ProtocolMessage</p></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
-<dd>
-<div class="desc"></div>
 </dd>
 <dt id="redvox.common.io.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
 <dd>
@@ -4996,48 +4945,9 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 <dd>
 <div class="desc"><p>A ProtocolMessage</p></div>
 </dd>
-<dt id="redvox.common.io.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="redvox.common.io.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-</dl>
-<h3>Instance variables</h3>
-<dl>
-<dt id="redvox.common.io.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.api</p></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.event_streams</p></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.metadata</p></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sensors</p></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.station_information</p></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sub_api</p></div>
-</dd>
-<dt id="redvox.common.io.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.timing_information</p></div>
 </dd>
 </dl>
 </dd>
@@ -5197,46 +5107,18 @@ def empty() -&gt; &#34;ReadFilter&#34;:
 </li>
 <li>
 <h4><code><a title="redvox.common.io.RedvoxPacketM" href="#redvox.common.io.RedvoxPacketM">RedvoxPacketM</a></code></h4>
-<ul class="">
-<li><code><a title="redvox.common.io.RedvoxPacketM.BYTE" href="#redvox.common.io.RedvoxPacketM.BYTE">BYTE</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.CENTIMETERS" href="#redvox.common.io.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.DECIBEL" href="#redvox.common.io.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.common.io.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.common.io.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<ul class="two-column">
 <li><code><a title="redvox.common.io.RedvoxPacketM.DESCRIPTOR" href="#redvox.common.io.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.DoubleSamplePayload" href="#redvox.common.io.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.EventStream" href="#redvox.common.io.RedvoxPacketM.EventStream">EventStream</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.KILOPASCAL" href="#redvox.common.io.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.common.io.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.LUX" href="#redvox.common.io.RedvoxPacketM.LUX">LUX</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.METERS" href="#redvox.common.io.RedvoxPacketM.METERS">METERS</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.common.io.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.common.io.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.MICROAMPERES" href="#redvox.common.io.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.common.io.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.MICROTESLA" href="#redvox.common.io.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.MetadataEntry" href="#redvox.common.io.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.common.io.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.PCM" href="#redvox.common.io.RedvoxPacketM.PCM">PCM</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.PERCENTAGE" href="#redvox.common.io.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.RADIANS" href="#redvox.common.io.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.common.io.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.SamplePayload" href="#redvox.common.io.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.Sensors" href="#redvox.common.io.RedvoxPacketM.Sensors">Sensors</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.StationInformation" href="#redvox.common.io.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.SummaryStatistics" href="#redvox.common.io.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.TimingInformation" href="#redvox.common.io.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.TimingPayload" href="#redvox.common.io.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.UNITLESS" href="#redvox.common.io.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.UNKNOWN" href="#redvox.common.io.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
 <li><code><a title="redvox.common.io.RedvoxPacketM.Unit" href="#redvox.common.io.RedvoxPacketM.Unit">Unit</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.api" href="#redvox.common.io.RedvoxPacketM.api">api</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.event_streams" href="#redvox.common.io.RedvoxPacketM.event_streams">event_streams</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.metadata" href="#redvox.common.io.RedvoxPacketM.metadata">metadata</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.sensors" href="#redvox.common.io.RedvoxPacketM.sensors">sensors</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.station_information" href="#redvox.common.io.RedvoxPacketM.station_information">station_information</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.sub_api" href="#redvox.common.io.RedvoxPacketM.sub_api">sub_api</a></code></li>
-<li><code><a title="redvox.common.io.RedvoxPacketM.timing_information" href="#redvox.common.io.RedvoxPacketM.timing_information">timing_information</a></code></li>
 </ul>
 </li>
 </ul>

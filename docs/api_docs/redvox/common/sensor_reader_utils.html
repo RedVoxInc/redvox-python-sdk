@@ -107,8 +107,8 @@ __ORIENTATION_FIELD_NAME: str = &#34;orientation&#34;
 __PRESSURE_FIELD_NAME: str = &#34;pressure&#34;
 __PROXIMITY_FIELD_NAME: str = &#34;proximity&#34;
 __RELATIVE_HUMIDITY_FIELD_NAME: str = &#34;relative_humidity&#34;
-__ROTATION_VECTOR: str = &#34;rotation_vector&#34;
-__VELOCITY: str = &#34;velocity&#34;
+__ROTATION_VECTOR_FIELD_NAME: str = &#34;rotation_vector&#34;
+__VELOCITY_FIELD_NAME: str = &#34;velocity&#34;
 
 __SENSOR_TYPE_TO_FIELD_NAME: Dict[SensorType, str] = {
     SensorType.UNKNOWN_SENSOR: &#34;unknown&#34;,
@@ -129,8 +129,9 @@ __SENSOR_TYPE_TO_FIELD_NAME: Dict[SensorType, str] = {
     SensorType.PRESSURE: __PRESSURE_FIELD_NAME,
     SensorType.PROXIMITY: __PROXIMITY_FIELD_NAME,
     SensorType.RELATIVE_HUMIDITY: __RELATIVE_HUMIDITY_FIELD_NAME,
-    SensorType.ROTATION_VECTOR: __ROTATION_VECTOR,
+    SensorType.ROTATION_VECTOR: __ROTATION_VECTOR_FIELD_NAME,
     SensorType.INFRARED: __PROXIMITY_FIELD_NAME,
+    SensorType.VELOCITY: __VELOCITY_FIELD_NAME,
 }
 
 Sensor = Union[
@@ -172,6 +173,7 @@ __SENSOR_TYPE_TO_SENSOR_FN: Dict[
     SensorType.RELATIVE_HUMIDITY: lambda packet: packet.sensors.relative_humidity,
     SensorType.ROTATION_VECTOR: lambda packet: packet.sensors.rotation_vector,
     SensorType.INFRARED: lambda packet: packet.sensors.proximity,
+    SensorType.VELOCITY: lambda packet: packet.sensors.velocity,
 }
 
 

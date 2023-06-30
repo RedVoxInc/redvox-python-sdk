@@ -47,38 +47,6 @@ from redvox.common.sensor_data import SensorType
 from redvox.common.errors import RedVoxExceptions
 
 
-# Maps a sensor type to a function that can extract that sensor for a particular packet.
-__SENSOR_NAME_TO_SENSOR_FN: Dict[
-    str,
-    Optional[
-        Callable[
-            [RedvoxPacketM],
-            srupa.SensorData,
-        ]
-    ],
-] = {
-    &#34;health&#34;: None,
-    &#34;accelerometer&#34;: lambda packet: packet.sensors.accelerometer,
-    &#34;ambient_temperature&#34;: lambda packet: packet.sensors.ambient_temperature,
-    &#34;audio&#34;: lambda packet: packet.sensors.audio,
-    &#34;compressed_audio&#34;: lambda packet: packet.sensors.compressed_audio,
-    &#34;gravity&#34;: lambda packet: packet.sensors.gravity,
-    &#34;gyroscope&#34;: lambda packet: packet.sensors.gyroscope,
-    &#34;image&#34;: lambda packet: packet.sensors.image,
-    &#34;light&#34;: lambda packet: packet.sensors.light,
-    &#34;linear_acceleration&#34;: lambda packet: packet.sensors.linear_acceleration,
-    &#34;location&#34;: lambda packet: packet.sensors.location,
-    &#34;best_location&#34;: lambda packet: packet.sensors.location,
-    &#34;magnetometer&#34;: lambda packet: packet.sensors.magnetometer,
-    &#34;orientation&#34;: lambda packet: packet.sensors.orientation,
-    &#34;pressure&#34;: lambda packet: packet.sensors.pressure,
-    &#34;proximity&#34;: lambda packet: packet.sensors.proximity,
-    &#34;relative_humidity&#34;: lambda packet: packet.sensors.relative_humidity,
-    &#34;rotation_vector&#34;: lambda packet: packet.sensors.rotation_vector,
-    &#34;infrared&#34;: lambda packet: packet.sensors.proximity,
-}
-
-
 packet_schema = pa.schema([(&#34;packet_start_mach_timestamp&#34;, pa.float64()),
                            (&#34;packet_end_mach_timestamp&#34;, pa.float64()),
                            (&#34;packet_start_os_timestamp&#34;, pa.float64()),
@@ -263,9 +231,9 @@ class AggregateSummary:
         for adl in audio_lst:
             pckt_info.append((int(adl.start), adl.data()))
 
-        audio_data = gpu.fill_audio_gaps2(pckt_info,
-                                          dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
-                                          )
+        audio_data = gpu.fill_audio_gaps(pckt_info,
+                                         dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
+                                         )
         tbl = audio_data.create_timestamps()
         frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
                                     frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
@@ -376,7 +344,7 @@ class AggregateSummary:
 
     def get_non_audio(self) -&gt; Dict[srupa.SensorType, List[PyarrowSummary]]:
         &#34;&#34;&#34;
-        :return: a dictionary of non-Audio SensorType: PyarrowSummary
+        :return: a dictionary of {non-Audio SensorType: PyarrowSummary}
         &#34;&#34;&#34;
         result = {}
         for k in self.sensor_types():
@@ -453,6 +421,7 @@ def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -&gt
         load_apim_linear_accel,
         load_apim_orientation,
         load_apim_rotation_vector,
+        load_apim_velocity,
     ]
     sensors = map(lambda fn: fn(packet), funcs)
     for data in sensors:
@@ -763,14 +732,24 @@ def load_apim_linear_accel(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]
     return load_xyz(packet, srupa.SensorType.LINEAR_ACCELERATION)
 
 
-def load_apim_rotation_vector(packet: RedvoxPacketM,) -&gt; Optional[PyarrowSummary]:
+def load_apim_rotation_vector(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
     &#34;&#34;&#34;
     load rotation vector data from a single redvox packet
 
     :param packet: packet with data to load
     :return: rotation vector sensor data if it exists, None otherwise
     &#34;&#34;&#34;
-    return load_xyz(packet, srupa.SensorType.ROTATION_VECTOR)</code></pre>
+    return load_xyz(packet, srupa.SensorType.ROTATION_VECTOR)
+
+
+def load_apim_velocity(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load velocity data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: velocity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.VELOCITY)</code></pre>
 </details>
 </section>
 <section>
@@ -1225,7 +1204,7 @@ data and sample rate</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def load_apim_rotation_vector(packet: RedvoxPacketM,) -&gt; Optional[PyarrowSummary]:
+<pre><code class="python">def load_apim_rotation_vector(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
     &#34;&#34;&#34;
     load rotation vector data from a single redvox packet
 
@@ -1233,6 +1212,27 @@ data and sample rate</p></div>
     :return: rotation vector sensor data if it exists, None otherwise
     &#34;&#34;&#34;
     return load_xyz(packet, srupa.SensorType.ROTATION_VECTOR)</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.packet_to_pyarrow.load_apim_velocity"><code class="name flex">
+<span>def <span class="ident">load_apim_velocity</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM) ‑> Optional[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load velocity data from a single redvox packet</p>
+<p>:param packet: packet with data to load
+:return: velocity sensor data if it exists, None otherwise</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_apim_velocity(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
+    &#34;&#34;&#34;
+    load velocity data from a single redvox packet
+
+    :param packet: packet with data to load
+    :return: velocity sensor data if it exists, None otherwise
+    &#34;&#34;&#34;
+    return load_xyz(packet, srupa.SensorType.VELOCITY)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.packet_to_pyarrow.load_single"><code class="name flex">
@@ -1347,6 +1347,7 @@ default None
         load_apim_linear_accel,
         load_apim_orientation,
         load_apim_rotation_vector,
+        load_apim_velocity,
     ]
     sensors = map(lambda fn: fn(packet), funcs)
     for data in sensors:
@@ -1468,9 +1469,9 @@ class AggregateSummary:
         for adl in audio_lst:
             pckt_info.append((int(adl.start), adl.data()))
 
-        audio_data = gpu.fill_audio_gaps2(pckt_info,
-                                          dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
-                                          )
+        audio_data = gpu.fill_audio_gaps(pckt_info,
+                                         dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
+                                         )
         tbl = audio_data.create_timestamps()
         frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
                                     frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
@@ -1581,7 +1582,7 @@ class AggregateSummary:
 
     def get_non_audio(self) -&gt; Dict[srupa.SensorType, List[PyarrowSummary]]:
         &#34;&#34;&#34;
-        :return: a dictionary of non-Audio SensorType: PyarrowSummary
+        :return: a dictionary of {non-Audio SensorType: PyarrowSummary}
         &#34;&#34;&#34;
         result = {}
         for k in self.sensor_types():
@@ -1772,14 +1773,14 @@ def schema(cls: Type[A],
 <span>def <span class="ident">get_non_audio</span></span>(<span>self) ‑> Dict[<a title="redvox.common.sensor_data.SensorType" href="sensor_data.html#redvox.common.sensor_data.SensorType">SensorType</a>, List[<a title="redvox.common.packet_to_pyarrow.PyarrowSummary" href="#redvox.common.packet_to_pyarrow.PyarrowSummary">PyarrowSummary</a>]]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:return: a dictionary of non-Audio SensorType: PyarrowSummary</p></div>
+<div class="desc"><p>:return: a dictionary of {non-Audio SensorType: PyarrowSummary}</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_non_audio(self) -&gt; Dict[srupa.SensorType, List[PyarrowSummary]]:
     &#34;&#34;&#34;
-    :return: a dictionary of non-Audio SensorType: PyarrowSummary
+    :return: a dictionary of {non-Audio SensorType: PyarrowSummary}
     &#34;&#34;&#34;
     result = {}
     for k in self.sensor_types():
@@ -1859,9 +1860,9 @@ def schema(cls: Type[A],
     for adl in audio_lst:
         pckt_info.append((int(adl.start), adl.data()))
 
-    audio_data = gpu.fill_audio_gaps2(pckt_info,
-                                      dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
-                                      )
+    audio_data = gpu.fill_audio_gaps(pckt_info,
+                                     dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
+                                     )
     tbl = audio_data.create_timestamps()
     frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
                                 frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
@@ -2460,31 +2461,11 @@ def schema(cls: Type[A],
 <div class="desc"><p>A ProtocolMessage</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>google.protobuf.pyext._message.CMessage</li>
+<li>google._upb._message.Message</li>
 <li>google.protobuf.message.Message</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.BYTE"><code class="name">var <span class="ident">BYTE</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.CENTIMETERS"><code class="name">var <span class="ident">CENTIMETERS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIBEL"><code class="name">var <span class="ident">DECIBEL</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIMAL_DEGREES"><code class="name">var <span class="ident">DECIMAL_DEGREES</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.DEGREES_CELSIUS"><code class="name">var <span class="ident">DEGREES_CELSIUS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.DESCRIPTOR"><code class="name">var <span class="ident">DESCRIPTOR</span></code></dt>
 <dd>
 <div class="desc"></div>
@@ -2497,65 +2478,9 @@ def schema(cls: Type[A],
 <dd>
 <div class="desc"><p>A ProtocolMessage</p></div>
 </dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.KILOPASCAL"><code class="name">var <span class="ident">KILOPASCAL</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS"><code class="name">var <span class="ident">LSB_PLUS_MINUS_COUNTS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.LUX"><code class="name">var <span class="ident">LUX</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS"><code class="name">var <span class="ident">METERS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND"><code class="name">var <span class="ident">METERS_PER_SECOND</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND_SQUARED"><code class="name">var <span class="ident">METERS_PER_SECOND_SQUARED</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROAMPERES"><code class="name">var <span class="ident">MICROAMPERES</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH"><code class="name">var <span class="ident">MICROSECONDS_SINCE_UNIX_EPOCH</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROTESLA"><code class="name">var <span class="ident">MICROTESLA</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.MetadataEntry"><code class="name">var <span class="ident">MetadataEntry</span></code></dt>
 <dd>
 <div class="desc"><p>A ProtocolMessage</p></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.NORMALIZED_COUNTS"><code class="name">var <span class="ident">NORMALIZED_COUNTS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.PCM"><code class="name">var <span class="ident">PCM</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.PERCENTAGE"><code class="name">var <span class="ident">PERCENTAGE</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS"><code class="name">var <span class="ident">RADIANS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS_PER_SECOND"><code class="name">var <span class="ident">RADIANS_PER_SECOND</span></code></dt>
-<dd>
-<div class="desc"></div>
 </dd>
 <dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.SamplePayload"><code class="name">var <span class="ident">SamplePayload</span></code></dt>
 <dd>
@@ -2581,48 +2506,9 @@ def schema(cls: Type[A],
 <dd>
 <div class="desc"><p>A ProtocolMessage</p></div>
 </dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.UNITLESS"><code class="name">var <span class="ident">UNITLESS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.UNKNOWN"><code class="name">var <span class="ident">UNKNOWN</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.Unit"><code class="name">var <span class="ident">Unit</span></code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-</dl>
-<h3>Instance variables</h3>
-<dl>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.api"><code class="name">var <span class="ident">api</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.api</p></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.event_streams"><code class="name">var <span class="ident">event_streams</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.event_streams</p></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.metadata"><code class="name">var <span class="ident">metadata</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.metadata</p></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.sensors"><code class="name">var <span class="ident">sensors</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sensors</p></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.station_information"><code class="name">var <span class="ident">station_information</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.station_information</p></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.sub_api"><code class="name">var <span class="ident">sub_api</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.sub_api</p></div>
-</dd>
-<dt id="redvox.common.packet_to_pyarrow.RedvoxPacketM.timing_information"><code class="name">var <span class="ident">timing_information</span></code></dt>
-<dd>
-<div class="desc"><p>Field redvox_api_m.RedvoxPacketM.timing_information</p></div>
 </dd>
 </dl>
 </dd>
@@ -2660,6 +2546,7 @@ def schema(cls: Type[A],
 <li><code><a title="redvox.common.packet_to_pyarrow.load_apim_proximity" href="#redvox.common.packet_to_pyarrow.load_apim_proximity">load_apim_proximity</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.load_apim_rel_humidity" href="#redvox.common.packet_to_pyarrow.load_apim_rel_humidity">load_apim_rel_humidity</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.load_apim_rotation_vector" href="#redvox.common.packet_to_pyarrow.load_apim_rotation_vector">load_apim_rotation_vector</a></code></li>
+<li><code><a title="redvox.common.packet_to_pyarrow.load_apim_velocity" href="#redvox.common.packet_to_pyarrow.load_apim_velocity">load_apim_velocity</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.load_single" href="#redvox.common.packet_to_pyarrow.load_single">load_single</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.load_xyz" href="#redvox.common.packet_to_pyarrow.load_xyz">load_xyz</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.packet_to_pyarrow" href="#redvox.common.packet_to_pyarrow.packet_to_pyarrow">packet_to_pyarrow</a></code></li>
@@ -2718,46 +2605,18 @@ def schema(cls: Type[A],
 </li>
 <li>
 <h4><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM">RedvoxPacketM</a></code></h4>
-<ul class="">
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.BYTE" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.BYTE">BYTE</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.CENTIMETERS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.CENTIMETERS">CENTIMETERS</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIBEL" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIBEL">DECIBEL</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIMAL_DEGREES" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DECIMAL_DEGREES">DECIMAL_DEGREES</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DEGREES_CELSIUS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DEGREES_CELSIUS">DEGREES_CELSIUS</a></code></li>
+<ul class="two-column">
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DESCRIPTOR" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DESCRIPTOR">DESCRIPTOR</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.DoubleSamplePayload" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.DoubleSamplePayload">DoubleSamplePayload</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.EventStream" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.EventStream">EventStream</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.KILOPASCAL" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.KILOPASCAL">KILOPASCAL</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.LSB_PLUS_MINUS_COUNTS">LSB_PLUS_MINUS_COUNTS</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.LUX" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.LUX">LUX</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS">METERS</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND">METERS_PER_SECOND</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND_SQUARED" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.METERS_PER_SECOND_SQUARED">METERS_PER_SECOND_SQUARED</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROAMPERES" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROAMPERES">MICROAMPERES</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROSECONDS_SINCE_UNIX_EPOCH">MICROSECONDS_SINCE_UNIX_EPOCH</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROTESLA" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.MICROTESLA">MICROTESLA</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.MetadataEntry" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.MetadataEntry">MetadataEntry</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.NORMALIZED_COUNTS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.NORMALIZED_COUNTS">NORMALIZED_COUNTS</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.PCM" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.PCM">PCM</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.PERCENTAGE" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.PERCENTAGE">PERCENTAGE</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS">RADIANS</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS_PER_SECOND" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.RADIANS_PER_SECOND">RADIANS_PER_SECOND</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.SamplePayload" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.SamplePayload">SamplePayload</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.Sensors" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.Sensors">Sensors</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.StationInformation" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.StationInformation">StationInformation</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.SummaryStatistics" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.SummaryStatistics">SummaryStatistics</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingInformation" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingInformation">TimingInformation</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingPayload" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.TimingPayload">TimingPayload</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.UNITLESS" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.UNITLESS">UNITLESS</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.UNKNOWN" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.UNKNOWN">UNKNOWN</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.Unit" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.Unit">Unit</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.api" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.api">api</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.event_streams" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.event_streams">event_streams</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.metadata" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.metadata">metadata</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.sensors" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.sensors">sensors</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.station_information" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.station_information">station_information</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.sub_api" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.sub_api">sub_api</a></code></li>
-<li><code><a title="redvox.common.packet_to_pyarrow.RedvoxPacketM.timing_information" href="#redvox.common.packet_to_pyarrow.RedvoxPacketM.timing_information">timing_information</a></code></li>
 </ul>
 </li>
 </ul>

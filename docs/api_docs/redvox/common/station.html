@@ -26,7 +26,7 @@ Utilizes …" />
 <section id="section-intro">
 <p>Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
-Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility</p>
+Utilizes RedvoxPacketM (API M data packets) as the format of the data due to their versatility</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -34,7 +34,7 @@ Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due
 <pre><code class="python">&#34;&#34;&#34;
 Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
-Utilizes WrappedRedvoxPacketM (API M data packets) as the format of the data due to their versatility
+Utilizes RedvoxPacketM (API M data packets) as the format of the data due to their versatility
 &#34;&#34;&#34;
 from typing import List, Optional, Tuple
 import os
@@ -58,16 +58,21 @@ from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc,\
 from redvox.common.event_stream import EventStreams
 
 
+STATION_ID_LENGTH = 10  # the length of a station ID string
+
+
 class Station:
     &#34;&#34;&#34;
-    generic station for api-independent stuff; uses API M as the core data object since its quite versatile
-    In order for a list of packets to be a station, all of the packets must:
+    generic station for api-independent stuff; uses API M as the core data object since it&#39;s quite versatile
+    In order for a list of data to be a station, all the data packets must:
         * Have the same station id
         * Have the same station uuid
-        * Have the same start time
+        * Have the same start date
         * Have the same audio sample rate
+        * Have the same metadata
+    Generally speaking, stations can be uniquely identified with a minimum of three values: id, uuid, and start date
     Properties:
-        _data: list sensor data associated with the station, default empty dictionary
+        _data: list of sensor data associated with the station, default empty list
 
         _metadata: StationMetadata consistent across all packets, default empty StationMetadata
 
@@ -79,9 +84,9 @@ class Station:
 
         _start_date: float of microseconds since epoch UTC when the station started recording, default np.nan
 
-        _first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
+        _first_data_timestamp: float of microseconds since epoch UTC of the first audio data point, default np.nan
 
-        _last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
+        _last_data_timestamp: float of microseconds since epoch UTC of the last audio data point, default np.nan
 
         _audio_sample_rate_nominal_hz: float of nominal sample rate of audio component in hz, default np.nan
 
@@ -92,11 +97,13 @@ class Station:
         _timesync_data: TimeSyncArrow object, contains information about the station&#39;s time synchronization values
 
         _correct_timestamps: bool, if True, timestamps are updated as soon as they can be, default False
+        Note: If False, Timestamps can still be corrected if the update_timestamps function is invoked.
 
         _use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
         correction is done by adding the OffsetModel&#39;s best offset (intercept value).  default True
 
-        _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
+        _gaps: List of Tuples of floats indicating start and end times of audio gaps.
+        Times are not inclusive of the gap.
 
         _fs_writer: FileSystemWriter, handles file system i/o parameters
 
@@ -164,7 +171,7 @@ class Station:
                f&#34;audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, &#34; \
                f&#34;is_audio_scrambled: {self._is_audio_scrambled}, &#34; \
                f&#34;timesync: {self._timesync_data.__repr__()}, &#34; \
-               f&#34;event_data: {self._event_data.__repr__()}, &#34; \
+               f&#34;event_data: {self.event_data().__repr__()}, &#34; \
                f&#34;gaps: {[g for g in self._gaps]}&#34;
         # &#34;data&#34;: [d.__repr__() for d in self._data],
 
@@ -173,15 +180,14 @@ class Station:
             else datetime_from_epoch_microseconds_utc(self._start_date).strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;)
         return f&#34;id: {self._id}, &#34; \
                f&#34;uuid: {self._uuid}, &#34; \
-               f&#34;start_date: &#34; \
-               f&#34;{start_date}, &#34; \
+               f&#34;start_date: {start_date}, &#34; \
                f&#34;use_model_correction: {self._use_model_correction}, &#34; \
                f&#34;is_timestamps_updated: {self._is_timestamps_updated}, &#34; \
                f&#34;metadata: {self._metadata.__str__()}, &#34; \
                f&#34;audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, &#34; \
                f&#34;is_audio_scrambled: {self._is_audio_scrambled}, &#34; \
                f&#34;timesync: {self._timesync_data.__str__()}, &#34; \
-               f&#34;event_data: {self._event_data.__str__()}, &#34; \
+               f&#34;event_data: {self.event_data().__str__()}, &#34; \
                f&#34;gaps: {[g for g in self._gaps]}&#34;
         # &#34;packet_metadata&#34;: [p.__str__() for p in self._packet_metadata],
         # &#34;data&#34;: [d.__str__() for d in self._data]
@@ -212,7 +218,8 @@ class Station:
         :param new_save_mode: FileSystemSaveMode to change to
         &#34;&#34;&#34;
         self._fs_writer.set_save_mode(new_save_mode)
-        self._event_data.set_save_mode(new_save_mode)
+        if hasattr(self, &#34;_event_data&#34;):
+            self._event_data.set_save_mode(new_save_mode)
         for s in self._data:
             s.set_save_mode(new_save_mode)
 
@@ -244,7 +251,8 @@ class Station:
         for s in self._data:
             s.move_pyarrow_dir(self.save_dir())
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
-        self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
+        if hasattr(self, &#34;_event_data&#34;):
+            self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -407,7 +415,7 @@ class Station:
         :param packet: API-M redvox packet to load metadata from
         &#34;&#34;&#34;
         # self.id = packet.station_information.id
-        self._id = packet.station_information.id.zfill(10)
+        self._id = packet.station_information.id.zfill(STATION_ID_LENGTH)
         self._uuid = packet.station_information.uuid
         self._start_date = packet.timing_information.app_start_mach_timestamp
         if self._start_date &lt; 0:
@@ -532,6 +540,8 @@ class Station:
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+            if not hasattr(self, &#34;_event_data&#34;):
+                self._event_data = EventStreams()
             self._event_data.append_streams(new_station.event_data())
             self.update_first_and_last_data_timestamps()
 
@@ -594,6 +604,12 @@ class Station:
         else:
             self._data.append(sensor)
 
+    def get_num_packets(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: number of packets used to create station
+        &#34;&#34;&#34;
+        return len(self._packet_metadata)
+
     def get_mean_packet_duration(self) -&gt; float:
         &#34;&#34;&#34;
         :return: mean duration of packets in microseconds
@@ -612,7 +628,7 @@ class Station:
         :return: mean number of audio samples per packet
         &#34;&#34;&#34;
         # noinspection Mypy
-        return self.audio_sensor().num_samples() / len(self._packet_metadata)
+        return self.audio_sensor().num_samples() / self.get_num_packets()
 
     def has_timesync_data(self) -&gt; bool:
         &#34;&#34;&#34;
@@ -1306,7 +1322,7 @@ class Station:
         &#34;&#34;&#34;
         :return: all EventStreams in the Station
         &#34;&#34;&#34;
-        return self._event_data
+        return self._event_data if hasattr(self, &#39;_event_data&#39;) else None
 
     def set_event_data(self, data: EventStreams):
         &#34;&#34;&#34;
@@ -1330,19 +1346,38 @@ class Station:
             return f&#34;{self._id}_0&#34;
         return f&#34;{self._id}_{int(self._start_date)}&#34;
 
+    def _fix_sensor_data(self, sensor_type: sd.SensorType, data_table: pa.Table) -&gt; pa.Table:
+        &#34;&#34;&#34;
+        fix any problems with the data in data_table due to app/OS version
+
+        :param sensor_type: type of sensor
+        :param data_table: the data to edit
+        :return: updated table
+        &#34;&#34;&#34;
+        # iOS accelerometer recorded values in G&#39;s instead of m/s2 before app version 4.1.x
+        if sensor_type == sd.SensorType.ACCELEROMETER and self.metadata().os == st_utils.OsType[&#34;IOS&#34;] \
+                and (self._app_version_major()[0] &lt; 4 or
+                     (self._app_version_major()[0] == 4 and self._app_version_major()[1] == 0)):
+            data_table = data_table.set_column(2, &#34;accelerometer_x&#34;,
+                                               pa.array(data_table[&#34;accelerometer_x&#34;].to_numpy() * -9.8))
+            data_table = data_table.set_column(3, &#34;accelerometer_y&#34;,
+                                               pa.array(data_table[&#34;accelerometer_y&#34;].to_numpy() * -9.8))
+            data_table = data_table.set_column(4, &#34;accelerometer_z&#34;,
+                                               pa.array(data_table[&#34;accelerometer_z&#34;].to_numpy() * -9.8))
+        return data_table
+
     def _set_pyarrow_sensors(self, sensor_summaries: ptp.AggregateSummary):
         &#34;&#34;&#34;
-        create pyarrow tables that will become sensors (and in audio&#39;s case, just make it a sensor)
+        create sensors using pyarrow functions to convert summaries to tables and metadata
 
         :param sensor_summaries: summaries of sensor data that can be used to create sensors
         &#34;&#34;&#34;
         audio_summary = sensor_summaries.get_audio()
         if audio_summary:
             # fuse audio into a single result
-            first_audio = audio_summary[0]
             self._gaps = sensor_summaries.gaps
-            self._data.append(sd.AudioSensor(first_audio.name, first_audio.data(), first_audio.srate_hz,
-                                             1 / first_audio.srate_hz, 0., True,
+            self._data.append(sd.AudioSensor(audio_summary[0].name, audio_summary[0].data(), audio_summary[0].srate_hz,
+                                             1 / audio_summary[0].srate_hz, 0., True,
                                              use_offset_model_for_correction=self._use_model_correction,
                                              base_dir=self.get_save_dir_sensor(sd.SensorType.AUDIO),
                                              save_data=self._fs_writer.is_save_disk()))
@@ -1354,13 +1389,13 @@ class Station:
                     data_table = sdata[0].data()
                     for i in range(1, len(sdata)):
                         data_table = pa.concat_tables([data_table, sdata[i].data()])
+                data_table = self._fix_sensor_data(snr, data_table)
                 if np.isnan(sdata[0].srate_hz):
                     timestamps = data_table[&#34;timestamps&#34;].to_numpy()
-                    smnint = float(np.mean(np.diff(timestamps))) if len(timestamps) &gt; 1 else np.nan
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        smnint, True)
+                        float(np.mean(np.diff(timestamps))) if len(timestamps) &gt; 1 else np.nan, &#34;copy&#34;)
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
@@ -1370,7 +1405,7 @@ class Station:
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        s_to_us(sdata[0].smint_s), True)
+                        s_to_us(sdata[0].smint_s), &#34;copy&#34;)
                     new_sensor = sd.SensorData(
                             sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
@@ -1380,6 +1415,15 @@ class Station:
                 self._data.append(new_sensor.class_from_type())
         else:
             self._errors.append(&#34;Audio Sensor expected, but does not exist.&#34;)
+
+    def _app_version_major(self) -&gt; Tuple[int, int]:
+        &#34;&#34;&#34;
+        :return: tuple of app version to 2 significant version numbers (i.e: version number x.y.z returns x and y)
+        &#34;&#34;&#34;
+        nums = self.metadata().app_version.split(&#34;.&#34;)
+        if self.metadata().os == st_utils.OsType[&#34;IOS&#34;]:
+            nums[1] = nums[1].split(&#34; &#34;)[0]
+        return int(nums[0]), int(nums[1])
 
     def metadata(self) -&gt; st_utils.StationMetadata:
         &#34;&#34;&#34;
@@ -1472,6 +1516,7 @@ class Station:
     def append_error(self, error: str):
         &#34;&#34;&#34;
         add an error to the station
+
         :param error: error to add
         &#34;&#34;&#34;
         self._errors.append(error)
@@ -1483,8 +1528,9 @@ class Station:
         self._errors.print()
         for sen in self._data:
             sen.print_errors()
-        for ev in self._event_data.streams:
-            ev.print_errors()
+        if hasattr(self, &#34;_event_data&#34;):
+            for ev in self._event_data.streams:
+                ev.print_errors()
 
     def audio_sample_rate_nominal_hz(self) -&gt; float:
         &#34;&#34;&#34;
@@ -1559,12 +1605,46 @@ class Station:
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
-            self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
+            if hasattr(self, &#34;_event_data&#34;):
+                self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
             self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
             self._is_timestamps_updated = True
         else:
             self._errors.append(&#34;Attempted to correct timestamps, but correction not enabled.&#34;)
+        return self
+
+    def undo_update_timestamps(self) -&gt; &#34;Station&#34;:
+        &#34;&#34;&#34;
+        undoes non-sensor timestamp updates of the timestamps in the station using the offset model
+        sensors already have unaltered timestamps
+        &#34;&#34;&#34;
+        if not self._is_timestamps_updated:
+            self._errors.append(&#34;Timestamps already not corrected!&#34;)
+        else:
+            self._start_date = self._timesync_data.offset_model().get_original_time(
+                self._start_date, self._use_model_correction
+            )
+            if self._fs_writer.file_name != self._get_id_key():
+                if self._fs_writer.is_save_disk():
+                    old_name = self.save_dir()
+                    self.set_save_dir(self._fs_writer.base_dir)
+                    if old_name != &#34;.&#34; and os.path.exists(old_name):
+                        os.rename(old_name, self.save_dir())
+                else:
+                    self._fs_writer.file_name = self._get_id_key()
+            for sensor in self._data:
+                sensor.set_original_timestamps()
+            for packet in self._packet_metadata:
+                packet.original_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
+            for g in range(len(self._gaps)):
+                self._gaps[g] = (self._timesync_data.offset_model().get_original_time(self._gaps[g][0]),
+                                 self._timesync_data.offset_model().get_original_time(self._gaps[g][1]))
+            if hasattr(self, &#34;_event_data&#34;):
+                self._event_data.original_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
+            self.update_first_and_last_data_timestamps()
+            self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
+            self._is_timestamps_updated = False
         return self
 
     def as_dict(self) -&gt; dict:
@@ -1666,30 +1746,33 @@ class Station:
 <span>(</span><span>station_id: str = '', uuid: str = '', start_timestamp: float = nan, correct_timestamps: bool = False, use_model_correction: bool = True, base_dir: str = '.', save_data: bool = False, use_temp_dir: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>generic station for api-independent stuff; uses API M as the core data object since its quite versatile
-In order for a list of packets to be a station, all of the packets must:
+<div class="desc"><p>generic station for api-independent stuff; uses API M as the core data object since it's quite versatile
+In order for a list of data to be a station, all the data packets must:
 * Have the same station id
 * Have the same station uuid
-* Have the same start time
-* Have the same audio sample rate</p>
+* Have the same start date
+* Have the same audio sample rate
+* Have the same metadata
+Generally speaking, stations can be uniquely identified with a minimum of three values: id, uuid, and start date</p>
 <h2 id="properties">Properties</h2>
-<p>_data: list sensor data associated with the station, default empty dictionary</p>
+<p>_data: list of sensor data associated with the station, default empty list</p>
 <p>_metadata: StationMetadata consistent across all packets, default empty StationMetadata</p>
 <p>_packet_metadata: list of StationPacketMetadata that changes from packet to packet, default empty list</p>
 <p>_id: str id of the station, default empty string</p>
 <p>_uuid: str uuid of the station, default empty string</p>
 <p>_start_date: float of microseconds since epoch UTC when the station started recording, default np.nan</p>
-<p>_first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan</p>
-<p>_last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan</p>
+<p>_first_data_timestamp: float of microseconds since epoch UTC of the first audio data point, default np.nan</p>
+<p>_last_data_timestamp: float of microseconds since epoch UTC of the last audio data point, default np.nan</p>
 <p>_audio_sample_rate_nominal_hz: float of nominal sample rate of audio component in hz, default np.nan</p>
 <p>_is_audio_scrambled: bool, True if audio data is scrambled, default False</p>
 <p>_is_timestamps_updated: bool, True if timestamps have been altered from original data values, default False</p>
 <p>_timesync_data: TimeSyncArrow object, contains information about the station's time synchronization values</p>
-<p>_correct_timestamps: bool, if True, timestamps are updated as soon as they can be, default False</p>
+<p>_correct_timestamps: bool, if True, timestamps are updated as soon as they can be, default False
+Note: If False, Timestamps can still be corrected if the update_timestamps function is invoked.</p>
 <p>_use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
 correction is done by adding the OffsetModel's best offset (intercept value).
 default True</p>
-<p>_gaps: List of Tuples of floats indicating start and end times of gaps.
+<p>_gaps: List of Tuples of floats indicating start and end times of audio gaps.
 Times are not inclusive of the gap.</p>
 <p>_fs_writer: FileSystemWriter, handles file system i/o parameters</p>
 <p>_errors: RedvoxExceptions, errors encountered by the Station</p>
@@ -1712,14 +1795,16 @@ default False</p></div>
 </summary>
 <pre><code class="python">class Station:
     &#34;&#34;&#34;
-    generic station for api-independent stuff; uses API M as the core data object since its quite versatile
-    In order for a list of packets to be a station, all of the packets must:
+    generic station for api-independent stuff; uses API M as the core data object since it&#39;s quite versatile
+    In order for a list of data to be a station, all the data packets must:
         * Have the same station id
         * Have the same station uuid
-        * Have the same start time
+        * Have the same start date
         * Have the same audio sample rate
+        * Have the same metadata
+    Generally speaking, stations can be uniquely identified with a minimum of three values: id, uuid, and start date
     Properties:
-        _data: list sensor data associated with the station, default empty dictionary
+        _data: list of sensor data associated with the station, default empty list
 
         _metadata: StationMetadata consistent across all packets, default empty StationMetadata
 
@@ -1731,9 +1816,9 @@ default False</p></div>
 
         _start_date: float of microseconds since epoch UTC when the station started recording, default np.nan
 
-        _first_data_timestamp: float of microseconds since epoch UTC of the first data point, default np.nan
+        _first_data_timestamp: float of microseconds since epoch UTC of the first audio data point, default np.nan
 
-        _last_data_timestamp: float of microseconds since epoch UTC of the last data point, default np.nan
+        _last_data_timestamp: float of microseconds since epoch UTC of the last audio data point, default np.nan
 
         _audio_sample_rate_nominal_hz: float of nominal sample rate of audio component in hz, default np.nan
 
@@ -1744,11 +1829,13 @@ default False</p></div>
         _timesync_data: TimeSyncArrow object, contains information about the station&#39;s time synchronization values
 
         _correct_timestamps: bool, if True, timestamps are updated as soon as they can be, default False
+        Note: If False, Timestamps can still be corrected if the update_timestamps function is invoked.
 
         _use_model_correction: bool, if True, time correction is done using OffsetModel functions, otherwise
         correction is done by adding the OffsetModel&#39;s best offset (intercept value).  default True
 
-        _gaps: List of Tuples of floats indicating start and end times of gaps.  Times are not inclusive of the gap.
+        _gaps: List of Tuples of floats indicating start and end times of audio gaps.
+        Times are not inclusive of the gap.
 
         _fs_writer: FileSystemWriter, handles file system i/o parameters
 
@@ -1816,7 +1903,7 @@ default False</p></div>
                f&#34;audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, &#34; \
                f&#34;is_audio_scrambled: {self._is_audio_scrambled}, &#34; \
                f&#34;timesync: {self._timesync_data.__repr__()}, &#34; \
-               f&#34;event_data: {self._event_data.__repr__()}, &#34; \
+               f&#34;event_data: {self.event_data().__repr__()}, &#34; \
                f&#34;gaps: {[g for g in self._gaps]}&#34;
         # &#34;data&#34;: [d.__repr__() for d in self._data],
 
@@ -1825,15 +1912,14 @@ default False</p></div>
             else datetime_from_epoch_microseconds_utc(self._start_date).strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;)
         return f&#34;id: {self._id}, &#34; \
                f&#34;uuid: {self._uuid}, &#34; \
-               f&#34;start_date: &#34; \
-               f&#34;{start_date}, &#34; \
+               f&#34;start_date: {start_date}, &#34; \
                f&#34;use_model_correction: {self._use_model_correction}, &#34; \
                f&#34;is_timestamps_updated: {self._is_timestamps_updated}, &#34; \
                f&#34;metadata: {self._metadata.__str__()}, &#34; \
                f&#34;audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, &#34; \
                f&#34;is_audio_scrambled: {self._is_audio_scrambled}, &#34; \
                f&#34;timesync: {self._timesync_data.__str__()}, &#34; \
-               f&#34;event_data: {self._event_data.__str__()}, &#34; \
+               f&#34;event_data: {self.event_data().__str__()}, &#34; \
                f&#34;gaps: {[g for g in self._gaps]}&#34;
         # &#34;packet_metadata&#34;: [p.__str__() for p in self._packet_metadata],
         # &#34;data&#34;: [d.__str__() for d in self._data]
@@ -1864,7 +1950,8 @@ default False</p></div>
         :param new_save_mode: FileSystemSaveMode to change to
         &#34;&#34;&#34;
         self._fs_writer.set_save_mode(new_save_mode)
-        self._event_data.set_save_mode(new_save_mode)
+        if hasattr(self, &#34;_event_data&#34;):
+            self._event_data.set_save_mode(new_save_mode)
         for s in self._data:
             s.set_save_mode(new_save_mode)
 
@@ -1896,7 +1983,8 @@ default False</p></div>
         for s in self._data:
             s.move_pyarrow_dir(self.save_dir())
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
-        self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
+        if hasattr(self, &#34;_event_data&#34;):
+            self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -2059,7 +2147,7 @@ default False</p></div>
         :param packet: API-M redvox packet to load metadata from
         &#34;&#34;&#34;
         # self.id = packet.station_information.id
-        self._id = packet.station_information.id.zfill(10)
+        self._id = packet.station_information.id.zfill(STATION_ID_LENGTH)
         self._uuid = packet.station_information.uuid
         self._start_date = packet.timing_information.app_start_mach_timestamp
         if self._start_date &lt; 0:
@@ -2184,6 +2272,8 @@ default False</p></div>
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+            if not hasattr(self, &#34;_event_data&#34;):
+                self._event_data = EventStreams()
             self._event_data.append_streams(new_station.event_data())
             self.update_first_and_last_data_timestamps()
 
@@ -2246,6 +2336,12 @@ default False</p></div>
         else:
             self._data.append(sensor)
 
+    def get_num_packets(self) -&gt; int:
+        &#34;&#34;&#34;
+        :return: number of packets used to create station
+        &#34;&#34;&#34;
+        return len(self._packet_metadata)
+
     def get_mean_packet_duration(self) -&gt; float:
         &#34;&#34;&#34;
         :return: mean duration of packets in microseconds
@@ -2264,7 +2360,7 @@ default False</p></div>
         :return: mean number of audio samples per packet
         &#34;&#34;&#34;
         # noinspection Mypy
-        return self.audio_sensor().num_samples() / len(self._packet_metadata)
+        return self.audio_sensor().num_samples() / self.get_num_packets()
 
     def has_timesync_data(self) -&gt; bool:
         &#34;&#34;&#34;
@@ -2958,7 +3054,7 @@ default False</p></div>
         &#34;&#34;&#34;
         :return: all EventStreams in the Station
         &#34;&#34;&#34;
-        return self._event_data
+        return self._event_data if hasattr(self, &#39;_event_data&#39;) else None
 
     def set_event_data(self, data: EventStreams):
         &#34;&#34;&#34;
@@ -2982,19 +3078,38 @@ default False</p></div>
             return f&#34;{self._id}_0&#34;
         return f&#34;{self._id}_{int(self._start_date)}&#34;
 
+    def _fix_sensor_data(self, sensor_type: sd.SensorType, data_table: pa.Table) -&gt; pa.Table:
+        &#34;&#34;&#34;
+        fix any problems with the data in data_table due to app/OS version
+
+        :param sensor_type: type of sensor
+        :param data_table: the data to edit
+        :return: updated table
+        &#34;&#34;&#34;
+        # iOS accelerometer recorded values in G&#39;s instead of m/s2 before app version 4.1.x
+        if sensor_type == sd.SensorType.ACCELEROMETER and self.metadata().os == st_utils.OsType[&#34;IOS&#34;] \
+                and (self._app_version_major()[0] &lt; 4 or
+                     (self._app_version_major()[0] == 4 and self._app_version_major()[1] == 0)):
+            data_table = data_table.set_column(2, &#34;accelerometer_x&#34;,
+                                               pa.array(data_table[&#34;accelerometer_x&#34;].to_numpy() * -9.8))
+            data_table = data_table.set_column(3, &#34;accelerometer_y&#34;,
+                                               pa.array(data_table[&#34;accelerometer_y&#34;].to_numpy() * -9.8))
+            data_table = data_table.set_column(4, &#34;accelerometer_z&#34;,
+                                               pa.array(data_table[&#34;accelerometer_z&#34;].to_numpy() * -9.8))
+        return data_table
+
     def _set_pyarrow_sensors(self, sensor_summaries: ptp.AggregateSummary):
         &#34;&#34;&#34;
-        create pyarrow tables that will become sensors (and in audio&#39;s case, just make it a sensor)
+        create sensors using pyarrow functions to convert summaries to tables and metadata
 
         :param sensor_summaries: summaries of sensor data that can be used to create sensors
         &#34;&#34;&#34;
         audio_summary = sensor_summaries.get_audio()
         if audio_summary:
             # fuse audio into a single result
-            first_audio = audio_summary[0]
             self._gaps = sensor_summaries.gaps
-            self._data.append(sd.AudioSensor(first_audio.name, first_audio.data(), first_audio.srate_hz,
-                                             1 / first_audio.srate_hz, 0., True,
+            self._data.append(sd.AudioSensor(audio_summary[0].name, audio_summary[0].data(), audio_summary[0].srate_hz,
+                                             1 / audio_summary[0].srate_hz, 0., True,
                                              use_offset_model_for_correction=self._use_model_correction,
                                              base_dir=self.get_save_dir_sensor(sd.SensorType.AUDIO),
                                              save_data=self._fs_writer.is_save_disk()))
@@ -3006,13 +3121,13 @@ default False</p></div>
                     data_table = sdata[0].data()
                     for i in range(1, len(sdata)):
                         data_table = pa.concat_tables([data_table, sdata[i].data()])
+                data_table = self._fix_sensor_data(snr, data_table)
                 if np.isnan(sdata[0].srate_hz):
                     timestamps = data_table[&#34;timestamps&#34;].to_numpy()
-                    smnint = float(np.mean(np.diff(timestamps))) if len(timestamps) &gt; 1 else np.nan
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        smnint, True)
+                        float(np.mean(np.diff(timestamps))) if len(timestamps) &gt; 1 else np.nan, &#34;copy&#34;)
                     new_sensor = sd.SensorData(
                         sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                         sensor_type=snr, calculate_stats=True, is_sample_rate_fixed=False,
@@ -3022,7 +3137,7 @@ default False</p></div>
                     d, g = gpu.fill_gaps(
                         data_table,
                         self._gaps,
-                        s_to_us(sdata[0].smint_s), True)
+                        s_to_us(sdata[0].smint_s), &#34;copy&#34;)
                     new_sensor = sd.SensorData(
                             sensor_name=sdata[0].name, sensor_data=d, gaps=g, save_data=self._fs_writer.is_save_disk(),
                             sensor_type=snr, sample_rate_hz=sdata[0].srate_hz, sample_interval_s=1/sdata[0].srate_hz,
@@ -3032,6 +3147,15 @@ default False</p></div>
                 self._data.append(new_sensor.class_from_type())
         else:
             self._errors.append(&#34;Audio Sensor expected, but does not exist.&#34;)
+
+    def _app_version_major(self) -&gt; Tuple[int, int]:
+        &#34;&#34;&#34;
+        :return: tuple of app version to 2 significant version numbers (i.e: version number x.y.z returns x and y)
+        &#34;&#34;&#34;
+        nums = self.metadata().app_version.split(&#34;.&#34;)
+        if self.metadata().os == st_utils.OsType[&#34;IOS&#34;]:
+            nums[1] = nums[1].split(&#34; &#34;)[0]
+        return int(nums[0]), int(nums[1])
 
     def metadata(self) -&gt; st_utils.StationMetadata:
         &#34;&#34;&#34;
@@ -3124,6 +3248,7 @@ default False</p></div>
     def append_error(self, error: str):
         &#34;&#34;&#34;
         add an error to the station
+
         :param error: error to add
         &#34;&#34;&#34;
         self._errors.append(error)
@@ -3135,8 +3260,9 @@ default False</p></div>
         self._errors.print()
         for sen in self._data:
             sen.print_errors()
-        for ev in self._event_data.streams:
-            ev.print_errors()
+        if hasattr(self, &#34;_event_data&#34;):
+            for ev in self._event_data.streams:
+                ev.print_errors()
 
     def audio_sample_rate_nominal_hz(self) -&gt; float:
         &#34;&#34;&#34;
@@ -3211,12 +3337,46 @@ default False</p></div>
             for g in range(len(self._gaps)):
                 self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                                  self._timesync_data.offset_model().update_time(self._gaps[g][1]))
-            self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
+            if hasattr(self, &#34;_event_data&#34;):
+                self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
             self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
             self._is_timestamps_updated = True
         else:
             self._errors.append(&#34;Attempted to correct timestamps, but correction not enabled.&#34;)
+        return self
+
+    def undo_update_timestamps(self) -&gt; &#34;Station&#34;:
+        &#34;&#34;&#34;
+        undoes non-sensor timestamp updates of the timestamps in the station using the offset model
+        sensors already have unaltered timestamps
+        &#34;&#34;&#34;
+        if not self._is_timestamps_updated:
+            self._errors.append(&#34;Timestamps already not corrected!&#34;)
+        else:
+            self._start_date = self._timesync_data.offset_model().get_original_time(
+                self._start_date, self._use_model_correction
+            )
+            if self._fs_writer.file_name != self._get_id_key():
+                if self._fs_writer.is_save_disk():
+                    old_name = self.save_dir()
+                    self.set_save_dir(self._fs_writer.base_dir)
+                    if old_name != &#34;.&#34; and os.path.exists(old_name):
+                        os.rename(old_name, self.save_dir())
+                else:
+                    self._fs_writer.file_name = self._get_id_key()
+            for sensor in self._data:
+                sensor.set_original_timestamps()
+            for packet in self._packet_metadata:
+                packet.original_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
+            for g in range(len(self._gaps)):
+                self._gaps[g] = (self._timesync_data.offset_model().get_original_time(self._gaps[g][0]),
+                                 self._timesync_data.offset_model().get_original_time(self._gaps[g][1]))
+            if hasattr(self, &#34;_event_data&#34;):
+                self._event_data.original_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
+            self.update_first_and_last_data_timestamps()
+            self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
+            self._is_timestamps_updated = False
         return self
 
     def as_dict(self) -&gt; dict:
@@ -3554,8 +3714,8 @@ def load(in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
 <span>def <span class="ident">append_error</span></span>(<span>self, error: str)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>add an error to the station
-:param error: error to add</p></div>
+<div class="desc"><p>add an error to the station</p>
+<p>:param error: error to add</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -3563,6 +3723,7 @@ def load(in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
 <pre><code class="python">def append_error(self, error: str):
     &#34;&#34;&#34;
     add an error to the station
+
     :param error: error to add
     &#34;&#34;&#34;
     self._errors.append(error)</code></pre>
@@ -3616,6 +3777,8 @@ def load(in_dir: str = &#34;&#34;) -&gt; &#34;Station&#34;:
         self._packet_metadata.extend(new_station._packet_metadata)
         self._sort_metadata_packets()
         self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+        if not hasattr(self, &#34;_event_data&#34;):
+            self._event_data = EventStreams()
         self._event_data.append_streams(new_station.event_data())
         self.update_first_and_last_data_timestamps()</code></pre>
 </details>
@@ -3844,7 +4007,7 @@ since epoch UTC</p></div>
     &#34;&#34;&#34;
     :return: all EventStreams in the Station
     &#34;&#34;&#34;
-    return self._event_data</code></pre>
+    return self._event_data if hasattr(self, &#39;_event_data&#39;) else None</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.first_data_timestamp"><code class="name flex">
@@ -3948,7 +4111,7 @@ number of audio sensor's data points and the number of packets</p>
     :return: mean number of audio samples per packet
     &#34;&#34;&#34;
     # noinspection Mypy
-    return self.audio_sensor().num_samples() / len(self._packet_metadata)</code></pre>
+    return self.audio_sensor().num_samples() / self.get_num_packets()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_mean_packet_duration"><code class="name flex">
@@ -3969,6 +4132,22 @@ number of audio sensor's data points and the number of packets</p>
             [tsd.packet_end_mach_timestamp - tsd.packet_start_mach_timestamp for tsd in self._packet_metadata]
         )
     )</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.station.Station.get_num_packets"><code class="name flex">
+<span>def <span class="ident">get_num_packets</span></span>(<span>self) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: number of packets used to create station</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_num_packets(self) -&gt; int:
+    &#34;&#34;&#34;
+    :return: number of packets used to create station
+    &#34;&#34;&#34;
+    return len(self._packet_metadata)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.get_save_dir_sensor"><code class="name flex">
@@ -5089,8 +5268,9 @@ number of audio sensor's data points and the number of packets</p>
     self._errors.print()
     for sen in self._data:
         sen.print_errors()
-    for ev in self._event_data.streams:
-        ev.print_errors()</code></pre>
+    if hasattr(self, &#34;_event_data&#34;):
+        for ev in self._event_data.streams:
+            ev.print_errors()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.proximity_sensor"><code class="name flex">
@@ -5946,7 +6126,8 @@ new_dir/station_dir_name/</p>
     for s in self._data:
         s.move_pyarrow_dir(self.save_dir())
     self._timesync_data.arrow_dir = os.path.join(self.save_dir(), &#34;timesync&#34;)
-    self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))</code></pre>
+    if hasattr(self, &#34;_event_data&#34;):
+        self._event_data.set_save_dir(os.path.join(self.save_dir(), &#34;events&#34;))</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.station.Station.set_save_mode"><code class="name flex">
@@ -5966,7 +6147,8 @@ new_dir/station_dir_name/</p>
     :param new_save_mode: FileSystemSaveMode to change to
     &#34;&#34;&#34;
     self._fs_writer.set_save_mode(new_save_mode)
-    self._event_data.set_save_mode(new_save_mode)
+    if hasattr(self, &#34;_event_data&#34;):
+        self._event_data.set_save_mode(new_save_mode)
     for s in self._data:
         s.set_save_mode(new_save_mode)</code></pre>
 </details>
@@ -6132,6 +6314,50 @@ If None, a default file name is created using this format:
     return io.to_json_file(self, file_name)</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.station.Station.undo_update_timestamps"><code class="name flex">
+<span>def <span class="ident">undo_update_timestamps</span></span>(<span>self) ‑> <a title="redvox.common.station.Station" href="#redvox.common.station.Station">Station</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>undoes non-sensor timestamp updates of the timestamps in the station using the offset model
+sensors already have unaltered timestamps</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def undo_update_timestamps(self) -&gt; &#34;Station&#34;:
+    &#34;&#34;&#34;
+    undoes non-sensor timestamp updates of the timestamps in the station using the offset model
+    sensors already have unaltered timestamps
+    &#34;&#34;&#34;
+    if not self._is_timestamps_updated:
+        self._errors.append(&#34;Timestamps already not corrected!&#34;)
+    else:
+        self._start_date = self._timesync_data.offset_model().get_original_time(
+            self._start_date, self._use_model_correction
+        )
+        if self._fs_writer.file_name != self._get_id_key():
+            if self._fs_writer.is_save_disk():
+                old_name = self.save_dir()
+                self.set_save_dir(self._fs_writer.base_dir)
+                if old_name != &#34;.&#34; and os.path.exists(old_name):
+                    os.rename(old_name, self.save_dir())
+            else:
+                self._fs_writer.file_name = self._get_id_key()
+        for sensor in self._data:
+            sensor.set_original_timestamps()
+        for packet in self._packet_metadata:
+            packet.original_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
+        for g in range(len(self._gaps)):
+            self._gaps[g] = (self._timesync_data.offset_model().get_original_time(self._gaps[g][0]),
+                             self._timesync_data.offset_model().get_original_time(self._gaps[g][1]))
+        if hasattr(self, &#34;_event_data&#34;):
+            self._event_data.original_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
+        self.update_first_and_last_data_timestamps()
+        self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
+        self._is_timestamps_updated = False
+    return self</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.station.Station.update_first_and_last_data_timestamps"><code class="name flex">
 <span>def <span class="ident">update_first_and_last_data_timestamps</span></span>(<span>self)</span>
 </code></dt>
@@ -6183,7 +6409,8 @@ If None, a default file name is created using this format:
         for g in range(len(self._gaps)):
             self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
                              self._timesync_data.offset_model().update_time(self._gaps[g][1]))
-        self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
+        if hasattr(self, &#34;_event_data&#34;):
+            self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
         self.update_first_and_last_data_timestamps()
         self._timesync_data.arrow_file = f&#34;timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}&#34;
         self._is_timestamps_updated = True
@@ -6273,6 +6500,7 @@ If None, a default file name is created using this format:
 <li><code><a title="redvox.common.station.Station.get_key" href="#redvox.common.station.Station.get_key">get_key</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_mean_packet_audio_samples" href="#redvox.common.station.Station.get_mean_packet_audio_samples">get_mean_packet_audio_samples</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_mean_packet_duration" href="#redvox.common.station.Station.get_mean_packet_duration">get_mean_packet_duration</a></code></li>
+<li><code><a title="redvox.common.station.Station.get_num_packets" href="#redvox.common.station.Station.get_num_packets">get_num_packets</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_save_dir_sensor" href="#redvox.common.station.Station.get_save_dir_sensor">get_save_dir_sensor</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_sensor_by_type" href="#redvox.common.station.Station.get_sensor_by_type">get_sensor_by_type</a></code></li>
 <li><code><a title="redvox.common.station.Station.get_sensors" href="#redvox.common.station.Station.get_sensors">get_sensors</a></code></li>
@@ -6385,6 +6613,7 @@ If None, a default file name is created using this format:
 <li><code><a title="redvox.common.station.Station.start_date" href="#redvox.common.station.Station.start_date">start_date</a></code></li>
 <li><code><a title="redvox.common.station.Station.timesync_data" href="#redvox.common.station.Station.timesync_data">timesync_data</a></code></li>
 <li><code><a title="redvox.common.station.Station.to_json_file" href="#redvox.common.station.Station.to_json_file">to_json_file</a></code></li>
+<li><code><a title="redvox.common.station.Station.undo_update_timestamps" href="#redvox.common.station.Station.undo_update_timestamps">undo_update_timestamps</a></code></li>
 <li><code><a title="redvox.common.station.Station.update_first_and_last_data_timestamps" href="#redvox.common.station.Station.update_first_and_last_data_timestamps">update_first_and_last_data_timestamps</a></code></li>
 <li><code><a title="redvox.common.station.Station.update_timestamps" href="#redvox.common.station.Station.update_timestamps">update_timestamps</a></code></li>
 <li><code><a title="redvox.common.station.Station.use_model_correction" href="#redvox.common.station.Station.use_model_correction">use_model_correction</a></code></li>
