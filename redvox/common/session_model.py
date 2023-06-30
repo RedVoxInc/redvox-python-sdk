@@ -204,7 +204,7 @@ class SessionModel:
 
     def add_dynamic_hour(self, data: dict, packet_start: float, session_key: str) -> str:
         """
-        Add a dynamic session with length of 1 hour using a single packet or update an existing one if the
+        Add a dynamic session with length of 1 hour using data from a single packet or update an existing one if the
         key matches
 
         :param data: dictionary of data to add
@@ -218,7 +218,7 @@ class SessionModel:
         hour_start_ts = int(dtu.datetime_to_epoch_microseconds_utc(hour_start_dt))
         key = f"{session_key}:{hour_start_ts}:{hour_end_ts}"
         if key in self.dynamic_sessions.keys():
-            self.update_dynamic_session(key, data, [f"{packet_start}"])
+            self._update_dynamic_session(key, data, [f"{packet_start}"])
         else:
             self.dynamic_sessions[key] = cloud_sm.DynamicSession(1, smu.add_location_data(data["location"]),
                                                                  smu.add_to_stats(data["battery"]),
@@ -229,7 +229,8 @@ class SessionModel:
 
     def add_dynamic_day(self, packet: api_m.RedvoxPacketM) -> str:
         """
-        Add data to an existing or create a new dynamic session with length of 1 day using a single packet
+        Add data a dynamic session with length of 1 day using a single packet or update an existing one if the
+        key matches
 
         :param packet: packet to read data from
         :return: the key to the new or updated dynamic session
@@ -244,7 +245,7 @@ class SessionModel:
         key = f"{session_key}:{day_start_ts}:{day_end_ts}"
         hourly_key = self.add_dynamic_hour(data, packet.timing_information.packet_start_mach_timestamp, session_key)
         if key in self.dynamic_sessions.keys():
-            self.update_dynamic_session(key, data, [hourly_key])
+            self._update_dynamic_session(key, data, [hourly_key])
         else:
             self.dynamic_sessions[key] = cloud_sm.DynamicSession(1, smu.add_location_data(data["location"]),
                                                                  smu.add_to_stats(data["battery"]),
@@ -253,7 +254,7 @@ class SessionModel:
                                                                  [hourly_key])
         return key
 
-    def update_dynamic_session(self, key: str, data: Dict, sub: List[str]):
+    def _update_dynamic_session(self, key: str, data: Dict, sub: List[str]):
         """
         update a dynamic session with a given key.
 
@@ -271,7 +272,7 @@ class SessionModel:
             dyn_sess.temperature = smu.add_to_stats(data["temperature"], dyn_sess.temperature)
             for s in sub:
                 if s in self.dynamic_sessions.keys():
-                    self.update_dynamic_session(s, data, self.dynamic_sessions[s].sub)
+                    self._update_dynamic_session(s, data, self.dynamic_sessions[s].sub)
 
     def sdk_version(self) -> str:
         """
@@ -324,13 +325,18 @@ class SessionModel:
         """
         return [n for n in self.dynamic_sessions.values() if n.dur == HOURLY_SESSION_NAME]
 
+    def print_errors(self):
+        """
+        print all errors encountered by the SessionModel
+        """
+        self._errors.print()
+
 
 class LocalSessionModels:
     """
     SDK version of SessionModelsResp from the cloud API
     """
     def __init__(self):
-        self._errors: RedVoxExceptions = RedVoxExceptions("LocalSessionModel")
         self.sessions: Dict[str, SessionModel] = {}
 
     def add_packet(self, packet: api_m.RedvoxPacketM) -> str:
