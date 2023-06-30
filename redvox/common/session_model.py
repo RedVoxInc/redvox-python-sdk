@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 
 import numpy as np
 
+import redvox
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 import redvox.common.date_time_utils as dtu
 import redvox.common.session_io as s_io
@@ -20,15 +21,6 @@ DAILY_SESSION_NAME = "Day"  # Identifier for day-long dynamic sessions
 HOURLY_SESSION_NAME = "Hour"  # Identifier for hour-long dynamic sessions
 
 
-class LocalSessionModels:
-    """
-    SDK version of SessionModelsResp from the cloud API
-    """
-    def __init__(self):
-        self._errors: RedVoxExceptions = RedVoxExceptions("LocalSessionModel")
-        self.sessions: List[SessionModel] = []
-
-
 class SessionModel:
     """
     SDK version of Session from the cloud API
@@ -37,7 +29,14 @@ class SessionModel:
                  dynamic: Optional[Dict[str, cloud_sm.DynamicSession]] = None):
         self.cloud_session: Optional[cloud_sm.Session] = session
         self.dynamic_sessions: Dict[str, cloud_sm.DynamicSession] = {} if dynamic is None else dynamic
+        self._sdk_version: str = redvox.VERSION
         self._errors: RedVoxExceptions = RedVoxExceptions("SessionModel")
+
+    def __repr__(self):
+        return f"cloud_session: {self.cloud_session}, " \
+               f"dynamic_sessions: {self.dynamic_sessions}, " \
+               f"sdk_version: {self._sdk_version}" \
+               f"errors: {self._errors}"
 
     def as_dict(self) -> dict:
         """
@@ -163,10 +162,18 @@ class SessionModel:
 
     def add_data_from_packet(self, packet: api_m.RedvoxPacketM):
         """
-        Adds the data from the packet to the SessionModel
+        Adds the data from the packet to the SessionModel.  If the packet doesn't match the key of the SessionModel,
+        writes an error and no data is added
 
         :param packet: packet to add
         """
+        if self.cloud_session.session_key() != \
+                f"{packet.station_information.id}:{packet.station_information.uuid}:" \
+                f"{int(packet.timing_information.app_start_mach_timestamp)}":
+            self._errors.append("Attempted to add packet with invalid key: "
+                                f"{packet.station_information.id}:{packet.station_information.uuid}:"
+                                f"{int(packet.timing_information.app_start_mach_timestamp)}")
+            return
         local_ts = smu.get_local_timesync(packet)
         if local_ts is None:
             self._errors.append(f"Timesync doesn't exist in packet starting at "
@@ -258,12 +265,19 @@ class SessionModel:
             self._errors.append(f"Attempted to update non-existent key: {key}.")
         else:
             dyn_sess = self.dynamic_sessions[key]
+            dyn_sess.n_pkts += 1
             dyn_sess.location = smu.add_location_data(data["location"], dyn_sess.location)
             dyn_sess.battery = smu.add_to_stats(data["battery"], dyn_sess.battery)
             dyn_sess.temperature = smu.add_to_stats(data["temperature"], dyn_sess.temperature)
             for s in sub:
                 if s in self.dynamic_sessions.keys():
                     self.update_dynamic_session(s, data, self.dynamic_sessions[s].sub)
+
+    def sdk_version(self) -> str:
+        """
+        :return: sdk version used to create the SessionModel
+        """
+        return self._sdk_version
 
     def num_sensors(self) -> int:
         """
@@ -309,3 +323,36 @@ class SessionModel:
         :return: all hour-long dynamic sessions in the Session
         """
         return [n for n in self.dynamic_sessions.values() if n.dur == HOURLY_SESSION_NAME]
+
+
+class LocalSessionModels:
+    """
+    SDK version of SessionModelsResp from the cloud API
+    """
+    def __init__(self):
+        self._errors: RedVoxExceptions = RedVoxExceptions("LocalSessionModel")
+        self.sessions: Dict[str, SessionModel] = {}
+
+    def add_packet(self, packet: api_m.RedvoxPacketM) -> str:
+        """
+        add a packet to one of the models, or make a new one
+
+        :param packet: packet of data to add.
+        :return: key of new or updated packet
+        """
+        key = f"{packet.station_information.id}:{packet.station_information.uuid}:" \
+              f"{int(packet.timing_information.app_start_mach_timestamp)}"
+        if key not in self.sessions.keys():
+            self.sessions[key] = SessionModel.create_from_packet(packet)
+        else:
+            self.sessions[key].add_data_from_packet(packet)
+        return self.sessions[key].cloud_session.session_key()
+
+    def get_session(self, key: str) -> Optional[SessionModel]:
+        """
+        :param key: key of SessionModel to get
+        :return: SessionModel that matches the given key or None
+        """
+        if key in self.sessions.keys():
+            return self.sessions[key]
+        return None

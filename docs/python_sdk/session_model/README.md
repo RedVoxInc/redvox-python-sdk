@@ -19,7 +19,6 @@ SessionModel creates a short summary of a set of local files, in a faster time t
   * [Update SessionModel](#update-sessionmodel)
   * [Using SessionModel](#using-sessionmodel)
     + [Sealing SessionModel](#sealing-sessionmodel)
-  * [SessionModel Parameters](#sessionmodel-parameters)
   * [SessionModel Properties](#sessionmodel-properties)
   * [SessionModel Functions](#sessionmodel-functions)
 - [LocationStats](#locationstats)
@@ -46,6 +45,8 @@ queries.
 
 The SDK version of SessionModel is provided specifically for use with local Redvox files.  We recommend utilizing the 
 cloud version of Session Model to get more accurate data.  More information about cloud Session Models (LINK GOES HERE).
+Of note, the SDK version of SessionModel uses the cloud version as its base.  You can read more about the structure of 
+SessionModel [here](#sessionmodel-properties)
 
 If you want a quick example to copy and paste into your Python IDE, check [here](#sessionmodel-example-code)
 
@@ -54,9 +55,9 @@ If you want a quick example to copy and paste into your Python IDE, check [here]
 SessionModel is created using one or more packets of data.  There are three identifiers of a SessionModel.  If you 
 create a SessionModel with multiple packets, only the packets with identifiers that all match the first packet's will be 
 used.  The three identifiers are:
-* Station ID
-* Station UUID
-* Station Start Date
+* Station's ID
+* Station's UUID
+* Station's Start Date
 
 We recommend [creating SessionModel from files](#from-directory-of-files) if you have a fixed set of files to work 
 with.  If you are streaming files into a system, refer to the section [Update SessionModel](#update-sessionmodel). 
@@ -128,18 +129,18 @@ s_model = SessionModel.load(my_file_path)
 
 ### Update SessionModel
 
-The recommended use of SessionModel is to run a script that will examine files as they become available and pass them
-into the correct SessionModel to update it.
+If you are streaming files into a system, use the `LocalSessionModels` class and pass in the incoming packet.  You can 
+access the sessions from the class at your convenience.
 
 ```python
 # This code only approximates an environment with streaming data.  Adapt this code as necessary.
 
-from redvox.common.session_model import SessionModel
+from redvox.common.session_model import SessionModel, LocalSessionModels
 import redvox.common.io as io
 from typing import Dict, Tuple
 
 
-session_models: Dict[Tuple[str, str, float], SessionModel] = {}
+session_models: LocalSessionModels = LocalSessionModels()
 
 files_path = "/PATH/TO/FILE/STREAM/"
 # Files are assumed to be stored in a structured format
@@ -148,14 +149,15 @@ index = io.index_structured(files_path)
 # index = io.index_unstructured(files_path)
 
 # Read the contents of the files, one file at a time
-for p in index.read_contents():    
-    # Get the unique identifier for a session
-    key = (p.station_information.id, p.station_information.uuid, p.timing_information.app_start_mach_timestamp)
-    # Create a new session if it doesn't exist or add to an existing one
-    if key not in session_models.keys():
-        session_models[key] = SessionModel.create_from_packet(p)
-    else:
-        session_models[key].add_data_from_packet(p)
+for p in index.read_contents():
+    session_models.add_packet(p)
+
+# get all sessions
+for s in session_models.sessions:
+    print(s)
+
+# get a specific session
+print(session_models.get_session("SPECIFIC:STATION:KEY"))
 ```
 
 If you have a fixed set of files, use one of the [creation methods](#create-sessionmodel) above to read all the files 
@@ -179,97 +181,116 @@ s_model: SessionModel = SessionModel()
 # Print all the information
 print(s_model)
 
-# Print properties of the model
-print(s_model.session_version())
-print(s_model.id)
-print(s_model.uuid)
-print(s_model.start_date)
-print(s_model.station_description)
-print(s_model.app_name)
-print(s_model.api)
-print(s_model.sub_api)
-print(s_model.make)
-print(s_model.model)
-print(s_model.app_version)
-print(s_model.owner)
-print(s_model.is_private)
-print(s_model.num_packets)
-print(s_model.packet_duration)
-
-# Print the nominal audio sample rate in hz
-print(s_model.audio_sample_rate_nominal_hz())
+# Access the information using the cloud_session property.
+print(s_model.cloud_session.id)
+print(s_model.cloud_session.uuid)
+print(s_model.cloud_session.start_ts)
+print(s_model.cloud_session.desc)
+print(s_model.cloud_session.app)
+print(s_model.cloud_session.app_ver)
+print(s_model.cloud_session.api)
+print(s_model.cloud_session.sub_api)
+print(s_model.cloud_session.make)
+print(s_model.cloud_session.model)
+print(s_model.cloud_session.owner)
+print(s_model.cloud_session.private)
+print(s_model.cloud_session.n_pkts)
+print(s_model.cloud_session.packet_dur)
+print(s_model.cloud_session.client)
+print(s_model.cloud_session.client_ver)
+print(s_model.cloud_session.session_ver)
 
 # Print information about the sensors in the session
-print(s_model.num_sensors())
-print(s_model.list_of_sensors())
-print(s_model.get_all_sensors())
+print(s_model.cloud_session.num_sensors())
+print(s_model.cloud_session.sensors)
 
-# Print information about a specific sensor
-sensor_name: str = "SENSORNAMEHERE"
-print(s_model.get_sensor_data(sensor_name))
+# Print a specific sensor named SENSOR_NAME, with optional description of the sensor
+print(s_model.get_sensor("SENSOR_NAME", "OPTIONAL_DESC"))
 
-# Print the model's duration in microseconds
-print(s_model.model_duration())
+# Print the audio nominal sample rate in hz
+print(s_model.audio_sample_rate_nominal_hz())
 
 # Print time synchronization information
-print(s_model.timesync_model)
+print(s_model.cloud_session.timing)
 
-# Print other information
-print(s_model.metrics)
+# Print day-long dynamic sessions
+print(s for s in s_model.get_daily_dynamic_sessions())
+
+# Print hour-long dynamic sessions
+print(s for s in s_model.get_hourly_dynamic_sessions())
 ```
-
-### SessionModel Parameters
-
-This section will cover the parameters required by the base SessionModel module.  This is invoked if you ever have only 
-metadata for a session.  It is unlikely you will create a SessionModel without any data.
-This section is included for your reference.
-
-* `id`: string, id of the station.  Default "" (empty string).
-* `uuid`: string, uuid of the station.  Default "" (empty string).
-* `start_date`: float, timestamp from epoch UTC when station was started.  Default np.nan.
-* `station_description`: string, station description.  Default "" (empty string).
-* `app_name`: string, name of the app.  Default "RedVox".
-* `api`: float, api version of data.  Default np.nan.
-* `sub_api`: float, sub-api version of data.  Default np.nan.
-* `make`: string, make of station.  Default "" (empty string).
-* `model`: string, model of station.  Default "" (empty string).
-* `app_version`: string, version of the app.  Default "" (empty string).
-* `owner`: string, owner of the station.  Default "" (empty string).
-* `is_private`: bool, True if the station is private.  Default False.
-* `packet_duration`: float, length of the packet in microseconds.  Default np.nan.
-* `sensors`: Optional list of SensorModels, the data associated with each sensor.  Default empty list.
-* `num_packets`: int, number of packets in the SessionModel.  Default 0.
 
 ### SessionModel Properties
 
 This section details all properties of the SessionModel.
 
-* `id`: string, id of the station.  Default "" (empty string).
-* `uuid`: string, uuid of the station.  Default "" (empty string).
-* `start_date`: float, timestamp since epoch UTC of when station was started.  Default np.nan.
-* `station_description`: string, text description of the station.  Default "" (empty string).
-* `app_name`: string, name of the app the station is running.  Default "Redvox".
-* `api`: float, version number of the API the station is using.  Default np.nan.
-* `sub_api`: float, version number of the sub-API the station in using.  Default np.nan.
-* `make`: string, make of the station.  Default "" (empty string).
-* `model`: string, model of the station.  Default "" (empty string).
-* `app_version`: string, version of the app the station is running.  Default "" (empty string).
-* `owner`: string, owner of the station.  Default "" (empty string).
-* `is_private`: bool, True if the station is private.  Default False.
-* `packet_duration`: float, length of station's data packets in microseconds.  Default np.nan.
-* `sensors`: list of SensorModels, the data associated with each sensor.  Default empty list.
-* `num_packets`: int, number of files used to create the model.  Default 0.
-* `metrics`: MetricsSessionModel, contains information about the station's location, battery, and temperature.
-  Default empty MetricsSessionModel.
-* `timesync_model`: TimeSyncModel, contains information about the station's timesync.  Default empty TimeSyncModel.
+* `cloud_session`: Session, the container for session information.  Default None
+* `dynamic_sessions`: Dictionary of string: DynamicSession, the container for session information with a defined 
+  start and end time.  Default empty dictionary.
 
-These are privatized properties that users cannot edit:
+These are privatized properties of SessionModel that users cannot edit:
 
-* `_session_version`: string, the version of the SessionModel.
-* `_client`: string, the client used to create the SessionModel.
-* `_client_version`: string, the version of the client used to create the model.
 * `_sdk_version`: string, the version of the SDK used to create the model.
 * `_errors`: RedVoxExceptions, contains any errors found when creating the model.
+
+Session is described in the cloud_api (LINK GOES HERE).  The properties of the `cloud_session` are:
+
+* `id`: string, id of the station.
+* `uuid`: string, uuid of the station.
+* `desc`: string, text description of the station.
+* `start_ts`: int, timestamp in microseconds since epoch UTC of when station was started.
+* `client`: string, the name of the client that created the session.
+* `client_version`: string, the version of the client that created the Session.
+* `session_version`: string, the version of the Session model.
+* `app`: string, name of the app the station is running.
+* `api`: int, version number of the API the station is using.
+* `sub_api`: int, version number of the sub-API the station in using.
+* `make`: string, make of the station.
+* `model`: string, model of the station.
+* `app_ver`: string, version of the app the station is running.
+* `owner`: string, owner of the station.
+* `private`: bool, True if the station is private.
+* `packet_dur`: float, length of station's data packets in microseconds.
+* `sensors`: list of Sensor, the name, description, and sample rate associated with each sensor.
+* `n_pkts`: int, number of files used to create the model.
+* `timing`: Timing, the timing information for the Session.
+* `sub`: List of string, the keys to the dynamic sessions associated with the Session.
+
+Session has one function:
+
+* `session_key() -> str`: Returns the key to the session, formatted as: `id:uuid:start_ts`
+
+Sensor is described in the cloud_api (LINK GOES HERE).  The properties of a `Sensor` are:
+
+* `name`: string, name of the sensor
+* `description`: string, description of the sensor.
+* `sample_rate_stats`: Stats, statistical information about the sensor's sample rate.
+
+Timing is described in the cloud_api (LINK GOES HERE).  The properties of a `Timing` are:
+
+* `first_data_ts`: float, the first timestamp of the timing data.
+* `last_data_ts`: float, the last timestamp of the timing data.
+* `n_ex`: int, the number of exchanges in the timing data.
+* `mean_lat`: float, the mean latency of the timing data.
+* `mean_off`: float, the mean offset of the timing data.
+* `fst_lst`: FirstLastBufTimeSync, stores the first and last series of timesync data points.
+
+FirstLastBufTimeSync is des
+
+DynamicSession is described in the cloud_api (LINK GOES HERE).  The properties of a `DynamicSession` are:
+
+* `n_pkts`: int, number of files used to create the session.
+* `location`: Dictionary of string: LocationStat, the location information of the session.
+* `battery`: Stats, statistical information about the battery charge remaining of the station.
+* `temperature`: Stats, statistical information about the internal temperature in C of the station.
+* `session_key`: string, the key to the DynamicSession, formatted as: 
+  `SESSION.id:SESSION.uuid:SESSION.start_ts:start_ts:end_ts` where session is a Session described above.
+* `start_ts`: int, the start timestamp of the DynamicSession.  Usually the start of the hour or day.
+* `end_ts`: int, the end timestamp of the DynamicSession.  Usually the end of the hour or day.
+* `dur`: string, describes the duration of the DynamicSession.  One of `"HOUR"` or `"DAY"`
+* `sub`: List of string, the keys to the dynamic sessions associated with the DynamicSession.
+
+
 
 ### SessionModel Functions
 
