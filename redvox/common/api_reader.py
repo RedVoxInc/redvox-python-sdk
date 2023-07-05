@@ -7,23 +7,20 @@ from datetime import timedelta, datetime
 import multiprocessing
 import multiprocessing.pool
 
-import numpy as np
 import pyarrow as pa
 import psutil
 
 import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 import redvox.common.date_time_utils as dtu
-from redvox.common import offset_model as om,\
-    io,\
-    api_conversions as ac,\
-    file_statistics as fs
+from redvox.common import io,\
+    api_conversions as ac
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.session_model import SessionModel
 from redvox.common.errors import RedVoxExceptions
 from redvox.cloud.client import cloud_client
-from redvox.cloud.session_model_api import SessionModelsResp
+from redvox.cloud.session_model_api import SessionModelsResp, Session
 from redvox.cloud.errors import CloudApiError
 
 
@@ -129,6 +126,57 @@ class ApiReader:
             result.append(iter(i.entries))
         return result
 
+    def _get_cloud_models(self, ids: List[str]) -> SessionModelsResp:
+        try:
+            with cloud_client() as client:
+                resp: SessionModelsResp = client.request_session_models(
+                    owner=client.redvox_config.username,
+                    id_uuids=ids,
+                    start_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.start_dt))
+                    if self.filter.start_dt else None,
+                    end_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.end_dt))
+                    if self.filter.end_dt else None
+                )
+                if len(resp.sessions) < 1:
+                    self.errors.append("Unable to find sessions.  Check if the requested stations: belong to your "
+                                       "account or are public.")
+                return resp
+        except CloudApiError as e:
+            self.errors.append(f"Error while connecting to server.  Error message: {e}")
+        except Exception as e:
+            self.errors.append(f"An error occurred.  Error message: {e}")
+
+    def _reset_index(self, model: Session) -> List[io.Index]:
+        """
+        reset the filter used to get files, then get the updated list of files
+
+        :param model: model to use to reset filter
+        :return: updated index of files
+        """
+        insufficient_str = ""
+        # reset the filter used to get files
+        new_filter = io.ReadFilter() \
+            .with_extensions(self.filter.extensions) \
+            .with_api_versions(self.filter.api_versions) \
+            .with_station_ids({model.id}) \
+            .with_start_dt_buf(dtu.timedelta(seconds=0)) \
+            .with_end_dt_buf(dtu.timedelta(seconds=0))
+        # update the start and end times for the filter by the mean offset and the packet duration
+        if self.filter.start_dt is not None:
+            if timedelta(microseconds=abs(model.timing.mean_off)) > self.filter.start_dt_buf:
+                insufficient_str += "start "
+            new_filter.with_start_dt(self.filter.start_dt
+                                     + timedelta(microseconds=(model.timing.mean_off - model.packet_dur)))
+        if self.filter.end_dt is not None:
+            if timedelta(microseconds=abs(model.timing.mean_off)) > self.filter.end_dt_buf:
+                insufficient_str += "end"
+            new_filter.with_end_dt(self.filter.end_dt
+                                   + timedelta(microseconds=(model.timing.mean_off + model.packet_dur)))
+
+        if len(insufficient_str) > 0:
+            self.errors.append(f"Required more data for {model.id} at: {insufficient_str}")
+        return [self._apply_filter(new_filter)]
+
     def _get_all_files(
         self, pool: Optional[multiprocessing.pool.Pool] = None
     ) -> List[io.Index]:
@@ -145,91 +193,26 @@ class ApiReader:
         all_index = self._apply_filter(pool=_pool)
         all_index_ids = all_index.summarize().station_ids()
         # get models using the cloud to correct timing
-        resp_ids = []
-        try:
-            with cloud_client() as client:
-                resp: SessionModelsResp = client.request_session_models(
-                    owner=client.redvox_config.username,
-                    id_uuids=all_index_ids,
-                    start_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.start_dt))
-                    if self.filter.start_dt else None,
-                    end_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.end_dt))
-                    if self.filter.end_dt else None
-                )
-                if len(resp.sessions) < 1:
-                    self.errors.append("Unable to find sessions.  Check if the requested stations: belong to your "
-                                       "account or are public or if the request time starts after 30 April 2023.")
-                else:
-                    resp_ids = [n.id for n in resp.sessions]
-        except CloudApiError as e:
-            self.errors.append(f"Error while connecting to server.  Error message: {e}")
-        except Exception as e:
-            self.errors.append(f"An error occurred.  Error message: {e}")
+        resp = self._get_cloud_models(all_index_ids)
+        resp_ids = [n.id for n in resp.sessions]
 
         for station_id in all_index_ids:
             # if start and end are both not defined, just use what we got
             if self.filter.start_dt is None and self.filter.end_dt is None:
                 checked_index = [all_index.get_index_for_station_id(station_id)]
-            # if we need to update the start or end, use the session model from cloud if it exists
+            # if we need to update the start or end, use the first session model from cloud if it exists
             elif station_id in resp_ids:
-                # use the first model available to update the index
-                model = [n for n in resp.sessions if n.id == station_id][0]
-                # reset the filter used to get files
-                new_filter = io.ReadFilter() \
-                    .with_extensions(self.filter.extensions) \
-                    .with_api_versions(self.filter.api_versions) \
-                    .with_station_ids({station_id}) \
-                    .with_start_dt_buf(dtu.timedelta(seconds=0)) \
-                    .with_end_dt_buf(dtu.timedelta(seconds=0))
-                # update the start and end times for the filter by the mean offset and the packet duration
-                if self.filter.start_dt is not None:
-                    new_filter.with_start_dt(self.filter.start_dt
-                                             + timedelta(microseconds=(model.timing.mean_off - model.packet_dur)))
-                if self.filter.end_dt is not None:
-                    new_filter.with_end_dt(self.filter.end_dt
-                                           + timedelta(microseconds=(model.timing.mean_off + model.packet_dur)))
-                # look for the files using the updated filter.  if both start and end is None, this will return
-                # the same results as before.  However, the outside if statement already covers this case, with
-                # or without the cloud's session model.
-                checked_index = [self._apply_filter(new_filter)]
+                checked_index = self._reset_index([n for n in resp.sessions if n.id == station_id][0])
             # if no models from cloud, use the data available to update start and end of index
             else:
                 id_index = all_index.get_index_for_station_id(station_id)
-                # check if there are any entries for the station_id
                 if len(id_index.entries) < 1:
                     checked_index = []
                 else:
+                    # attempt to make a session model using local data.  if failure, use what we got initially.
                     try:
                         stats = SessionModel().create_from_stream(self.read_files_in_index(id_index))
-                        mean_offset = stats.cloud_session.timing.mean_off
-                        insufficient_str = ""
-                        # if our filtered files do not encompass the request even when the packet times are updated
-                        # try getting the difference of the expected start/end and the start/end of the data plus one
-                        # packet
-                        new_filter = io.ReadFilter() \
-                            .with_extensions(self.filter.extensions) \
-                            .with_api_versions(self.filter.api_versions) \
-                            .with_station_ids({stats.cloud_session.id}) \
-                            .with_start_dt_buf(dtu.timedelta(seconds=0)) \
-                            .with_end_dt_buf(dtu.timedelta(seconds=0))
-                        # update the start and end times for the filter by the mean offset and the packet duration
-                        if self.filter.start_dt is not None \
-                                and timedelta(microseconds=-mean_offset) > self.filter.start_dt_buf:
-                            new_filter.with_start_dt(self.filter.start_dt
-                                                     + timedelta(microseconds=(stats.cloud_session.timing.mean_off
-                                                                               - stats.cloud_session.packet_dur)))
-                            insufficient_str += "start"
-                        if self.filter.end_dt is not None \
-                                and timedelta(microseconds=mean_offset) > self.filter.end_dt_buf:
-                            new_filter.with_end_dt(self.filter.end_dt
-                                                   + timedelta(microseconds=(stats.cloud_session.timing.mean_off
-                                                                             + stats.cloud_session.packet_dur)))
-                            insufficient_str += "end"
-                        # look for the files using the updated filter
-                        checked_index = [self._apply_filter(new_filter)]
-
-                        if len(insufficient_str) > 0:
-                            self.errors.append(f"Required more data for {station_id} at: {insufficient_str}")
+                        checked_index = self._reset_index(stats.cloud_session)
                     except Exception as e:
                         checked_index = [id_index]
 
@@ -408,9 +391,9 @@ class ApiReader:
         return result
 
 
-# # This class uses a slightly stripped down version of the above ApiReader meant to quickly create SessionModels.
-# # Some of the checks used in ApiReader are not necessary when creating SessionModel, while the core functionality
-# #  of finding and reading files remains.
+# This class uses a slightly stripped down version of the above ApiReader meant to quickly create SessionModels.
+# Some of the checks used in ApiReader are not necessary when creating SessionModel, while the core functionality
+#  of finding and reading files remains.
 # class ApiReaderModel:
 #     """
 #     Reads data from api 900 or api 1000 format, converting all data read into RedvoxPacketM for

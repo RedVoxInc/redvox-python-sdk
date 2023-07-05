@@ -38,9 +38,9 @@ class ApiReaderDw(ApiReader):
         :param correct_timestamps: if True, correct the timestamps of the data.  Default False
         :param use_model_correction: if True, use the offset model of the station to correct the timestamps.
                                         if correct_timestamps is False, this value doesn't matter.  Default True
-        :param dw_base_dir: the directory to save DataWindow files to.  if save_mode is FileSystemSaveMode.MEM,
+        :param dw_base_dir: the directory to save DataWindow files to.  if dw_save_mode is "FileSystemSaveMode.MEM",
                             this value doesn't matter.  default "." (current directory)
-        :param dw_save_mode: save method for the data window.  Default FileSystemSaveMode.TEMP which saves to a temp_dir
+        :param dw_save_mode: save method for the data window.  Default "FileSystemSaveMode.TEMP"; save to temp_dir
         :param debug: if True, output program warnings/errors during function execution.  Default False.
         """
         super().__init__(base_dir, structured_dir, read_filter, debug, pool)
@@ -54,6 +54,7 @@ class ApiReaderDw(ApiReader):
     def _station_by_index(self, findex: io.Index) -> Station:
         """
         builds station using the index of files to read
+
         splits the index into smaller chunks if entire record cannot be held in memory
 
         :param findex: index with files to build a station with

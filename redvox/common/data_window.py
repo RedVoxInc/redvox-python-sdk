@@ -70,36 +70,7 @@ class EventOrigin:
     altitude_std: float = np.nan
     event_radius_m: float = 0.0
 
-    def __repr__(self):
-        return str(self.as_dict())
 
-    def __str__(self):
-        return str(self.as_dict())
-
-    def as_dict(self) -> Dict:
-        """
-        :return: self as dict
-        """
-        return {
-            "provider": self.provider,
-            "latitude": self.latitude,
-            "latitude_std": self.latitude_std,
-            "longitude": self.longitude,
-            "longitude_std": self.longitude_std,
-            "altitude": self.altitude,
-            "altitude_std": self.altitude_std,
-            "event_radius_m": self.event_radius_m
-        }
-
-    @staticmethod
-    def from_dict(data_dict: Dict) -> "EventOrigin":
-        return EventOrigin(data_dict["provider"], data_dict["latitude"], data_dict["latitude_std"],
-                           data_dict["longitude"], data_dict["longitude_std"], data_dict["altitude"],
-                           data_dict["altitude_std"], data_dict["event_radius_m"])
-
-
-@dataclass_json
-@dataclass
 class DataWindowConfig:
     """
     Configuration of DataWindow properties
@@ -143,27 +114,37 @@ class DataWindowConfig:
         use_model_correction: bool, if True, use the offset model's correction functions, otherwise use the best
         offset.  Default True
     """
-    input_dir: str
-    structured_layout: bool = True
-    start_datetime: Optional[dtu.datetime] = None
-    end_datetime: Optional[dtu.datetime] = None
-    start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD
-    end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD
-    drop_time_s: float = DATA_DROP_DURATION_S
-    station_ids: Optional[Iterable[str]] = None
-    extensions: Optional[Set[str]] = None
-    api_versions: Optional[Set[io.ApiVersion]] = None
-    apply_correction: bool = True
-    use_model_correction: bool = True
-    copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY
-
-    def __post_init__(self):
-        self.start_buffer_td: timedelta = self.start_buffer_td if self.start_buffer_td > timedelta(seconds=0) \
+    def __init__(
+            self,
+            input_dir: str,
+            structured_layout: bool = True,
+            start_datetime: Optional[dtu.datetime] = None,
+            end_datetime: Optional[dtu.datetime] = None,
+            start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
+            end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+            drop_time_s: float = DATA_DROP_DURATION_S,
+            station_ids: Optional[Iterable[str]] = None,
+            extensions: Optional[Set[str]] = None,
+            api_versions: Optional[Set[io.ApiVersion]] = None,
+            apply_correction: bool = True,
+            use_model_correction: bool = True,
+            copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
+    ):
+        self.input_dir: str = input_dir
+        self.structured_layout: bool = structured_layout
+        self.start_datetime: Optional[dtu.datetime] = start_datetime
+        self.end_datetime: Optional[dtu.datetime] = end_datetime
+        self.start_buffer_td: timedelta = start_buffer_td if start_buffer_td > timedelta(seconds=0) \
             else timedelta(seconds=0)
-        self.end_buffer_td: timedelta = self.end_buffer_td if self.end_buffer_td > timedelta(seconds=0) \
+        self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td > timedelta(seconds=0) \
             else timedelta(seconds=0)
-        self.drop_time_s: float = self.drop_time_s if self.drop_time_s > 0 else DATA_DROP_DURATION_S
-        self.station_ids: Optional[Set[str]] = set(self.station_ids) if self.station_ids else None
+        self.drop_time_s: float = drop_time_s if drop_time_s > 0 else DATA_DROP_DURATION_S
+        self.station_ids: Optional[Set[str]] = set(station_ids) if station_ids else None
+        self.extensions: Optional[Set[str]] = extensions
+        self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
+        self.apply_correction: bool = apply_correction
+        self.use_model_correction = use_model_correction
+        self.copy_edge_points = copy_edge_points
 
     def __repr__(self):
         return f"input_dir: {self.input_dir}, " \
@@ -196,11 +177,13 @@ class DataWindowConfig:
                f"use_model_correction: {self.use_model_correction}, " \
                f"copy_edge_points: {self.copy_edge_points.name}"
 
-    def as_dict(self) -> Dict:
+    def to_dict(self) -> Dict:
         return {"input_dir": self.input_dir,
                 "structured_layout": self.structured_layout,
-                "start_datetime": dtu.datetime_to_epoch_microseconds_utc(self.start_datetime),
-                "end_datetime": dtu.datetime_to_epoch_microseconds_utc(self.end_datetime),
+                "start_datetime":
+                    dtu.datetime_to_epoch_microseconds_utc(self.start_datetime) if self.start_datetime else None,
+                "end_datetime":
+                    dtu.datetime_to_epoch_microseconds_utc(self.end_datetime) if self.end_datetime else None,
                 "start_buffer_td": self.start_buffer_td.total_seconds(),
                 "end_buffer_td": self.end_buffer_td.total_seconds(),
                 "drop_time_s": self.drop_time_s,
@@ -215,8 +198,10 @@ class DataWindowConfig:
     @staticmethod
     def from_dict(data_dict: Dict) -> "DataWindowConfig":
         return DataWindowConfig(data_dict["input_dir"], data_dict["structured_layout"],
-                                dtu.datetime_from_epoch_microseconds_utc(data_dict["start_datetime"]),
-                                dtu.datetime_from_epoch_microseconds_utc(data_dict["end_datetime"]),
+                                dtu.datetime_from_epoch_microseconds_utc(data_dict["start_datetime"])
+                                if data_dict["start_datetime"] else None,
+                                dtu.datetime_from_epoch_microseconds_utc(data_dict["end_datetime"])
+                                if data_dict["end_datetime"] else None,
                                 timedelta(seconds=data_dict["start_buffer_td"]),
                                 timedelta(seconds=data_dict["end_buffer_td"]),
                                 data_dict["drop_time_s"], data_dict["station_ids"], set(data_dict["extensions"]),
@@ -229,8 +214,11 @@ class DataWindowConfig:
 class DataWindow:
     """
     Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad the start and end values
+
     If a start time is given, data starting from that time will be included.
+
     If an end time is given, data up to but not including that time will be included.
+
     Refer to the DataWindowConfig class for more details on DataWindow parameters.
 
     Properties:
@@ -248,7 +236,7 @@ class DataWindow:
 
     Protected:
         _fs_writer: DataWindowFileSystemWriter; includes event_name, output directory (Default "."),
-        output type (options: "PARQUET", "LZ4", "NONE".  Default NONE), and option to make a
+        output type (options: "PARQUET", "LZ4", "JSON", "NONE".  Default NONE), and option to make a
         runme.py example file (Default False)
 
         _stations: List of Stations that belong to the DataWindow
@@ -274,7 +262,7 @@ class DataWindow:
         :param config: Optional DataWindowConfig which describes how to extract data from Redvox files.
                         Default None
         :param output_dir: output directory for saving files.  Default "." (current directory)
-        :param out_type: type of file to save the DataWindow as.  Options: "PARQUET", "LZ4", "NONE".
+        :param out_type: type of file to save the DataWindow as.  Options: "PARQUET", "LZ4", "JSON", "NONE".
                             Default "NONE" (no saving)
         :param make_runme: if True, saves an example runme.py file with the data.  Default False
         :param debug: if True, outputs additional information during initialization.  Default False
@@ -355,7 +343,8 @@ class DataWindow:
 
     def set_out_type(self, new_out_type: str):
         """
-        set the output type of the DataWindow.  options are "NONE", "PARQUET" and "LZ4".  invalid values become "NONE"
+        set the output type of the DataWindow.  options are "NONE", "PARQUET", "LZ4" and "JSON".
+        Invalid values become "NONE"
 
         :param new_out_type: new output type of the DataWindow
         """
@@ -366,12 +355,12 @@ class DataWindow:
         :return: DataWindow properties as dictionary
         """
         return {"event_name": self.event_name,
-                "event_origin": self.event_origin.as_dict(),
+                "event_origin": self.event_origin.to_dict(),
                 "start_time": self.start_date(),
                 "end_time": self.end_date(),
                 "base_dir": self.save_dir(),
                 "stations": [s.default_station_json_file_name() for s in self._stations],
-                "config": self._config.as_dict(),
+                "config": self._config.to_dict(),
                 "debug": self.debug,
                 "errors": self._errors.as_dict(),
                 "sdk_version": self._sdk_version,
@@ -476,7 +465,7 @@ class DataWindow:
                              f'{dw_io.DataWindowOutputType.list_non_none_names()}')
         else:
             out_type = dw_io.DataWindowOutputType.str_to_type(json_dict["out_type"])
-            if out_type == dw_io.DataWindowOutputType.PARQUET:
+            if out_type == dw_io.DataWindowOutputType.PARQUET or out_type == dw_io.DataWindowOutputType.JSON:
                 dwin = DataWindow(json_dict["event_name"], EventOrigin.from_dict(json_dict["event_origin"]),
                                   None, json_dict["base_dir"], json_dict["out_type"], json_dict["make_runme"],
                                   json_dict["debug"])
@@ -503,7 +492,7 @@ class DataWindow:
             if self._fs_writer.is_use_disk() and self._fs_writer.make_run_me:
                 shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
                                 os.path.join(self._fs_writer.save_dir(), "runme.py"))
-            if self._fs_writer.file_extension == "parquet":
+            if self._fs_writer.file_extension in ["parquet", "json"]:
                 return self._to_json_file()
             elif self._fs_writer.file_extension == "lz4":
                 return self.serialize()
@@ -707,9 +696,9 @@ class DataWindow:
         # Apply timing correction in parallel by station
         sts = a_r.get_stations()
         if self.debug:
-            print("num stations loaded: ", len(sts))
+            print("number of stations loaded: ", len(sts))
 
-        for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
+        for st in maybe_parallel_map(_pool, lambda s: s, iter(sts), chunk_size=1):
             self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
             if self.debug:
                 print("station processed: ", st.id())
@@ -772,23 +761,18 @@ class DataWindow:
             end_datetime: Optional[dtu.datetime] = None
     ):
         """
-        truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
-        if the start and/or end are not specified, keeps all audio data that fits and uses it
-        to truncate the other sensors.
+        truncate the sensors in the station to only contain data from start_datetime to end_datetime.
+
+        if the start and/or end are not specified, uses the audio start and end to truncate the other sensors.
+
         returns nothing, updates the station in place
 
         :param station: station object to truncate sensors of
         :param start_datetime: datetime of start of window, default None
         :param end_datetime: datetime of end of window, default None
         """
-        if start_datetime:
-            start_datetime = dtu.datetime_to_epoch_microseconds_utc(start_datetime)
-        else:
-            start_datetime = 0
-        if end_datetime:
-            end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime)
-        else:
-            end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
+        start_datetime = dtu.datetime_to_epoch_microseconds_utc(start_datetime) if start_datetime else 0
+        end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime if end_datetime else dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
         if station.has_audio_data():
             for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:

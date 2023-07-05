@@ -134,6 +134,12 @@ class FileSystemWriter:
                f"base_dir: {self.base_dir}, " \
                f"save_mode: {self._save_mode.name if hasattr(self, '_save_mode') else FileSystemSaveMode.TEMP.name}"
 
+    def __del__(self):
+        """
+        remove temp dir
+        """
+        self._temp_dir.cleanup()
+
     def is_use_temp(self) -> bool:
         """
         :return: if writing to temp dir
@@ -277,13 +283,6 @@ class FileSystemWriter:
         elif self.is_use_temp():
             self._temp_dir.cleanup()
             self._temp_dir = tempfile.TemporaryDirectory()
-
-    def __del__(self):
-        """
-        remove temp dir
-        """
-        if self.is_use_temp():
-            self._temp_dir.cleanup()
 
     def as_dict(self) -> dict:
         """

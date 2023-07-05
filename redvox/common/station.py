@@ -1553,6 +1553,8 @@ class Station:
     def update_timestamps(self) -> "Station":
         """
         updates the timestamps in the station using the offset model
+
+        :return: updated Station
         """
         if self._is_timestamps_updated:
             self._errors.append("Timestamps already corrected!")
@@ -1588,6 +1590,8 @@ class Station:
         """
         undoes non-sensor timestamp updates of the timestamps in the station using the offset model
         sensors already have unaltered timestamps
+
+        :return: updated Station
         """
         if not self._is_timestamps_updated:
             self._errors.append("Timestamps already not corrected!")

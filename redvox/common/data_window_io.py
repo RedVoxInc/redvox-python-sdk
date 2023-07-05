@@ -35,6 +35,7 @@ class DataWindowOutputType(enum.Enum):
     NONE: int = 0
     LZ4: int = 1
     PARQUET: int = 2
+    JSON: int = 3
 
     @staticmethod
     def list_names() -> List[str]:
@@ -60,7 +61,7 @@ class DataWindowOutputType(enum.Enum):
         :return: DataWindowOutputType matching string given or NONE
         """
         str_type = str_type.upper()
-        if str_type == "LZ4" or str_type == "PARQUET":
+        if str_type in DataWindowOutputType.list_non_none_names():
             return DataWindowOutputType[str_type]
         return DataWindowOutputType["NONE"]
 
@@ -107,7 +108,7 @@ class DataWindowFileSystemWriter(FileSystemWriter):
 
     def set_extension(self, ext: str):
         """
-        change the file extension.  Valid values are "PARQUET", "LZ4" and "NONE".  Invalid values become "NONE"
+        change the file extension.  Valid values are "PARQUET", "LZ4", "JSON" and "NONE".  Invalid values become "NONE"
 
         :param ext: extension to change to
         """

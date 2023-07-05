@@ -8,13 +8,43 @@ import redvox.common.date_time_utils as dt
 from redvox.common import data_window as dw
 
 
+class EventOriginTest(unittest.TestCase):
+    def test_load_empty_origin(self):
+        ev_orig: dw.EventOrigin = dw.EventOrigin.from_dict({})
+        self.assertEqual(ev_orig.provider, "UNKNOWN")
+        self.assertEqual(ev_orig.event_radius_m, 0.0)
+
+    def test_load_origin(self):
+        ev_orig: dw.EventOrigin = dw.EventOrigin.from_dict(
+            {"provider": "TEST",
+             "latitude": 19.75,
+             "longitude": -156.05,
+             "altitude": 23.48,
+             "event_radius_m": 1.0}
+        )
+        self.assertEqual(ev_orig.provider, "TEST")
+        self.assertEqual(ev_orig.latitude, 19.75)
+        self.assertEqual(ev_orig.event_radius_m, 1.0)
+
+
+class DataWindowConfigTest(unittest.TestCase):
+    def test_load_empty_config(self):
+        """
+        specifically tests for failure to load from a dictionary.
+        """
+        try:
+            _ = dw.DataWindowConfig.from_dict({})
+            self.assertTrue(False)
+        except KeyError:
+            self.assertTrue(True)
+
+
 class DataWindowTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.input_dir = tests.TEST_DATA_DIR
 
     def test_data_window_simple(self):
-        # with contextlib.redirect_stdout(None):
         datawindow = dw.DataWindow(
             config=dw.DataWindowConfig(
                 input_dir=self.input_dir, structured_layout=False)
@@ -26,7 +56,6 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(datawindow.config().api_versions), 2)
 
     def test_data_window(self):
-        # with contextlib.redirect_stdout(None):
         datawindow = dw.DataWindow(
             config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
@@ -51,7 +80,6 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(test_sensor.num_samples(), 4)
 
     def test_dw_with_start_end(self):
-        # with contextlib.redirect_stdout(None):
         dw_with_start_end = dw.DataWindow(
             config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
