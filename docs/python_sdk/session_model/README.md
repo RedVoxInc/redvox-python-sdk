@@ -150,7 +150,7 @@ at once.
 ### Using SessionModel
 
 We recommend using the session model available from the cloud, as that provides the most updated models.  Follow the 
-instructions (TODO: LINK GOES HERE) to access the cloud's session models.  If you only have access to local RedVox files, the 
+[instructions to access the cloud's session models](https://github.com/RedVoxInc/redvox-python-sdk/tree/master/docs/python_sdk/cloud#retrieving-session-models).  If you only have access to local RedVox files, the 
 SDK's SessionModel is ideal to use.
 
 Please note that a local SessionModel is limited to the availability of your data, and may not accurately represent the
@@ -369,7 +369,7 @@ for k, m in models.sessions.items():
 ## Errors and Troubleshooting
 
 Any statistics calculated from SessionModel are subject to errors.  The 
-[cloud version](TODO: LINK GOES HERE) 
+[cloud version](https://github.com/RedVoxInc/redvox-python-sdk/tree/master/docs/python_sdk/cloud#retrieving-session-models) 
 of SessionModel provides the most up-to-date results.
 
 If you are not seeing any results from creating a SessionModel, check that the target directory contains the correct 
@@ -378,4 +378,4 @@ files.
 You are more likely to use the LocalSessionModels class to create multiple SessionModel from large sets of data.  The 
 other SessionModel [constructor methods](#single-packet) are intended for advanced users who want to investigate 
 specific sets of data.  Refer to the [example code](#sessionmodel-example-code) for a quick example on how to use 
-LocalSessionModels to get SessionModel.
+LocalSessionModels to get an individual SessionModel.

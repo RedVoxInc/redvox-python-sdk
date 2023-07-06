@@ -12,6 +12,7 @@ RedVox cloud services can only be accessed when utilizing a Premium RedVox subsc
   * [Storing authentication information in a file](#storing-authentication-information-in-a-file)
   * [Storing authentication information in the environment](#storing-authentication-information-in-the-environment)
 - [Setting up the Cloud Client](#setting-up-the-cloud-client)
+- [Retrieving Session Models](#retrieving-session-models)
 - [Retrieving Timing Statistics](#retrieving-timing-statistics)
 - [Ranged Data Requests](#ranged-data-requests)
 
@@ -80,6 +81,70 @@ client: CloudClient
 with cloud_client() as client:
     # Use client within this with block to access RedVox services
     pass
+```
+
+## Retrieving Session Models
+
+Session Models summarizing the station's status over a period of time can be retrieved using the [request_session_models](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/client.html#redvox.cloud.client.CloudClient.request_session_models) method.
+
+The `request_session_models` method takes up to 4 filter values, of which at least one must be included, and one boolean: 
+1. owner: string, the email address associated with the account to filter data for.
+2. id:uuids: List of string, the id or id:uuid of the station to filter for.  The input for this will look something like: `["id0001", "id0002:uuid0003"]`.
+3. start_ts: int, the start timestamp in microseconds since epoch UTC to filter from.
+4. end_ts: int, the end timestamp in microseconds since epoch UTC to filter before.
+5. include_public: bool, if True, will include stations that may not necessarily belong to the owner and are marked as public in the results.  Default False.
+
+* start_ts should not be greater than end_ts.
+* All parameters are actually optional, but if one of the first four parameters is not given, the 
+  `request_session_models` method will fail.
+
+The `request_session_models` method returns a [SessionModelsResp](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/session_model_api.html#redvox.cloud.session_model_api.SessionModelsResp) which contains a list of [Session](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/cloud/session_model_api.html#redvox.cloud.session_model_api.Session) objects.
+
+Here is an example of retrieving some models and accessing the statistics within them:
+
+```python
+from redvox.cloud.client import cloud_client, CloudClient
+from redvox.cloud.errors import CloudApiError
+from redvox.cloud.session_model_api import DynamicSession, Session, SessionModelsResp
+
+# Create a cloud client, assuming your environment contains your authentication credentials
+client: CloudClient
+
+try:
+    with cloud_client() as client:
+        # At least one filter must be included, lets look at session models using owner.
+        resp: SessionModelsResp = client.request_session_models(
+            # The email here must match the one in your authentication credentials.
+            owner="your_email_here@email.com"
+        )
+
+        # Let's just pick the first session as an example.
+        session: Session = resp.sessions[0]
+        print(session)
+
+        # Top level sessions also contain links to dynamic sessions which encapsulate a given time range.
+        # Additional requests are made to retrieve dynamic sessions.
+        # We currently support daily dynamic sessions and hourly dynamic sessions.
+        # - Top level sessions contain links to daily dynamic sessions.
+        # - Daily dynamic sessions contain links to hourly dynamic sessions.
+        # - Hourly dynamic sessions contain links to individual packets.
+        daily_dynamic_session: DynamicSession = session.query_dynamic_session(
+            client, session.sub[0]
+        ).dynamic_session
+
+        print(daily_dynamic_session)
+
+        hourly_dynamic_session: DynamicSession = session.query_dynamic_session(
+            client, daily_dynamic_session.sub[0]
+        ).dynamic_session
+
+        print(hourly_dynamic_session)
+except CloudApiError as e:
+    print(e)
+    exit(2)
+except Exception as e:
+    print(e)
+    exit(3)
 ```
 
 ## Retrieving Timing Statistics
