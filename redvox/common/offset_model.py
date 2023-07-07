@@ -21,6 +21,7 @@ MIN_VALID_LATENCY_MICROS = 100  # minimum value of latency before it's unreliabl
 DEFAULT_SAMPLES = 3  # default number of samples per bin
 MIN_SAMPLES = 3  # minimum number of samples per 5 minutes for reliable data
 MIN_TIMESYNC_DURATION_MIN = 5  # minimum number of minutes of data required to produce reliable results
+GPS_LATENCY_MICROS = 60000  # estimated latency for GPS communications
 
 
 __MIN_VALID_LATENCY_MICROS: Optional[float] = MIN_VALID_LATENCY_MICROS
@@ -98,11 +99,18 @@ def get_min_timesync_dur() -> int:
 class OffsetModel:
     """
     Offset model which represents the change in offset over a period of time
-    Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
-    Invalidates latencies that are below our recognition threshold MIN_VALID_LATENCY_MICROS
-    The data is binned by k_bins in equally spaced times; in each bin the n_samples best latencies are taken to get
+
+    * All timestamps are in microseconds since epoch UTC.
+
+    * Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
+
+    * Invalidates latencies that are below our recognition threshold MIN_VALID_LATENCY_MICROS
+
+    * The data is binned by k_bins in equally spaced times; in each bin the n_samples best latencies are taken to get
     the weighted linear regression.
-    All timestamps are in microseconds since epoch UTC.
+
+    * If given zero latencies, but an equal number of offsets and timestamps, it will assume you are giving it GPS data
+    and will put all values into a single bin with equal weights on all values.
 
     Properties:
         start_time: float, start timestamp of model in microseconds since epoch UTC
@@ -170,10 +178,15 @@ class OffsetModel:
             get_min_valid_latency_micros() if min_valid_latency_us is None else min_valid_latency_us
         self.min_samples_per_bin = get_min_samples() if min_samples_per_bin is None else min_samples_per_bin
         self.min_timesync_dur_min = get_min_timesync_dur() if min_timesync_dur_min is None else min_timesync_dur_min
+        use_bins = True
         if len(latencies) > 0:
             latencies = np.where(latencies < self.min_valid_latency_micros, np.nan, latencies)
             use_model = timesync_quality_check(latencies, start_time, end_time, self.debug,
                                                self.min_timesync_dur_min, self.min_samples_per_bin)
+        elif len(offsets) > 0 and len(offsets) == len(times):
+            latencies = np.full(len(offsets), GPS_LATENCY_MICROS)
+            use_model = True
+            use_bins = False
         else:
             use_model = False
         if use_model:
@@ -182,13 +195,17 @@ class OffsetModel:
             full_df["latencies"] = latencies
             full_df["offsets"] = offsets
 
-            # Get the index for the separations (add +1 to k_bins so that there would be k_bins bins)
-            bin_times = np.linspace(start_time, end_time, self.k_bins + 1)
+            if use_bins:
+                # Get the index for the separations (add +1 to k_bins so that there would be k_bins bins)
+                bin_times = np.linspace(start_time, end_time, self.k_bins + 1)
 
-            # Make the dataframe with the data with n_samples per bins
-            binned_df = get_binned_df(
-                full_df=full_df, bin_times=bin_times, n_samples=n_samples
-            )
+                # Make the dataframe with the data with n_samples per bins
+                binned_df = get_binned_df(
+                    full_df=full_df, bin_times=bin_times, n_samples=n_samples
+                )
+            else:
+                # everything is in one bin
+                binned_df = full_df.sort_values(by=["times"])
 
             # Compute the weighted linear regression
             self.slope, zero_intercept, self.score = offset_weighted_linear_regression(
@@ -210,7 +227,7 @@ class OffsetModel:
 
             # slope == 0 means constant offset, so if slope is not 0, model is good.
             use_model = self.slope != 0.0
-        # if data or model is not sufficient, use the offset corresponding to lowest latency:
+        # if data or model is not sufficient, use the offset corresponding to the lowest latency:
         if not use_model:
             self.score = 0.0
             self.slope = 0.0
@@ -428,7 +445,10 @@ def offset_weighted_linear_regression(
     # Compute the weights for the linear regression by the latencies
     latencies_ms = latencies / 1e3
     weights = latencies_ms ** -2
-    norm_weights = minmax_scale(weights)
+    if np.all(weights == weights[0]):
+        norm_weights = None
+    else:
+        norm_weights = minmax_scale(weights)
 
     # Set up the weighted linear regression
     wls = LinearRegression()
@@ -452,7 +472,7 @@ def simple_offset_weighted_linear_regression(offsets: np.ndarray, times: np.ndar
 
     :param offsets: array of offsets
     :param times: array of device times used to get the offsets
-    :return: slope, intercept
+    :return: slope of the model line, offset intercept at UTC 0
     """
     # Set up the linear regression
     wls = LinearRegression()
@@ -475,11 +495,11 @@ def get_offset_at_new_time(
     """
     Gets offset at new_time time based on the offset model.
 
-    :param new_time: The time of corresponding to the new offset
+    :param new_time: The time to get the new offset at
     :param slope: slope of the offset model
     :param intercept: the intercept of the offset model relative to the model_time
-    :param model_time: the time corresponding to the intercept of the offset model
-    :return: new offset corresponding to the new_time
+    :param model_time: the starting time corresponding to the intercept of the offset model
+    :return: new offset at the new_time
     """
     # get the time difference
     time_diff = new_time - model_time

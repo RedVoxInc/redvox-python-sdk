@@ -15,6 +15,7 @@ from redvox.common import station_io as io
 from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode, Index
 from redvox.common import sensor_data as sd
 from redvox.common import station_utils as st_utils
+from redvox.common.offset_model import OffsetModel
 from redvox.common.timesync import TimeSync
 from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
@@ -26,6 +27,7 @@ from redvox.common.event_stream import EventStreams
 
 
 STATION_ID_LENGTH = 10  # the length of a station ID string
+GPS_LATENCY_MICROS = 60000  # estimated GPS latency in microseconds
 
 
 class Station:
@@ -117,6 +119,7 @@ class Station:
         self._audio_sample_rate_nominal_hz = np.nan
         self._is_audio_scrambled = False
         self._timesync_data = TimeSync()
+        self._gps_offset_model = OffsetModel.empty_model()
         self._is_timestamps_updated = False
         if save_data:
             save_mode = FileSystemSaveMode.DISK
@@ -141,6 +144,7 @@ class Station:
                f"audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, " \
                f"is_audio_scrambled: {self._is_audio_scrambled}, " \
                f"timesync: {self._timesync_data.__repr__()}, " \
+               f"gps_offset_model: {self._gps_offset_model.__repr__()}, " \
                f"event_data: {self.event_data().__repr__()}, " \
                f"gaps: {[g for g in self._gaps]}"
         # "data": [d.__repr__() for d in self._data],
@@ -157,10 +161,99 @@ class Station:
                f"audio_sample_rate_hz: {self._audio_sample_rate_nominal_hz}, " \
                f"is_audio_scrambled: {self._is_audio_scrambled}, " \
                f"timesync: {self._timesync_data.__str__()}, " \
+               f"gps_offset_model: {self._gps_offset_model.__str__()}, " \
                f"event_data: {self.event_data().__str__()}, " \
                f"gaps: {[g for g in self._gaps]}"
         # "packet_metadata": [p.__str__() for p in self._packet_metadata],
         # "data": [d.__str__() for d in self._data]
+
+    def as_dict(self) -> dict:
+        """
+        :return: station as dictionary
+        """
+        return {
+            "id": self._id,
+            "uuid": self._uuid,
+            "start_date": self._start_date,
+            "base_dir": os.path.basename(self.save_dir()),
+            "use_model_correction": self._use_model_correction,
+            "is_audio_scrambled": self._is_audio_scrambled,
+            "is_timestamps_updated": self._is_timestamps_updated,
+            "audio_sample_rate_nominal_hz": self._audio_sample_rate_nominal_hz,
+            "first_data_timestamp": self._first_data_timestamp,
+            "last_data_timestamp": self._last_data_timestamp,
+            "metadata": self._metadata.as_dict(),
+            "packet_metadata": [p.as_dict() for p in self._packet_metadata],
+            "gps_offset_model": self._gps_offset_model.as_dict(),
+            "gaps": self._gaps,
+            "errors": self._errors.as_dict(),
+            "sensors": [s.type().name for s in self._data]
+            # "event_data": self._event_data.as_dict()
+        }
+
+    def default_station_json_file_name(self) -> str:
+        """
+        :return: default station json file name (id_startdate), with startdate as integer of microseconds
+                    since epoch UTC
+        """
+        return f"{self._id}_{0 if np.isnan(self._start_date) else int(self._start_date)}"
+
+    def to_json_file(self, file_name: Optional[str] = None) -> Path:
+        """
+        saves the station as json in station.base_dir, then creates directories and the json for the metadata
+        and data in the same base_dir.
+
+        :param file_name: the optional base file name.  Do not include a file extension.
+                            If None, a default file name is created using this format:
+                            [station_id]_[start_date].json
+        :return: path to json file
+        """
+        return io.to_json_file(self, file_name)
+
+    @staticmethod
+    def from_json_file(file_dir: str, file_name: Optional[str] = None) -> "Station":
+        """
+        convert contents of json file to Station
+
+        :param file_dir: full path to containing directory for the file
+        :param file_name: name of file and extension to load data from.  if not given, will use the first .json file
+                            in the file_dir
+        :return: Station object
+        """
+        if file_name is None:
+            file_name = io.get_json_file(file_dir)
+            if file_name is None:
+                result = Station("Empty")
+                result.append_error("File to load Sensor from not found.")
+                return result
+        json_data = io.json_file_to_dict(os.path.join(file_dir, file_name))
+        if "id" in json_data.keys() and "start_date" in json_data.keys():
+            result = Station(json_data["id"], json_data["uuid"], json_data["start_date"],
+                             use_model_correction=json_data["use_model_correction"])
+            result._fs_writer.file_name = json_data["base_dir"]
+            result._gps_offset_model = OffsetModel.from_dict(json_data["gps_offset_model"]) \
+                if "gps_offset_model" in json_data.keys() else OffsetModel.empty_model()
+            result.set_save_mode(FileSystemSaveMode.DISK)
+            result.set_audio_scrambled(json_data["is_audio_scrambled"])
+            result.set_timestamps_updated(json_data["is_timestamps_updated"])
+            result.set_audio_sample_rate_hz(json_data["audio_sample_rate_nominal_hz"])
+            result.set_metadata(st_utils.StationMetadata.from_dict(json_data["metadata"]))
+            result.set_packet_metadata(
+                [st_utils.StationPacketMetadata.from_dict(p) for p in json_data["packet_metadata"]])
+            result.set_gaps(json_data["gaps"])
+            result.set_errors(RedVoxExceptions.from_dict(json_data["errors"]))
+            for s in json_data["sensors"]:
+                result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
+            ts_file_name = io.get_json_file(os.path.join(file_dir, "timesync"))
+            result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, "timesync", ts_file_name)))
+            ev_file_name = io.get_json_file(os.path.join(file_dir, "events"))
+            result.set_event_data(EventStreams.from_json_file(os.path.join(file_dir, "events"), ev_file_name))
+            result.update_first_and_last_data_timestamps()
+        else:
+            result = Station()
+            result.append_error(f"Missing id and start date to identify station in {file_name}")
+
+        return result
 
     def data(self) -> List[sd.SensorData]:
         """
@@ -1383,8 +1476,28 @@ class Station:
                             use_offset_model_for_correction=self._use_model_correction,
                             base_dir=self.get_save_dir_sensor(sdata[0].stype))
                 self._data.append(new_sensor.class_from_type())
+            self._set_gps_offset()
         else:
             self._errors.append("Audio Sensor expected, but does not exist.")
+
+    def _set_gps_offset(self):
+        """
+        uses the Station's location sensor to set the gps offset.
+        """
+        if self.has_best_location_data():
+            loc_sensor = self.best_location_sensor()
+        elif self.has_location_data():
+            loc_sensor = self.location_sensor()
+        else:
+            self._errors.append("No location data to set GPS offset.")
+            return
+        gps_timestamps = loc_sensor.get_gps_timestamps_data()
+        gps_offsets = gps_timestamps - loc_sensor.data_timestamps() + GPS_LATENCY_MICROS
+        if all(np.nan_to_num(gps_offsets) == 0.0):
+            self._errors.append("Location data is all invalid, cannot set GPS offset.")
+            return
+        self._gps_offset_model = \
+            OffsetModel(np.empty(0), gps_offsets, gps_timestamps, gps_timestamps[0], gps_timestamps[-1])
 
     def _app_version_major(self) -> Tuple[int, int]:
         """
@@ -1469,6 +1582,12 @@ class Station:
         """
         self._timesync_data = timesync
 
+    def gps_offset_model(self) -> OffsetModel:
+        """
+        :return: the gps offset model
+        """
+        return self._gps_offset_model
+
     def errors(self) -> RedVoxExceptions:
         """
         :return: errors of the station
@@ -1550,18 +1669,37 @@ class Station:
         for snr in self._data:
             snr.set_use_temp_dir(use_temp_dir)
 
+    def use_timesync_for_correction(self) -> bool:
+        """
+        Note: This function means nothing if the station is not set to correct timestamps
+
+        :return: True if timesync is used for correction, False if GPS is used instead.
+        """
+        if np.isnan(self._timesync_data.mean_latency()) or self._timesync_data.best_offset() == 0.:
+            return False
+        return True
+
     def update_timestamps(self) -> "Station":
         """
         updates the timestamps in the station using the offset model
 
         :return: updated Station
         """
-        if self._is_timestamps_updated:
-            self._errors.append("Timestamps already corrected!")
-        elif self._correct_timestamps:
-            self._start_date = self._timesync_data.offset_model().update_time(
-                self._start_date, self._use_model_correction
-            )
+        if not self._is_timestamps_updated and self._correct_timestamps:
+            if self.use_timesync_for_correction():
+                offset_model = self._timesync_data.offset_model()
+            else:
+                offset_model = self._gps_offset_model
+            self._start_date = offset_model.update_time(self._start_date, self._use_model_correction)
+            for sensor in self._data:
+                sensor.update_data_timestamps(offset_model)
+            for packet in self._packet_metadata:
+                packet.update_timestamps(offset_model, self._use_model_correction)
+            for g in range(len(self._gaps)):
+                self._gaps[g] = (offset_model.update_time(self._gaps[g][0]),
+                                 offset_model.update_time(self._gaps[g][1]))
+            if hasattr(self, "_event_data"):
+                self._event_data.update_timestamps(offset_model, self.use_model_correction())
             if self._fs_writer.file_name != self._get_id_key():
                 if self._fs_writer.is_save_disk():
                     old_name = self.save_dir()
@@ -1570,20 +1708,9 @@ class Station:
                         os.rename(old_name, self.save_dir())
                 else:
                     self._fs_writer.file_name = self._get_id_key()
-            for sensor in self._data:
-                sensor.update_data_timestamps(self._timesync_data.offset_model())
-            for packet in self._packet_metadata:
-                packet.update_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
-            for g in range(len(self._gaps)):
-                self._gaps[g] = (self._timesync_data.offset_model().update_time(self._gaps[g][0]),
-                                 self._timesync_data.offset_model().update_time(self._gaps[g][1]))
-            if hasattr(self, "_event_data"):
-                self._event_data.update_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
             self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
             self._is_timestamps_updated = True
-        else:
-            self._errors.append("Attempted to correct timestamps, but correction not enabled.")
         return self
 
     def undo_update_timestamps(self) -> "Station":
@@ -1593,12 +1720,23 @@ class Station:
 
         :return: updated Station
         """
-        if not self._is_timestamps_updated:
-            self._errors.append("Timestamps already not corrected!")
-        else:
-            self._start_date = self._timesync_data.offset_model().get_original_time(
+        if self._is_timestamps_updated:
+            if self.use_timesync_for_correction():
+                offset_model = self._timesync_data.offset_model()
+            else:
+                offset_model = self._gps_offset_model
+            self._start_date = offset_model.get_original_time(
                 self._start_date, self._use_model_correction
             )
+            for sensor in self._data:
+                sensor.set_original_timestamps()
+            for packet in self._packet_metadata:
+                packet.original_timestamps(offset_model, self._use_model_correction)
+            for g in range(len(self._gaps)):
+                self._gaps[g] = (offset_model.get_original_time(self._gaps[g][0]),
+                                 offset_model.get_original_time(self._gaps[g][1]))
+            if hasattr(self, "_event_data"):
+                self._event_data.original_timestamps(offset_model, self.use_model_correction())
             if self._fs_writer.file_name != self._get_id_key():
                 if self._fs_writer.is_save_disk():
                     old_name = self.save_dir()
@@ -1607,100 +1745,7 @@ class Station:
                         os.rename(old_name, self.save_dir())
                 else:
                     self._fs_writer.file_name = self._get_id_key()
-            for sensor in self._data:
-                sensor.set_original_timestamps()
-            for packet in self._packet_metadata:
-                packet.original_timestamps(self._timesync_data.offset_model(), self._use_model_correction)
-            for g in range(len(self._gaps)):
-                self._gaps[g] = (self._timesync_data.offset_model().get_original_time(self._gaps[g][0]),
-                                 self._timesync_data.offset_model().get_original_time(self._gaps[g][1]))
-            if hasattr(self, "_event_data"):
-                self._event_data.original_timestamps(self._timesync_data.offset_model(), self.use_model_correction())
             self.update_first_and_last_data_timestamps()
             self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
             self._is_timestamps_updated = False
         return self
-
-    def as_dict(self) -> dict:
-        """
-        :return: station as dictionary
-        """
-        return {
-            "id": self._id,
-            "uuid": self._uuid,
-            "start_date": self._start_date,
-            "base_dir": os.path.basename(self.save_dir()),
-            "use_model_correction": self._use_model_correction,
-            "is_audio_scrambled": self._is_audio_scrambled,
-            "is_timestamps_updated": self._is_timestamps_updated,
-            "audio_sample_rate_nominal_hz": self._audio_sample_rate_nominal_hz,
-            "first_data_timestamp": self._first_data_timestamp,
-            "last_data_timestamp": self._last_data_timestamp,
-            "metadata": self._metadata.as_dict(),
-            "packet_metadata": [p.as_dict() for p in self._packet_metadata],
-            "gaps": self._gaps,
-            "errors": self._errors.as_dict(),
-            "sensors": [s.type().name for s in self._data]
-            # "event_data": self._event_data.as_dict()
-        }
-
-    def default_station_json_file_name(self) -> str:
-        """
-        :return: default station json file name (id_startdate), with startdate as integer of microseconds
-                    since epoch UTC
-        """
-        return f"{self._id}_{0 if np.isnan(self._start_date) else int(self._start_date)}"
-
-    def to_json_file(self, file_name: Optional[str] = None) -> Path:
-        """
-        saves the station as json in station.base_dir, then creates directories and the json for the metadata
-        and data in the same base_dir.
-
-        :param file_name: the optional base file name.  Do not include a file extension.
-                            If None, a default file name is created using this format:
-                            [station_id]_[start_date].json
-        :return: path to json file
-        """
-        return io.to_json_file(self, file_name)
-
-    @staticmethod
-    def from_json_file(file_dir: str, file_name: Optional[str] = None) -> "Station":
-        """
-        convert contents of json file to Station
-
-        :param file_dir: full path to containing directory for the file
-        :param file_name: name of file and extension to load data from
-        :return: Station object
-        """
-        if file_name is None:
-            file_name = io.get_json_file(file_dir)
-            if file_name is None:
-                result = Station("Empty")
-                result.append_error("File to load Sensor from not found.")
-                return result
-        json_data = io.json_file_to_dict(os.path.join(file_dir, file_name))
-        if "id" in json_data.keys() and "start_date" in json_data.keys():
-            result = Station(json_data["id"], json_data["uuid"], json_data["start_date"],
-                             use_model_correction=json_data["use_model_correction"])
-            result._fs_writer.file_name = json_data["base_dir"]
-            result.set_save_mode(FileSystemSaveMode.DISK)
-            result.set_audio_scrambled(json_data["is_audio_scrambled"])
-            result.set_timestamps_updated(json_data["is_timestamps_updated"])
-            result.set_audio_sample_rate_hz(json_data["audio_sample_rate_nominal_hz"])
-            result.set_metadata(st_utils.StationMetadata.from_dict(json_data["metadata"]))
-            result.set_packet_metadata(
-                [st_utils.StationPacketMetadata.from_dict(p) for p in json_data["packet_metadata"]])
-            result.set_gaps(json_data["gaps"])
-            result.set_errors(RedVoxExceptions.from_dict(json_data["errors"]))
-            for s in json_data["sensors"]:
-                result._data.append(sd.SensorData.from_json_file(os.path.join(file_dir, s)))
-            ts_file_name = io.get_json_file(os.path.join(file_dir, "timesync"))
-            result.set_timesync_data(TimeSync.from_json_file(os.path.join(file_dir, "timesync", ts_file_name)))
-            ev_file_name = io.get_json_file(os.path.join(file_dir, "events"))
-            result.set_event_data(EventStreams.from_json_file(os.path.join(file_dir, "events"), ev_file_name))
-            result.update_first_and_last_data_timestamps()
-        else:
-            result = Station()
-            result.append_error(f"Missing id and start date to identify station in {file_name}")
-
-        return result
