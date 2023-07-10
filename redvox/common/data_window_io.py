@@ -17,14 +17,11 @@ from typing import (
 
 import lz4.frame
 
-from redvox.common.io import FileSystemWriter, FileSystemSaveMode, json_to_dict, dict_to_json
-from redvox.common.date_time_utils import (
-    datetime_to_epoch_microseconds_utc as us_dt,
-)
+from redvox.common.io import FileSystemWriter, FileSystemSaveMode, json_to_dict
 
 
 if TYPE_CHECKING:
-    from redvox.common.data_window import DataWindow, DataWindowConfig
+    from redvox.common.data_window import DataWindow
 
 
 class DataWindowOutputType(enum.Enum):
@@ -100,10 +97,14 @@ class DataWindowFileSystemWriter(FileSystemWriter):
         if not os.path.exists(base_dir):
             os.makedirs(base_dir, exist_ok=True)
         os.chdir(base_dir)
-        super().__init__(file_name, file_ext, ".",
-                         FileSystemSaveMode.DISK
-                         if DataWindowOutputType.str_to_type(file_ext) != DataWindowOutputType.NONE
-                         else FileSystemSaveMode.MEM)
+        super().__init__(
+            file_name,
+            file_ext,
+            ".",
+            FileSystemSaveMode.DISK
+            if DataWindowOutputType.str_to_type(file_ext) != DataWindowOutputType.NONE
+            else FileSystemSaveMode.MEM,
+        )
         self.make_run_me = make_run_me
 
     def set_extension(self, ext: str):
@@ -122,9 +123,7 @@ class DataWindowSerializationResult:
     compressed_bytes: int
 
 
-def data_window_as_json(
-        data_window: "DataWindow"
-) -> str:
+def data_window_as_json(data_window: "DataWindow") -> str:
     """
     Converts the DataWindow's metadata into a JSON dictionary
 
@@ -135,9 +134,9 @@ def data_window_as_json(
 
 
 def data_window_to_json(
-        data_window: "DataWindow",
-        base_dir: str = ".",
-        file_name: Optional[str] = None,
+    data_window: "DataWindow",
+    base_dir: str = ".",
+    file_name: Optional[str] = None,
 ) -> Path:
     """
     Converts the DataWindow into a JSON metadata file
@@ -170,10 +169,10 @@ def json_file_to_data_window(file_path: str) -> Dict:
 
 
 def serialize_data_window(
-        data_window: "DataWindow",
-        base_dir: str = ".",
-        file_name: Optional[str] = None,
-        compression_factor: int = 4,
+    data_window: "DataWindow",
+    base_dir: str = ".",
+    file_name: Optional[str] = None,
+    compression_factor: int = 4,
 ) -> Path:
     """
     Serializes and compresses a DataWindow to a file and creates a JSON metadata file for the compressed file.
@@ -191,8 +190,8 @@ def serialize_data_window(
         file_name
         if file_name is not None
         else f"{int(data_window.start_date())}"
-             f"_{int(data_window.end_date())}"
-             f"_{len(data_window.event_name)}.pkl.lz4"
+        f"_{int(data_window.end_date())}"
+        f"_{len(data_window.event_name)}.pkl.lz4"
     )
 
     json_path: Path = data_window.fs_writer().json_path()
@@ -202,9 +201,7 @@ def serialize_data_window(
 
     file_path: Path = Path(base_dir).joinpath(_file_name)
 
-    with lz4.frame.open(
-            file_path, "wb", compression_level=compression_factor
-    ) as compressed_out:
+    with lz4.frame.open(file_path, "wb", compression_level=compression_factor) as compressed_out:
         pickle.dump(data_window, compressed_out)
         compressed_out.flush()
         return file_path.resolve(False)

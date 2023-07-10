@@ -25,18 +25,22 @@ class SessionModel:
     """
     SDK version of Session from the cloud API
     """
-    def __init__(self, session: Optional[cloud_sm.Session] = None,
-                 dynamic: Optional[Dict[str, cloud_sm.DynamicSession]] = None):
+
+    def __init__(
+        self, session: Optional[cloud_sm.Session] = None, dynamic: Optional[Dict[str, cloud_sm.DynamicSession]] = None
+    ):
         self.cloud_session: Optional[cloud_sm.Session] = session
         self.dynamic_sessions: Dict[str, cloud_sm.DynamicSession] = {} if dynamic is None else dynamic
         self._sdk_version: str = redvox.VERSION
         self._errors: RedVoxExceptions = RedVoxExceptions("SessionModel")
 
     def __repr__(self):
-        return f"cloud_session: {self.cloud_session}, " \
-               f"dynamic_sessions: {self.dynamic_sessions}, " \
-               f"sdk_version: {self._sdk_version}" \
-               f"errors: {self._errors}"
+        return (
+            f"cloud_session: {self.cloud_session}, "
+            f"dynamic_sessions: {self.dynamic_sessions}, "
+            f"sdk_version: {self._sdk_version}"
+            f"errors: {self._errors}"
+        )
 
     def as_dict(self) -> dict:
         """
@@ -44,7 +48,7 @@ class SessionModel:
         """
         return {
             "cloud_session": self.cloud_session.to_dict(),
-            "dynamic_sessions": {n: m.to_dict() for n, m in self.dynamic_sessions.items()}
+            "dynamic_sessions": {n: m.to_dict() for n, m in self.dynamic_sessions.items()},
         }
 
     @staticmethod
@@ -53,9 +57,10 @@ class SessionModel:
         :param dictionary: dictionary to read from
         :return: SessionModel from the dict
         """
-        return SessionModel(cloud_sm.Session.from_dict(dictionary["cloud_session"]),
-                            {n: cloud_sm.DynamicSession.from_dict(m)
-                             for n, m in dictionary["dynamic_sessions"].items()})
+        return SessionModel(
+            cloud_sm.Session.from_dict(dictionary["cloud_session"]),
+            {n: cloud_sm.DynamicSession.from_dict(m) for n, m in dictionary["dynamic_sessions"].items()},
+        )
 
     def compress(self, out_dir: str = ".") -> Path:
         """
@@ -83,10 +88,10 @@ class SessionModel:
     @staticmethod
     def load(file_path: str) -> "SessionModel":
         """
-        Load the SessionModel from a JSON or .pkl file.
+        Load only works on a JSON or .pkl file.
 
         :param file_path: full name and path to the SessionModel file
-        :return: SessionModel from file
+        :return: SessionModel from a JSON or .pkl file.
         """
         ext = os.path.splitext(file_path)[1]
         if ext == ".json":
@@ -101,44 +106,59 @@ class SessionModel:
         :return: Default file name as [id]_[start_ts]_model, with start_ts as integer of microseconds
                     since epoch UTC.  File extension NOT included.
         """
-        return f"{self.cloud_session.id}_" \
-               f"{0 if np.isnan(self.cloud_session.start_ts) else self.cloud_session.start_ts}_model"
+        return (
+            f"{self.cloud_session.id}_"
+            f"{0 if np.isnan(self.cloud_session.start_ts) else self.cloud_session.start_ts}_model"
+        )
 
     @staticmethod
     def create_from_packet(packet: api_m.RedvoxPacketM) -> "SessionModel":
         """
-        create a SessionModel from a single packet
-
         :param packet: API M packet of data to read
         :return: Session using the data from the packet
         """
         try:
-            duration = packet.timing_information.packet_end_mach_timestamp \
-                       - packet.timing_information.packet_start_mach_timestamp
+            duration = (
+                packet.timing_information.packet_end_mach_timestamp
+                - packet.timing_information.packet_start_mach_timestamp
+            )
             all_sensors = smu.get_all_sensors_in_packet(packet)
             sensors = [cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])) for s in all_sensors]
             local_ts = smu.get_local_timesync(packet)
             if local_ts is None:
-                raise RedVoxError(f"Unable to find timing data for station {packet.station_information.id}.\n"
-                                  f"Timing is required to complete SessionModel.\nNow Quitting.")
+                raise RedVoxError(
+                    f"Unable to find timing data for station {packet.station_information.id}.\n"
+                    f"Timing is required to complete SessionModel.\nNow Quitting."
+                )
             fst_lst = cloud_sm.FirstLastBufTimeSync([], smu.NUM_BUFFER_POINTS, [], smu.NUM_BUFFER_POINTS)
             for f in local_ts[5]:
                 smu.add_to_fst_buffer(fst_lst.fst, fst_lst.fst_max_size, f.ts, f)
                 smu.add_to_lst_buffer(fst_lst.lst, fst_lst.lst_max_size, f.ts, f)
             timing = cloud_sm.Timing(local_ts[0], local_ts[1], local_ts[2], local_ts[3], local_ts[4], fst_lst)
-            result = SessionModel(cloud_sm.Session(id=packet.station_information.id,
-                                                   uuid=packet.station_information.uuid,
-                                                   desc=packet.station_information.description,
-                                                   start_ts=int(packet.timing_information.app_start_mach_timestamp),
-                                                   client=CLIENT_NAME, client_ver=CLIENT_VERSION,
-                                                   session_ver=SESSION_VERSION, app=APP_NAME, api=int(packet.api),
-                                                   sub_api=int(packet.sub_api), make=packet.station_information.make,
-                                                   model=packet.station_information.model,
-                                                   app_ver=packet.station_information.app_version,
-                                                   owner=packet.station_information.auth_id,
-                                                   private=packet.station_information.is_private, packet_dur=duration,
-                                                   sensors=sensors, n_pkts=1, timing=timing, sub=[])
-                                  )
+            result = SessionModel(
+                cloud_sm.Session(
+                    id=packet.station_information.id,
+                    uuid=packet.station_information.uuid,
+                    desc=packet.station_information.description,
+                    start_ts=int(packet.timing_information.app_start_mach_timestamp),
+                    client=CLIENT_NAME,
+                    client_ver=CLIENT_VERSION,
+                    session_ver=SESSION_VERSION,
+                    app=APP_NAME,
+                    api=int(packet.api),
+                    sub_api=int(packet.sub_api),
+                    make=packet.station_information.make,
+                    model=packet.station_information.model,
+                    app_ver=packet.station_information.app_version,
+                    owner=packet.station_information.auth_id,
+                    private=packet.station_information.is_private,
+                    packet_dur=duration,
+                    sensors=sensors,
+                    n_pkts=1,
+                    timing=timing,
+                    sub=[],
+                )
+            )
             result.sub = [result.add_dynamic_day(packet)]
         except Exception as e:
             # result = SessionModel(station_description=f"FAILED: {e}")
@@ -148,10 +168,8 @@ class SessionModel:
     @staticmethod
     def create_from_stream(data_stream: List[api_m.RedvoxPacketM]) -> "SessionModel":
         """
-        create a SessionModel from a stream of data packets
-
         :param data_stream: list of API M packets from a single station to read
-        :return: SessionModel using the data from the stream
+        :return: SessionModel using the data packets from the stream
         """
         p1 = data_stream.pop(0)
         model = SessionModel.create_from_packet(p1)
@@ -162,32 +180,39 @@ class SessionModel:
 
     def add_data_from_packet(self, packet: api_m.RedvoxPacketM):
         """
-        Adds the data from the packet to the SessionModel.  If the packet doesn't match the key of the SessionModel,
-        writes an error and no data is added
+        Adds the data from the packet to the SessionModel.
+        If the packet doesn't match the key of the SessionModel, writes an error and no data is added
 
         :param packet: packet to add
         """
-        if self.cloud_session.session_key() != \
-                f"{packet.station_information.id}:{packet.station_information.uuid}:" \
-                f"{int(packet.timing_information.app_start_mach_timestamp)}":
-            self._errors.append("Attempted to add packet with invalid key: "
-                                f"{packet.station_information.id}:{packet.station_information.uuid}:"
-                                f"{int(packet.timing_information.app_start_mach_timestamp)}")
+        if (
+            self.cloud_session.session_key() != f"{packet.station_information.id}:{packet.station_information.uuid}:"
+            f"{int(packet.timing_information.app_start_mach_timestamp)}"
+        ):
+            self._errors.append(
+                "Attempted to add packet with invalid key: "
+                f"{packet.station_information.id}:{packet.station_information.uuid}:"
+                f"{int(packet.timing_information.app_start_mach_timestamp)}"
+            )
             return
         local_ts = smu.get_local_timesync(packet)
         if local_ts is None:
-            self._errors.append(f"Timesync doesn't exist in packet starting at "
-                                f"{packet.timing_information.packet_start_mach_timestamp}.")
+            self._errors.append(
+                f"Timesync doesn't exist in packet starting at "
+                f"{packet.timing_information.packet_start_mach_timestamp}."
+            )
         else:
             timing = self.cloud_session.timing
             for f in local_ts[5]:
                 smu.add_to_fst_buffer(timing.fst_lst.fst, timing.fst_lst.fst_max_size, f.ts, f)
                 smu.add_to_lst_buffer(timing.fst_lst.lst, timing.fst_lst.lst_max_size, f.ts, f)
             timing.n_ex += local_ts[2]
-            timing.mean_lat = \
-                (timing.mean_lat * self.cloud_session.n_pkts + local_ts[3]) / (self.cloud_session.n_pkts + 1)
-            timing.mean_off = \
-                (timing.mean_off * self.cloud_session.n_pkts + local_ts[4]) / (self.cloud_session.n_pkts + 1)
+            timing.mean_lat = (timing.mean_lat * self.cloud_session.n_pkts + local_ts[3]) / (
+                self.cloud_session.n_pkts + 1
+            )
+            timing.mean_off = (timing.mean_off * self.cloud_session.n_pkts + local_ts[4]) / (
+                self.cloud_session.n_pkts + 1
+            )
             if local_ts[0] < timing.first_data_ts:
                 timing.first_data_ts = local_ts[0]
             if local_ts[1] > timing.last_data_ts:
@@ -204,8 +229,7 @@ class SessionModel:
 
     def add_dynamic_hour(self, data: dict, packet_start: float, session_key: str) -> str:
         """
-        Add a dynamic session with length of 1 hour using data from a single packet or update an existing one if the
-        key matches
+        Add (or update an existing session if key exists) a dynamic session with length of 1 hour using a single packet
 
         :param data: dictionary of data to add
         :param packet_start: starting timestamp of the packet in microseconds since epoch UTC
@@ -220,17 +244,22 @@ class SessionModel:
         if key in self.dynamic_sessions.keys():
             self._update_dynamic_session(key, data, [f"{packet_start}"])
         else:
-            self.dynamic_sessions[key] = cloud_sm.DynamicSession(1, smu.add_location_data(data["location"]),
-                                                                 smu.add_to_stats(data["battery"]),
-                                                                 smu.add_to_stats(data["temperature"]), session_key,
-                                                                 hour_start_ts, hour_end_ts, HOURLY_SESSION_NAME,
-                                                                 [f"{packet_start}"])
+            self.dynamic_sessions[key] = cloud_sm.DynamicSession(
+                1,
+                smu.add_location_data(data["location"]),
+                smu.add_to_stats(data["battery"]),
+                smu.add_to_stats(data["temperature"]),
+                session_key,
+                hour_start_ts,
+                hour_end_ts,
+                HOURLY_SESSION_NAME,
+                [f"{packet_start}"],
+            )
         return key
 
     def add_dynamic_day(self, packet: api_m.RedvoxPacketM) -> str:
         """
-        Add data a dynamic session with length of 1 day using a single packet or update an existing one if the
-        key matches
+        Add (or update an existing session if key exists) a dynamic session with length of 1 day using a single packet
 
         :param packet: packet to read data from
         :return: the key to the new or updated dynamic session
@@ -240,18 +269,26 @@ class SessionModel:
         day_start_dt = dtu.datetime(start_dt.year, start_dt.month, start_dt.day)
         day_end_ts = int(dtu.datetime_to_epoch_microseconds_utc(day_start_dt + dtu.timedelta(days=1)))
         day_start_ts = int(dtu.datetime_to_epoch_microseconds_utc(day_start_dt))
-        session_key = f"{packet.station_information.id}:{packet.station_information.uuid}:" \
-                      f"{packet.timing_information.app_start_mach_timestamp}"
+        session_key = (
+            f"{packet.station_information.id}:{packet.station_information.uuid}:"
+            f"{packet.timing_information.app_start_mach_timestamp}"
+        )
         key = f"{session_key}:{day_start_ts}:{day_end_ts}"
         hourly_key = self.add_dynamic_hour(data, packet.timing_information.packet_start_mach_timestamp, session_key)
         if key in self.dynamic_sessions.keys():
             self._update_dynamic_session(key, data, [hourly_key])
         else:
-            self.dynamic_sessions[key] = cloud_sm.DynamicSession(1, smu.add_location_data(data["location"]),
-                                                                 smu.add_to_stats(data["battery"]),
-                                                                 smu.add_to_stats(data["temperature"]), session_key,
-                                                                 day_start_ts, day_end_ts, DAILY_SESSION_NAME,
-                                                                 [hourly_key])
+            self.dynamic_sessions[key] = cloud_sm.DynamicSession(
+                1,
+                smu.add_location_data(data["location"]),
+                smu.add_to_stats(data["battery"]),
+                smu.add_to_stats(data["temperature"]),
+                session_key,
+                day_start_ts,
+                day_end_ts,
+                DAILY_SESSION_NAME,
+                [hourly_key],
+            )
         return key
 
     def _update_dynamic_session(self, key: str, data: Dict, sub: List[str]):
@@ -336,6 +373,7 @@ class LocalSessionModels:
     """
     SDK version of SessionModelsResp from the cloud API
     """
+
     def __init__(self):
         self.sessions: Dict[str, SessionModel] = {}
 
@@ -346,8 +384,10 @@ class LocalSessionModels:
         :param packet: packet of data to add.
         :return: key of new or updated packet
         """
-        key = f"{packet.station_information.id}:{packet.station_information.uuid}:" \
-              f"{int(packet.timing_information.app_start_mach_timestamp)}"
+        key = (
+            f"{packet.station_information.id}:{packet.station_information.uuid}:"
+            f"{int(packet.timing_information.app_start_mach_timestamp)}"
+        )
         if key not in self.sessions.keys():
             self.sessions[key] = SessionModel.create_from_packet(packet)
         else:

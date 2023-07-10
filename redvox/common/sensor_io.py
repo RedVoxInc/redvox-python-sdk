@@ -8,21 +8,20 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from redvox.common.io import json_to_dict, json_file_to_dict, get_json_file
-
 if TYPE_CHECKING:
     from redvox.common.sensor_data import SensorData
 
 
-def to_json(sensor: "SensorData",) -> str:
+def to_json(
+    sensor: "SensorData",
+) -> str:
     """
     :return: sensor as json string
     """
     return json.dumps(sensor.as_dict())
 
 
-def to_json_file(sensor: "SensorData",
-                 file_name: Optional[str] = None) -> Path:
+def to_json_file(sensor: "SensorData", file_name: Optional[str] = None) -> Path:
     """
     saves the sensor as json and data in the same directory.
 
@@ -32,11 +31,7 @@ def to_json_file(sensor: "SensorData",
                         [sensor_type]_[first_timestamp].json
     :return: path to json file
     """
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else sensor.file_name()
-    )
+    _file_name: str = file_name if file_name is not None else sensor.file_name()
     file_path: Path = sensor.fs_writer().json_path()
     with open(file_path, "w") as f_p:
         f_p.write(to_json(sensor))

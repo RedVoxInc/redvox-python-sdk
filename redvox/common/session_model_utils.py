@@ -43,7 +43,7 @@ Sensor = Union[
     api_m.RedvoxPacketM.Sensors.Image,
     api_m.RedvoxPacketM.Sensors.Location,
     api_m.RedvoxPacketM.Sensors.CompressedAudio,
-    api_m.RedvoxPacketM.StationInformation.StationMetrics
+    api_m.RedvoxPacketM.StationInformation.StationMetrics,
 ]
 
 __SENSOR_NAME_TO_SENSOR_FN: Dict[
@@ -83,9 +83,7 @@ def _get_sensor_for_data_extraction(sensor_name: str, packet: api_m.RedvoxPacket
     :param packet: the data packet to get the sensor from
     :return: Sensor that matches the sensor_name or None if that Sensor doesn't exist
     """
-    sensor_fn: Optional[
-        Callable[[api_m.RedvoxPacketM], Sensor]
-    ] = __SENSOR_NAME_TO_SENSOR_FN[sensor_name]
+    sensor_fn: Optional[Callable[[api_m.RedvoxPacketM], Sensor]] = __SENSOR_NAME_TO_SENSOR_FN[sensor_name]
     if (sensor_name == _HEALTH_FIELD_NAME or _has_sensor(packet, sensor_name)) and sensor_fn is not None:
         return sensor_fn(packet)
 
@@ -101,9 +99,7 @@ def _get_mean_sample_rate_from_sensor(sensor: Sensor) -> float:
     return np.nan
 
 
-def _has_sensor(
-        data: Union[api_m.RedvoxPacketM, api_m.RedvoxPacketM.Sensors], field_name: str
-) -> bool:
+def _has_sensor(data: Union[api_m.RedvoxPacketM, api_m.RedvoxPacketM.Sensors], field_name: str) -> bool:
     """
     Returns true if the given packet or sensors instance contains the valid sensor.
 
@@ -132,17 +128,35 @@ def get_all_sensors_in_packet(packet: api_m.RedvoxPacketM) -> List[Tuple[str, st
         if _has_sensor(packet, s):
             sensor = _get_sensor_for_data_extraction(s, packet)
             result.append((s, sensor.sensor_description, sensor.sample_rate))
-    for s in [_PRESSURE_FIELD_NAME, _LOCATION_FIELD_NAME,
-              _ACCELEROMETER_FIELD_NAME, _AMBIENT_TEMPERATURE_FIELD_NAME, _GRAVITY_FIELD_NAME,
-              _GYROSCOPE_FIELD_NAME, _IMAGE_FIELD_NAME, _LIGHT_FIELD_NAME, _LINEAR_ACCELERATION_FIELD_NAME,
-              _MAGNETOMETER_FIELD_NAME, _ORIENTATION_FIELD_NAME, _PROXIMITY_FIELD_NAME,
-              _RELATIVE_HUMIDITY_FIELD_NAME, _ROTATION_VECTOR_FIELD_NAME, _VELOCITY_FIELD_NAME]:
+    for s in [
+        _PRESSURE_FIELD_NAME,
+        _LOCATION_FIELD_NAME,
+        _ACCELEROMETER_FIELD_NAME,
+        _AMBIENT_TEMPERATURE_FIELD_NAME,
+        _GRAVITY_FIELD_NAME,
+        _GYROSCOPE_FIELD_NAME,
+        _IMAGE_FIELD_NAME,
+        _LIGHT_FIELD_NAME,
+        _LINEAR_ACCELERATION_FIELD_NAME,
+        _MAGNETOMETER_FIELD_NAME,
+        _ORIENTATION_FIELD_NAME,
+        _PROXIMITY_FIELD_NAME,
+        _RELATIVE_HUMIDITY_FIELD_NAME,
+        _ROTATION_VECTOR_FIELD_NAME,
+        _VELOCITY_FIELD_NAME,
+    ]:
         if _has_sensor(packet, s):
             sensor = _get_sensor_for_data_extraction(s, packet)
             result.append((s, sensor.sensor_description, sensor.timestamps.mean_sample_rate))
     if packet.station_information.HasField("station_metrics"):
-        result.insert(2, (_HEALTH_FIELD_NAME, "station_metrics",
-                          packet.station_information.station_metrics.timestamps.mean_sample_rate))
+        result.insert(
+            2,
+            (
+                _HEALTH_FIELD_NAME,
+                "station_metrics",
+                packet.station_information.station_metrics.timestamps.mean_sample_rate,
+            ),
+        )
     return result
 
 
@@ -207,10 +221,17 @@ def get_local_timesync(packet: api_m.RedvoxPacketM) -> Optional[Tuple]:
         _ts_offsets = ts.offsets().flatten()
         _ts_timestamps = ts.get_device_exchanges_timestamps()
         # add data to the buffers
-        _ts_data = [sm.TimeSyncData(_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i])
-                    for i in range(len(_ts_timestamps))]
-        return ts.data_start_timestamp(), ts.data_end_timestamp(), ts.num_tri_messages(), \
-            ts.best_latency(), ts.best_offset(), _ts_data
+        _ts_data = [
+            sm.TimeSyncData(_ts_timestamps[i], _ts_latencies[i], _ts_offsets[i]) for i in range(len(_ts_timestamps))
+        ]
+        return (
+            ts.data_start_timestamp(),
+            ts.data_end_timestamp(),
+            ts.num_tri_messages(),
+            ts.best_latency(),
+            ts.best_offset(),
+            _ts_data,
+        )
     return None
 
 
@@ -225,7 +246,7 @@ def add_to_welford(value: float, welford: Optional[sm.WelfordAggregator] = None)
     :return: updated or new WelfordAggregator object
     """
     if welford is None:
-        return sm.WelfordAggregator(0., value, 1)
+        return sm.WelfordAggregator(0.0, value, 1)
     welford.cnt += 1
     delta = value - welford.mean
     welford.mean += delta / float(welford.cnt)
@@ -261,7 +282,7 @@ def get_location_data(packet: api_m.RedvoxPacketM) -> List[Tuple[str, float, flo
     """
     locations = []
     loc = packet.sensors.location
-    lat = lon = alt = ts = 0.
+    lat = lon = alt = ts = 0.0
     source = "UNKNOWN"
     num_pts = int(loc.timestamps.timestamp_statistics.count)
     # check for actual location values
@@ -270,12 +291,15 @@ def get_location_data(packet: api_m.RedvoxPacketM) -> List[Tuple[str, float, flo
         lon = loc.longitude_samples.value_statistics.mean
         alt = loc.altitude_samples.value_statistics.mean
         ts = loc.timestamps.timestamp_statistics.mean
-    elif num_pts > 0 and loc.latitude_samples.value_statistics.count > 0 \
-            and loc.longitude_samples.value_statistics.count > 0 \
-            and loc.altitude_samples.value_statistics.count > 0 \
-            and num_pts == loc.latitude_samples.value_statistics.count \
-            and num_pts == loc.altitude_samples.value_statistics.count \
-            and num_pts == loc.longitude_samples.value_statistics.count:
+    elif (
+        num_pts > 0
+        and loc.latitude_samples.value_statistics.count > 0
+        and loc.longitude_samples.value_statistics.count > 0
+        and loc.altitude_samples.value_statistics.count > 0
+        and num_pts == loc.latitude_samples.value_statistics.count
+        and num_pts == loc.altitude_samples.value_statistics.count
+        and num_pts == loc.longitude_samples.value_statistics.count
+    ):
         lats = loc.latitude_samples.values
         lons = loc.longitude_samples.values
         alts = loc.altitude_samples.values
@@ -286,8 +310,11 @@ def get_location_data(packet: api_m.RedvoxPacketM) -> List[Tuple[str, float, flo
             lon = lons[i]
             alt = alts[i]
             ts = tstp[i]
-            source = "UNKNOWN" if len(loc.location_providers) != num_pts \
+            source = (
+                "UNKNOWN"
+                if len(loc.location_providers) != num_pts
                 else COLUMN_TO_ENUM_FN["location_provider"](loc.location_providers[i])
+            )
             locations.append((source, lat, lon, alt, ts))
         # set a special flag for later, so we don't add an extra location value
         source = None
@@ -320,8 +347,9 @@ def get_dynamic_data(packet: api_m.RedvoxPacketM) -> Dict:
     return {"location": location, "battery": battery, "temperature": temperature}
 
 
-def add_to_location(lat: float, lon: float, alt: float, timestamp: float,
-                    loc_stat: Optional[sm.LocationStat] = None) -> sm.LocationStat:
+def add_to_location(
+    lat: float, lon: float, alt: float, timestamp: float, loc_stat: Optional[sm.LocationStat] = None
+) -> sm.LocationStat:
     """
     update a LocationStat object with the location, or make a new one
 
@@ -345,8 +373,9 @@ def add_to_location(lat: float, lon: float, alt: float, timestamp: float,
     return loc_stat
 
 
-def add_location_data(data: List[Tuple[str, float, float, float, float]],
-                      loc_dict: Optional[Dict[str, sm.LocationStat]] = None) -> Dict[str, sm.LocationStat]:
+def add_location_data(
+    data: List[Tuple[str, float, float, float, float]], loc_dict: Optional[Dict[str, sm.LocationStat]] = None
+) -> Dict[str, sm.LocationStat]:
     """
     update a dictionary of LocationStat or make a new dictionary
 

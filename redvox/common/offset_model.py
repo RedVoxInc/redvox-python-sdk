@@ -2,6 +2,7 @@
 Offset model used to predict offset change over a period of time
 
 Author: Samuel Kei Takazawa
+Maintained by: Tyler Yoshiyama
 """
 
 from datetime import timedelta, datetime
@@ -142,17 +143,17 @@ class OffsetModel:
     """
 
     def __init__(
-            self,
-            latencies: np.ndarray,
-            offsets: np.ndarray,
-            times: np.ndarray,
-            start_time: float,
-            end_time: float,
-            n_samples: int = DEFAULT_SAMPLES,
-            debug: bool = False,
-            min_valid_latency_us: Optional[float] = None,
-            min_samples_per_bin: Optional[int] = None,
-            min_timesync_dur_min: Optional[int] = None
+        self,
+        latencies: np.ndarray,
+        offsets: np.ndarray,
+        times: np.ndarray,
+        start_time: float,
+        end_time: float,
+        n_samples: int = DEFAULT_SAMPLES,
+        debug: bool = False,
+        min_valid_latency_us: Optional[float] = None,
+        min_samples_per_bin: Optional[int] = None,
+        min_timesync_dur_min: Optional[int] = None,
     ):
         """
         Create an OffsetModel
@@ -174,15 +175,17 @@ class OffsetModel:
         self.k_bins = get_bins_per_5min(start_time, end_time)
         self.n_samples = n_samples
         self.debug = debug
-        self.min_valid_latency_micros = \
+        self.min_valid_latency_micros = (
             get_min_valid_latency_micros() if min_valid_latency_us is None else min_valid_latency_us
+        )
         self.min_samples_per_bin = get_min_samples() if min_samples_per_bin is None else min_samples_per_bin
         self.min_timesync_dur_min = get_min_timesync_dur() if min_timesync_dur_min is None else min_timesync_dur_min
         use_bins = True
         if len(latencies) > 0:
             latencies = np.where(latencies < self.min_valid_latency_micros, np.nan, latencies)
-            use_model = timesync_quality_check(latencies, start_time, end_time, self.debug,
-                                               self.min_timesync_dur_min, self.min_samples_per_bin)
+            use_model = timesync_quality_check(
+                latencies, start_time, end_time, self.debug, self.min_timesync_dur_min, self.min_samples_per_bin
+            )
         elif len(offsets) > 0 and len(offsets) == len(times):
             latencies = np.full(len(offsets), GPS_LATENCY_MICROS)
             use_model = True
@@ -200,9 +203,7 @@ class OffsetModel:
                 bin_times = np.linspace(start_time, end_time, self.k_bins + 1)
 
                 # Make the dataframe with the data with n_samples per bins
-                binned_df = get_binned_df(
-                    full_df=full_df, bin_times=bin_times, n_samples=n_samples
-                )
+                binned_df = get_binned_df(full_df=full_df, bin_times=bin_times, n_samples=n_samples)
             else:
                 # everything is in one bin
                 binned_df = full_df.sort_values(by=["times"])
@@ -242,33 +243,37 @@ class OffsetModel:
                 self.std_dev_latency = np.nanstd(latencies)
 
     def __repr__(self):
-        return f"start_time: {self.start_time}, " \
-               f"end_time: {self.end_time}, " \
-               f"k_bins: {self.k_bins}, " \
-               f"n_samples: {self.n_samples}, " \
-               f"slope: {self.slope}, " \
-               f"intercept: {self.intercept}, " \
-               f"score: {self.score}, " \
-               f"mean_latency: {self.mean_latency}, " \
-               f"std_dev_latency: {self.std_dev_latency}, " \
-               f"min_valid_latency_micros: {self.min_valid_latency_micros}, " \
-               f"min_samples_per_bin: {self.min_samples_per_bin}, " \
-               f"min_timesync_dur_min: {self.min_timesync_dur_min}, " \
-               f"debug: {self.debug}"
+        return (
+            f"start_time: {self.start_time}, "
+            f"end_time: {self.end_time}, "
+            f"k_bins: {self.k_bins}, "
+            f"n_samples: {self.n_samples}, "
+            f"slope: {self.slope}, "
+            f"intercept: {self.intercept}, "
+            f"score: {self.score}, "
+            f"mean_latency: {self.mean_latency}, "
+            f"std_dev_latency: {self.std_dev_latency}, "
+            f"min_valid_latency_micros: {self.min_valid_latency_micros}, "
+            f"min_samples_per_bin: {self.min_samples_per_bin}, "
+            f"min_timesync_dur_min: {self.min_timesync_dur_min}, "
+            f"debug: {self.debug}"
+        )
 
     def __str__(self):
-        return f"start_time: {self.start_time}, " \
-               f"end_time: {self.end_time}, " \
-               f"k_bins: {self.k_bins}, " \
-               f"n_samples: {self.n_samples}, " \
-               f"slope: {self.slope}, " \
-               f"intercept: {self.intercept}, " \
-               f"score: {self.score}, " \
-               f"mean_latency: {self.mean_latency}, " \
-               f"std_dev_latency: {self.std_dev_latency}, " \
-               f"min_valid_latency_micros: {self.min_valid_latency_micros}, " \
-               f"min_samples_per_bin: {self.min_samples_per_bin}, " \
-               f"min_timesync_dur_min: {self.min_timesync_dur_min}"
+        return (
+            f"start_time: {self.start_time}, "
+            f"end_time: {self.end_time}, "
+            f"k_bins: {self.k_bins}, "
+            f"n_samples: {self.n_samples}, "
+            f"slope: {self.slope}, "
+            f"intercept: {self.intercept}, "
+            f"score: {self.score}, "
+            f"mean_latency: {self.mean_latency}, "
+            f"std_dev_latency: {self.std_dev_latency}, "
+            f"min_valid_latency_micros: {self.min_valid_latency_micros}, "
+            f"min_samples_per_bin: {self.min_samples_per_bin}, "
+            f"min_timesync_dur_min: {self.min_timesync_dur_min}"
+        )
 
     def as_dict(self) -> dict:
         """
@@ -287,7 +292,7 @@ class OffsetModel:
             "min_valid_latency_micros": self.min_valid_latency_micros,
             "min_samples_per_bin": self.min_samples_per_bin,
             "min_timesync_dur_min": self.min_timesync_dur_min,
-            "debug": self.debug
+            "debug": self.debug,
         }
 
     @staticmethod
@@ -325,12 +330,10 @@ class OffsetModel:
         """
         Gets offset at time based on the offset model.
 
-        :param time: The time corresponding to the new offset
+        :param time: The time to get the new offset for
         :return: new offset corresponding to the time
         """
-        return get_offset_at_new_time(
-            time, self.slope, self.intercept, self.start_time
-        )
+        return get_offset_at_new_time(time, self.slope, self.intercept, self.start_time)
 
     def update_time(self, time: float, use_model_function: bool = True) -> float:
         """
@@ -385,19 +388,15 @@ def get_bins_per_5min(start_time: float, end_time: float) -> int:
 # min max scaling for the weights
 def minmax_scale(data: np.ndarray) -> np.ndarray:
     """
-    Returns scaled data by subtracting the min value and dividing by (max - min) value.
-
     :param data: the data to be scaled
-    :return: scaled data
+    :return: data scaled by subtracting the min value and dividing by (max - min) value.
     """
     # Use np.nanmin and np.nanmax to avoid issues with nan values
     return (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
 
 
 # The score for Weighted Linear Regression Function
-def get_wlr_score(
-        model: LinearRegression, offsets: np.ndarray, times: np.ndarray, weights: np.ndarray
-) -> float:
+def get_wlr_score(model: LinearRegression, offsets: np.ndarray, times: np.ndarray, weights: np.ndarray) -> float:
     """
     Computes and returns a R2 score for the weighted linear regression using sklearn's score method.
     The best value is 1.0, and 0.0 corresponds to a function with no slope.
@@ -421,7 +420,7 @@ def get_wlr_score(
 
 # The Weighted Linear Regression Function for offsets
 def offset_weighted_linear_regression(
-        latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray
+    latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray
 ) -> Tuple[float, float, float]:
     """
     Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
@@ -444,7 +443,7 @@ def offset_weighted_linear_regression(
 
     # Compute the weights for the linear regression by the latencies
     latencies_ms = latencies / 1e3
-    weights = latencies_ms ** -2
+    weights = latencies_ms**-2
     if np.all(weights == weights[0]):
         norm_weights = None
     else:
@@ -452,9 +451,7 @@ def offset_weighted_linear_regression(
 
     # Set up the weighted linear regression
     wls = LinearRegression()
-    wls.fit(
-        X=times.reshape(-1, 1), y=offsets.reshape(-1, 1), sample_weight=norm_weights
-    )
+    wls.fit(X=times.reshape(-1, 1), y=offsets.reshape(-1, 1), sample_weight=norm_weights)
 
     # get the score of the model
     score = get_wlr_score(model=wls, offsets=offsets, times=times, weights=norm_weights)
@@ -476,8 +473,7 @@ def simple_offset_weighted_linear_regression(offsets: np.ndarray, times: np.ndar
     """
     # Set up the linear regression
     wls = LinearRegression()
-    wls.fit(
-        X=times.reshape(-1, 1), y=offsets.reshape(-1, 1))
+    wls.fit(X=times.reshape(-1, 1), y=offsets.reshape(-1, 1))
     intercept = get_offset_at_new_time(
         new_time=times[0],
         slope=wls.coef_[0][0],
@@ -489,9 +485,7 @@ def simple_offset_weighted_linear_regression(offsets: np.ndarray, times: np.ndar
 
 
 # Function to correct the intercept value
-def get_offset_at_new_time(
-        new_time: float, slope: float, intercept: float, model_time: float
-) -> float:
+def get_offset_at_new_time(new_time: float, slope: float, intercept: float, model_time: float) -> float:
     """
     Gets offset at new_time time based on the offset model.
 
@@ -511,9 +505,7 @@ def get_offset_at_new_time(
 
 
 # Function to get the subset data frame to do the weighted linear regression
-def get_binned_df(
-        full_df: pd.DataFrame, bin_times: np.ndarray, n_samples: float
-) -> pd.DataFrame:
+def get_binned_df(full_df: pd.DataFrame, bin_times: np.ndarray, n_samples: float) -> pd.DataFrame:
     """
     Returns a subset of the full_df with n_samples per binned times.
     nan latencies values will be ignored.
@@ -546,8 +538,12 @@ def get_binned_df(
 
 
 def timesync_quality_check(
-        latencies: np.ndarray, start_time: float, end_time: float, debug: bool = False,
-        min_timesync_dur_mins: Optional[int] = None, min_samples: Optional[int] = None
+    latencies: np.ndarray,
+    start_time: float,
+    end_time: float,
+    debug: bool = False,
+    min_timesync_dur_mins: Optional[int] = None,
+    min_samples: Optional[int] = None,
 ) -> bool:
     """
     Checks quality of timesync data to determine if offset model should be used.
@@ -644,25 +640,17 @@ def compute_offsets(station_stats: List["StationStat"]) -> Optional[TimingOffset
 
     # Prep clock model
     start_dt: datetime = station_stats[0].packet_start_dt
-    end_dt: datetime = (
-            station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
-    )
+    end_dt: datetime = station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
     start_time: float = dt_utils.datetime_to_epoch_microseconds_utc(start_dt)
     end_time: float = dt_utils.datetime_to_epoch_microseconds_utc(end_dt)
 
     model: OffsetModel = OffsetModel(latencies, offsets, times, start_time, end_time)
 
     # Compute new start and end offsets
-    start_offset: timedelta = timedelta(
-        microseconds=model.get_offset_at_time(start_time)
-    )
-    end_offset: timedelta = timedelta(
-        microseconds=model.get_offset_at_time(end_time)
-    )
+    start_offset: timedelta = timedelta(microseconds=model.get_offset_at_time(start_time))
+    end_offset: timedelta = timedelta(microseconds=model.get_offset_at_time(end_time))
 
-    return TimingOffsets(
-        start_offset, start_dt + start_offset, end_offset, end_dt + end_offset
-    )
+    return TimingOffsets(start_offset, start_dt + start_offset, end_offset, end_dt + end_offset)
 
 
 def model_from_stats(station_stats: List["StationStat"]) -> Optional[OffsetModel]:
@@ -693,9 +681,7 @@ def model_from_stats(station_stats: List["StationStat"]) -> Optional[OffsetModel
 
     # Prep clock model
     start_dt: datetime = station_stats[0].packet_start_dt
-    end_dt: datetime = (
-            station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
-    )
+    end_dt: datetime = station_stats[-1].packet_start_dt + station_stats[-1].packet_duration
     start_time: float = dt_utils.datetime_to_epoch_microseconds_utc(start_dt)
     end_time: float = dt_utils.datetime_to_epoch_microseconds_utc(end_dt)
 

@@ -3,130 +3,27 @@ Support for computing statistics
 Requires numpy
 """
 
-from dataclasses import dataclass, field
-from dataclasses_json import dataclass_json
-from typing import List, Union, Tuple
+from typing import List, Union
 
 import numpy as np
 
 
-@dataclass_json
-@dataclass
-class WelfordAggregator:
-    """
-    Helper class to compute Welford stats for a single data stream
-
-    Properties:
-        m2: float, aggregate squared distance from the mean.  Default 0.0
-
-        mean: float, mean of the data.  Default 0.0
-
-        count: int, number of data points.  Default 0
-    """
-    m2: float = 0.0
-    mean: float = 0.0
-    count: int = 0
-
-    def update(self, val: float):
-        """
-        adds a new value to the WelfordAggregator
-
-        :param val: value to add
-        """
-        self.count += 1
-        delta = val - self.mean
-        self.mean += delta / float(self.count)
-        delta2 = val - self.mean
-        self.m2 += delta * delta2
-
-    def update_multiple(self, vals: List[float]):
-        """
-        adds each value from a list of values to the WelfordAggregator
-
-        :param vals: list of values to add
-        """
-        for v in vals:
-            self.update(v)
-
-    def finalize(self) -> Tuple[float, float]:
-        """
-        Note: If the count of elements is less than 2, returns a tuple containing np.nan values
-
-        :return: the mean, the m2 divided by the count as a tuple
-        """
-        if self.count < 2:
-            return np.nan, np.nan
-        return self.mean, self.m2 / float(self.count)
-
-
-@dataclass_json
-@dataclass
-class WelfordStatsContainer:
-    """
-    Helper class to compute statistics for objects with a single data stream
-    Stores the min, max and WelfordAggregator for the data
-
-    Properties:
-        min: float, minimum value of the data
-
-        max: float, maximum value of the data
-
-        welford: WelfordAggregator, collection of data used to compute mean, std deviation, variance, etc.
-    """
-    min: float = float("inf")
-    max: float = -float("inf")
-    welford: WelfordAggregator = field(default_factory=WelfordAggregator)
-
-    def __repr__(self):
-        return f"min: {self.min}, " \
-               f"max: {self.max}, " \
-               f"welford: {self.welford}"
-
-    def __str__(self):
-        return f"min: {self.min}, " \
-               f"max: {self.max}, " \
-               f"stats: {self.welford}"
-
-    def update(self, val: float):
-        """
-        adds a new mean to the WelfordAggregator and updates the minimum and maximum values
-
-        :param val: value to add
-        """
-        if val < self.min:
-            self.min = val
-        if val > self.max:
-            self.max = val
-        self.welford.update(val)
-
-    def update_multiple(self, vals: List[float]):
-        """
-        adds many new means to the WelfordAggregator and updates the minimum and maximum values
-
-        :param vals: values to add
-        """
-        for v in vals:
-            self.update(v)
-
-    def finalized(self) -> Tuple[float, float]:
-        """
-        :return: the mean and variance of the WelfordAggregator
-        """
-        return self.welford.finalize()
-
-
 class StatsContainer:
     """
-    Helper class to compute statistics for a set of objects
-    Stores the mean, std dev, number of data points (count), and best value per set object
+    Helper class to compute statistics for a set of objects.
+    Stores the mean, std dev, number of data points (count), and best value per set object.
     Calculates mean of means, mean of variance, variance of means, total variance,
     and total std dev for the set of objects
 
     Properties:
         mean_array: the mean of each object in the set
+
         std_dev_array: the std_dev of each object in the set
+
         count_array: the number of elements in each object in the set
+
         best_value: the best value to represent the set
+
         container_id: a string that identifies the StatsContainer
     """
 
@@ -151,9 +48,7 @@ class StatsContainer:
         if np.sum(counts) == 0:
             return np.nan
         # weight each mean by the number of elements in it
-        total_means: np.ndarray = np.prod(
-            [np.nan_to_num(self.mean_array), counts], axis=0
-        )
+        total_means: np.ndarray = np.prod([np.nan_to_num(self.mean_array), counts], axis=0)
         # if sum(counts) is 0, change sum(counts) to 1 to avoid divide by 0 errors
         return np.sum(total_means) / np.sum(counts)
 
@@ -179,9 +74,7 @@ class StatsContainer:
         if np.sum(counts) == 0:
             return np.nan
         # get the difference of individual means and total mean
-        mean_vars: np.ndarray = np.subtract(
-            np.nan_to_num(self.mean_array), self.mean_of_means()
-        )
+        mean_vars: np.ndarray = np.subtract(np.nan_to_num(self.mean_array), self.mean_of_means())
         # square the differences then weight them by number of elements
         total: np.ndarray = np.prod([mean_vars, mean_vars, counts], axis=0)
         # if sum(counts) is 0, change sum(counts) to 1 to avoid divide by 0 errors

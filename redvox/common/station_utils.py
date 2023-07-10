@@ -3,6 +3,7 @@ Defines generic station metadata for API-independent analysis
 all timestamps are floats in microseconds unless otherwise stated
 """
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from typing import Tuple, Optional, List, Dict
 
 import numpy as np
@@ -14,9 +15,7 @@ from redvox.common.errors import RedVoxExceptions
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 
 
-def validate_station_key_list(
-    data_packets: List[api_m.RedvoxPacketM], errors: RedVoxExceptions
-) -> bool:
+def validate_station_key_list(data_packets: List[api_m.RedvoxPacketM], errors: RedVoxExceptions) -> bool:
     """
     Checks for consistency in the data packets.  Returns False if discrepancies are found.
     If debug is True, will output the discrepancies.
@@ -43,7 +42,7 @@ def validate_station_key_list(
                 t.station_information.app_version,
                 t.station_information.is_private,
                 len(t.sensors.audio.samples.values) / t.sensors.audio.sample_rate,
-                ]
+            ]
             for t in data_packets
         ]
     )
@@ -79,13 +78,17 @@ def validate_station_key_list(
     return True  # if here, everything is consistent
 
 
+@dataclass_json
 @dataclass
 class StationKey:
     """
     A set of values that uniquely define a station
+
     Properties:
         id: str, id of the station
+
         uuid: str, uuid of the station
+
         start_timestamp_micros: float, starting time of the station in microseconds since epoch UTC
     """
 
@@ -102,8 +105,12 @@ class StationKey:
         """
         return self.id, self.uuid, self.start_timestamp_micros
 
-    def check_key(self, station_id: Optional[str] = None, station_uuid: Optional[str] = None,
-                  start_timestamp: Optional[float] = None) -> bool:
+    def check_key(
+        self,
+        station_id: Optional[str] = None,
+        station_uuid: Optional[str] = None,
+        start_timestamp: Optional[float] = None,
+    ) -> bool:
         """
         check if the key has the values specified.  If the parameter is None, any value will match.
         Note that NAN is a valid value for start_timestamps, but any station with start_timestamp = NAN
@@ -115,15 +122,14 @@ class StationKey:
         :return: True if all parameters match key values
         """
         if station_id is not None and station_id != self.id:
-            # print(f"Id {station_id} does not equal station's id: {self.id}")
             return False
         if station_uuid is not None and station_uuid != self.uuid:
-            # print(f"Uuid {station_uuid} does not equal station's uuid: {self.uuid}")
             return False
-        if start_timestamp is not None and (start_timestamp != self.start_timestamp_micros
-                                            or np.isnan(start_timestamp) or np.isnan(self.start_timestamp_micros)):
-            # print(f"Start timestamp {start_timestamp} does not equal station's "
-            #       f"start timestamp: {self.start_timestamp_micros}")
+        if start_timestamp is not None and (
+            start_timestamp != self.start_timestamp_micros
+            or np.isnan(start_timestamp)
+            or np.isnan(self.start_timestamp_micros)
+        ):
             return False
         return True
 
@@ -140,18 +146,30 @@ class StationKey:
 class StationMetadata:
     """
     A container for all the packet metadata consistent across all packets
+
     Properties:
         api: float, api version, default np.nan
+
         sub_api: float, sub api version, default np.nan
+
         make: str, station make, default empty string
+
         model: str, station model, default empty string
+
         os: OsType enum, station OS, default OsType.UNKNOWN_OS
+
         os_version: str, station OS version, default empty string
+
         app: str, station app, default empty string
+
         app_version: str, station app version, default empty string
+
         is_private: bool, is station data private, default False
+
         packet_duration_s: float, duration of the packet in seconds, default np.nan
+
         station_description: str, description of the station, default empty string
+
         other_metadata: dict, str: str of other metadata from the packet, default empty list
     """
 
@@ -173,10 +191,7 @@ class StationMetadata:
             self.os_version = packet.station_information.os_version
             self.app_version = packet.station_information.app_version
             self.is_private = packet.station_information.is_private
-            self.packet_duration_s = (
-                    len(packet.sensors.audio.samples.values)
-                    / packet.sensors.audio.sample_rate
-            )
+            self.packet_duration_s = len(packet.sensors.audio.samples.values) / packet.sensors.audio.sample_rate
             self.station_description = packet.station_information.description
         else:
             self.api = np.nan
@@ -191,30 +206,34 @@ class StationMetadata:
             self.station_description = ""
 
     def __repr__(self):
-        return f"app: {self.app}, " \
-               f"api: {self.api}, " \
-               f"sub_api: {self.sub_api}, " \
-               f"make: {self.make}, " \
-               f"model: {self.model}, " \
-               f"os: {self.os.value}, " \
-               f"os_version: {self.os_version}, " \
-               f"app_version: {self.app_version}, " \
-               f"is_private: {self.is_private}, " \
-               f"packet_duration_s: {self.packet_duration_s}, " \
-               f"station_description: {self.station_description}"
+        return (
+            f"app: {self.app}, "
+            f"api: {self.api}, "
+            f"sub_api: {self.sub_api}, "
+            f"make: {self.make}, "
+            f"model: {self.model}, "
+            f"os: {self.os.value}, "
+            f"os_version: {self.os_version}, "
+            f"app_version: {self.app_version}, "
+            f"is_private: {self.is_private}, "
+            f"packet_duration_s: {self.packet_duration_s}, "
+            f"station_description: {self.station_description}"
+        )
 
     def __str__(self):
-        return f"app: {self.app}, " \
-               f"api: {self.api}, " \
-               f"sub_api: {self.sub_api}, " \
-               f"make: {self.make}, " \
-               f"model: {self.model}, " \
-               f"os: {self.os.name}, " \
-               f"os_version: {self.os_version}, " \
-               f"app_version: {self.app_version}, " \
-               f"is_private: {self.is_private}, " \
-               f"packet_duration_s: {self.packet_duration_s}, " \
-               f"station_description: {self.station_description}"
+        return (
+            f"app: {self.app}, "
+            f"api: {self.api}, "
+            f"sub_api: {self.sub_api}, "
+            f"make: {self.make}, "
+            f"model: {self.model}, "
+            f"os: {self.os.name}, "
+            f"os_version: {self.os_version}, "
+            f"app_version: {self.app_version}, "
+            f"is_private: {self.is_private}, "
+            f"packet_duration_s: {self.packet_duration_s}, "
+            f"station_description: {self.station_description}"
+        )
 
     def validate_metadata(self, other_metadata: "StationMetadata") -> bool:
         """
@@ -222,17 +241,17 @@ class StationMetadata:
         :return: True if other_metadata is equal to the calling metadata
         """
         return (
-                self.app == other_metadata.app
-                and self.api == other_metadata.api
-                and self.sub_api == other_metadata.sub_api
-                and self.make == other_metadata.make
-                and self.model == other_metadata.model
-                and self.os == other_metadata.os
-                and self.os_version == other_metadata.os_version
-                and self.app_version == other_metadata.app_version
-                and self.is_private == other_metadata.is_private
-                and self.packet_duration_s == other_metadata.packet_duration_s
-                and self.station_description == other_metadata.station_description
+            self.app == other_metadata.app
+            and self.api == other_metadata.api
+            and self.sub_api == other_metadata.sub_api
+            and self.make == other_metadata.make
+            and self.model == other_metadata.model
+            and self.os == other_metadata.os
+            and self.os_version == other_metadata.os_version
+            and self.app_version == other_metadata.app_version
+            and self.is_private == other_metadata.is_private
+            and self.packet_duration_s == other_metadata.packet_duration_s
+            and self.station_description == other_metadata.station_description
         )
 
     def as_dict(self) -> dict:
@@ -251,7 +270,7 @@ class StationMetadata:
             "is_private": self.is_private,
             "packet_duration_s": self.packet_duration_s,
             "station_description": self.station_description,
-            "other_metadata": self.other_metadata
+            "other_metadata": self.other_metadata,
         }
 
     @staticmethod
@@ -308,18 +327,10 @@ class StationPacketMetadata:
         """
         self.other_metadata = {}
         if packet:
-            self.packet_start_mach_timestamp = (
-                packet.timing_information.packet_start_mach_timestamp
-            )
-            self.packet_end_mach_timestamp = (
-                packet.timing_information.packet_end_mach_timestamp
-            )
-            self.packet_start_os_timestamp = (
-                packet.timing_information.packet_start_os_timestamp
-            )
-            self.packet_end_os_timestamp = (
-                packet.timing_information.packet_end_os_timestamp
-            )
+            self.packet_start_mach_timestamp = packet.timing_information.packet_start_mach_timestamp
+            self.packet_end_mach_timestamp = packet.timing_information.packet_end_mach_timestamp
+            self.packet_start_os_timestamp = packet.timing_information.packet_start_os_timestamp
+            self.packet_end_os_timestamp = packet.timing_information.packet_end_os_timestamp
             self.server_packet_receive_timestamp = packet.timing_information.server_acquisition_arrival_timestamp
             self.timing_info_score = packet.timing_information.score
             self.timing_score_method = TimingScoreMethod(packet.timing_information.score_method)
@@ -333,22 +344,26 @@ class StationPacketMetadata:
             self.timing_score_method = TimingScoreMethod["UNKNOWN"]
 
     def __repr__(self):
-        return f"packet_start_mach_timestamp: {self.packet_start_mach_timestamp}, " \
-               f"packet_end_mach_timestamp: {self.packet_end_mach_timestamp}, " \
-               f"packet_start_os_timestamp: {self.packet_start_os_timestamp}, " \
-               f"packet_end_os_timestamp: {self.packet_end_os_timestamp}, " \
-               f"server_packet_receive_timestamp: {self.server_packet_receive_timestamp}, " \
-               f"timing_info_score: {self.timing_info_score}, " \
-               f"timing_score_method: {self.timing_score_method.value}"
+        return (
+            f"packet_start_mach_timestamp: {self.packet_start_mach_timestamp}, "
+            f"packet_end_mach_timestamp: {self.packet_end_mach_timestamp}, "
+            f"packet_start_os_timestamp: {self.packet_start_os_timestamp}, "
+            f"packet_end_os_timestamp: {self.packet_end_os_timestamp}, "
+            f"server_packet_receive_timestamp: {self.server_packet_receive_timestamp}, "
+            f"timing_info_score: {self.timing_info_score}, "
+            f"timing_score_method: {self.timing_score_method.value}"
+        )
 
     def __str__(self):
-        return f"packet_start_mach_timestamp: {self.packet_start_mach_timestamp}, " \
-               f"packet_end_mach_timestamp: {self.packet_end_mach_timestamp}, " \
-               f"packet_start_os_timestamp: {self.packet_start_os_timestamp}, " \
-               f"packet_end_os_timestamp: {self.packet_end_os_timestamp}, " \
-               f"server_packet_receive_timestamp: {self.server_packet_receive_timestamp}, " \
-               f"timing_info_score: {self.timing_info_score}, " \
-               f"timing_score_method: {self.timing_score_method.name}"
+        return (
+            f"packet_start_mach_timestamp: {self.packet_start_mach_timestamp}, "
+            f"packet_end_mach_timestamp: {self.packet_end_mach_timestamp}, "
+            f"packet_start_os_timestamp: {self.packet_start_os_timestamp}, "
+            f"packet_end_os_timestamp: {self.packet_end_os_timestamp}, "
+            f"server_packet_receive_timestamp: {self.server_packet_receive_timestamp}, "
+            f"timing_info_score: {self.timing_info_score}, "
+            f"timing_score_method: {self.timing_score_method.name}"
+        )
 
     def update_timestamps(self, om: OffsetModel, use_model_function: bool = True):
         """
@@ -388,7 +403,7 @@ class StationPacketMetadata:
             "server_packet_receive_timestamp": self.server_packet_receive_timestamp,
             "timing_info_score": self.timing_info_score,
             "timing_score_method": self.timing_score_method.name,
-            "other_metadata": self.other_metadata
+            "other_metadata": self.other_metadata,
         }
 
     @staticmethod
@@ -405,7 +420,7 @@ class StationPacketMetadata:
         result.packet_end_os_timestamp = pmd_dict["packet_end_os_timestamp"]
         result.server_packet_receive_timestamp = pmd_dict["server_packet_receive_timestamp"]
         result.timing_info_score = pmd_dict["timing_info_score"]
-        result.timing_score_method = TimingScoreMethod[pmd_dict["timing_score_method"]
-                                                       if "timing_score_method" in pmd_dict.keys()
-                                                       else "UNKNOWN"]
+        result.timing_score_method = TimingScoreMethod[
+            pmd_dict["timing_score_method"] if "timing_score_method" in pmd_dict.keys() else "UNKNOWN"
+        ]
         return result

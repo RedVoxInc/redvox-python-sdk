@@ -9,8 +9,6 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from redvox.common.io import get_json_file, json_file_to_dict, json_to_dict
-
 
 if TYPE_CHECKING:
     from redvox.common.session_model import SessionModel
@@ -23,9 +21,7 @@ def session_model_to_json(session: "SessionModel") -> str:
     return json.dumps(session.as_dict())
 
 
-def session_model_to_json_file(session: "SessionModel",
-                               out_dir: str = ".",
-                               file_name: Optional[str] = None) -> Path:
+def session_model_to_json_file(session: "SessionModel", out_dir: str = ".", file_name: Optional[str] = None) -> Path:
     """
     saves the SessionModel as json.
 
@@ -35,11 +31,7 @@ def session_model_to_json_file(session: "SessionModel",
                         If None, uses the default [id]_[startdate].json
     :return: path to json file
     """
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else session.default_file_name()
-    ) + ".json"
+    _file_name: str = (file_name if file_name is not None else session.default_file_name()) + ".json"
 
     file_path: Path = Path(out_dir).joinpath(_file_name)
     with open(file_path, "w") as f_p:
@@ -49,8 +41,6 @@ def session_model_to_json_file(session: "SessionModel",
 
 def session_model_dict_from_json(json_str: str) -> dict:
     """
-    Convert a json file to a dictionary that can create a SessionModel
-
     :param json_str: string of json to read
     :return: dictionary of SessionModel from json
     """
@@ -59,20 +49,14 @@ def session_model_dict_from_json(json_str: str) -> dict:
 
 def session_model_dict_from_json_file(file_path: str) -> dict:
     """
-    Read the contents of a json file and convert it into a dictionary of a SessionModel
-
     :param file_path: full path to the file, including file name and extension
-    :return: dictionary of SessionModel from json
+    :return: dictionary of SessionModel from json file
     """
     with open(file_path, "r") as f_p:
         return session_model_dict_from_json(f_p.read())
 
 
-def compress_session_model(
-        session: "SessionModel",
-        base_dir: str = ".",
-        file_name: Optional[str] = None
-) -> Path:
+def compress_session_model(session: "SessionModel", base_dir: str = ".", file_name: Optional[str] = None) -> Path:
     """
     Compresses a SessionModel to a pkl file.
 
@@ -83,11 +67,7 @@ def compress_session_model(
     :return: The path to the written compressed file.
     """
 
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else session.default_file_name()
-    ) + ".pkl"
+    _file_name: str = (file_name if file_name is not None else session.default_file_name()) + ".pkl"
 
     file_path: Path = Path(base_dir).joinpath(_file_name)
 

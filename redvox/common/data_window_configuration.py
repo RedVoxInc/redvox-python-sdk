@@ -1,5 +1,5 @@
 """
-This module provide type-safe data window configuration
+This module provides type-safe data window configuration using an external file
 """
 
 from dataclasses import dataclass
@@ -162,8 +162,9 @@ class DataWindowConfigFile:
 
     def start_dt(self) -> Optional[dtu.datetime]:
         if self.start_year is not None:
-            return dtu.datetime(self.start_year, self.start_month, self.start_day,
-                                self.start_hour, self.start_minute, self.start_second)
+            return dtu.datetime(
+                self.start_year, self.start_month, self.start_day, self.start_hour, self.start_minute, self.start_second
+            )
         return None
 
     def set_start_dt(self, start_dt: dtu.datetime):
@@ -176,8 +177,9 @@ class DataWindowConfigFile:
 
     def end_dt(self) -> Optional[dtu.datetime]:
         if self.end_year is not None:
-            return dtu.datetime(self.end_year, self.end_month, self.end_day,
-                                self.end_hour, self.end_minute, self.end_second)
+            return dtu.datetime(
+                self.end_year, self.end_month, self.end_day, self.end_hour, self.end_minute, self.end_second
+            )
         return None
 
     def set_end_dt(self, end_dt: dtu.datetime):

@@ -5,6 +5,7 @@ This module loads sensor data from Redvox packets
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
+
 # noinspection Mypy
 import pyarrow as pa
 
@@ -148,12 +149,8 @@ __SENSOR_TYPE_TO_SENSOR_FN: Dict[
 }
 
 
-def __has_sensor(
-        data: Union[api_m.RedvoxPacketM, api_m.RedvoxPacketM.Sensors], field_name: str
-) -> bool:
+def __has_sensor(data: Union[api_m.RedvoxPacketM, api_m.RedvoxPacketM.Sensors], field_name: str) -> bool:
     """
-    Returns true if the given packet or sensors instance contains the valid sensor.
-
     :param data: Either a packet or a packet's sensors message.
     :param field_name: The name of the sensor being checked.
     :return: True if the sensor exists, False otherwise.
@@ -171,8 +168,6 @@ def __has_sensor(
 
 def __packet_duration_s(packet: api_m.RedvoxPacketM) -> float:
     """
-    Returns the packet duration in seconds.
-
     :param packet: The packet to calculate the duration for.
     :return: The packet duration in seconds.
     """
@@ -181,23 +176,21 @@ def __packet_duration_s(packet: api_m.RedvoxPacketM) -> float:
 
 def __packet_duration_us(packet: api_m.RedvoxPacketM) -> float:
     """
-    Returns the packet duration in microseconds.
-
     :param packet: The packet to calculate the duration for.
     :return: The packet duration in microseconds.
     """
     return __packet_duration_s(packet) * 1_000_000.0
 
 
-def __stats_for_sensor_per_packet_per_second(num_packets: int,
-                                             packet_dur_s: float,
-                                             timestamps: np.array) -> Tuple[float, float, float]:
+def __stats_for_sensor_per_packet_per_second(
+    num_packets: int, packet_dur_s: float, timestamps: np.array
+) -> Tuple[float, float, float]:
     """
     Sensor being evaluated must either have 1/packet or 1/second sample rate
 
     :param num_packets: number of packets to calculate stats for
     :param packet_dur_s: duration of packet in seconds
-    :param timestamps: timestamps of the samples
+    :param timestamps: timestamps of the data
     :return: sample rate in hz, sample interval in seconds, and sample interval std deviation
     """
     if len(timestamps) != num_packets:
@@ -206,30 +199,22 @@ def __stats_for_sensor_per_packet_per_second(num_packets: int,
         sample_rate = 1 / packet_dur_s
     sample_interval = 1 / sample_rate
     sample_interval_std = (
-        dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
-        if len(timestamps) > 1
-        else np.nan
+        dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps)))) if len(timestamps) > 1 else np.nan
     )
     return sample_rate, sample_interval, sample_interval_std
 
 
-def get_empty_sensor(
-        name: str, sensor_type: SensorType = SensorType.UNKNOWN_SENSOR
-) -> SensorData:
+def get_empty_sensor(name: str, sensor_type: SensorType = SensorType.UNKNOWN_SENSOR) -> SensorData:
     """
-    create a sensor data object with no data
-
     :param name: name of the sensor
     :param sensor_type: type of the sensor to create, default SensorType.UNKNOWN_SENSOR
-    :return: empty sensor
+    :return: empty sensor with no data
     """
     return SensorData(name, pa.Table.from_pydict({"timestamps": []}), sensor_type)
 
 
 def get_sensor_description(sensor: Sensor) -> str:
     """
-    read the sensor's description from the sensor
-
     :param sensor: the sensor to read the description from
     :return: the sensor's description
     """
@@ -247,23 +232,17 @@ def get_sample_statistics(data_df: pa.Table) -> Tuple[float, float, float]:
     sample_interval_std: float
     timestamps: np.array = data_df["timestamps"].to_numpy()
     if timestamps.size > 1:
-        sample_interval = dtu.microseconds_to_seconds(
-            float(np.mean(np.diff(timestamps)))
-        )
-        sample_interval_std = dtu.microseconds_to_seconds(
-            float(np.std(np.diff(timestamps)))
-        )
+        sample_interval = dtu.microseconds_to_seconds(float(np.mean(np.diff(timestamps))))
+        sample_interval_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
     else:
         sample_interval = np.nan
         sample_interval_std = np.nan
     return 1.0 / sample_interval, sample_interval, sample_interval_std
 
 
-def read_apim_xyz_sensor(
-        sensor: api_m.RedvoxPacketM.Sensors.Xyz, column_id: str
-) -> pa.Table:
+def read_apim_xyz_sensor(sensor: api_m.RedvoxPacketM.Sensors.Xyz, column_id: str) -> pa.Table:
     """
-    read a sensor that has xyz data channels from an api M data packet
+    read a sensor that has xyz data channels from an api M data packet.
     raises Attribute Error if sensor does not contain xyz channels
 
     :param sensor: the xyz api M sensor to read
@@ -280,24 +259,26 @@ def read_apim_xyz_sensor(
             f"{column_id}_z",
         ]
         return pa.Table.from_pydict(
-            dict(zip(columns, [timestamps,
-                               timestamps,
-                               np.array(sensor.x_samples.values),
-                               np.array(sensor.y_samples.values),
-                               np.array(sensor.z_samples.values),
-                               ]
-                     )
-                 )
+            dict(
+                zip(
+                    columns,
+                    [
+                        timestamps,
+                        timestamps,
+                        np.array(sensor.x_samples.values),
+                        np.array(sensor.y_samples.values),
+                        np.array(sensor.z_samples.values),
+                    ],
+                )
+            )
         )
     except AttributeError:
         raise
 
 
-def read_apim_single_sensor(
-        sensor: api_m.RedvoxPacketM.Sensors.Single, column_id: str
-) -> pa.Table:
+def read_apim_single_sensor(sensor: api_m.RedvoxPacketM.Sensors.Single, column_id: str) -> pa.Table:
     """
-    read a sensor that has a single data channel from an api M data packet
+    read a sensor that has a single data channel from an api M data packet.
     raises Attribute Error if sensor does not contain exactly one data channel
 
     :param sensor: the single channel api M sensor to read
@@ -314,69 +295,69 @@ def read_apim_single_sensor(
 
 def apim_compressed_audio_to_pyarrow(comp_audio: api_m.RedvoxPacketM.Sensors.CompressedAudio) -> pa.Table:
     """
-    :param comp_audio: compressed audio sensor to convert to pyarrow table
+    :param comp_audio: compressed audio sensor to convert
     :return: pyarrow table representation of compressed audio data
     """
     return pa.Table.from_pydict(
-        dict(zip(COMPRESSED_AUDIO_COLUMNS,
-                 [
-                     comp_audio.first_sample_timestamp,
-                     comp_audio.first_sample_timestamp,
-                     np.array(list(comp_audio.audio_bytes)),
-                     comp_audio.audio_codec,
-                 ]
-                 )
-             )
+        dict(
+            zip(
+                COMPRESSED_AUDIO_COLUMNS,
+                [
+                    comp_audio.first_sample_timestamp,
+                    comp_audio.first_sample_timestamp,
+                    np.array(list(comp_audio.audio_bytes)),
+                    comp_audio.audio_codec,
+                ],
+            )
+        )
     )
 
 
 def apim_image_to_pyarrow(image_sensor: api_m.RedvoxPacketM.Sensors.Image) -> pa.Table:
     """
-    :param image_sensor: image sensor to convert to pyarrow table
+    :param image_sensor: image sensor to convert
     :return: pyarrow table representation of image data
     """
     timestamps = image_sensor.timestamps.timestamps
     codecs = np.full(len(timestamps), image_sensor.image_codec)
-    return pa.Table.from_pydict(
-        dict(zip(IMAGE_COLUMNS,
-                 [timestamps, timestamps, image_sensor.samples, codecs]
-                 )
-             )
-    )
+    return pa.Table.from_pydict(dict(zip(IMAGE_COLUMNS, [timestamps, timestamps, image_sensor.samples, codecs])))
 
 
-def apim_best_location_to_pyarrow(best_loc: api_m.RedvoxPacketM.Sensors.Location.BestLocation,
-                                  packet_start_timestamp: float) -> pa.Table:
+def apim_best_location_to_pyarrow(
+    best_loc: api_m.RedvoxPacketM.Sensors.Location.BestLocation, packet_start_timestamp: float
+) -> pa.Table:
     """
     :param best_loc: best location to convert to pyarrow table
     :param packet_start_timestamp: timestamp of packet's first sample
-    :return: pyarrow table representation of best location data
+    :return: pyarrow table representation of the best location data
     """
     return pa.Table.from_pydict(
-        dict(zip(LOCATION_COLUMNS,
-                 [
-                     [packet_start_timestamp],
-                     [best_loc.latitude_longitude_timestamp.mach],
-                     [best_loc.latitude_longitude_timestamp.gps],
-                     [best_loc.latitude],
-                     [best_loc.longitude],
-                     [best_loc.altitude],
-                     [best_loc.speed],
-                     [best_loc.bearing],
-                     [best_loc.horizontal_accuracy],
-                     [best_loc.vertical_accuracy],
-                     [best_loc.speed_accuracy],
-                     [best_loc.bearing_accuracy],
-                     [best_loc.location_provider],
-                 ]
-                 )
-             )
+        dict(
+            zip(
+                LOCATION_COLUMNS,
+                [
+                    [packet_start_timestamp],
+                    [best_loc.latitude_longitude_timestamp.mach],
+                    [best_loc.latitude_longitude_timestamp.gps],
+                    [best_loc.latitude],
+                    [best_loc.longitude],
+                    [best_loc.altitude],
+                    [best_loc.speed],
+                    [best_loc.bearing],
+                    [best_loc.horizontal_accuracy],
+                    [best_loc.vertical_accuracy],
+                    [best_loc.speed_accuracy],
+                    [best_loc.bearing_accuracy],
+                    [best_loc.location_provider],
+                ],
+            )
+        )
     )
 
 
 def apim_location_to_pyarrow(loc: api_m.RedvoxPacketM.Sensors.Location) -> pa.Table:
     """
-    :param loc: location sensor to convert to pyarrow table
+    :param loc: location sensor to convert
     :return: pyarrow table representation of location data
     """
     timestamps = loc.timestamps.timestamps
@@ -405,14 +386,17 @@ def apim_location_to_pyarrow(loc: api_m.RedvoxPacketM.Sensors.Location) -> pa.Ta
         data_for_df[9].append(np.nan if len(vert_acc_samples) <= i else vert_acc_samples[i])
         data_for_df[10].append(np.nan if len(spd_acc_samples) <= i else spd_acc_samples[i])
         data_for_df[11].append(np.nan if len(bear_acc_samples) <= i else bear_acc_samples[i])
-        data_for_df[12].append(api_m.RedvoxPacketM.Sensors.Location.LocationProvider.UNKNOWN
-                               if len(loc_prov_samples) <= i else loc_prov_samples[i])
+        data_for_df[12].append(
+            api_m.RedvoxPacketM.Sensors.Location.LocationProvider.UNKNOWN
+            if len(loc_prov_samples) <= i
+            else loc_prov_samples[i]
+        )
     return pa.Table.from_pydict(dict(zip(LOCATION_COLUMNS, data_for_df)))
 
 
 def apim_health_to_pyarrow(metrics: api_m.RedvoxPacketM.StationInformation.StationMetrics) -> pa.Table:
     """
-    :param metrics: station metrics to convert to pyarrow table
+    :param metrics: station metrics to convert
     :return: pyarrow table representation of station metrics data
     """
     timestamps = metrics.timestamps.timestamps
@@ -436,19 +420,34 @@ def apim_health_to_pyarrow(metrics: api_m.RedvoxPacketM.StationInformation.Stati
         data_for_df[2].append(np.nan if len(bat_samples) < i + 1 else bat_samples[i])
         data_for_df[3].append(np.nan if len(bat_cur_samples) < i + 1 else bat_cur_samples[i])
         data_for_df[4].append(np.nan if len(temp_samples) < i + 1 else temp_samples[i])
-        data_for_df[5].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.NetworkType.UNKNOWN_NETWORK
-                              if len(net_samples) < i + 1 else net_samples[i])
+        data_for_df[5].append(
+            api_m.RedvoxPacketM.StationInformation.StationMetrics.NetworkType.UNKNOWN_NETWORK
+            if len(net_samples) < i + 1
+            else net_samples[i]
+        )
         data_for_df[6].append(np.nan if len(net_str_samples) < i + 1 else net_str_samples[i])
-        data_for_df[7].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.PowerState.UNKNOWN_POWER_STATE
-                              if len(pow_samples) < i + 1 else pow_samples[i])
+        data_for_df[7].append(
+            api_m.RedvoxPacketM.StationInformation.StationMetrics.PowerState.UNKNOWN_POWER_STATE
+            if len(pow_samples) < i + 1
+            else pow_samples[i]
+        )
         data_for_df[8].append(np.nan if len(avail_ram_samples) < i + 1 else avail_ram_samples[i])
         data_for_df[9].append(np.nan if len(avail_disk_samples) < i + 1 else avail_disk_samples[i])
-        data_for_df[10].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState.UNKNOWN
-                               if len(cell_samples) < i + 1 else cell_samples[i])
+        data_for_df[10].append(
+            api_m.RedvoxPacketM.StationInformation.StationMetrics.CellServiceState.UNKNOWN
+            if len(cell_samples) < i + 1
+            else cell_samples[i]
+        )
         data_for_df[11].append(np.nan if len(cpu_util_samples) < i + 1 else cpu_util_samples[i])
-        data_for_df[12].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.NONE
-                               if len(wake_lock_samples) < i + 1 else wake_lock_samples[i])
-        data_for_df[13].append(api_m.RedvoxPacketM.StationInformation.StationMetrics.ScreenState.UNKNOWN_SCREEN_STATE
-                               if len(screen_state_samples) < i + 1 else screen_state_samples[i])
+        data_for_df[12].append(
+            api_m.RedvoxPacketM.StationInformation.StationMetrics.WifiWakeLock.NONE
+            if len(wake_lock_samples) < i + 1
+            else wake_lock_samples[i]
+        )
+        data_for_df[13].append(
+            api_m.RedvoxPacketM.StationInformation.StationMetrics.ScreenState.UNKNOWN_SCREEN_STATE
+            if len(screen_state_samples) < i + 1
+            else screen_state_samples[i]
+        )
         data_for_df[14].append(np.nan if len(screen_bright_samples) < i + 1 else screen_bright_samples[i])
     return pa.Table.from_pydict(dict(zip(STATION_HEALTH_COLUMNS, data_for_df)))

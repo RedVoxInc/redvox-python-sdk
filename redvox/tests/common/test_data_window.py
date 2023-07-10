@@ -16,11 +16,7 @@ class EventOriginTest(unittest.TestCase):
 
     def test_load_origin(self):
         ev_orig: dw.EventOrigin = dw.EventOrigin.from_dict(
-            {"provider": "TEST",
-             "latitude": 19.75,
-             "longitude": -156.05,
-             "altitude": 23.48,
-             "event_radius_m": 1.0}
+            {"provider": "TEST", "latitude": 19.75, "longitude": -156.05, "altitude": 23.48, "event_radius_m": 1.0}
         )
         self.assertEqual(ev_orig.provider, "TEST")
         self.assertEqual(ev_orig.latitude, 19.75)
@@ -45,10 +41,7 @@ class DataWindowTest(unittest.TestCase):
         cls.input_dir = tests.TEST_DATA_DIR
 
     def test_data_window_simple(self):
-        datawindow = dw.DataWindow(
-            config=dw.DataWindowConfig(
-                input_dir=self.input_dir, structured_layout=False)
-        )
+        datawindow = dw.DataWindow(config=dw.DataWindowConfig(input_dir=self.input_dir, structured_layout=False))
         self.assertEqual(len(datawindow.stations()), 3)
         self.assertEqual(len(datawindow.station_ids()), 3)
         self.assertTrue("1637680001" in datawindow.station_ids())
@@ -66,8 +59,9 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(datawindow.stations()), 2)
         test_station = datawindow.get_station("1637650010")[0]
         self.assertTrue(test_station.is_timestamps_updated)
-        self.assertNotEqual(test_station.first_data_timestamp,
-                            test_station.audio_sensor().unaltered_data_timestamps()[0])
+        self.assertNotEqual(
+            test_station.first_data_timestamp, test_station.audio_sensor().unaltered_data_timestamps()[0]
+        )
         self.assertIsNotNone(datawindow.get_station("1637650010")[0].audio_sensor())
         test_sensor = datawindow.get_station("1637650010")[0].accelerometer_sensor()
         self.assertEqual(test_sensor.num_samples(), 643)
@@ -110,8 +104,7 @@ class DataWindowTest(unittest.TestCase):
 
     def test_dw_first_station(self):
         dw_test = dw.DataWindow(
-            config=dw.DataWindowConfig(
-                input_dir=self.input_dir, structured_layout=False, station_ids=["1637650010"])
+            config=dw.DataWindowConfig(input_dir=self.input_dir, structured_layout=False, station_ids=["1637650010"])
         )
         first_station = dw_test.first_station()
         self.assertEqual("1637650010", first_station.id())
