@@ -13,8 +13,7 @@ import psutil
 import redvox.settings as settings
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 import redvox.common.date_time_utils as dtu
-from redvox.common import io,\
-    api_conversions as ac
+from redvox.common import io, api_conversions as ac
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.session_model import SessionModel
@@ -24,16 +23,31 @@ from redvox.cloud.session_model_api import SessionModelsResp, Session
 from redvox.cloud.errors import CloudApiError
 
 
-id_py_stct = pa.struct([("id", pa.string()), ("uuid", pa.string()), ("start_time", pa.float64()),
-                        ])
-meta_py_stct = pa.struct([("api", pa.float64()), ("sub_api", pa.float64()), ("make", pa.string()),
-                          ("model", pa.string()), ("os", pa.int64()), ("os_version", pa.string()),
-                          ("app", pa.string()), ("app_version", pa.string()), ("is_private", pa.bool_()),
-                          ("packet_duration_s", pa.float64()), ("station_description", pa.string()),
-                          ])
+id_py_stct = pa.struct(
+    [
+        ("id", pa.string()),
+        ("uuid", pa.string()),
+        ("start_time", pa.float64()),
+    ]
+)
+meta_py_stct = pa.struct(
+    [
+        ("api", pa.float64()),
+        ("sub_api", pa.float64()),
+        ("make", pa.string()),
+        ("model", pa.string()),
+        ("os", pa.int64()),
+        ("os_version", pa.string()),
+        ("app", pa.string()),
+        ("app_version", pa.string()),
+        ("is_private", pa.bool_()),
+        ("packet_duration_s", pa.float64()),
+        ("station_description", pa.string()),
+    ]
+)
 
 
-PERCENT_FREE_MEM_USE = .8  # Percentage of total free memory to use when creating stations (1. is 100%)
+PERCENT_FREE_MEM_USE = 0.8  # Percentage of total free memory to use when creating stations (1. is 100%)
 
 
 class ApiReader:
@@ -74,9 +88,7 @@ class ApiReader:
         :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
         :param debug: if True, output program warnings/errors during function execution.  Default False.
         """
-        _pool: multiprocessing.pool.Pool = (
-            multiprocessing.Pool() if pool is None else pool
-        )
+        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
         if read_filter:
             self.filter = read_filter
@@ -96,18 +108,26 @@ class ApiReader:
             max_file_size = max([fe.decompressed_file_size_bytes for fi in self.files_index for fe in fi.entries])
             total_est_size = max_file_size * sum([len(fi.entries) for fi in self.files_index])
             if max_file_size > self.chunk_limit:
-                raise MemoryError(f"System requires {max_file_size} bytes of memory to process a file but only has "
-                                  f"{self.chunk_limit} available.  Please free or add more RAM.")
+                raise MemoryError(
+                    f"System requires {max_file_size} bytes of memory to process a file but only has "
+                    f"{self.chunk_limit} available.  Please free or add more RAM."
+                )
             elif total_est_size / mem_split_factor > self.chunk_limit:
-                raise MemoryError(f"{total_est_size} of data requested, but only {self.chunk_limit} available; "
-                                  f"please reduce the amount of data you are requesting.")
+                raise MemoryError(
+                    f"{total_est_size} of data requested, but only {self.chunk_limit} available; "
+                    f"please reduce the amount of data you are requesting."
+                )
             if debug:
                 if mem_split_factor == 1:
-                    print(f"{len(self.files_index)} stations have {int(self.chunk_limit)} "
-                          f"bytes for loading files in memory.")
+                    print(
+                        f"{len(self.files_index)} stations have {int(self.chunk_limit)} "
+                        f"bytes for loading files in memory."
+                    )
                 else:
-                    print(f"{mem_split_factor} stations each have "
-                          f"{int(self.chunk_limit)} bytes for loading files in memory.")
+                    print(
+                        f"{mem_split_factor} stations each have "
+                        f"{int(self.chunk_limit)} bytes for loading files in memory."
+                    )
         else:
             self.chunk_limit = 0
 
@@ -133,13 +153,17 @@ class ApiReader:
                     owner=client.redvox_config.username,
                     id_uuids=ids,
                     start_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.start_dt))
-                    if self.filter.start_dt else None,
+                    if self.filter.start_dt
+                    else None,
                     end_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.end_dt))
-                    if self.filter.end_dt else None
+                    if self.filter.end_dt
+                    else None,
                 )
                 if len(resp.sessions) < 1:
-                    self.errors.append("Unable to find sessions.  Check if the requested stations: belong to your "
-                                       "account or are public.")
+                    self.errors.append(
+                        "Unable to find sessions.  Check if the requested stations: belong to your "
+                        "account or are public."
+                    )
                 return resp
         except CloudApiError as e:
             self.errors.append(f"Error while connecting to server.  Error message: {e}")
@@ -155,46 +179,46 @@ class ApiReader:
         """
         insufficient_str = ""
         # reset the filter used to get files
-        new_filter = io.ReadFilter() \
-            .with_extensions(self.filter.extensions) \
-            .with_api_versions(self.filter.api_versions) \
-            .with_station_ids({model.id}) \
-            .with_start_dt_buf(dtu.timedelta(seconds=0)) \
+        new_filter = (
+            io.ReadFilter()
+            .with_extensions(self.filter.extensions)
+            .with_api_versions(self.filter.api_versions)
+            .with_station_ids({model.id})
+            .with_start_dt_buf(dtu.timedelta(seconds=0))
             .with_end_dt_buf(dtu.timedelta(seconds=0))
+        )
         # update the start and end times for the filter by the mean offset and the packet duration
         if self.filter.start_dt is not None:
             if timedelta(microseconds=abs(model.timing.mean_off)) > self.filter.start_dt_buf:
                 insufficient_str += "start "
-            new_filter.with_start_dt(self.filter.start_dt
-                                     + timedelta(microseconds=(model.timing.mean_off - model.packet_dur)))
+            new_filter.with_start_dt(
+                self.filter.start_dt + timedelta(microseconds=(model.timing.mean_off - model.packet_dur))
+            )
         if self.filter.end_dt is not None:
             if timedelta(microseconds=abs(model.timing.mean_off)) > self.filter.end_dt_buf:
                 insufficient_str += "end"
-            new_filter.with_end_dt(self.filter.end_dt
-                                   + timedelta(microseconds=(model.timing.mean_off + model.packet_dur)))
+            new_filter.with_end_dt(
+                self.filter.end_dt + timedelta(microseconds=(model.timing.mean_off + model.packet_dur))
+            )
 
         if len(insufficient_str) > 0:
             self.errors.append(f"Required more data for {model.id} at: {insufficient_str}")
         return [self._apply_filter(new_filter)]
 
-    def _get_all_files(
-        self, pool: Optional[multiprocessing.pool.Pool] = None
-    ) -> List[io.Index]:
+    def _get_all_files(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[io.Index]:
         """
         get all files in the base dir of the ApiReader
 
         :return: index with all the files that match the filter
         """
-        _pool: multiprocessing.pool.Pool = (
-            multiprocessing.Pool() if pool is None else pool
-        )
+        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
         index: List[io.Index] = []
         # this guarantees that all ids we search for are valid
         all_index = self._apply_filter(pool=_pool)
         all_index_ids = all_index.summarize().station_ids()
         # get models using the cloud to correct timing
         resp = self._get_cloud_models(all_index_ids)
-        resp_ids = [n.id for n in resp.sessions]
+        resp_ids = [n.id for n in resp.sessions] if resp is not None else []
 
         for station_id in all_index_ids:
             # if start and end are both not defined, just use what we got
@@ -235,9 +259,7 @@ class ApiReader:
         :param reader_filter: optional filter; if None, use the reader's filter, default None
         :return: index of the filtered files
         """
-        _pool: multiprocessing.pool.Pool = (
-            multiprocessing.Pool() if pool is None else pool
-        )
+        _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
         if not reader_filter:
             reader_filter = self.filter
         if self.structured_dir:
@@ -248,12 +270,7 @@ class ApiReader:
             _pool.close()
         return index
 
-    def _redo_index(
-            self,
-            station_ids: set,
-            new_start: datetime,
-            new_end: datetime
-    ) -> Optional[io.Index]:
+    def _redo_index(self, station_ids: set, new_start: datetime, new_end: datetime) -> Optional[io.Index]:
         """
         Redo the index for files using new start and end dates.  removes any buffer time at the start and end of the
         new query.  Returns the updated index or None
@@ -264,14 +281,16 @@ class ApiReader:
         :return: Updated index or None
         """
         diff_s = diff_e = timedelta(seconds=0)
-        new_index = self._apply_filter(io.ReadFilter()
-                                       .with_start_dt(new_start)
-                                       .with_end_dt(new_end)
-                                       .with_extensions(self.filter.extensions)
-                                       .with_api_versions(self.filter.api_versions)
-                                       .with_station_ids(station_ids)
-                                       .with_start_dt_buf(diff_s)
-                                       .with_end_dt_buf(diff_e))
+        new_index = self._apply_filter(
+            io.ReadFilter()
+            .with_start_dt(new_start)
+            .with_end_dt(new_end)
+            .with_extensions(self.filter.extensions)
+            .with_api_versions(self.filter.api_versions)
+            .with_station_ids(station_ids)
+            .with_start_dt_buf(diff_s)
+            .with_end_dt_buf(diff_e)
+        )
         if len(new_index.entries) > 0:
             return new_index
         return None
@@ -310,19 +329,13 @@ class ApiReader:
         # Iterate over the API 900 packets in a memory efficient way
         # and convert to API 1000
         # noinspection PyTypeChecker
-        for packet_900 in indexf.stream_raw(
-                io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900})
-        ):
+        for packet_900 in indexf.stream_raw(io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900})):
             # noinspection Mypy
-            result.append(
-                ac.convert_api_900_to_1000_raw(packet_900)
-            )
+            result.append(ac.convert_api_900_to_1000_raw(packet_900))
 
         # Grab the API 1000 packets
         # noinspection PyTypeChecker
-        for packet in indexf.stream_raw(
-                io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000})
-        ):
+        for packet in indexf.stream_raw(io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000})):
             # noinspection Mypy
             result.append(packet)
 
@@ -340,18 +353,14 @@ class ApiReader:
         # Iterate over the API 900 packets in a memory efficient way
         # and convert to API 1000
         for packet_900 in self._flatten_files_index().stream_raw(
-            io.ReadFilter.empty()
-            .with_api_versions({io.ApiVersion.API_900})
-            .with_station_ids({station_id})
+            io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900}).with_station_ids({station_id})
         ):
             # noinspection Mypy
             result.append(ac.convert_api_900_to_1000_raw(packet_900))
 
         # Grab the API 1000 packets
         for packet in self._flatten_files_index().stream_raw(
-            io.ReadFilter.empty()
-            .with_api_versions({io.ApiVersion.API_1000})
-            .with_station_ids({station_id})
+            io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000}).with_station_ids({station_id})
         ):
             # noinspection Mypy
             result.append(packet)
@@ -373,12 +382,7 @@ class ApiReader:
         :param pool: optional multiprocessing pool
         :return: List of all stations in the ApiReader
         """
-        return list(maybe_parallel_map(pool,
-                                       self._station_by_index,
-                                       iter(self.files_index),
-                                       chunk_size=1
-                                       )
-                    )
+        return list(maybe_parallel_map(pool, self._station_by_index, iter(self.files_index), chunk_size=1))
 
     def get_station_by_id(self, get_id: str) -> Optional[List[Station]]:
         """
