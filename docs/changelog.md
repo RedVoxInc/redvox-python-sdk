@@ -1,5 +1,12 @@
 ## Changelog
 
+### 3.5.0 (2023-7-11)
+* GNSS timing correction available for devices with GPS location enabled
+* Per packet ML extraction
+* Access cloud based session models
+* Improvements for archived data downloading
+* SessionModel updated to match cloud API version
+
 ### 3.4.2 (2023-5-17)
 * Removed all references to older versions of certain functions
 * Updated data fetching method
