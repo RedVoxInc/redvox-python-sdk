@@ -77,7 +77,12 @@ def download_file(
     buf: Optional[bytes] = get_file(url, retries, session)
 
     if buf:
-        data_key = find_between("/rdvxdata/", "?X-Amz-Algorithm=", url)
+        if "/rdvxdata/" in url:
+            data_key = find_between("/rdvxdata/", "?X-Amz-Algorithm=", url)
+        else:
+            data_key = find_between(
+                "/rdvxdata.s3.amazonaws.com/", "?AWSAccessKeyId", url
+            )
 
         directory = os.path.dirname(data_key)
         full_dir = f"{out_dir}/{directory}"
