@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.5.1 (2023-7-31)
+* Added GNSS timing correction for DataWindow created before version 3.5.0
+
 ### 3.5.0 (2023-7-11)
 * GNSS timing correction available for devices with GPS location enabled
 * Per packet ML extraction
