@@ -144,14 +144,11 @@ my_file_path = "/FULL/PATH/TO/SESSION_MODEL.json"
 s_model = SessionModel.load(my_file_path)
 ```
 
-If you have a fixed set of files, use one of the [creation methods](#create-sessionmodel) above to read all the files 
-at once.
-
 ### Using SessionModel
 
 We recommend using the session model available from the cloud, as that provides the most updated models.  Follow the 
-[instructions to access the cloud's session models](https://github.com/RedVoxInc/redvox-python-sdk/tree/master/docs/python_sdk/cloud#retrieving-session-models).  If you only have access to local RedVox files, the 
-SDK's SessionModel is ideal to use.
+[instructions to access the cloud's session models](https://github.com/RedVoxInc/redvox-python-sdk/tree/master/docs/python_sdk/cloud#retrieving-session-models).  
+If you only have access to local RedVox files, the SDK's SessionModel is ideal to use.
 
 Please note that a local SessionModel is limited to the availability of your data, and may not accurately represent the
 session over a longer period of time.

@@ -35,7 +35,8 @@ class StationPacketMetadataTest(unittest.TestCase):
 class StationKeyTest(unittest.TestCase):
     def test_init_key(self):
         key = su.StationKey("test_id", "test_uuid", 0.0)
-        other_key = su.StationKey("other_id", "other_uuid", 1.0)
-        copy_key = su.StationKey("test_id", "test_uuid", 0.0)
-        self.assertEqual(key, copy_key)
-        self.assertNotEqual(key, other_key)
+        self.assertTrue(key.check_key())
+        self.assertTrue(key.check_key("test_id"))
+        self.assertTrue(key.check_key("test_id", "test_uuid", 0.0))
+        self.assertFalse(key.check_key("other_id", "other_uuid", 1.0))
+        self.assertFalse(key.check_key("test_id", "other_uuid"))

@@ -201,7 +201,7 @@ class Station:
         :return: default station json file name (id_startdate), with startdate as integer of microseconds
                     since epoch UTC
         """
-        return f"{self._id}_{0 if np.isnan(self._start_date) else int(self._start_date)}"
+        return self._get_id_key()
 
     def to_json_file(self, file_name: Optional[str] = None) -> Path:
         """
@@ -406,7 +406,7 @@ class Station:
         """
         self._load_metadata_from_packet(indexes[0].read_first_packet())
         self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
-        self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
+        self._timesync_data.arrow_file = f"timesync_{self.start_date_as_str()}"
         all_summaries = ptp.AggregateSummary()
         self._event_data.set_save_dir(os.path.join(self.save_dir(), "events"))
         for idx in indexes:
@@ -493,7 +493,7 @@ class Station:
             self._packet_metadata = [st_utils.StationPacketMetadata(packet) for packet in packets]
             self._timesync_data = TimeSync().from_raw_packets(packets)
             self._timesync_data.arrow_dir = os.path.join(self.save_dir(), "timesync")
-            self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
+            self._timesync_data.arrow_file = f"timesync_{self.start_date_as_str()}"
             summaries = ptp.stream_to_pyarrow(packets, self._fs_writer.get_temp() if self.is_save_to_disk() else None)
             summaries.merge_all_summaries()
             self._set_pyarrow_sensors(summaries)
@@ -513,7 +513,7 @@ class Station:
         self._start_date = packet.timing_information.app_start_mach_timestamp
         if self._start_date < 0:
             self._errors.append(
-                f"Station {self._id} has station start date before epoch.  " f"Station start date reset to np.nan"
+                f"Station {self._id} has station start date before epoch.  Station start date reset to np.nan"
             )
             self._start_date = np.nan
         self._metadata = st_utils.StationMetadata("Redvox", packet)
@@ -585,6 +585,12 @@ class Station:
         """
         return self._start_date
 
+    def start_date_as_str(self) -> str:
+        """
+        :return: station start timestamp as integer string or 0 if it doesn't exist
+        """
+        return f"{0 if np.isnan(self._start_date) else int(self._start_date)}"
+
     def check_key(self) -> bool:
         """
         check if the station has enough information to set its key.
@@ -622,16 +628,14 @@ class Station:
 
         :param new_station: Station to append to current station
         """
-        if (
-            self.get_key() is not None
-            and new_station.get_key() == self.get_key()
-            and self._metadata.validate_metadata(new_station._metadata)
-        ):
+        key = self.get_key()
+        if key and key.compare_key(new_station.get_key()) and self._metadata.validate_metadata(new_station._metadata):
             self._errors.extend_error(new_station.errors())
             self.append_station_data(new_station._data)
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
             self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+            self._set_gps_offset()
             if not hasattr(self, "_event_data"):
                 self._event_data = EventStreams()
             self._event_data.append_streams(new_station.event_data())
@@ -1394,9 +1398,7 @@ class Station:
         """
         :return: the station's id and start time as a string
         """
-        if np.isnan(self._start_date):
-            return f"{self._id}_0"
-        return f"{self._id}_{int(self._start_date)}"
+        return f"{self._id}_{self.start_date_as_str()}"
 
     def _fix_sensor_data(self, sensor_type: sd.SensorType, data_table: pa.Table) -> pa.Table:
         """
@@ -1600,6 +1602,8 @@ class Station:
         """
         :return: the gps offset model
         """
+        if not hasattr(self, "_gps_offset_model"):
+            self._set_gps_offset()
         return self._gps_offset_model
 
     def errors(self) -> RedVoxExceptions:
@@ -1722,7 +1726,7 @@ class Station:
                 else:
                     self._fs_writer.file_name = self._get_id_key()
             self.update_first_and_last_data_timestamps()
-            self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
+            self._timesync_data.arrow_file = f"timesync_{self.start_date_as_str()}"
             self._is_timestamps_updated = True
         return self
 
@@ -1759,6 +1763,6 @@ class Station:
                 else:
                     self._fs_writer.file_name = self._get_id_key()
             self.update_first_and_last_data_timestamps()
-            self._timesync_data.arrow_file = f"timesync_{0 if np.isnan(self._start_date) else int(self._start_date)}"
+            self._timesync_data.arrow_file = f"timesync_{self.start_date_as_str()}"
             self._is_timestamps_updated = False
         return self

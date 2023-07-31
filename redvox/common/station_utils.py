@@ -112,7 +112,7 @@ class StationKey:
         start_timestamp: Optional[float] = None,
     ) -> bool:
         """
-        check if the key has the values specified.  If the parameter is None, any value will match.
+        Check if the key has the values specified.  If the parameter is None, any value will match.
         Note that NAN is a valid value for start_timestamps, but any station with start_timestamp = NAN
         will not match any value, including another NAN.
 
@@ -121,14 +121,17 @@ class StationKey:
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
         :return: True if all parameters match key values
         """
-        if station_id is not None and station_id != self.id:
-            return False
-        if station_uuid is not None and station_uuid != self.uuid:
-            return False
-        if start_timestamp is not None and (
-            start_timestamp != self.start_timestamp_micros
-            or np.isnan(start_timestamp)
-            or np.isnan(self.start_timestamp_micros)
+        if (
+            (station_id is not None and station_id != self.id)
+            or (station_uuid is not None and station_uuid != self.uuid)
+            or (
+                start_timestamp is not None
+                and (
+                    start_timestamp != self.start_timestamp_micros
+                    or np.isnan(start_timestamp)
+                    or np.isnan(self.start_timestamp_micros)
+                )
+            )
         ):
             return False
         return True
