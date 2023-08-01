@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.5.2 (2023-8-1)
+* Remove redvox-base as a dependency
+
 ### 3.5.1 (2023-7-31)
 * Added GNSS timing correction for DataWindow created before version 3.5.0
 
