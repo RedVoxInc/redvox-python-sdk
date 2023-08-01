@@ -2,13 +2,7 @@
 
 if [ -z "$1" ]
 then
-  echo "usage: ./publish.sh <user> <password>"
-  exit 1
-fi
-
-if [ -z "$2" ]
-then
-  echo "usage: ./publish.sh <user> <password>"
+  echo "usage: ./publish.sh <token>"
   exit 1
 fi
 
@@ -17,8 +11,7 @@ if ! [[ -x "$(command -v twine)" ]]; then
   exit 1
 fi
 
-USER=${1}
-PASS=${2}
+TOKEN=${1}
 
 set -o nounset
 set -o errexit
@@ -27,7 +20,7 @@ set -o xtrace
 cd ..
 python3 -m build .
 
-twine upload -r pypi -u ${USER} -p ${PASS} --skip-existing dist/*
+twine upload -r pypi -u __token__ -p ${TOKEN} --skip-existing dist/*
 
 # Create a git tag for this version
 VERSION="v$(python3 -c "import redvox; print(redvox.VERSION)")"
