@@ -3,7 +3,7 @@ Defines generic station objects for API-independent analysis
 all timestamps are integers in microseconds unless otherwise stated
 Utilizes RedvoxPacketM (API M data packets) as the format of the data due to their versatility
 """
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 import os
 from pathlib import Path
 
@@ -1400,6 +1400,16 @@ class Station:
         """
         return f"{self._id}_{self.start_date_as_str()}"
 
+    def find_loc_for_stats(self) -> Optional[Union[sd.LocationSensor, sd.BestLocationSensor]]:
+        """
+        :return: The first one of Location, BestLocation, or None found in the Station
+        """
+        if self.has_location_data():
+            return self.location_sensor()
+        elif self.has_best_location_data():
+            return self.best_location_sensor()
+        return None
+
     def _fix_sensor_data(self, sensor_type: sd.SensorType, data_table: pa.Table) -> pa.Table:
         """
         fix any problems with the data in data_table due to app/OS version
@@ -1499,10 +1509,16 @@ class Station:
         """
         uses the Station's location sensor to set the gps offset.
         """
-        if self.has_location_data():
-            loc_sensor = self.location_sensor()
-        elif self.has_best_location_data():
-            loc_sensor = self.best_location_sensor()
+        loc_sensor = self.find_loc_for_stats()
+        if loc_sensor:
+            gps_timestamps = loc_sensor.get_gps_timestamps_data()
+            gps_offsets = gps_timestamps - loc_sensor.data_timestamps() + GPS_LATENCY_MICROS
+            if all(np.nan_to_num(gps_offsets) == 0.0):
+                self._errors.append("Location data is all invalid, cannot set GPS offset.")
+                return
+            self._gps_offset_model = OffsetModel(
+                np.empty(0), gps_offsets, gps_timestamps, gps_timestamps[0], gps_timestamps[-1]
+            )
         else:
             loc_sensor = None
         if loc_sensor:
