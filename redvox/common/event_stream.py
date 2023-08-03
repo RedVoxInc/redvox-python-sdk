@@ -1146,7 +1146,7 @@ class EventStreams:
             evnt.update_timestamps(offset_model, use_model_function)
         if self.ml_data:
             for w in self.ml_data.windows:
-                w.timestamp = offset_model.update_time(w.timestamp)
+                w.timestamp = offset_model.update_time(w.timestamp, use_model_function)
 
     def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         """
@@ -1160,7 +1160,7 @@ class EventStreams:
             evnt.original_timestamps(offset_model, use_model_function)
         if self.ml_data:
             for w in self.ml_data.windows:
-                w.timestamp = offset_model.get_original_time(w.timestamp)
+                w.timestamp = offset_model.get_original_time(w.timestamp, use_model_function)
 
     @staticmethod
     def from_dict(in_dict: dict) -> "EventStreams":
