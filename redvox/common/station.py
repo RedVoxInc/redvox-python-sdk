@@ -25,7 +25,7 @@ from redvox.common.date_time_utils import datetime_from_epoch_microseconds_utc, 
 from redvox.common.event_stream import EventStreams
 
 
-STATION_ID_LENGTH = 10  # the length of a station ID string
+STATION_ID_LENGTH: int = 10  # the length of a station ID string
 
 
 class Station:
@@ -1504,16 +1504,18 @@ class Station:
         elif self.has_best_location_data():
             loc_sensor = self.best_location_sensor()
         else:
+            loc_sensor = None
+        if loc_sensor:
+            gps_timestamps = loc_sensor.get_gps_timestamps_data()
+            gps_offsets = gps_timestamps - loc_sensor.data_timestamps() + GPS_LATENCY_MICROS
+            if all(np.nan_to_num(gps_offsets) == 0.0):
+                self._errors.append("Location data is all invalid, cannot set GPS offset.")
+                return
+            self._gps_offset_model = OffsetModel(
+                np.empty(0), gps_offsets, gps_timestamps, gps_timestamps[0], gps_timestamps[-1]
+            )
+        else:
             self._errors.append("No location data to set GPS offset.")
-            return
-        gps_timestamps = loc_sensor.get_gps_timestamps_data()
-        gps_offsets = gps_timestamps - loc_sensor.data_timestamps() + GPS_LATENCY_MICROS
-        if all(np.nan_to_num(gps_offsets) == 0.0):
-            self._errors.append("Location data is all invalid, cannot set GPS offset.")
-            return
-        self._gps_offset_model = OffsetModel(
-            np.empty(0), gps_offsets, gps_timestamps, gps_timestamps[0], gps_timestamps[-1]
-        )
 
     def _app_version_major(self) -> Tuple[int, int]:
         """
@@ -1691,11 +1693,11 @@ class Station:
         """
         Note: This function means nothing if the station is not set to correct timestamps
 
-        :return: True if timesync is used for correction, False if GPS is used instead.
+        :return: False if timesync has NAN mean latency or best offset is 0. True otherwise
         """
-        if np.isnan(self._timesync_data.mean_latency()) or self._timesync_data.best_offset() == 0.0:
-            return False
-        return True
+        return (
+            False if np.isnan(self._timesync_data.mean_latency()) or self._timesync_data.best_offset() == 0.0 else True
+        )
 
     def update_timestamps(self) -> "Station":
         """
@@ -1704,10 +1706,9 @@ class Station:
         :return: updated Station
         """
         if not self._is_timestamps_updated and self._correct_timestamps:
-            if self.use_timesync_for_correction():
-                offset_model = self._timesync_data.offset_model()
-            else:
-                offset_model = self._gps_offset_model
+            offset_model = (
+                self._timesync_data.offset_model() if self.use_timesync_for_correction() else self._gps_offset_model
+            )
             self._start_date = offset_model.update_time(self._start_date, self._use_model_correction)
             for sensor in self._data:
                 sensor.update_data_timestamps(offset_model)
@@ -1738,10 +1739,9 @@ class Station:
         :return: updated Station
         """
         if self._is_timestamps_updated:
-            if self.use_timesync_for_correction():
-                offset_model = self._timesync_data.offset_model()
-            else:
-                offset_model = self._gps_offset_model
+            offset_model = (
+                self._timesync_data.offset_model() if self.use_timesync_for_correction() else self._gps_offset_model
+            )
             self._start_date = offset_model.get_original_time(self._start_date, self._use_model_correction)
             for sensor in self._data:
                 sensor.set_original_timestamps()
