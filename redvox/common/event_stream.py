@@ -1,5 +1,6 @@
 """
 This module provides classes to organize events recorded on a station.
+It will ignore machine learning events.
 """
 from typing import List, Optional, Dict, Union
 from dataclasses import dataclass, field
@@ -14,6 +15,8 @@ from dataclasses_json import dataclass_json
 from redvox.api1000.common.mapping import Mapping
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet import event_streams as es
+from redvox.api1000.wrapped_redvox_packet import ml
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.errors import RedVoxExceptions
 from redvox.common import offset_model as om
 from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode, json_file_to_dict
@@ -77,15 +80,11 @@ class Event:
         """
         self.name = name
         self.metadata = {}
-
         self._errors = RedVoxExceptions("Event")
         self._fs_writer = Fsw(f"event_{name}", "json", base_dir, save_mode)
         self._timestamp = timestamp
         self._uncorrected_timestamp = timestamp
-        if data is not None:
-            self._data = data
-        else:
-            self._data = get_empty_event_data_dict()
+        self._data = get_empty_event_data_dict() if data is None else data
 
     def __repr__(self):
         return (
@@ -496,6 +495,12 @@ class Event:
         :param save_mode: new save mode
         """
         self._fs_writer.set_save_mode(save_mode)
+
+    def save_mode(self) -> FileSystemSaveMode:
+        """
+        :return: the save mode
+        """
+        return self._fs_writer.save_mode()
 
     def set_file_name(self, new_file: Optional[str] = None):
         """
@@ -986,23 +991,29 @@ class EventStreams:
     Properties:
         streams: List[EventStream]; list of all EventStream.  Default empty list
 
+        ml_data: Optional ExtractedMl from the packets.  Default None
+
         debug: bool; if True, output additional information during runtime.  Default False
     """
 
     streams: List[EventStream] = field(default_factory=lambda: [])
+    ml_data: Optional[ml.ExtractedMl] = None
     debug: bool = False
 
     def __repr__(self):
-        return f"streams: {[s.__repr__() for s in self.streams]}, " f"debug: {self.debug}"
+        return f"streams: {[s.__repr__() for s in self.streams]}, ml: {self.ml_data}, debug: {self.debug}"
 
     def __str__(self):
-        return str([s.__str__() for s in self.streams])
+        return f"streams: {[s.__str__() for s in self.streams]}, ml: {self.ml_data}"
 
     def as_dict(self) -> dict:
         """
         :return: EventStreams as dict
         """
-        return {"streams": [s.as_dict() for s in self.streams]}
+        return {
+            "streams": [s.as_dict() for s in self.streams],
+            "ml_data": self.ml_data.to_dict() if self.ml_data else None,
+        }
 
     def read_from_packet(self, packet: RedvoxPacketM):
         """
@@ -1011,11 +1022,17 @@ class EventStreams:
         :param packet: packet to read data from
         """
         for st in packet.event_streams:
-            if st.name in self.get_stream_names() and self.get_stream(st.name).has_data():
-                self.get_stream(st.name).add_events(st)
+            if st.name == ml.ML_EVENT_STREAM_NAME:
+                if self.ml_data:
+                    self.ml_data.windows.extend(ml.extract_ml_windows(_find_ml_event_stream(packet)))
+                else:
+                    self.ml_data = ml.extract_ml_from_packet(WrappedRedvoxPacketM(packet))
             else:
-                self.remove_stream(st.name)
-                self.streams.append(EventStream.from_eventstream(st))
+                if st.name in self.get_stream_names() and self.get_stream(st.name).has_data():
+                    self.get_stream(st.name).add_events(st)
+                else:
+                    self.remove_stream(st.name)
+                    self.streams.append(EventStream.from_eventstream(st))
 
     def read_from_packets_list(self, packets: List[RedvoxPacketM]):
         """
@@ -1037,6 +1054,18 @@ class EventStreams:
             self.get_stream(other_stream.name).add_events(other_stream)
         else:
             self.streams.append(other_stream)
+
+    def append_ml(self, other_ml: ml.ExtractedMl):
+        """
+        append the windows from another extracted machine learning object or
+        set the existing ML object if its empty.
+
+        :param other_ml: other ExtractedMl to add
+        """
+        if self.ml_data:
+            self.ml_data.windows.extend(other_ml.windows)
+        else:
+            self.ml_data = other_ml
 
     def append_streams(self, other_streams: "EventStreams"):
         """
@@ -1075,7 +1104,7 @@ class EventStreams:
 
     def create_event_window(self, start: float = -np.inf, end: float = np.inf):
         """
-        removes any event in the streams that doesn't match start <= event < end
+        removes any event in the streams and ML that doesn't match start <= event < end
         default start is negative infinity, default end is infinity
         all times in microseconds since epoch UTC
 
@@ -1084,6 +1113,8 @@ class EventStreams:
         """
         for s in self.streams:
             s.create_event_window(start, end)
+        if self.ml_data:
+            self.ml_data.windows = [s for s in self.ml_data.windows if start <= s.timestamp < end]
 
     def set_save_dir(self, new_dir: str):
         """
@@ -1113,6 +1144,9 @@ class EventStreams:
         """
         for evnt in self.streams:
             evnt.update_timestamps(offset_model, use_model_function)
+        if self.ml_data:
+            for w in self.ml_data.windows:
+                w.timestamp = offset_model.update_time(w.timestamp)
 
     def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         """
@@ -1124,6 +1158,22 @@ class EventStreams:
         """
         for evnt in self.streams:
             evnt.original_timestamps(offset_model, use_model_function)
+        if self.ml_data:
+            for w in self.ml_data.windows:
+                w.timestamp = offset_model.get_original_time(w.timestamp)
+
+    @staticmethod
+    def from_dict(in_dict: dict) -> "EventStreams":
+        """
+        :param in_dict: dictionary representing an EventStreams object
+        :return: the EventStreams object from the dictionary
+        """
+        result = EventStreams()
+        if "streams" in in_dict.keys():
+            result.streams = [EventStream.from_json_dict(s) for s in in_dict["streams"]]
+        if "ml_data" in in_dict.keys():
+            result.ml_data = ml.ExtractedMl.from_dict(in_dict["ml_data"])
+        return result
 
     @staticmethod
     def from_json_file(file_dir: str, file_name: str) -> "EventStreams":
@@ -1132,14 +1182,7 @@ class EventStreams:
         :param file_name: name of file to load data from
         :return: EventStreams from json file
         """
-        json_data = json_file_to_dict(os.path.join(file_dir, f"{file_name}"))
-        if "streams" in json_data.keys():
-            result = EventStreams([EventStream.from_json_dict(s) for s in json_data["streams"]])
-            result.set_save_mode(FileSystemSaveMode.DISK)
-            result.set_save_dir(file_dir)
-        else:
-            result = EventStreams()
-        return result
+        return EventStreams.from_dict(json_file_to_dict(os.path.join(file_dir, f"{file_name}")))
 
     def to_json_file(self, file_dir: str = ".", file_name: Optional[str] = None) -> Path:
         """
@@ -1152,3 +1195,27 @@ class EventStreams:
         :return: path to json file
         """
         return io.eventstreams_to_json_file(self, file_dir, file_name)
+
+
+def _find_ml_event_stream(packet: RedvoxPacketM) -> Optional[es.EventStream]:
+    """
+    Attempts to find an event stream with ML data.
+
+    :param packet: The packet to search in.
+    :return: An instance of the matching event stream or None.
+    """
+    stream: RedvoxPacketM.EventStream
+    for stream in packet.event_streams:
+        if stream.name == ml.ML_EVENT_STREAM_NAME:
+            return es.EventStream(stream)
+    return None
+
+
+def _get_ml_from_packet(packet: RedvoxPacketM) -> Optional[ml.ExtractedMl]:
+    """
+    reads the machine learning payload from a single Redvox Api1000 packet
+
+    :param packet: packet to read machine learning data from
+    """
+    stream: Optional[es.EventStream] = _find_ml_event_stream(packet)
+    return None if stream is None else ml.extract_ml_from_event_stream(stream)

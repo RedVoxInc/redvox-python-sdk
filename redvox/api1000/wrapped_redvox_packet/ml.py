@@ -4,6 +4,7 @@ This module provides methods and datatypes for the efficient extraction and mani
 """
 
 from dataclasses import dataclass
+from dataclasses_json import dataclass_json
 from enum import Enum
 from math import isfinite
 from typing import Optional, Dict, List
@@ -29,6 +30,7 @@ class MlError(RedVoxError):
         super().__init__(f"MlError: {msg}")
 
 
+@dataclass_json
 @dataclass
 class ExtractedMl:
     """
@@ -80,6 +82,7 @@ class ExtractedMl:
         return self
 
 
+@dataclass_json
 @dataclass
 class MlMetadata:
     """
@@ -93,6 +96,7 @@ class MlMetadata:
     input_samples_per_window: int
 
 
+@dataclass_json
 @dataclass
 class MlWindow:
     """
@@ -104,22 +108,18 @@ class MlWindow:
 
     def sort(self, sort_by: "SortBy") -> "MlWindow":
         """
-        Sorts the labels in ascending or descending order by either score of class name.
+        Sorts the labels in ascending or descending order by either score or class name.
         :param sort_by: The sort operation to use.
         :return: An updated instance of MlWindow.
         """
         if sort_by is SortBy.CLASS_ASC:
             self.labels = sorted(self.labels, key=lambda label: label.class_name)
         elif sort_by is SortBy.CLASS_DESC:
-            self.labels = sorted(
-                self.labels, key=lambda label: label.class_name, reverse=True
-            )
+            self.labels = sorted(self.labels, key=lambda label: label.class_name, reverse=True)
         elif sort_by is SortBy.SCORE_ASC:
             self.labels = sorted(self.labels, key=lambda label: label.score)
         else:
-            self.labels = sorted(
-                self.labels, key=lambda label: label.score, reverse=True
-            )
+            self.labels = sorted(self.labels, key=lambda label: label.score, reverse=True)
 
         return self
 
@@ -157,6 +157,7 @@ class MlWindow:
         return sorted_window
 
 
+@dataclass_json
 @dataclass
 class Label:
     """
@@ -185,9 +186,7 @@ def extract_ml_metadata(stream: EventStream) -> MlMetadata:
     :return: An instance of MlMetadata.
     """
     if stream.get_name() != ML_EVENT_STREAM_NAME:
-        raise MlError(
-            f"Invalid ML event stream name={stream.get_name()} != {ML_EVENT_STREAM_NAME}"
-        )
+        raise MlError(f"Invalid ML event stream name={stream.get_name()} != {ML_EVENT_STREAM_NAME}")
 
     if stream.get_events().get_count() == 0:
         raise MlError("ML EventStream contains 0 Events")
@@ -232,9 +231,7 @@ def find_ml_event_stream(packet: WrappedRedvoxPacketM) -> Optional[EventStream]:
     return None
 
 
-def label_at(
-    str_payload: Dict[str, str], num_payload: Dict[str, float], idx: int
-) -> Label:
+def label_at(str_payload: Dict[str, str], num_payload: Dict[str, float], idx: int) -> Label:
     """
     Finds the label and score in the event payloads.
     :param str_payload: The event string payload.
@@ -267,9 +264,7 @@ def extract_ml_windows(stream: EventStream) -> List[MlWindow]:
     :return: A list of ML windows.
     """
     if stream.get_name() != ML_EVENT_STREAM_NAME:
-        raise MlError(
-            f"Invalid ML event stream name={stream.get_name()} != {ML_EVENT_STREAM_NAME}"
-        )
+        raise MlError(f"Invalid ML event stream name={stream.get_name()} != {ML_EVENT_STREAM_NAME}")
 
     timestamps: np.ndarray = stream.get_timestamps().get_timestamps()
     windows: List[MlWindow] = []
@@ -281,7 +276,7 @@ def extract_ml_windows(stream: EventStream) -> List[MlWindow]:
 
     idx_window: int
     timestamp: float
-    for (idx_window, timestamp) in enumerate(timestamps):
+    for idx_window, timestamp in enumerate(timestamps):
         event: Event = events[idx_window]
         str_payload: Dict[str, str] = event.get_string_payload().get_metadata()
         num_payload: Dict[str, float] = event.get_numeric_payload().get_metadata()
@@ -304,9 +299,7 @@ def extract_ml_from_event_stream(stream: EventStream) -> ExtractedMl:
     :return: The extracted ML parameters or None.
     """
     if stream.get_name() != ML_EVENT_STREAM_NAME:
-        raise MlError(
-            f"Invalid ML event stream name={stream.get_name()} != {ML_EVENT_STREAM_NAME}"
-        )
+        raise MlError(f"Invalid ML event stream name={stream.get_name()} != {ML_EVENT_STREAM_NAME}")
 
     metadata: MlMetadata = extract_ml_metadata(stream)
     windows: List[MlWindow] = extract_ml_windows(stream)
