@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.6.0 (2023-8-3)
+* Added ML extraction as a property with write, read, and update functionality to Station's event_data()
+* Updated ML extraction to enable the above
+
 ### 3.5.2 (2023-8-1)
 * Remove redvox-base as a dependency
 
