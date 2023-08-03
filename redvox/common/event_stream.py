@@ -1010,7 +1010,10 @@ class EventStreams:
         """
         :return: EventStreams as dict
         """
-        return {"streams": [s.as_dict() for s in self.streams], "ml_data": self.ml_data.to_dict()}
+        return {
+            "streams": [s.as_dict() for s in self.streams],
+            "ml_data": self.ml_data.to_dict() if self.ml_data else None,
+        }
 
     def read_from_packet(self, packet: RedvoxPacketM):
         """
@@ -1110,7 +1113,8 @@ class EventStreams:
         """
         for s in self.streams:
             s.create_event_window(start, end)
-        self.ml_data.windows = [s for s in self.ml_data.windows if start <= s.timestamp < end]
+        if self.ml_data:
+            self.ml_data.windows = [s for s in self.ml_data.windows if start <= s.timestamp < end]
 
     def set_save_dir(self, new_dir: str):
         """
@@ -1140,8 +1144,9 @@ class EventStreams:
         """
         for evnt in self.streams:
             evnt.update_timestamps(offset_model, use_model_function)
-        for w in self.ml_data.windows:
-            w.timestamp = offset_model.update_time(w.timestamp)
+        if self.ml_data:
+            for w in self.ml_data.windows:
+                w.timestamp = offset_model.update_time(w.timestamp)
 
     def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         """
@@ -1153,8 +1158,9 @@ class EventStreams:
         """
         for evnt in self.streams:
             evnt.original_timestamps(offset_model, use_model_function)
-        for w in self.ml_data.windows:
-            w.timestamp = offset_model.get_original_time(w.timestamp)
+        if self.ml_data:
+            for w in self.ml_data.windows:
+                w.timestamp = offset_model.get_original_time(w.timestamp)
 
     @staticmethod
     def from_dict(in_dict: dict) -> "EventStreams":
