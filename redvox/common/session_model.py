@@ -13,7 +13,7 @@ from redvox.cloud import session_model_api as cloud_sm
 from redvox.common.errors import RedVoxError, RedVoxExceptions
 
 
-SESSION_VERSION = "2023-06-28"  # Version of the SessionModel
+SESSION_VERSION = "2023-08-16"  # Version of the SessionModel
 CLIENT_NAME = "redvox-sdk/session_model"  # Name of the client used to create the SessionModel
 CLIENT_VERSION = SESSION_VERSION  # Version of the client used to create the SessionModel
 APP_NAME = "RedVox"  # Default name of the app
@@ -38,7 +38,7 @@ class SessionModel:
         return (
             f"cloud_session: {self.cloud_session}, "
             f"dynamic_sessions: {self.dynamic_sessions}, "
-            f"sdk_version: {self._sdk_version}"
+            f"sdk_version: {self._sdk_version}, "
             f"errors: {self._errors}"
         )
 
@@ -159,9 +159,8 @@ class SessionModel:
                     sub=[],
                 )
             )
-            result.sub = [result.add_dynamic_day(packet)]
+            result.cloud_session.sub = [result.add_dynamic_day(packet)]
         except Exception as e:
-            # result = SessionModel(station_description=f"FAILED: {e}")
             raise e
         return result
 
@@ -240,9 +239,10 @@ class SessionModel:
         hour_start_dt = dtu.datetime(start_dt.year, start_dt.month, start_dt.day, start_dt.hour)
         hour_end_ts = int(dtu.datetime_to_epoch_microseconds_utc(hour_start_dt + dtu.timedelta(hours=1)))
         hour_start_ts = int(dtu.datetime_to_epoch_microseconds_utc(hour_start_dt))
-        key = f"{session_key}:{hour_start_ts}:{hour_end_ts}"
+        dynamic_key = f"{hour_start_ts}:{hour_end_ts}"
+        key = f"{session_key}:{dynamic_key}"
         if key in self.dynamic_sessions.keys():
-            self._update_dynamic_session(key, data, [f"{packet_start}"])
+            self._update_dynamic_session(key, data, [f"{int(packet_start)}"])
         else:
             self.dynamic_sessions[key] = cloud_sm.DynamicSession(
                 1,
@@ -253,9 +253,9 @@ class SessionModel:
                 hour_start_ts,
                 hour_end_ts,
                 HOURLY_SESSION_NAME,
-                [f"{packet_start}"],
+                [f"{int(packet_start)}"],
             )
-        return key
+        return dynamic_key
 
     def add_dynamic_day(self, packet: api_m.RedvoxPacketM) -> str:
         """
@@ -269,11 +269,12 @@ class SessionModel:
         day_start_dt = dtu.datetime(start_dt.year, start_dt.month, start_dt.day)
         day_end_ts = int(dtu.datetime_to_epoch_microseconds_utc(day_start_dt + dtu.timedelta(days=1)))
         day_start_ts = int(dtu.datetime_to_epoch_microseconds_utc(day_start_dt))
+        dynamic_key = f"{day_start_ts}:{day_end_ts}"
         session_key = (
             f"{packet.station_information.id}:{packet.station_information.uuid}:"
-            f"{packet.timing_information.app_start_mach_timestamp}"
+            f"{int(packet.timing_information.app_start_mach_timestamp)}"
         )
-        key = f"{session_key}:{day_start_ts}:{day_end_ts}"
+        key = f"{session_key}:{dynamic_key}"
         hourly_key = self.add_dynamic_hour(data, packet.timing_information.packet_start_mach_timestamp, session_key)
         if key in self.dynamic_sessions.keys():
             self._update_dynamic_session(key, data, [hourly_key])
@@ -289,7 +290,7 @@ class SessionModel:
                 DAILY_SESSION_NAME,
                 [hourly_key],
             )
-        return key
+        return dynamic_key
 
     def _update_dynamic_session(self, key: str, data: Dict, sub: List[str]):
         """
@@ -302,14 +303,20 @@ class SessionModel:
         if key not in self.dynamic_sessions.keys():
             self._errors.append(f"Attempted to update non-existent key: {key}.")
         else:
-            dyn_sess = self.dynamic_sessions[key]
-            dyn_sess.n_pkts += 1
-            dyn_sess.location = smu.add_location_data(data["location"], dyn_sess.location)
-            dyn_sess.battery = smu.add_to_stats(data["battery"], dyn_sess.battery)
-            dyn_sess.temperature = smu.add_to_stats(data["temperature"], dyn_sess.temperature)
+            self.dynamic_sessions[key].n_pkts += 1
+            self.dynamic_sessions[key].location = smu.add_location_data(
+                data["location"], self.dynamic_sessions[key].location
+            )
+            self.dynamic_sessions[key].battery = smu.add_to_stats(data["battery"], self.dynamic_sessions[key].battery)
+            self.dynamic_sessions[key].temperature = smu.add_to_stats(
+                data["temperature"], self.dynamic_sessions[key].temperature
+            )
             for s in sub:
-                if s in self.dynamic_sessions.keys():
-                    self._update_dynamic_session(s, data, self.dynamic_sessions[s].sub)
+                if s not in self.dynamic_sessions[key].sub:
+                    self.dynamic_sessions[key].sub.append(s)
+                child_key = f"{self.dynamic_sessions[key].session_key}:{s}"
+                if child_key in self.dynamic_sessions.keys():
+                    self._update_dynamic_session(s, data, self.dynamic_sessions[child_key].sub)
 
     def sdk_version(self) -> str:
         """

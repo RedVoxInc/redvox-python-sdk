@@ -262,7 +262,9 @@ class DataWindow:
         debug: bool = False,
     ):
         """
-        Initialize the DataWindow
+        Initialize the DataWindow.
+
+        If no config is passed, the DataWindow will not process any data.
 
         :param event_name: name of the DataWindow.  defaults to "dw"
         :param event_origin: Optional EventOrigin which describes the physical location and radius of the
@@ -502,7 +504,7 @@ class DataWindow:
         ):
             raise ValueError(
                 "Dictionary loading type is invalid or unknown.  "
-                'Check the value "out_type"; it must be one of: '
+                'Check the value of "out_type"; it must be one of: '
                 f"{dw_io.DataWindowOutputType.list_non_none_names()}"
             )
         else:
@@ -552,9 +554,11 @@ class DataWindow:
     @staticmethod
     def load(file_path: str) -> "DataWindow":
         """
-        load from json metadata and lz4 compressed file or directory of files
+        load from json metadata and lz4 compressed file or directory of files.
 
-        :param file_path: full path of file to load
+        If you have a pkl.lz4 file, use the deserialize() method instead.
+
+        :param file_path: full path of json metadata file to load
         :return: DataWindow from json metadata
         """
         cur_path = os.getcwd()
@@ -614,16 +618,18 @@ class DataWindow:
     def add_station(self, station: Station):
         """
         add a station to the DataWindow
+
         :param station: Station to add
         """
         self._stations.append(station)
 
     def remove_station(self, station_id: Optional[str] = None, start_date: Optional[float] = None):
         """
-        remove the first station from the DataWindow, or a specific station if given the id and/or start date
-        if an id is given, the first station with that id will be removed
-        if a start date is given, the removed station will start at or after the start date
-        start date is in microseconds since epoch UTC
+        Remove the first station from the DataWindow, or a specific station if given the id and/or start date.
+
+        * If an id is given, the first station with that id will be removed.
+        * If a start date is given, the removed station will start at or after the start date.
+        * Start date is in microseconds since epoch UTC.
 
         :param station_id: id of station to remove
         :param start_date: start date that is at or before the station to remove
@@ -682,7 +688,7 @@ class DataWindow:
         Get stations from the DataWindow.  Must give at least the station's id.  Other parameters may be None,
         which means the value will be ignored when searching.  Results will match all non-None parameters given.
 
-        :param station_id: station id
+        :param station_id: station id to get data for
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
         :return: A list of valid stations or None if the station cannot be found
@@ -751,7 +757,6 @@ class DataWindow:
         sts = a_r.get_stations()
         if self.debug:
             print("number of stations loaded: ", len(sts))
-
         for st in maybe_parallel_map(_pool, lambda s: s, iter(sts), chunk_size=1):
             self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
             if self.debug:
