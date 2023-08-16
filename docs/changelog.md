@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.6.1 (2023-8-16)
+* Fixed bug with SDK SessionModel not setting sub keys properly
+* Added container for Sessions in the ApiReader class
+
 ### 3.6.0 (2023-8-3)
 * Added ML extraction as a property with write, read, and update functionality to Station's event_data()
 * Updated ML extraction to enable the above

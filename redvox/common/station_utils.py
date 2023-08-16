@@ -97,7 +97,7 @@ class StationKey:
     start_timestamp_micros: float
 
     def __repr__(self):
-        return f"StationKey:\nid:{self.id}, uuid:{self.uuid}, start_date:{self.start_timestamp_micros}"
+        return f"id:{self.id}, uuid:{self.uuid}, start_date:{self.start_timestamp_micros}"
 
     def get_key(self) -> Tuple[str, str, float]:
         """
@@ -144,6 +144,12 @@ class StationKey:
         :return: True if the keys match
         """
         return self.check_key(other_key.id, other_key.uuid, other_key.start_timestamp_micros)
+
+    def as_cloud_key(self) -> str:
+        """
+        :return: key in format used by cloud session models
+        """
+        return f"{self.id}:{self.uuid}:{int(self.start_timestamp_micros)}"
 
 
 class StationMetadata:
