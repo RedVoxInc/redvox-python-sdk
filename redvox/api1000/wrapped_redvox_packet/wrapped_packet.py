@@ -161,7 +161,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
             self.get_timing_information().get_packet_start_mach_timestamp()
         )
         date_time: datetime = dt_utils.datetime_from_epoch_microseconds_utc(timestamp)
-        year: str = f"{date_time.year}:0>4"
+        year: str = f"{date_time.year:0>4}"
         month: str = f"{date_time.month:0>2}"
         day: str = f"{date_time.day:0>2}"
         hour: str = f"{date_time.hour:0>2}"
