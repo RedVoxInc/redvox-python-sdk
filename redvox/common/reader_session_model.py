@@ -191,8 +191,11 @@ class ModelsContainer:
     ):
         """
         Search the cloud for a range of Session models and overwrites existing cloud_models if there are results.
-        All defaults are None except for include_public, which is False.
         Raises any exception found.
+
+        * All defaults are None except for include_public, which is False.
+        * Without any inputs, this function may add a large number of results.  We recommend you set at least one of
+          the parameters to reduce the number of results.
 
         :param id_uuids: An optional list of IDs or ID:UUIDs.
         :param owner: An optional owner.
