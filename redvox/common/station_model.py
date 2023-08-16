@@ -3,7 +3,140 @@ Prototype class
 In Development
 
 Class representing the Station information that can be used to convert Station into another format.
+Temporary home for station location and timing summary
 """
+from typing import List, Optional
+import math
+
+from dataclasses import dataclass
+import numpy as np
+
+from redvox.common.station import Station
+from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
+
+
+LOCATION_PROVIDER_IDX: int = 10
+LATITUDE_IDX: int = 1
+LONGITUDE_IDX: int = 2
+ALTITUDE_IDX: int = 3
+
+
+@dataclass
+class Location:
+    latitude: float
+    longitude: float
+    altitude: float
+
+
+@dataclass
+class LocationSummary:
+    name: str
+    provider: str
+    location: Location
+    latitude_standard_deviation: float
+    longitude_standard_deviation: float
+    altitude_standard_deviation: float
+    num_pts: int
+
+
+def get_location_summary(stn: Station) -> Optional[List[LocationSummary]]:
+    """
+    :return: List of LocationSummary with mean and std deviation organized by provider or None
+    """
+    loc = stn.find_loc_for_stats()
+    if loc:
+        samples: np.ndarray = loc.samples()
+
+        if loc.num_samples() == 1:
+            return [
+                LocationSummary(
+                    loc.name,
+                    LocationProvider(int(samples[LOCATION_PROVIDER_IDX][0])).name,
+                    Location(
+                        samples[LATITUDE_IDX][0],
+                        samples[LONGITUDE_IDX][0],
+                        samples[ALTITUDE_IDX][0],
+                    ),
+                    0.0,
+                    0.0,
+                    0.0,
+                    1,
+                )
+            ]
+
+        # for each provider, create a new entry in the dictionary or append new data
+        loc_prov_to_data: dict = {}
+        lat_samples: np.ndarray = samples[LATITUDE_IDX]
+        lng_samples: np.ndarray = samples[LONGITUDE_IDX]
+        min_len: int = min(len(lat_samples), len(lng_samples))
+        for j in range(min_len):
+            lat: float = lat_samples[j]
+            lng: float = lng_samples[j]
+            if (not math.isnan(lat)) and (not math.isnan(lng)):
+                prov = LocationProvider(int(samples[LOCATION_PROVIDER_IDX][j])).name
+                data = np.array(
+                    [
+                        [samples[LATITUDE_IDX][j]],
+                        [samples[LONGITUDE_IDX][j]],
+                        [samples[ALTITUDE_IDX][j]],
+                    ]
+                )
+                loc_prov_to_data[prov] = (
+                    data if prov not in loc_prov_to_data.keys() else np.concatenate([loc_prov_to_data[prov], data], 1)
+                )
+
+        loc_sums = []
+        for f, v in loc_prov_to_data.items():
+            loc_sums.append(
+                LocationSummary(
+                    loc.name,
+                    f,
+                    Location(
+                        v[0].mean(),
+                        v[1].mean(),
+                        v[2].mean(),
+                    ),
+                    v[0].std(),
+                    v[1].std(),
+                    v[2].std(),
+                    len(v[0]),
+                )
+            )
+        return loc_sums
+    return None
+
+
+def print_loc_and_timing_summary(stn: Station):
+    """
+    Prints the location, GNSS, and time sync information
+    :param stn:
+    """
+    print(f"station_id: {stn.id()}")
+    loc_summary = get_location_summary(stn)
+    if loc_summary:
+        for m in loc_summary:
+            print(
+                "-----------------------------\n"
+                f"location_provider: {m.provider}, num_pts: {m.num_pts}\n"
+                f"latitude  mean: {m.location.latitude}, std_dev: {m.latitude_standard_deviation}\n"
+                f"longitude mean: {m.location.longitude}, std_dev: {m.longitude_standard_deviation}\n"
+                f"altitude  mean: {m.location.altitude}, std_dev: {m.altitude_standard_deviation}"
+            )
+        print(
+            f"-----------------------------\nGNSS timing:\n"
+            f"GNSS offset at start: {stn.gps_offset_model().intercept}, slope: {stn.gps_offset_model().slope}\n"
+            f"GNSS estimated latency: {stn.gps_offset_model().mean_latency}, "
+            f"num_pts: {len(stn.location_sensor().get_gps_timestamps_data())}"
+        )
+    else:
+        print("location data not found.")
+    print(
+        f"-----------------------------\ntimesync:\n"
+        f"best_offset: {stn.timesync_data().best_offset()}, offset_std: {stn.timesync_data().offset_std()}\n"
+        f"best_latency: {stn.timesync_data().best_latency()}, latency_std: {stn.timesync_data().latency_std()}\n"
+        f"num_pts: {stn.timesync_data().num_tri_messages()}\n*****************************\n"
+    )
+
 
 # from typing import List
 #
@@ -127,4 +260,3 @@ Class representing the Station information that can be used to convert Station i
 #             model.add_session(p)
 #         sessions.insert(0, p1)
 #         return model
-

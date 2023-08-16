@@ -91,12 +91,9 @@ def _get_sensor_for_data_extraction(sensor_name: str, packet: api_m.RedvoxPacket
 def _get_mean_sample_rate_from_sensor(sensor: Sensor) -> float:
     """
     :param sensor: Sensor to get data from
-    :return: number of samples and mean sample rate of the sensor; returns np.nan if sample rate doesn't exist
+    :return: mean sample rate of the sensor or np.nan if sample rate doesn't exist
     """
-    num_pts = int(sensor.timestamps.timestamp_statistics.count)
-    if num_pts > 1:
-        return sensor.timestamps.mean_sample_rate
-    return np.nan
+    return sensor.timestamps.mean_sample_rate if int(sensor.timestamps.timestamp_statistics.count) > 1 else np.nan
 
 
 def _has_sensor(data: Union[api_m.RedvoxPacketM, api_m.RedvoxPacketM.Sensors], field_name: str) -> bool:
@@ -174,7 +171,8 @@ def __ordered_insert(buffer: List, value: Tuple):
 
 def add_to_fst_buffer(buffer: List, buf_max_size: int, timestamp: float, value):
     """
-    * add a value into the first buffer.
+    Add a value into the first buffer.
+
     * If the buffer is not full, the value is added automatically
     * If the buffer is full, the value is only added if it comes before the last element.
 
@@ -191,7 +189,8 @@ def add_to_fst_buffer(buffer: List, buf_max_size: int, timestamp: float, value):
 
 def add_to_lst_buffer(buffer: List, buf_max_size: int, timestamp: float, value):
     """
-    * add a value into the last buffer.
+    Add a value into the last buffer.
+
     * If the buffer is not full, the value is added automatically
     * If the buffer is full, the value is only added if it comes after the first element.
 
@@ -213,7 +212,7 @@ def get_local_timesync(packet: api_m.RedvoxPacketM) -> Optional[Tuple]:
     (start_timestamp, end_timestamp, num_exchanges, best_latency, best_offset, list of TimeSyncData)
 
     :param packet: packet to get timesync data from
-    :return: Timing object using data from packet
+    :return: Timing object using data from packet or None
     """
     ts = TimeSync().from_raw_packets([packet])
     if ts.num_tri_messages() > 0:
@@ -304,18 +303,13 @@ def get_location_data(packet: api_m.RedvoxPacketM) -> List[Tuple[str, float, flo
         lons = loc.longitude_samples.values
         alts = loc.altitude_samples.values
         tstp = loc.timestamps.timestamps
-        # we add each of the location values
         for i in range(num_pts):
-            lat = lats[i]
-            lon = lons[i]
-            alt = alts[i]
-            ts = tstp[i]
             source = (
                 "UNKNOWN"
                 if len(loc.location_providers) != num_pts
                 else COLUMN_TO_ENUM_FN["location_provider"](loc.location_providers[i])
             )
-            locations.append((source, lat, lon, alt, ts))
+            locations.append((source, lats[i], lons[i], alts[i], tstp[i]))
         # set a special flag for later, so we don't add an extra location value
         source = None
     elif loc.last_best_location is not None:

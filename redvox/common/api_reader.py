@@ -16,10 +16,11 @@ import redvox.common.date_time_utils as dtu
 from redvox.common import io, api_conversions as ac
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
+from redvox.common.reader_session_model import ModelsContainer
 from redvox.common.session_model import SessionModel
 from redvox.common.errors import RedVoxExceptions
 from redvox.cloud.client import cloud_client
-from redvox.cloud.session_model_api import SessionModelsResp, Session
+from redvox.cloud.session_model_api import Session
 from redvox.cloud.errors import CloudApiError
 
 
@@ -68,6 +69,8 @@ class ApiReader:
 
         index_summary: io.IndexSummary of the filtered data
 
+        session_models: ModelContainer for cloud and local session models.
+
         debug: bool, if True, output additional information during function execution.  Default False.
     """
 
@@ -91,17 +94,18 @@ class ApiReader:
         _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
 
         if read_filter:
-            self.filter = read_filter
+            self.filter: io.ReadFilter = read_filter
             if self.filter.station_ids:
                 self.filter.station_ids = set(self.filter.station_ids)
         else:
             self.filter = io.ReadFilter()
-        self.base_dir = base_dir
-        self.structured_dir = structured_dir
-        self.debug = debug
-        self.errors = RedVoxExceptions("APIReader")
-        self.files_index = self._get_all_files(_pool)
-        self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
+        self.base_dir: str = base_dir
+        self.structured_dir: bool = structured_dir
+        self.debug: bool = debug
+        self.errors: RedVoxExceptions = RedVoxExceptions("APIReader")
+        self.session_models: ModelsContainer = ModelsContainer()
+        self.files_index: List[io.Index] = self._get_all_files(_pool)
+        self.index_summary: io.IndexSummary = io.IndexSummary.from_index(self._flatten_files_index())
         if len(self.files_index) > 0:
             mem_split_factor = len(self.files_index) if settings.is_parallelism_enabled() else 1
             self.chunk_limit = psutil.virtual_memory().available * PERCENT_FREE_MEM_USE / mem_split_factor
@@ -146,25 +150,26 @@ class ApiReader:
             result.append(iter(i.entries))
         return result
 
-    def _get_cloud_models(self, ids: List[str]) -> SessionModelsResp:
+    def _get_cloud_models(self, ids: List[str]):
+        """
+        saves the cloud models from the server that match the list of ids given to the ApiReader's session_models.
+        :param ids: station ids to get models for
+        """
         try:
             with cloud_client() as client:
-                resp: SessionModelsResp = client.request_session_models(
-                    owner=client.redvox_config.username,
+                self.session_models.search_cloud_session(
                     id_uuids=ids,
+                    owner=client.redvox_config.username,
                     start_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.start_dt))
                     if self.filter.start_dt
                     else None,
                     end_ts=int(dtu.datetime_to_epoch_microseconds_utc(self.filter.end_dt))
                     if self.filter.end_dt
                     else None,
+                    include_public=True,
                 )
-                if len(resp.sessions) < 1:
-                    self.errors.append(
-                        "Unable to find sessions.  Check if the requested stations: belong to your "
-                        "account or are public."
-                    )
-                return resp
+                if self.session_models.cloud_models is None:
+                    self.errors.append(f"Unable to find any cloud sessions for {ids}.  Using local files.")
         except CloudApiError as e:
             self.errors.append(f"Error while connecting to server.  Error message: {e}")
         except Exception as e:
@@ -217,8 +222,8 @@ class ApiReader:
         all_index = self._apply_filter(pool=_pool)
         all_index_ids = all_index.summarize().station_ids()
         # get models using the cloud to correct timing
-        resp = self._get_cloud_models(all_index_ids)
-        resp_ids = [n.id for n in resp.sessions] if resp is not None else []
+        self._get_cloud_models(all_index_ids)
+        resp_ids = self.session_models.list_ids()
 
         for station_id in all_index_ids:
             # if start and end are both not defined, just use what we got
@@ -226,7 +231,7 @@ class ApiReader:
                 checked_index = [all_index.get_index_for_station_id(station_id)]
             # if we need to update the start or end, use the first session model from cloud if it exists
             elif station_id in resp_ids:
-                checked_index = self._reset_index([n for n in resp.sessions if n.id == station_id][0])
+                checked_index = self._reset_index(self.session_models.get_model_by_key(station_id))
             # if no models from cloud, use the data available to update start and end of index
             else:
                 id_index = all_index.get_index_for_station_id(station_id)
@@ -237,7 +242,8 @@ class ApiReader:
                     try:
                         stats = SessionModel().create_from_stream(self.read_files_in_index(id_index))
                         checked_index = self._reset_index(stats.cloud_session)
-                    except Exception as e:
+                        self.session_models.add_local_session(stats)
+                    except (ValueError, Exception):
                         checked_index = [id_index]
 
             # add the updated list of files to the index
@@ -280,7 +286,6 @@ class ApiReader:
         :param new_end: new end time to get data from
         :return: Updated index or None
         """
-        diff_s = diff_e = timedelta(seconds=0)
         new_index = self._apply_filter(
             io.ReadFilter()
             .with_start_dt(new_start)
@@ -288,8 +293,8 @@ class ApiReader:
             .with_extensions(self.filter.extensions)
             .with_api_versions(self.filter.api_versions)
             .with_station_ids(station_ids)
-            .with_start_dt_buf(diff_s)
-            .with_end_dt_buf(diff_e)
+            .with_start_dt_buf(timedelta(seconds=0))
+            .with_end_dt_buf(timedelta(seconds=0))
         )
         if len(new_index.entries) > 0:
             return new_index
@@ -393,189 +398,3 @@ class ApiReader:
         if len(result) < 1:
             return None
         return result
-
-
-# This class uses a slightly stripped down version of the above ApiReader meant to quickly create SessionModels.
-# Some of the checks used in ApiReader are not necessary when creating SessionModel, while the core functionality
-#  of finding and reading files remains.
-# class ApiReaderModel:
-#     """
-#     Reads data from api 900 or api 1000 format, converting all data read into RedvoxPacketM for
-#     ease of comparison and use.
-#     Creates SessionModels for each station session within the data read.
-#
-#     Properties:
-#         filter: io.ReadFilter with the station ids, start and end time, start and end time padding, and
-#         types of files to read
-#
-#         base_dir: str of the directory containing all the files to read
-#
-#         structured_dir: bool, if True, the base_dir contains a specific directory structure used by the
-#         respective api formats.  If False, base_dir only has the data files.  Default False.
-#
-#         files_index: io.Index of the files that match the filter that are in base_dir
-#
-#         index_summary: io.IndexSummary of the filtered data
-#
-#         debug: bool, if True, output additional information during function execution.  Default False.
-#
-#         errors: RedVoxExceptions, a container for any errors encountered during function execution.
-#     """
-#
-#     def __init__(
-#             self,
-#             base_dir: str,
-#             structured_dir: bool = False,
-#             read_filter: io.ReadFilter = None,
-#             debug: bool = False,
-#             pool: Optional[multiprocessing.pool.Pool] = None,
-#     ):
-#         """
-#         Initialize the ApiReader object
-#
-#         :param base_dir: directory containing the files to read
-#         :param structured_dir: if True, base_dir contains a specific directory structure used by the respective
-#                                 api formats.  If False, base_dir only has the data files.  Default False.
-#         :param read_filter: ReadFilter for the data files, if None, get everything.  Default None
-#         :param debug: if True, output program warnings/errors during function execution.  Default False.
-#         """
-#         _pool: multiprocessing.pool.Pool = (
-#             multiprocessing.Pool() if pool is None else pool
-#         )
-#
-#         if read_filter:
-#             self.filter = read_filter
-#             if self.filter.station_ids:
-#                 self.filter.station_ids = set(self.filter.station_ids)
-#         else:
-#             self.filter = io.ReadFilter()
-#         self.base_dir = base_dir
-#         self.structured_dir = structured_dir
-#         self.debug = debug
-#         self.errors = RedVoxExceptions("APIReader")
-#         self.session_models: List[SessionModel] = []
-#         self.files_index = self._get_all_files(_pool)
-#         self.index_summary = io.IndexSummary.from_index(self._flatten_files_index())
-#
-#         if debug:
-#             self.errors.print()
-#
-#         if pool is None:
-#             _pool.close()
-#
-#     def _flatten_files_index(self):
-#         """
-#         :return: flattened version of files_index
-#         """
-#         result = io.Index()
-#         for i in self.files_index:
-#             result.append(iter(i.entries))
-#         return result
-#
-#     def _get_session(self, s_id: str, uuid: str, start_date: float) -> Optional[SessionModel]:
-#         """
-#         get a session that matches all the inputs or None if no match
-#
-#         :param s_id: station id to get
-#         :param uuid: station uuid to get
-#         :param start_date: station start date to get
-#         :return: SessionModel or None
-#         """
-#         for m in self.session_models:
-#             if m.cloud_session.id == s_id and m.cloud_session.uuid == uuid and
-#             m.cloud_session.start_date == start_date:
-#                 return m
-#         return None
-#
-#     def _get_all_files(
-#             self, pool: Optional[multiprocessing.pool.Pool] = None
-#     ) -> List[io.Index]:
-#         """
-#         get all files in the base dir of the ApiReader
-#
-#         :return: index with all the files that match the filter
-#         """
-#         _pool: multiprocessing.pool.Pool = (
-#             multiprocessing.Pool() if pool is None else pool
-#         )
-#         index: List[io.Index] = []
-#         # this guarantees that all ids we search for are valid
-#         all_index = self._apply_filter(pool=_pool)
-#         for station_id in all_index.summarize().station_ids():
-#             id_index = all_index.get_index_for_station_id(station_id)
-#             for f in id_index.read_contents():
-#                 sd = f.timing_information.app_start_mach_timestamp
-#                 uid = f.station_information.uuid
-#                 n = self._get_session(station_id, uid, sd)
-#                 n.create_from_packet(f) if n is not None \
-#                     else self.session_models.append(SessionModel.create_from_packet(f))
-#             index.append(id_index)
-#
-#         if pool is None:
-#             _pool.close()
-#
-#         return index
-#
-#     def _apply_filter(
-#             self,
-#             reader_filter: Optional[io.ReadFilter] = None,
-#             pool: Optional[multiprocessing.pool.Pool] = None,
-#     ) -> io.Index:
-#         """
-#         apply the filter of the reader, or another filter if specified
-#
-#         :param reader_filter: optional filter; if None, use the reader's filter, default None
-#         :return: index of the filtered files
-#         """
-#         _pool: multiprocessing.pool.Pool = (
-#             multiprocessing.Pool() if pool is None else pool
-#         )
-#         if not reader_filter:
-#             reader_filter = self.filter
-#         if self.structured_dir:
-#             index = io.index_structured(self.base_dir, reader_filter, pool=_pool)
-#         else:
-#             index = io.index_unstructured(self.base_dir, reader_filter, pool=_pool)
-#         if pool is None:
-#             _pool.close()
-#         return index
-#
-#     def _check_station_stats(
-#             self,
-#             station_index: io.Index,
-#             pool: Optional[multiprocessing.pool.Pool] = None,
-#     ) -> List[io.Index]:
-#         """
-#         check the index's results; if it has enough information, return it, otherwise search for more data.
-#         The index should only request one station id
-#         If the station was restarted during the request period, a new group of indexes will be created
-#         to represent the change in station metadata.
-#         Creates SessionModels for each station session found in the requested data.
-#
-#         :param station_index: index representing the requested information
-#         :return: List of Indexes that includes as much information as possible that fits the request
-#         """
-#         # if we found nothing, return the index
-#         if len(station_index.entries) < 1:
-#             return [station_index]
-#
-#         _pool: multiprocessing.pool.Pool = multiprocessing.Pool() if pool is None else pool
-#
-#         stats = fs.extract_stats(station_index, pool=_pool)
-#         # Close pool if created here
-#         if pool is None:
-#             _pool.close()
-#
-#         results = {}
-#
-#         for v, e in enumerate(stats):
-#             key = e.app_start_dt
-#             if key not in results.keys():
-#                 results[key] = io.Index()
-#             results[key].append(entries=iter([station_index.entries[v]]))
-#
-#         for s in results.values():
-#             m = SessionModel.create_from_stream(s.read_contents())
-#             self.session_models.append(m)
-#
-#         return list(results.values())
