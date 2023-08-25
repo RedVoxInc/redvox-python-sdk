@@ -49,12 +49,7 @@ import numpy as np
 import pyarrow as pa
 
 import redvox
-from redvox.common import \
-    run_me,\
-    io, \
-    data_window_io as dw_io, \
-    date_time_utils as dtu, \
-    gap_and_pad_utils as gpu
+from redvox.common import run_me, io, data_window_io as dw_io, date_time_utils as dtu, gap_and_pad_utils as gpu
 from redvox.common.data_window_configuration import DataWindowConfigFile
 from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station, STATION_ID_LENGTH
@@ -92,6 +87,7 @@ class EventOrigin:
 
         event_radius_m: float, radius of event in meters, default 0.0
     &#34;&#34;&#34;
+
     provider: str = &#34;UNKNOWN&#34;
     latitude: float = np.nan
     latitude_std: float = np.nan
@@ -101,36 +97,7 @@ class EventOrigin:
     altitude_std: float = np.nan
     event_radius_m: float = 0.0
 
-    def __repr__(self):
-        return str(self.as_dict())
 
-    def __str__(self):
-        return str(self.as_dict())
-
-    def as_dict(self) -&gt; Dict:
-        &#34;&#34;&#34;
-        :return: self as dict
-        &#34;&#34;&#34;
-        return {
-            &#34;provider&#34;: self.provider,
-            &#34;latitude&#34;: self.latitude,
-            &#34;latitude_std&#34;: self.latitude_std,
-            &#34;longitude&#34;: self.longitude,
-            &#34;longitude_std&#34;: self.longitude_std,
-            &#34;altitude&#34;: self.altitude,
-            &#34;altitude_std&#34;: self.altitude_std,
-            &#34;event_radius_m&#34;: self.event_radius_m
-        }
-
-    @staticmethod
-    def from_dict(data_dict: Dict) -&gt; &#34;EventOrigin&#34;:
-        return EventOrigin(data_dict[&#34;provider&#34;], data_dict[&#34;latitude&#34;], data_dict[&#34;latitude_std&#34;],
-                           data_dict[&#34;longitude&#34;], data_dict[&#34;longitude_std&#34;], data_dict[&#34;altitude&#34;],
-                           data_dict[&#34;altitude_std&#34;], data_dict[&#34;event_radius_m&#34;])
-
-
-@dataclass_json
-@dataclass
 class DataWindowConfig:
     &#34;&#34;&#34;
     Configuration of DataWindow properties
@@ -174,94 +141,122 @@ class DataWindowConfig:
         use_model_correction: bool, if True, use the offset model&#39;s correction functions, otherwise use the best
         offset.  Default True
     &#34;&#34;&#34;
-    input_dir: str
-    structured_layout: bool = True
-    start_datetime: Optional[dtu.datetime] = None
-    end_datetime: Optional[dtu.datetime] = None
-    start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD
-    end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD
-    drop_time_s: float = DATA_DROP_DURATION_S
-    station_ids: Optional[Iterable[str]] = None
-    extensions: Optional[Set[str]] = None
-    api_versions: Optional[Set[io.ApiVersion]] = None
-    apply_correction: bool = True
-    use_model_correction: bool = True
-    copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY
 
-    def __post_init__(self):
-        self.start_buffer_td: timedelta = self.start_buffer_td if self.start_buffer_td &gt; timedelta(seconds=0) \
-            else timedelta(seconds=0)
-        self.end_buffer_td: timedelta = self.end_buffer_td if self.end_buffer_td &gt; timedelta(seconds=0) \
-            else timedelta(seconds=0)
-        self.drop_time_s: float = self.drop_time_s if self.drop_time_s &gt; 0 else DATA_DROP_DURATION_S
-        self.station_ids: Optional[Set[str]] = set(self.station_ids) if self.station_ids else None
+    def __init__(
+        self,
+        input_dir: str,
+        structured_layout: bool = True,
+        start_datetime: Optional[dtu.datetime] = None,
+        end_datetime: Optional[dtu.datetime] = None,
+        start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
+        end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+        drop_time_s: float = DATA_DROP_DURATION_S,
+        station_ids: Optional[Iterable[str]] = None,
+        extensions: Optional[Set[str]] = None,
+        api_versions: Optional[Set[io.ApiVersion]] = None,
+        apply_correction: bool = True,
+        use_model_correction: bool = True,
+        copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
+    ):
+        self.input_dir: str = input_dir
+        self.structured_layout: bool = structured_layout
+        self.start_datetime: Optional[dtu.datetime] = start_datetime
+        self.end_datetime: Optional[dtu.datetime] = end_datetime
+        self.start_buffer_td: timedelta = (
+            start_buffer_td if start_buffer_td &gt; timedelta(seconds=0) else timedelta(seconds=0)
+        )
+        self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td &gt; timedelta(seconds=0) else timedelta(seconds=0)
+        self.drop_time_s: float = drop_time_s if drop_time_s &gt; 0 else DATA_DROP_DURATION_S
+        self.station_ids: Optional[Set[str]] = set(station_ids) if station_ids else None
+        self.extensions: Optional[Set[str]] = extensions
+        self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
+        self.apply_correction: bool = apply_correction
+        self.use_model_correction = use_model_correction
+        self.copy_edge_points = copy_edge_points
 
     def __repr__(self):
-        return f&#34;input_dir: {self.input_dir}, &#34; \
-               f&#34;structured_layout: {self.structured_layout}, &#34; \
-               f&#34;start_datetime: {self.start_datetime.__repr__()}, &#34; \
-               f&#34;end_datetime: {self.end_datetime.__repr__()}, &#34; \
-               f&#34;start_buffer_td: {self.start_buffer_td.__repr__()}, &#34; \
-               f&#34;end_buffer_td: {self.end_buffer_td.__repr__()}, &#34; \
-               f&#34;drop_time_s: {self.drop_time_s}, &#34; \
-               f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34; \
-               f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34; \
-               f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34; \
-               f&#34;apply_correction: {self.apply_correction}, &#34; \
-               f&#34;use_model_correction: {self.use_model_correction}, &#34; \
-               f&#34;copy_edge_points: {self.copy_edge_points.value}&#34;
+        return (
+            f&#34;input_dir: {self.input_dir}, &#34;
+            f&#34;structured_layout: {self.structured_layout}, &#34;
+            f&#34;start_datetime: {self.start_datetime.__repr__()}, &#34;
+            f&#34;end_datetime: {self.end_datetime.__repr__()}, &#34;
+            f&#34;start_buffer_td: {self.start_buffer_td.__repr__()}, &#34;
+            f&#34;end_buffer_td: {self.end_buffer_td.__repr__()}, &#34;
+            f&#34;drop_time_s: {self.drop_time_s}, &#34;
+            f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34;
+            f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34;
+            f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34;
+            f&#34;apply_correction: {self.apply_correction}, &#34;
+            f&#34;use_model_correction: {self.use_model_correction}, &#34;
+            f&#34;copy_edge_points: {self.copy_edge_points.value}&#34;
+        )
 
     def __str__(self):
-        return f&#34;input_dir: {self.input_dir}, &#34; \
-               f&#34;structured_layout: {self.structured_layout}, &#34; \
-               f&#34;start_datetime: &#34; \
-               f&#34;{self.start_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.start_datetime else None}, &#34; \
-               f&#34;end_datetime: {self.end_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.end_datetime else None}, &#34; \
-               f&#34;start_buffer_td (in s): {self.start_buffer_td.total_seconds()}, &#34; \
-               f&#34;end_buffer_td (in s): {self.end_buffer_td.total_seconds()}, &#34; \
-               f&#34;drop_time_s: {self.drop_time_s}, &#34; \
-               f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34; \
-               f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34; \
-               f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34; \
-               f&#34;apply_correction: {self.apply_correction}, &#34; \
-               f&#34;use_model_correction: {self.use_model_correction}, &#34; \
-               f&#34;copy_edge_points: {self.copy_edge_points.name}&#34;
+        return (
+            f&#34;input_dir: {self.input_dir}, &#34;
+            f&#34;structured_layout: {self.structured_layout}, &#34;
+            f&#34;start_datetime: &#34;
+            f&#34;{self.start_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.start_datetime else None}, &#34;
+            f&#34;end_datetime: {self.end_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.end_datetime else None}, &#34;
+            f&#34;start_buffer_td (in s): {self.start_buffer_td.total_seconds()}, &#34;
+            f&#34;end_buffer_td (in s): {self.end_buffer_td.total_seconds()}, &#34;
+            f&#34;drop_time_s: {self.drop_time_s}, &#34;
+            f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34;
+            f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34;
+            f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34;
+            f&#34;apply_correction: {self.apply_correction}, &#34;
+            f&#34;use_model_correction: {self.use_model_correction}, &#34;
+            f&#34;copy_edge_points: {self.copy_edge_points.name}&#34;
+        )
 
-    def as_dict(self) -&gt; Dict:
-        return {&#34;input_dir&#34;: self.input_dir,
-                &#34;structured_layout&#34;: self.structured_layout,
-                &#34;start_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.start_datetime),
-                &#34;end_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.end_datetime),
-                &#34;start_buffer_td&#34;: self.start_buffer_td.total_seconds(),
-                &#34;end_buffer_td&#34;: self.end_buffer_td.total_seconds(),
-                &#34;drop_time_s&#34;: self.drop_time_s,
-                &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
-                &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
-                &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
-                &#34;apply_correction&#34;: self.apply_correction,
-                &#34;use_model_correction&#34;: self.use_model_correction,
-                &#34;copy_edge_points&#34;: self.copy_edge_points.value
-                }
+    def to_dict(self) -&gt; Dict:
+        return {
+            &#34;input_dir&#34;: self.input_dir,
+            &#34;structured_layout&#34;: self.structured_layout,
+            &#34;start_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
+            if self.start_datetime
+            else None,
+            &#34;end_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.end_datetime) if self.end_datetime else None,
+            &#34;start_buffer_td&#34;: self.start_buffer_td.total_seconds(),
+            &#34;end_buffer_td&#34;: self.end_buffer_td.total_seconds(),
+            &#34;drop_time_s&#34;: self.drop_time_s,
+            &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
+            &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
+            &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
+            &#34;apply_correction&#34;: self.apply_correction,
+            &#34;use_model_correction&#34;: self.use_model_correction,
+            &#34;copy_edge_points&#34;: self.copy_edge_points.value,
+        }
 
     @staticmethod
     def from_dict(data_dict: Dict) -&gt; &#34;DataWindowConfig&#34;:
-        return DataWindowConfig(data_dict[&#34;input_dir&#34;], data_dict[&#34;structured_layout&#34;],
-                                dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;start_datetime&#34;]),
-                                dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;end_datetime&#34;]),
-                                timedelta(seconds=data_dict[&#34;start_buffer_td&#34;]),
-                                timedelta(seconds=data_dict[&#34;end_buffer_td&#34;]),
-                                data_dict[&#34;drop_time_s&#34;], data_dict[&#34;station_ids&#34;], set(data_dict[&#34;extensions&#34;]),
-                                set([io.ApiVersion.from_str(v) for v in data_dict[&#34;api_versions&#34;]]),
-                                data_dict[&#34;apply_correction&#34;], data_dict[&#34;use_model_correction&#34;],
-                                gpu.DataPointCreationMode(data_dict[&#34;copy_edge_points&#34;])
-                                )
+        return DataWindowConfig(
+            data_dict[&#34;input_dir&#34;],
+            data_dict[&#34;structured_layout&#34;],
+            dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;start_datetime&#34;])
+            if data_dict[&#34;start_datetime&#34;]
+            else None,
+            dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;end_datetime&#34;]) if data_dict[&#34;end_datetime&#34;] else None,
+            timedelta(seconds=data_dict[&#34;start_buffer_td&#34;]),
+            timedelta(seconds=data_dict[&#34;end_buffer_td&#34;]),
+            data_dict[&#34;drop_time_s&#34;],
+            data_dict[&#34;station_ids&#34;],
+            set(data_dict[&#34;extensions&#34;]),
+            set([io.ApiVersion.from_str(v) for v in data_dict[&#34;api_versions&#34;]]),
+            data_dict[&#34;apply_correction&#34;],
+            data_dict[&#34;use_model_correction&#34;],
+            gpu.DataPointCreationMode(data_dict[&#34;copy_edge_points&#34;]),
+        )
 
 
 class DataWindow:
     &#34;&#34;&#34;
     Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad the start and end values
+
     If a start time is given, data starting from that time will be included.
+
     If an end time is given, data up to but not including that time will be included.
+
     Refer to the DataWindowConfig class for more details on DataWindow parameters.
 
     Properties:
@@ -279,25 +274,28 @@ class DataWindow:
 
     Protected:
         _fs_writer: DataWindowFileSystemWriter; includes event_name, output directory (Default &#34;.&#34;),
-        output type (options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;NONE&#34;.  Default NONE), and option to make a
+        output type (options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;JSON&#34;, &#34;NONE&#34;.  Default NONE), and option to make a
         runme.py example file (Default False)
 
         _stations: List of Stations that belong to the DataWindow
 
         _errors: RedVoxExceptions; contains a list of all errors encountered by the DataWindow
     &#34;&#34;&#34;
+
     def __init__(
-            self,
-            event_name: str = &#34;dw&#34;,
-            event_origin: Optional[EventOrigin] = None,
-            config: Optional[DataWindowConfig] = None,
-            output_dir: str = &#34;.&#34;,
-            out_type: str = &#34;NONE&#34;,
-            make_runme: bool = False,
-            debug: bool = False,
+        self,
+        event_name: str = &#34;dw&#34;,
+        event_origin: Optional[EventOrigin] = None,
+        config: Optional[DataWindowConfig] = None,
+        output_dir: str = &#34;.&#34;,
+        out_type: str = &#34;NONE&#34;,
+        make_runme: bool = False,
+        debug: bool = False,
     ):
         &#34;&#34;&#34;
-        Initialize the DataWindow
+        Initialize the DataWindow.
+
+        If no config is passed, the DataWindow will not process any data.
 
         :param event_name: name of the DataWindow.  defaults to &#34;dw&#34;
         :param event_origin: Optional EventOrigin which describes the physical location and radius of the
@@ -305,7 +303,7 @@ class DataWindow:
         :param config: Optional DataWindowConfig which describes how to extract data from Redvox files.
                         Default None
         :param output_dir: output directory for saving files.  Default &#34;.&#34; (current directory)
-        :param out_type: type of file to save the DataWindow as.  Options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;NONE&#34;.
+        :param out_type: type of file to save the DataWindow as.  Options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;JSON&#34;, &#34;NONE&#34;.
                             Default &#34;NONE&#34; (no saving)
         :param make_runme: if True, saves an example runme.py file with the data.  Default False
         :param debug: if True, outputs additional information during initialization.  Default False
@@ -320,33 +318,38 @@ class DataWindow:
         self._config = config
         if config:
             if config.start_datetime and config.end_datetime and (config.end_datetime &lt;= config.start_datetime):
-                self._errors.append(&#34;DataWindow will not work when end datetime is before or equal to start datetime.\n&#34;
-                                    f&#34;Your times: {config.end_datetime} &lt;= {config.start_datetime}&#34;)
+                self._errors.append(
+                    &#34;DataWindow will not work when end datetime is before or equal to start datetime.\n&#34;
+                    f&#34;Your times: {config.end_datetime} &lt;= {config.start_datetime}&#34;
+                )
             else:
                 self.create_data_window()
         if self.debug:
             self.print_errors()
 
     def __repr__(self):
-        return f&#34;event_name: {self.event_name}, &#34; \
-               f&#34;event_origin: {self.event_origin.__repr__()}, &#34; \
-               f&#34;config: {self._config.__repr__()}, &#34; \
-               f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34; \
-               f&#34;out_type: {self._fs_writer.file_extension}, &#34; \
-               f&#34;make_runme: {self._fs_writer.make_run_me}, &#34; \
-               f&#34;sdk_version: {self._sdk_version}, &#34; \
-               f&#34;debug: {self.debug}&#34;
+        return (
+            f&#34;event_name: {self.event_name}, &#34;
+            f&#34;event_origin: {self.event_origin.__repr__()}, &#34;
+            f&#34;config: {self._config.__repr__()}, &#34;
+            f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34;
+            f&#34;out_type: {self._fs_writer.file_extension}, &#34;
+            f&#34;make_runme: {self._fs_writer.make_run_me}, &#34;
+            f&#34;sdk_version: {self._sdk_version}, &#34;
+            f&#34;debug: {self.debug}&#34;
+        )
 
     def __str__(self):
-        return f&#34;event_name: {self.event_name}, &#34; \
-               f&#34;event_origin: {self.event_origin.__str__()}, &#34; \
-               f&#34;config: {self._config.__str__()}, &#34; \
-               f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34; \
-               f&#34;out_type: {self._fs_writer.file_extension}, &#34; \
-               f&#34;make_runme: {self._fs_writer.make_run_me}, &#34; \
-               f&#34;sdk_version: {self._sdk_version}, &#34; \
-               f&#34;debug: {self.debug}&#34;
-        # &#34;stations&#34;: [s.__str__() for s in self._stations],
+        return (
+            f&#34;event_name: {self.event_name}, &#34;
+            f&#34;event_origin: {self.event_origin.__str__()}, &#34;
+            f&#34;config: {self._config.__str__()}, &#34;
+            f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34;
+            f&#34;out_type: {self._fs_writer.file_extension}, &#34;
+            f&#34;make_runme: {self._fs_writer.make_run_me}, &#34;
+            f&#34;sdk_version: {self._sdk_version}, &#34;
+            f&#34;debug: {self.debug}&#34;
+        )
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -386,7 +389,8 @@ class DataWindow:
 
     def set_out_type(self, new_out_type: str):
         &#34;&#34;&#34;
-        set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34; and &#34;LZ4&#34;.  invalid values become &#34;NONE&#34;
+        set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34;, &#34;LZ4&#34; and &#34;JSON&#34;.
+        Invalid values become &#34;NONE&#34;
 
         :param new_out_type: new output type of the DataWindow
         &#34;&#34;&#34;
@@ -396,19 +400,20 @@ class DataWindow:
         &#34;&#34;&#34;
         :return: DataWindow properties as dictionary
         &#34;&#34;&#34;
-        return {&#34;event_name&#34;: self.event_name,
-                &#34;event_origin&#34;: self.event_origin.as_dict(),
-                &#34;start_time&#34;: self.start_date(),
-                &#34;end_time&#34;: self.end_date(),
-                &#34;base_dir&#34;: self.save_dir(),
-                &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
-                &#34;config&#34;: self._config.as_dict(),
-                &#34;debug&#34;: self.debug,
-                &#34;errors&#34;: self._errors.as_dict(),
-                &#34;sdk_version&#34;: self._sdk_version,
-                &#34;out_type&#34;: self._fs_writer.file_extension,
-                &#34;make_runme&#34;: self._fs_writer.make_run_me
-                }
+        return {
+            &#34;event_name&#34;: self.event_name,
+            &#34;event_origin&#34;: self.event_origin.to_dict(),
+            &#34;start_time&#34;: self.start_date(),
+            &#34;end_time&#34;: self.end_date(),
+            &#34;base_dir&#34;: self.save_dir(),
+            &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
+            &#34;config&#34;: self._config.to_dict(),
+            &#34;debug&#34;: self.debug,
+            &#34;errors&#34;: self._errors.as_dict(),
+            &#34;sdk_version&#34;: self._sdk_version,
+            &#34;out_type&#34;: self._fs_writer.file_extension,
+            &#34;make_runme&#34;: self._fs_writer.make_run_me,
+        }
 
     def pretty(self) -&gt; str:
         &#34;&#34;&#34;
@@ -425,16 +430,40 @@ class DataWindow:
         :param config: DataWindowConfigFile to load from
         :return: DataWindow
         &#34;&#34;&#34;
-        event_origin = EventOrigin(config.origin_provider, config.origin_latitude, config.origin_latitude_std,
-                                   config.origin_longitude, config.origin_longitude_std, config.origin_altitude,
-                                   config.origin_altitude_std, config.origin_event_radius_m)
-        dw_config = DataWindowConfig(config.input_directory, config.structured_layout, config.start_dt(),
-                                     config.end_dt(), config.start_buffer_td(), config.end_buffer_td(),
-                                     config.drop_time_seconds, config.station_ids, config.extensions,
-                                     config.api_versions, config.apply_correction, config.use_model_correction,
-                                     config.copy_edge_points())
-        return DataWindow(config.event_name, event_origin, dw_config, config.output_dir, config.output_type,
-                          config.make_runme, config.debug)
+        event_origin = EventOrigin(
+            config.origin_provider,
+            config.origin_latitude,
+            config.origin_latitude_std,
+            config.origin_longitude,
+            config.origin_longitude_std,
+            config.origin_altitude,
+            config.origin_altitude_std,
+            config.origin_event_radius_m,
+        )
+        dw_config = DataWindowConfig(
+            config.input_directory,
+            config.structured_layout,
+            config.start_dt(),
+            config.end_dt(),
+            config.start_buffer_td(),
+            config.end_buffer_td(),
+            config.drop_time_seconds,
+            config.station_ids,
+            config.extensions,
+            config.api_versions,
+            config.apply_correction,
+            config.use_model_correction,
+            config.copy_edge_points(),
+        )
+        return DataWindow(
+            config.event_name,
+            event_origin,
+            dw_config,
+            config.output_dir,
+            config.output_type,
+            config.make_runme,
+            config.debug,
+        )
 
     @staticmethod
     def from_config_file(file: str) -&gt; &#34;DataWindow&#34;:
@@ -500,25 +529,34 @@ class DataWindow:
         :param json_dict: the dictionary to read
         :return: The DataWindow as defined by the JSON
         &#34;&#34;&#34;
-        if &#34;out_type&#34; not in json_dict.keys() \
-                or json_dict[&#34;out_type&#34;].upper() not in dw_io.DataWindowOutputType.list_names():
-            raise ValueError(&#39;Dictionary loading type is invalid or unknown.  &#39;
-                             &#39;Check the value &#34;out_type&#34;; it must be one of: &#39;
-                             f&#39;{dw_io.DataWindowOutputType.list_non_none_names()}&#39;)
+        if (
+            &#34;out_type&#34; not in json_dict.keys()
+            or json_dict[&#34;out_type&#34;].upper() not in dw_io.DataWindowOutputType.list_names()
+        ):
+            raise ValueError(
+                &#34;Dictionary loading type is invalid or unknown.  &#34;
+                &#39;Check the value of &#34;out_type&#34;; it must be one of: &#39;
+                f&#34;{dw_io.DataWindowOutputType.list_non_none_names()}&#34;
+            )
         else:
             out_type = dw_io.DataWindowOutputType.str_to_type(json_dict[&#34;out_type&#34;])
-            if out_type == dw_io.DataWindowOutputType.PARQUET:
-                dwin = DataWindow(json_dict[&#34;event_name&#34;], EventOrigin.from_dict(json_dict[&#34;event_origin&#34;]),
-                                  None, json_dict[&#34;base_dir&#34;], json_dict[&#34;out_type&#34;], json_dict[&#34;make_runme&#34;],
-                                  json_dict[&#34;debug&#34;])
+            if out_type == dw_io.DataWindowOutputType.PARQUET or out_type == dw_io.DataWindowOutputType.JSON:
+                dwin = DataWindow(
+                    json_dict[&#34;event_name&#34;],
+                    EventOrigin.from_dict(json_dict[&#34;event_origin&#34;]),
+                    None,
+                    json_dict[&#34;base_dir&#34;],
+                    json_dict[&#34;out_type&#34;],
+                    json_dict[&#34;make_runme&#34;],
+                    json_dict[&#34;debug&#34;],
+                )
                 dwin._config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
                 dwin._errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
                 dwin._sdk_version = json_dict[&#34;sdk_version&#34;]
                 for st in json_dict[&#34;stations&#34;]:
                     dwin.add_station(Station.from_json_file(os.path.join(json_dict[&#34;base_dir&#34;], st), f&#34;{st}.json&#34;))
             elif out_type == dw_io.DataWindowOutputType.LZ4:
-                dwin = DataWindow.deserialize(os.path.join(json_dict[&#34;base_dir&#34;],
-                                                           f&#34;{json_dict[&#39;event_name&#39;]}.pkl.lz4&#34;))
+                dwin = DataWindow.deserialize(os.path.join(json_dict[&#34;base_dir&#34;], f&#34;{json_dict[&#39;event_name&#39;]}.pkl.lz4&#34;))
             else:
                 dwin = DataWindow()
             return dwin
@@ -532,9 +570,10 @@ class DataWindow:
         &#34;&#34;&#34;
         if self._fs_writer.is_save_disk():
             if self._fs_writer.is_use_disk() and self._fs_writer.make_run_me:
-                shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
-                                os.path.join(self._fs_writer.save_dir(), &#34;runme.py&#34;))
-            if self._fs_writer.file_extension == &#34;parquet&#34;:
+                shutil.copyfile(
+                    os.path.abspath(inspect.getfile(run_me)), os.path.join(self._fs_writer.save_dir(), &#34;runme.py&#34;)
+                )
+            if self._fs_writer.file_extension in [&#34;parquet&#34;, &#34;json&#34;]:
                 return self._to_json_file()
             elif self._fs_writer.file_extension == &#34;lz4&#34;:
                 return self.serialize()
@@ -546,9 +585,11 @@ class DataWindow:
     @staticmethod
     def load(file_path: str) -&gt; &#34;DataWindow&#34;:
         &#34;&#34;&#34;
-        load from json metadata and lz4 compressed file or directory of files
+        load from json metadata and lz4 compressed file or directory of files.
 
-        :param file_path: full path of file to load
+        If you have a pkl.lz4 file, use the deserialize() method instead.
+
+        :param file_path: full path of json metadata file to load
         :return: DataWindow from json metadata
         &#34;&#34;&#34;
         cur_path = os.getcwd()
@@ -608,16 +649,18 @@ class DataWindow:
     def add_station(self, station: Station):
         &#34;&#34;&#34;
         add a station to the DataWindow
+
         :param station: Station to add
         &#34;&#34;&#34;
         self._stations.append(station)
 
     def remove_station(self, station_id: Optional[str] = None, start_date: Optional[float] = None):
         &#34;&#34;&#34;
-        remove the first station from the DataWindow, or a specific station if given the id and/or start date
-        if an id is given, the first station with that id will be removed
-        if a start date is given, the removed station will start at or after the start date
-        start date is in microseconds since epoch UTC
+        Remove the first station from the DataWindow, or a specific station if given the id and/or start date.
+
+        * If an id is given, the first station with that id will be removed.
+        * If a start date is given, the removed station will start at or after the start date.
+        * Start date is in microseconds since epoch UTC.
 
         :param station_id: id of station to remove
         :param start_date: start date that is at or before the station to remove
@@ -669,13 +712,14 @@ class DataWindow:
             return None
         return self._stations[0]
 
-    def get_station(self, station_id: str, station_uuid: Optional[str] = None,
-                    start_timestamp: Optional[float] = None) -&gt; Optional[List[Station]]:
+    def get_station(
+        self, station_id: str, station_uuid: Optional[str] = None, start_timestamp: Optional[float] = None
+    ) -&gt; Optional[List[Station]]:
         &#34;&#34;&#34;
         Get stations from the DataWindow.  Must give at least the station&#39;s id.  Other parameters may be None,
         which means the value will be ignored when searching.  Results will match all non-None parameters given.
 
-        :param station_id: station id
+        :param station_id: station id to get data for
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
         :return: A list of valid stations or None if the station cannot be found
@@ -719,12 +763,17 @@ class DataWindow:
             print(&#34;Reading files from disk.  This may take a few minutes to complete.&#34;)
 
         # get the data to convert into a window
-        a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
-                          correct_timestamps=self._config.apply_correction,
-                          use_model_correction=self._config.use_model_correction,
-                          dw_base_dir=self.save_dir(),
-                          dw_save_mode=self._fs_writer.save_mode(),
-                          debug=self.debug, pool=_pool)
+        a_r = ApiReaderDw(
+            self._config.input_dir,
+            self._config.structured_layout,
+            r_f,
+            correct_timestamps=self._config.apply_correction,
+            use_model_correction=self._config.use_model_correction,
+            dw_base_dir=self.save_dir(),
+            dw_save_mode=self._fs_writer.save_mode(),
+            debug=self.debug,
+            pool=_pool,
+        )
 
         # self._errors.extend_error(a_r.errors)
 
@@ -738,9 +787,8 @@ class DataWindow:
         # Apply timing correction in parallel by station
         sts = a_r.get_stations()
         if self.debug:
-            print(&#34;num stations loaded: &#34;, len(sts))
-
-        for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
+            print(&#34;number of stations loaded: &#34;, len(sts))
+        for st in maybe_parallel_map(_pool, lambda s: s, iter(sts), chunk_size=1):
             self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
             if self.debug:
                 print(&#34;station processed: &#34;, st.id())
@@ -757,11 +805,13 @@ class DataWindow:
         # update remaining data window values if they&#39;re still default
         if not self._config.start_datetime and len(self._stations) &gt; 0:
             self._config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.min([t.first_data_timestamp() for t in self._stations]))
+                np.min([t.first_data_timestamp() for t in self._stations])
+            )
         # end_datetime is non-inclusive, so it must be greater than our latest timestamp
         if not self._config.end_datetime and len(self._stations) &gt; 0:
             self._config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.max([t.last_data_timestamp() for t in self._stations]) + 1)
+                np.max([t.last_data_timestamp() for t in self._stations]) + 1
+            )
 
         # If the pool was created by this function, then it needs to managed by this function.
         if pool is None:
@@ -789,55 +839,62 @@ class DataWindow:
                 add_ids = f&#34;for all stations {self._config.station_ids} &#34;
             else:
                 add_ids = &#34;&#34;
-            self._errors.append(f&#34;No data matching criteria {add_ids}in {self._config.input_dir}&#34;
-                                f&#34;\nPlease adjust parameters of DataWindow&#34;)
+            self._errors.append(
+                f&#34;No data matching criteria {add_ids}in {self._config.input_dir}&#34;
+                f&#34;\nPlease adjust parameters of DataWindow&#34;
+            )
         elif len(self._stations) &gt; 0 and self._config.station_ids:
             for ids in self._config.station_ids:
                 if ids.zfill(STATION_ID_LENGTH) not in [i.id() for i in self._stations]:
-                    self._errors.append(
-                        f&#34;Requested {ids} but there is no data to read for that station&#34;
-                    )
+                    self._errors.append(f&#34;Requested {ids} but there is no data to read for that station&#34;)
 
     def create_window_in_sensors(
-            self, station: Station, start_datetime: Optional[dtu.datetime] = None,
-            end_datetime: Optional[dtu.datetime] = None
+        self,
+        station: Station,
+        start_datetime: Optional[dtu.datetime] = None,
+        end_datetime: Optional[dtu.datetime] = None,
     ):
         &#34;&#34;&#34;
-        truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
-        if the start and/or end are not specified, keeps all audio data that fits and uses it
-        to truncate the other sensors.
+        truncate the sensors in the station to only contain data from start_datetime to end_datetime.
+
+        if the start and/or end are not specified, uses the audio start and end to truncate the other sensors.
+
         returns nothing, updates the station in place
 
         :param station: station object to truncate sensors of
         :param start_datetime: datetime of start of window, default None
         :param end_datetime: datetime of end of window, default None
         &#34;&#34;&#34;
-        if start_datetime:
-            start_datetime = dtu.datetime_to_epoch_microseconds_utc(start_datetime)
-        else:
-            start_datetime = 0
-        if end_datetime:
-            end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime)
-        else:
-            end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
+        start_datetime = dtu.datetime_to_epoch_microseconds_utc(start_datetime) if start_datetime else 0
+        end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime if end_datetime else dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
         if station.has_audio_data():
             for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
-                self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
-                                    station.audio_sensor().last_data_timestamp())
+                self.process_sensor(
+                    sensor,
+                    station.id(),
+                    station.audio_sensor().first_data_timestamp(),
+                    station.audio_sensor().last_data_timestamp(),
+                )
             # recalculate metadata
             station.update_first_and_last_data_timestamps()
-            station.set_packet_metadata([meta for meta in station.packet_metadata()
-                                         if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
-                                         meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+            station.set_packet_metadata(
+                [
+                    meta
+                    for meta in station.packet_metadata()
+                    if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp()
+                    and meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()
+                ]
+            )
             station.event_data().create_event_window(station.first_data_timestamp(), station.last_data_timestamp())
             if self._fs_writer.is_save_disk():
                 station.set_save_mode(io.FileSystemSaveMode.DISK)
                 station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
             self._stations.append(station)
 
-    def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
-                       end_date_timestamp: float):
+    def process_sensor(
+        self, sensor: SensorData, station_id: str, start_date_timestamp: float, end_date_timestamp: float
+    ):
         &#34;&#34;&#34;
         process a sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
 
@@ -884,10 +941,15 @@ class DataWindow:
                     sensor.write_pyarrow_table(pa.Table.from_pydict(last_entry))
                 elif last_before_start is not None and first_after_end is not None:
                     sensor.write_pyarrow_table(
-                        sensor.interpolate(start_date_timestamp, last_before_start, 1,
-                                           self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
+                        sensor.interpolate(
+                            start_date_timestamp,
+                            last_before_start,
+                            1,
+                            self._config.copy_edge_points == gpu.DataPointCreationMode.COPY,
+                        )
+                    )
             else:
-                _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
+                _arrow = sensor.pyarrow_table().slice(start_index, end_index - start_index)
                 # if sensor is audio or location, we want nan&#39;d edge points
                 if sensor.type() in [SensorType.LOCATION, SensorType.AUDIO]:
                     new_point_mode = gpu.DataPointCreationMode.NAN
@@ -905,30 +967,38 @@ class DataWindow:
                     end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s())
                     start_sample_interval = -end_sample_interval
                     if self._config.end_datetime:
-                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime)
-                                                  - slice_end) / end_sample_interval)
+                        end_samples_to_add = int(
+                            (dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime) - slice_end)
+                            / end_sample_interval
+                        )
                     else:
                         end_samples_to_add = 0
                     if self._config.start_datetime:
-                        start_samples_to_add = int((slice_start -
-                                                    dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
-                                                   / end_sample_interval)
+                        start_samples_to_add = int(
+                            (slice_start - dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
+                            / end_sample_interval
+                        )
                     else:
                         start_samples_to_add = 0
                 # add to end
-                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=_arrow.num_rows - 1,
-                                                    sample_interval_micros=end_sample_interval,
-                                                    num_samples_to_add=end_samples_to_add,
-                                                    point_creation_mode=new_point_mode))
+                _arrow = gpu.add_data_points_to_df(
+                    data_table=_arrow,
+                    start_index=_arrow.num_rows - 1,
+                    sample_interval_micros=end_sample_interval,
+                    num_samples_to_add=end_samples_to_add,
+                    point_creation_mode=new_point_mode,
+                )
                 # add to begin
-                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=0,
-                                                    sample_interval_micros=start_sample_interval,
-                                                    num_samples_to_add=start_samples_to_add,
-                                                    point_creation_mode=new_point_mode))
+                _arrow = gpu.add_data_points_to_df(
+                    data_table=_arrow,
+                    start_index=0,
+                    sample_interval_micros=start_sample_interval,
+                    num_samples_to_add=start_samples_to_add,
+                    point_creation_mode=new_point_mode,
+                )
                 sensor.sort_by_data_timestamps(_arrow)
         else:
-            self._errors.append(f&#34;Data window for {station_id} {sensor.type().name} &#34;
-                                f&#34;sensor has no data points!&#34;)
+            self._errors.append(f&#34;Data window for {station_id} {sensor.type().name} &#34; f&#34;sensor has no data points!&#34;)
 
     def print_errors(self):
         &#34;&#34;&#34;
@@ -953,10 +1023,10 @@ class DataWindow:
 <span>(</span><span>event_name: str = 'dw', event_origin: Optional[<a title="redvox.common.data_window.EventOrigin" href="#redvox.common.data_window.EventOrigin">EventOrigin</a>] = None, config: Optional[<a title="redvox.common.data_window.DataWindowConfig" href="#redvox.common.data_window.DataWindowConfig">DataWindowConfig</a>] = None, output_dir: str = '.', out_type: str = 'NONE', make_runme: bool = False, debug: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad the start and end values
-If a start time is given, data starting from that time will be included.
-If an end time is given, data up to but not including that time will be included.
-Refer to the DataWindowConfig class for more details on DataWindow parameters.</p>
+<div class="desc"><p>Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad the start and end values</p>
+<p>If a start time is given, data starting from that time will be included.</p>
+<p>If an end time is given, data up to but not including that time will be included.</p>
+<p>Refer to the DataWindowConfig class for more details on DataWindow parameters.</p>
 <h2 id="properties">Properties</h2>
 <p>event_name: str, name of the DataWindow.
 defaults to "dw"</p>
@@ -970,12 +1040,13 @@ Default None</p>
 <p>debug: bool, if True, outputs additional information during initialization. Default False</p>
 <h2 id="protected">Protected</h2>
 <p>_fs_writer: DataWindowFileSystemWriter; includes event_name, output directory (Default "."),
-output type (options: "PARQUET", "LZ4", "NONE".
+output type (options: "PARQUET", "LZ4", "JSON", "NONE".
 Default NONE), and option to make a
 runme.py example file (Default False)</p>
 <p>_stations: List of Stations that belong to the DataWindow</p>
 <p>_errors: RedVoxExceptions; contains a list of all errors encountered by the DataWindow</p>
-<p>Initialize the DataWindow</p>
+<p>Initialize the DataWindow.</p>
+<p>If no config is passed, the DataWindow will not process any data.</p>
 <p>:param event_name: name of the DataWindow.
 defaults to "dw"
 :param event_origin: Optional EventOrigin which describes the physical location and radius of the
@@ -986,7 +1057,7 @@ Default None
 :param output_dir: output directory for saving files.
 Default "." (current directory)
 :param out_type: type of file to save the DataWindow as.
-Options: "PARQUET", "LZ4", "NONE".
+Options: "PARQUET", "LZ4", "JSON", "NONE".
 Default "NONE" (no saving)
 :param make_runme: if True, saves an example runme.py file with the data.
 Default False
@@ -999,8 +1070,11 @@ Default False</p></div>
 <pre><code class="python">class DataWindow:
     &#34;&#34;&#34;
     Holds the data for a given time window; adds interpolated timestamps to fill gaps and pad the start and end values
+
     If a start time is given, data starting from that time will be included.
+
     If an end time is given, data up to but not including that time will be included.
+
     Refer to the DataWindowConfig class for more details on DataWindow parameters.
 
     Properties:
@@ -1018,25 +1092,28 @@ Default False</p></div>
 
     Protected:
         _fs_writer: DataWindowFileSystemWriter; includes event_name, output directory (Default &#34;.&#34;),
-        output type (options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;NONE&#34;.  Default NONE), and option to make a
+        output type (options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;JSON&#34;, &#34;NONE&#34;.  Default NONE), and option to make a
         runme.py example file (Default False)
 
         _stations: List of Stations that belong to the DataWindow
 
         _errors: RedVoxExceptions; contains a list of all errors encountered by the DataWindow
     &#34;&#34;&#34;
+
     def __init__(
-            self,
-            event_name: str = &#34;dw&#34;,
-            event_origin: Optional[EventOrigin] = None,
-            config: Optional[DataWindowConfig] = None,
-            output_dir: str = &#34;.&#34;,
-            out_type: str = &#34;NONE&#34;,
-            make_runme: bool = False,
-            debug: bool = False,
+        self,
+        event_name: str = &#34;dw&#34;,
+        event_origin: Optional[EventOrigin] = None,
+        config: Optional[DataWindowConfig] = None,
+        output_dir: str = &#34;.&#34;,
+        out_type: str = &#34;NONE&#34;,
+        make_runme: bool = False,
+        debug: bool = False,
     ):
         &#34;&#34;&#34;
-        Initialize the DataWindow
+        Initialize the DataWindow.
+
+        If no config is passed, the DataWindow will not process any data.
 
         :param event_name: name of the DataWindow.  defaults to &#34;dw&#34;
         :param event_origin: Optional EventOrigin which describes the physical location and radius of the
@@ -1044,7 +1121,7 @@ Default False</p></div>
         :param config: Optional DataWindowConfig which describes how to extract data from Redvox files.
                         Default None
         :param output_dir: output directory for saving files.  Default &#34;.&#34; (current directory)
-        :param out_type: type of file to save the DataWindow as.  Options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;NONE&#34;.
+        :param out_type: type of file to save the DataWindow as.  Options: &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;JSON&#34;, &#34;NONE&#34;.
                             Default &#34;NONE&#34; (no saving)
         :param make_runme: if True, saves an example runme.py file with the data.  Default False
         :param debug: if True, outputs additional information during initialization.  Default False
@@ -1059,33 +1136,38 @@ Default False</p></div>
         self._config = config
         if config:
             if config.start_datetime and config.end_datetime and (config.end_datetime &lt;= config.start_datetime):
-                self._errors.append(&#34;DataWindow will not work when end datetime is before or equal to start datetime.\n&#34;
-                                    f&#34;Your times: {config.end_datetime} &lt;= {config.start_datetime}&#34;)
+                self._errors.append(
+                    &#34;DataWindow will not work when end datetime is before or equal to start datetime.\n&#34;
+                    f&#34;Your times: {config.end_datetime} &lt;= {config.start_datetime}&#34;
+                )
             else:
                 self.create_data_window()
         if self.debug:
             self.print_errors()
 
     def __repr__(self):
-        return f&#34;event_name: {self.event_name}, &#34; \
-               f&#34;event_origin: {self.event_origin.__repr__()}, &#34; \
-               f&#34;config: {self._config.__repr__()}, &#34; \
-               f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34; \
-               f&#34;out_type: {self._fs_writer.file_extension}, &#34; \
-               f&#34;make_runme: {self._fs_writer.make_run_me}, &#34; \
-               f&#34;sdk_version: {self._sdk_version}, &#34; \
-               f&#34;debug: {self.debug}&#34;
+        return (
+            f&#34;event_name: {self.event_name}, &#34;
+            f&#34;event_origin: {self.event_origin.__repr__()}, &#34;
+            f&#34;config: {self._config.__repr__()}, &#34;
+            f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34;
+            f&#34;out_type: {self._fs_writer.file_extension}, &#34;
+            f&#34;make_runme: {self._fs_writer.make_run_me}, &#34;
+            f&#34;sdk_version: {self._sdk_version}, &#34;
+            f&#34;debug: {self.debug}&#34;
+        )
 
     def __str__(self):
-        return f&#34;event_name: {self.event_name}, &#34; \
-               f&#34;event_origin: {self.event_origin.__str__()}, &#34; \
-               f&#34;config: {self._config.__str__()}, &#34; \
-               f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34; \
-               f&#34;out_type: {self._fs_writer.file_extension}, &#34; \
-               f&#34;make_runme: {self._fs_writer.make_run_me}, &#34; \
-               f&#34;sdk_version: {self._sdk_version}, &#34; \
-               f&#34;debug: {self.debug}&#34;
-        # &#34;stations&#34;: [s.__str__() for s in self._stations],
+        return (
+            f&#34;event_name: {self.event_name}, &#34;
+            f&#34;event_origin: {self.event_origin.__str__()}, &#34;
+            f&#34;config: {self._config.__str__()}, &#34;
+            f&#34;output_dir: {os.path.abspath(self.save_dir())}, &#34;
+            f&#34;out_type: {self._fs_writer.file_extension}, &#34;
+            f&#34;make_runme: {self._fs_writer.make_run_me}, &#34;
+            f&#34;sdk_version: {self._sdk_version}, &#34;
+            f&#34;debug: {self.debug}&#34;
+        )
 
     def save_dir(self) -&gt; str:
         &#34;&#34;&#34;
@@ -1125,7 +1207,8 @@ Default False</p></div>
 
     def set_out_type(self, new_out_type: str):
         &#34;&#34;&#34;
-        set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34; and &#34;LZ4&#34;.  invalid values become &#34;NONE&#34;
+        set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34;, &#34;LZ4&#34; and &#34;JSON&#34;.
+        Invalid values become &#34;NONE&#34;
 
         :param new_out_type: new output type of the DataWindow
         &#34;&#34;&#34;
@@ -1135,19 +1218,20 @@ Default False</p></div>
         &#34;&#34;&#34;
         :return: DataWindow properties as dictionary
         &#34;&#34;&#34;
-        return {&#34;event_name&#34;: self.event_name,
-                &#34;event_origin&#34;: self.event_origin.as_dict(),
-                &#34;start_time&#34;: self.start_date(),
-                &#34;end_time&#34;: self.end_date(),
-                &#34;base_dir&#34;: self.save_dir(),
-                &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
-                &#34;config&#34;: self._config.as_dict(),
-                &#34;debug&#34;: self.debug,
-                &#34;errors&#34;: self._errors.as_dict(),
-                &#34;sdk_version&#34;: self._sdk_version,
-                &#34;out_type&#34;: self._fs_writer.file_extension,
-                &#34;make_runme&#34;: self._fs_writer.make_run_me
-                }
+        return {
+            &#34;event_name&#34;: self.event_name,
+            &#34;event_origin&#34;: self.event_origin.to_dict(),
+            &#34;start_time&#34;: self.start_date(),
+            &#34;end_time&#34;: self.end_date(),
+            &#34;base_dir&#34;: self.save_dir(),
+            &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
+            &#34;config&#34;: self._config.to_dict(),
+            &#34;debug&#34;: self.debug,
+            &#34;errors&#34;: self._errors.as_dict(),
+            &#34;sdk_version&#34;: self._sdk_version,
+            &#34;out_type&#34;: self._fs_writer.file_extension,
+            &#34;make_runme&#34;: self._fs_writer.make_run_me,
+        }
 
     def pretty(self) -&gt; str:
         &#34;&#34;&#34;
@@ -1164,16 +1248,40 @@ Default False</p></div>
         :param config: DataWindowConfigFile to load from
         :return: DataWindow
         &#34;&#34;&#34;
-        event_origin = EventOrigin(config.origin_provider, config.origin_latitude, config.origin_latitude_std,
-                                   config.origin_longitude, config.origin_longitude_std, config.origin_altitude,
-                                   config.origin_altitude_std, config.origin_event_radius_m)
-        dw_config = DataWindowConfig(config.input_directory, config.structured_layout, config.start_dt(),
-                                     config.end_dt(), config.start_buffer_td(), config.end_buffer_td(),
-                                     config.drop_time_seconds, config.station_ids, config.extensions,
-                                     config.api_versions, config.apply_correction, config.use_model_correction,
-                                     config.copy_edge_points())
-        return DataWindow(config.event_name, event_origin, dw_config, config.output_dir, config.output_type,
-                          config.make_runme, config.debug)
+        event_origin = EventOrigin(
+            config.origin_provider,
+            config.origin_latitude,
+            config.origin_latitude_std,
+            config.origin_longitude,
+            config.origin_longitude_std,
+            config.origin_altitude,
+            config.origin_altitude_std,
+            config.origin_event_radius_m,
+        )
+        dw_config = DataWindowConfig(
+            config.input_directory,
+            config.structured_layout,
+            config.start_dt(),
+            config.end_dt(),
+            config.start_buffer_td(),
+            config.end_buffer_td(),
+            config.drop_time_seconds,
+            config.station_ids,
+            config.extensions,
+            config.api_versions,
+            config.apply_correction,
+            config.use_model_correction,
+            config.copy_edge_points(),
+        )
+        return DataWindow(
+            config.event_name,
+            event_origin,
+            dw_config,
+            config.output_dir,
+            config.output_type,
+            config.make_runme,
+            config.debug,
+        )
 
     @staticmethod
     def from_config_file(file: str) -&gt; &#34;DataWindow&#34;:
@@ -1239,25 +1347,34 @@ Default False</p></div>
         :param json_dict: the dictionary to read
         :return: The DataWindow as defined by the JSON
         &#34;&#34;&#34;
-        if &#34;out_type&#34; not in json_dict.keys() \
-                or json_dict[&#34;out_type&#34;].upper() not in dw_io.DataWindowOutputType.list_names():
-            raise ValueError(&#39;Dictionary loading type is invalid or unknown.  &#39;
-                             &#39;Check the value &#34;out_type&#34;; it must be one of: &#39;
-                             f&#39;{dw_io.DataWindowOutputType.list_non_none_names()}&#39;)
+        if (
+            &#34;out_type&#34; not in json_dict.keys()
+            or json_dict[&#34;out_type&#34;].upper() not in dw_io.DataWindowOutputType.list_names()
+        ):
+            raise ValueError(
+                &#34;Dictionary loading type is invalid or unknown.  &#34;
+                &#39;Check the value of &#34;out_type&#34;; it must be one of: &#39;
+                f&#34;{dw_io.DataWindowOutputType.list_non_none_names()}&#34;
+            )
         else:
             out_type = dw_io.DataWindowOutputType.str_to_type(json_dict[&#34;out_type&#34;])
-            if out_type == dw_io.DataWindowOutputType.PARQUET:
-                dwin = DataWindow(json_dict[&#34;event_name&#34;], EventOrigin.from_dict(json_dict[&#34;event_origin&#34;]),
-                                  None, json_dict[&#34;base_dir&#34;], json_dict[&#34;out_type&#34;], json_dict[&#34;make_runme&#34;],
-                                  json_dict[&#34;debug&#34;])
+            if out_type == dw_io.DataWindowOutputType.PARQUET or out_type == dw_io.DataWindowOutputType.JSON:
+                dwin = DataWindow(
+                    json_dict[&#34;event_name&#34;],
+                    EventOrigin.from_dict(json_dict[&#34;event_origin&#34;]),
+                    None,
+                    json_dict[&#34;base_dir&#34;],
+                    json_dict[&#34;out_type&#34;],
+                    json_dict[&#34;make_runme&#34;],
+                    json_dict[&#34;debug&#34;],
+                )
                 dwin._config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
                 dwin._errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
                 dwin._sdk_version = json_dict[&#34;sdk_version&#34;]
                 for st in json_dict[&#34;stations&#34;]:
                     dwin.add_station(Station.from_json_file(os.path.join(json_dict[&#34;base_dir&#34;], st), f&#34;{st}.json&#34;))
             elif out_type == dw_io.DataWindowOutputType.LZ4:
-                dwin = DataWindow.deserialize(os.path.join(json_dict[&#34;base_dir&#34;],
-                                                           f&#34;{json_dict[&#39;event_name&#39;]}.pkl.lz4&#34;))
+                dwin = DataWindow.deserialize(os.path.join(json_dict[&#34;base_dir&#34;], f&#34;{json_dict[&#39;event_name&#39;]}.pkl.lz4&#34;))
             else:
                 dwin = DataWindow()
             return dwin
@@ -1271,9 +1388,10 @@ Default False</p></div>
         &#34;&#34;&#34;
         if self._fs_writer.is_save_disk():
             if self._fs_writer.is_use_disk() and self._fs_writer.make_run_me:
-                shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
-                                os.path.join(self._fs_writer.save_dir(), &#34;runme.py&#34;))
-            if self._fs_writer.file_extension == &#34;parquet&#34;:
+                shutil.copyfile(
+                    os.path.abspath(inspect.getfile(run_me)), os.path.join(self._fs_writer.save_dir(), &#34;runme.py&#34;)
+                )
+            if self._fs_writer.file_extension in [&#34;parquet&#34;, &#34;json&#34;]:
                 return self._to_json_file()
             elif self._fs_writer.file_extension == &#34;lz4&#34;:
                 return self.serialize()
@@ -1285,9 +1403,11 @@ Default False</p></div>
     @staticmethod
     def load(file_path: str) -&gt; &#34;DataWindow&#34;:
         &#34;&#34;&#34;
-        load from json metadata and lz4 compressed file or directory of files
+        load from json metadata and lz4 compressed file or directory of files.
 
-        :param file_path: full path of file to load
+        If you have a pkl.lz4 file, use the deserialize() method instead.
+
+        :param file_path: full path of json metadata file to load
         :return: DataWindow from json metadata
         &#34;&#34;&#34;
         cur_path = os.getcwd()
@@ -1347,16 +1467,18 @@ Default False</p></div>
     def add_station(self, station: Station):
         &#34;&#34;&#34;
         add a station to the DataWindow
+
         :param station: Station to add
         &#34;&#34;&#34;
         self._stations.append(station)
 
     def remove_station(self, station_id: Optional[str] = None, start_date: Optional[float] = None):
         &#34;&#34;&#34;
-        remove the first station from the DataWindow, or a specific station if given the id and/or start date
-        if an id is given, the first station with that id will be removed
-        if a start date is given, the removed station will start at or after the start date
-        start date is in microseconds since epoch UTC
+        Remove the first station from the DataWindow, or a specific station if given the id and/or start date.
+
+        * If an id is given, the first station with that id will be removed.
+        * If a start date is given, the removed station will start at or after the start date.
+        * Start date is in microseconds since epoch UTC.
 
         :param station_id: id of station to remove
         :param start_date: start date that is at or before the station to remove
@@ -1408,13 +1530,14 @@ Default False</p></div>
             return None
         return self._stations[0]
 
-    def get_station(self, station_id: str, station_uuid: Optional[str] = None,
-                    start_timestamp: Optional[float] = None) -&gt; Optional[List[Station]]:
+    def get_station(
+        self, station_id: str, station_uuid: Optional[str] = None, start_timestamp: Optional[float] = None
+    ) -&gt; Optional[List[Station]]:
         &#34;&#34;&#34;
         Get stations from the DataWindow.  Must give at least the station&#39;s id.  Other parameters may be None,
         which means the value will be ignored when searching.  Results will match all non-None parameters given.
 
-        :param station_id: station id
+        :param station_id: station id to get data for
         :param station_uuid: station uuid, default None
         :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
         :return: A list of valid stations or None if the station cannot be found
@@ -1458,12 +1581,17 @@ Default False</p></div>
             print(&#34;Reading files from disk.  This may take a few minutes to complete.&#34;)
 
         # get the data to convert into a window
-        a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
-                          correct_timestamps=self._config.apply_correction,
-                          use_model_correction=self._config.use_model_correction,
-                          dw_base_dir=self.save_dir(),
-                          dw_save_mode=self._fs_writer.save_mode(),
-                          debug=self.debug, pool=_pool)
+        a_r = ApiReaderDw(
+            self._config.input_dir,
+            self._config.structured_layout,
+            r_f,
+            correct_timestamps=self._config.apply_correction,
+            use_model_correction=self._config.use_model_correction,
+            dw_base_dir=self.save_dir(),
+            dw_save_mode=self._fs_writer.save_mode(),
+            debug=self.debug,
+            pool=_pool,
+        )
 
         # self._errors.extend_error(a_r.errors)
 
@@ -1477,9 +1605,8 @@ Default False</p></div>
         # Apply timing correction in parallel by station
         sts = a_r.get_stations()
         if self.debug:
-            print(&#34;num stations loaded: &#34;, len(sts))
-
-        for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
+            print(&#34;number of stations loaded: &#34;, len(sts))
+        for st in maybe_parallel_map(_pool, lambda s: s, iter(sts), chunk_size=1):
             self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
             if self.debug:
                 print(&#34;station processed: &#34;, st.id())
@@ -1496,11 +1623,13 @@ Default False</p></div>
         # update remaining data window values if they&#39;re still default
         if not self._config.start_datetime and len(self._stations) &gt; 0:
             self._config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.min([t.first_data_timestamp() for t in self._stations]))
+                np.min([t.first_data_timestamp() for t in self._stations])
+            )
         # end_datetime is non-inclusive, so it must be greater than our latest timestamp
         if not self._config.end_datetime and len(self._stations) &gt; 0:
             self._config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
-                np.max([t.last_data_timestamp() for t in self._stations]) + 1)
+                np.max([t.last_data_timestamp() for t in self._stations]) + 1
+            )
 
         # If the pool was created by this function, then it needs to managed by this function.
         if pool is None:
@@ -1528,55 +1657,62 @@ Default False</p></div>
                 add_ids = f&#34;for all stations {self._config.station_ids} &#34;
             else:
                 add_ids = &#34;&#34;
-            self._errors.append(f&#34;No data matching criteria {add_ids}in {self._config.input_dir}&#34;
-                                f&#34;\nPlease adjust parameters of DataWindow&#34;)
+            self._errors.append(
+                f&#34;No data matching criteria {add_ids}in {self._config.input_dir}&#34;
+                f&#34;\nPlease adjust parameters of DataWindow&#34;
+            )
         elif len(self._stations) &gt; 0 and self._config.station_ids:
             for ids in self._config.station_ids:
                 if ids.zfill(STATION_ID_LENGTH) not in [i.id() for i in self._stations]:
-                    self._errors.append(
-                        f&#34;Requested {ids} but there is no data to read for that station&#34;
-                    )
+                    self._errors.append(f&#34;Requested {ids} but there is no data to read for that station&#34;)
 
     def create_window_in_sensors(
-            self, station: Station, start_datetime: Optional[dtu.datetime] = None,
-            end_datetime: Optional[dtu.datetime] = None
+        self,
+        station: Station,
+        start_datetime: Optional[dtu.datetime] = None,
+        end_datetime: Optional[dtu.datetime] = None,
     ):
         &#34;&#34;&#34;
-        truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
-        if the start and/or end are not specified, keeps all audio data that fits and uses it
-        to truncate the other sensors.
+        truncate the sensors in the station to only contain data from start_datetime to end_datetime.
+
+        if the start and/or end are not specified, uses the audio start and end to truncate the other sensors.
+
         returns nothing, updates the station in place
 
         :param station: station object to truncate sensors of
         :param start_datetime: datetime of start of window, default None
         :param end_datetime: datetime of end of window, default None
         &#34;&#34;&#34;
-        if start_datetime:
-            start_datetime = dtu.datetime_to_epoch_microseconds_utc(start_datetime)
-        else:
-            start_datetime = 0
-        if end_datetime:
-            end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime)
-        else:
-            end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
+        start_datetime = dtu.datetime_to_epoch_microseconds_utc(start_datetime) if start_datetime else 0
+        end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime if end_datetime else dtu.datetime.max)
         self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
         if station.has_audio_data():
             for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
-                self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
-                                    station.audio_sensor().last_data_timestamp())
+                self.process_sensor(
+                    sensor,
+                    station.id(),
+                    station.audio_sensor().first_data_timestamp(),
+                    station.audio_sensor().last_data_timestamp(),
+                )
             # recalculate metadata
             station.update_first_and_last_data_timestamps()
-            station.set_packet_metadata([meta for meta in station.packet_metadata()
-                                         if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
-                                         meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+            station.set_packet_metadata(
+                [
+                    meta
+                    for meta in station.packet_metadata()
+                    if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp()
+                    and meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()
+                ]
+            )
             station.event_data().create_event_window(station.first_data_timestamp(), station.last_data_timestamp())
             if self._fs_writer.is_save_disk():
                 station.set_save_mode(io.FileSystemSaveMode.DISK)
                 station.set_save_dir(self.save_dir() if self._fs_writer.is_use_disk() else self._fs_writer.get_temp())
             self._stations.append(station)
 
-    def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
-                       end_date_timestamp: float):
+    def process_sensor(
+        self, sensor: SensorData, station_id: str, start_date_timestamp: float, end_date_timestamp: float
+    ):
         &#34;&#34;&#34;
         process a sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
 
@@ -1623,10 +1759,15 @@ Default False</p></div>
                     sensor.write_pyarrow_table(pa.Table.from_pydict(last_entry))
                 elif last_before_start is not None and first_after_end is not None:
                     sensor.write_pyarrow_table(
-                        sensor.interpolate(start_date_timestamp, last_before_start, 1,
-                                           self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
+                        sensor.interpolate(
+                            start_date_timestamp,
+                            last_before_start,
+                            1,
+                            self._config.copy_edge_points == gpu.DataPointCreationMode.COPY,
+                        )
+                    )
             else:
-                _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
+                _arrow = sensor.pyarrow_table().slice(start_index, end_index - start_index)
                 # if sensor is audio or location, we want nan&#39;d edge points
                 if sensor.type() in [SensorType.LOCATION, SensorType.AUDIO]:
                     new_point_mode = gpu.DataPointCreationMode.NAN
@@ -1644,30 +1785,38 @@ Default False</p></div>
                     end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s())
                     start_sample_interval = -end_sample_interval
                     if self._config.end_datetime:
-                        end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime)
-                                                  - slice_end) / end_sample_interval)
+                        end_samples_to_add = int(
+                            (dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime) - slice_end)
+                            / end_sample_interval
+                        )
                     else:
                         end_samples_to_add = 0
                     if self._config.start_datetime:
-                        start_samples_to_add = int((slice_start -
-                                                    dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
-                                                   / end_sample_interval)
+                        start_samples_to_add = int(
+                            (slice_start - dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
+                            / end_sample_interval
+                        )
                     else:
                         start_samples_to_add = 0
                 # add to end
-                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=_arrow.num_rows - 1,
-                                                    sample_interval_micros=end_sample_interval,
-                                                    num_samples_to_add=end_samples_to_add,
-                                                    point_creation_mode=new_point_mode))
+                _arrow = gpu.add_data_points_to_df(
+                    data_table=_arrow,
+                    start_index=_arrow.num_rows - 1,
+                    sample_interval_micros=end_sample_interval,
+                    num_samples_to_add=end_samples_to_add,
+                    point_creation_mode=new_point_mode,
+                )
                 # add to begin
-                _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=0,
-                                                    sample_interval_micros=start_sample_interval,
-                                                    num_samples_to_add=start_samples_to_add,
-                                                    point_creation_mode=new_point_mode))
+                _arrow = gpu.add_data_points_to_df(
+                    data_table=_arrow,
+                    start_index=0,
+                    sample_interval_micros=start_sample_interval,
+                    num_samples_to_add=start_samples_to_add,
+                    point_creation_mode=new_point_mode,
+                )
                 sensor.sort_by_data_timestamps(_arrow)
         else:
-            self._errors.append(f&#34;Data window for {station_id} {sensor.type().name} &#34;
-                                f&#34;sensor has no data points!&#34;)
+            self._errors.append(f&#34;Data window for {station_id} {sensor.type().name} &#34; f&#34;sensor has no data points!&#34;)
 
     def print_errors(self):
         &#34;&#34;&#34;
@@ -1720,16 +1869,40 @@ def from_config(config: DataWindowConfigFile) -&gt; &#34;DataWindow&#34;:
     :param config: DataWindowConfigFile to load from
     :return: DataWindow
     &#34;&#34;&#34;
-    event_origin = EventOrigin(config.origin_provider, config.origin_latitude, config.origin_latitude_std,
-                               config.origin_longitude, config.origin_longitude_std, config.origin_altitude,
-                               config.origin_altitude_std, config.origin_event_radius_m)
-    dw_config = DataWindowConfig(config.input_directory, config.structured_layout, config.start_dt(),
-                                 config.end_dt(), config.start_buffer_td(), config.end_buffer_td(),
-                                 config.drop_time_seconds, config.station_ids, config.extensions,
-                                 config.api_versions, config.apply_correction, config.use_model_correction,
-                                 config.copy_edge_points())
-    return DataWindow(config.event_name, event_origin, dw_config, config.output_dir, config.output_type,
-                      config.make_runme, config.debug)</code></pre>
+    event_origin = EventOrigin(
+        config.origin_provider,
+        config.origin_latitude,
+        config.origin_latitude_std,
+        config.origin_longitude,
+        config.origin_longitude_std,
+        config.origin_altitude,
+        config.origin_altitude_std,
+        config.origin_event_radius_m,
+    )
+    dw_config = DataWindowConfig(
+        config.input_directory,
+        config.structured_layout,
+        config.start_dt(),
+        config.end_dt(),
+        config.start_buffer_td(),
+        config.end_buffer_td(),
+        config.drop_time_seconds,
+        config.station_ids,
+        config.extensions,
+        config.api_versions,
+        config.apply_correction,
+        config.use_model_correction,
+        config.copy_edge_points(),
+    )
+    return DataWindow(
+        config.event_name,
+        event_origin,
+        dw_config,
+        config.output_dir,
+        config.output_type,
+        config.make_runme,
+        config.debug,
+    )</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.from_config_file"><code class="name flex">
@@ -1798,25 +1971,34 @@ def from_json_dict(json_dict: Dict) -&gt; &#34;DataWindow&#34;:
     :param json_dict: the dictionary to read
     :return: The DataWindow as defined by the JSON
     &#34;&#34;&#34;
-    if &#34;out_type&#34; not in json_dict.keys() \
-            or json_dict[&#34;out_type&#34;].upper() not in dw_io.DataWindowOutputType.list_names():
-        raise ValueError(&#39;Dictionary loading type is invalid or unknown.  &#39;
-                         &#39;Check the value &#34;out_type&#34;; it must be one of: &#39;
-                         f&#39;{dw_io.DataWindowOutputType.list_non_none_names()}&#39;)
+    if (
+        &#34;out_type&#34; not in json_dict.keys()
+        or json_dict[&#34;out_type&#34;].upper() not in dw_io.DataWindowOutputType.list_names()
+    ):
+        raise ValueError(
+            &#34;Dictionary loading type is invalid or unknown.  &#34;
+            &#39;Check the value of &#34;out_type&#34;; it must be one of: &#39;
+            f&#34;{dw_io.DataWindowOutputType.list_non_none_names()}&#34;
+        )
     else:
         out_type = dw_io.DataWindowOutputType.str_to_type(json_dict[&#34;out_type&#34;])
-        if out_type == dw_io.DataWindowOutputType.PARQUET:
-            dwin = DataWindow(json_dict[&#34;event_name&#34;], EventOrigin.from_dict(json_dict[&#34;event_origin&#34;]),
-                              None, json_dict[&#34;base_dir&#34;], json_dict[&#34;out_type&#34;], json_dict[&#34;make_runme&#34;],
-                              json_dict[&#34;debug&#34;])
+        if out_type == dw_io.DataWindowOutputType.PARQUET or out_type == dw_io.DataWindowOutputType.JSON:
+            dwin = DataWindow(
+                json_dict[&#34;event_name&#34;],
+                EventOrigin.from_dict(json_dict[&#34;event_origin&#34;]),
+                None,
+                json_dict[&#34;base_dir&#34;],
+                json_dict[&#34;out_type&#34;],
+                json_dict[&#34;make_runme&#34;],
+                json_dict[&#34;debug&#34;],
+            )
             dwin._config = DataWindowConfig.from_dict(json_dict[&#34;config&#34;])
             dwin._errors = RedVoxExceptions.from_dict(json_dict[&#34;errors&#34;])
             dwin._sdk_version = json_dict[&#34;sdk_version&#34;]
             for st in json_dict[&#34;stations&#34;]:
                 dwin.add_station(Station.from_json_file(os.path.join(json_dict[&#34;base_dir&#34;], st), f&#34;{st}.json&#34;))
         elif out_type == dw_io.DataWindowOutputType.LZ4:
-            dwin = DataWindow.deserialize(os.path.join(json_dict[&#34;base_dir&#34;],
-                                                       f&#34;{json_dict[&#39;event_name&#39;]}.pkl.lz4&#34;))
+            dwin = DataWindow.deserialize(os.path.join(json_dict[&#34;base_dir&#34;], f&#34;{json_dict[&#39;event_name&#39;]}.pkl.lz4&#34;))
         else:
             dwin = DataWindow()
         return dwin</code></pre>
@@ -1826,8 +2008,9 @@ def from_json_dict(json_dict: Dict) -&gt; &#34;DataWindow&#34;:
 <span>def <span class="ident">load</span></span>(<span>file_path: str) ‑> <a title="redvox.common.data_window.DataWindow" href="#redvox.common.data_window.DataWindow">DataWindow</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>load from json metadata and lz4 compressed file or directory of files</p>
-<p>:param file_path: full path of file to load
+<div class="desc"><p>load from json metadata and lz4 compressed file or directory of files.</p>
+<p>If you have a pkl.lz4 file, use the deserialize() method instead.</p>
+<p>:param file_path: full path of json metadata file to load
 :return: DataWindow from json metadata</p></div>
 <details class="source">
 <summary>
@@ -1836,9 +2019,11 @@ def from_json_dict(json_dict: Dict) -&gt; &#34;DataWindow&#34;:
 <pre><code class="python">@staticmethod
 def load(file_path: str) -&gt; &#34;DataWindow&#34;:
     &#34;&#34;&#34;
-    load from json metadata and lz4 compressed file or directory of files
+    load from json metadata and lz4 compressed file or directory of files.
 
-    :param file_path: full path of file to load
+    If you have a pkl.lz4 file, use the deserialize() method instead.
+
+    :param file_path: full path of json metadata file to load
     :return: DataWindow from json metadata
     &#34;&#34;&#34;
     cur_path = os.getcwd()
@@ -1857,8 +2042,8 @@ def load(file_path: str) -&gt; &#34;DataWindow&#34;:
 <span>def <span class="ident">add_station</span></span>(<span>self, station: <a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>add a station to the DataWindow
-:param station: Station to add</p></div>
+<div class="desc"><p>add a station to the DataWindow</p>
+<p>:param station: Station to add</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1866,6 +2051,7 @@ def load(file_path: str) -&gt; &#34;DataWindow&#34;:
 <pre><code class="python">def add_station(self, station: Station):
     &#34;&#34;&#34;
     add a station to the DataWindow
+
     :param station: Station to add
     &#34;&#34;&#34;
     self._stations.append(station)</code></pre>
@@ -1884,19 +2070,20 @@ def load(file_path: str) -&gt; &#34;DataWindow&#34;:
     &#34;&#34;&#34;
     :return: DataWindow properties as dictionary
     &#34;&#34;&#34;
-    return {&#34;event_name&#34;: self.event_name,
-            &#34;event_origin&#34;: self.event_origin.as_dict(),
-            &#34;start_time&#34;: self.start_date(),
-            &#34;end_time&#34;: self.end_date(),
-            &#34;base_dir&#34;: self.save_dir(),
-            &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
-            &#34;config&#34;: self._config.as_dict(),
-            &#34;debug&#34;: self.debug,
-            &#34;errors&#34;: self._errors.as_dict(),
-            &#34;sdk_version&#34;: self._sdk_version,
-            &#34;out_type&#34;: self._fs_writer.file_extension,
-            &#34;make_runme&#34;: self._fs_writer.make_run_me
-            }</code></pre>
+    return {
+        &#34;event_name&#34;: self.event_name,
+        &#34;event_origin&#34;: self.event_origin.to_dict(),
+        &#34;start_time&#34;: self.start_date(),
+        &#34;end_time&#34;: self.end_date(),
+        &#34;base_dir&#34;: self.save_dir(),
+        &#34;stations&#34;: [s.default_station_json_file_name() for s in self._stations],
+        &#34;config&#34;: self._config.to_dict(),
+        &#34;debug&#34;: self.debug,
+        &#34;errors&#34;: self._errors.as_dict(),
+        &#34;sdk_version&#34;: self._sdk_version,
+        &#34;out_type&#34;: self._fs_writer.file_extension,
+        &#34;make_runme&#34;: self._fs_writer.make_run_me,
+    }</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.config"><code class="name flex">
@@ -1956,12 +2143,17 @@ stations without audio or any data outside the window are removed</p></div>
         print(&#34;Reading files from disk.  This may take a few minutes to complete.&#34;)
 
     # get the data to convert into a window
-    a_r = ApiReaderDw(self._config.input_dir, self._config.structured_layout, r_f,
-                      correct_timestamps=self._config.apply_correction,
-                      use_model_correction=self._config.use_model_correction,
-                      dw_base_dir=self.save_dir(),
-                      dw_save_mode=self._fs_writer.save_mode(),
-                      debug=self.debug, pool=_pool)
+    a_r = ApiReaderDw(
+        self._config.input_dir,
+        self._config.structured_layout,
+        r_f,
+        correct_timestamps=self._config.apply_correction,
+        use_model_correction=self._config.use_model_correction,
+        dw_base_dir=self.save_dir(),
+        dw_save_mode=self._fs_writer.save_mode(),
+        debug=self.debug,
+        pool=_pool,
+    )
 
     # self._errors.extend_error(a_r.errors)
 
@@ -1975,9 +2167,8 @@ stations without audio or any data outside the window are removed</p></div>
     # Apply timing correction in parallel by station
     sts = a_r.get_stations()
     if self.debug:
-        print(&#34;num stations loaded: &#34;, len(sts))
-
-    for st in maybe_parallel_map(_pool, Station.update_timestamps, iter(sts), chunk_size=1):
+        print(&#34;number of stations loaded: &#34;, len(sts))
+    for st in maybe_parallel_map(_pool, lambda s: s, iter(sts), chunk_size=1):
         self.create_window_in_sensors(st, self._config.start_datetime, self._config.end_datetime)
         if self.debug:
             print(&#34;station processed: &#34;, st.id())
@@ -1994,11 +2185,13 @@ stations without audio or any data outside the window are removed</p></div>
     # update remaining data window values if they&#39;re still default
     if not self._config.start_datetime and len(self._stations) &gt; 0:
         self._config.start_datetime = dtu.datetime_from_epoch_microseconds_utc(
-            np.min([t.first_data_timestamp() for t in self._stations]))
+            np.min([t.first_data_timestamp() for t in self._stations])
+        )
     # end_datetime is non-inclusive, so it must be greater than our latest timestamp
     if not self._config.end_datetime and len(self._stations) &gt; 0:
         self._config.end_datetime = dtu.datetime_from_epoch_microseconds_utc(
-            np.max([t.last_data_timestamp() for t in self._stations]) + 1)
+            np.max([t.last_data_timestamp() for t in self._stations]) + 1
+        )
 
     # If the pool was created by this function, then it needs to managed by this function.
     if pool is None:
@@ -2009,10 +2202,9 @@ stations without audio or any data outside the window are removed</p></div>
 <span>def <span class="ident">create_window_in_sensors</span></span>(<span>self, station: <a title="redvox.common.station.Station" href="station.html#redvox.common.station.Station">Station</a>, start_datetime: Optional[datetime.datetime] = None, end_datetime: Optional[datetime.datetime] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
-if the start and/or end are not specified, keeps all audio data that fits and uses it
-to truncate the other sensors.
-returns nothing, updates the station in place</p>
+<div class="desc"><p>truncate the sensors in the station to only contain data from start_datetime to end_datetime.</p>
+<p>if the start and/or end are not specified, uses the audio start and end to truncate the other sensors.</p>
+<p>returns nothing, updates the station in place</p>
 <p>:param station: station object to truncate sensors of
 :param start_datetime: datetime of start of window, default None
 :param end_datetime: datetime of end of window, default None</p></div>
@@ -2021,37 +2213,43 @@ returns nothing, updates the station in place</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_window_in_sensors(
-        self, station: Station, start_datetime: Optional[dtu.datetime] = None,
-        end_datetime: Optional[dtu.datetime] = None
+    self,
+    station: Station,
+    start_datetime: Optional[dtu.datetime] = None,
+    end_datetime: Optional[dtu.datetime] = None,
 ):
     &#34;&#34;&#34;
-    truncate the sensors in the station to only contain data from start_date_timestamp to end_date_timestamp
-    if the start and/or end are not specified, keeps all audio data that fits and uses it
-    to truncate the other sensors.
+    truncate the sensors in the station to only contain data from start_datetime to end_datetime.
+
+    if the start and/or end are not specified, uses the audio start and end to truncate the other sensors.
+
     returns nothing, updates the station in place
 
     :param station: station object to truncate sensors of
     :param start_datetime: datetime of start of window, default None
     :param end_datetime: datetime of end of window, default None
     &#34;&#34;&#34;
-    if start_datetime:
-        start_datetime = dtu.datetime_to_epoch_microseconds_utc(start_datetime)
-    else:
-        start_datetime = 0
-    if end_datetime:
-        end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime)
-    else:
-        end_datetime = dtu.datetime_to_epoch_microseconds_utc(dtu.datetime.max)
+    start_datetime = dtu.datetime_to_epoch_microseconds_utc(start_datetime) if start_datetime else 0
+    end_datetime = dtu.datetime_to_epoch_microseconds_utc(end_datetime if end_datetime else dtu.datetime.max)
     self.process_sensor(station.audio_sensor(), station.id(), start_datetime, end_datetime)
     if station.has_audio_data():
         for sensor in [s for s in station.data() if s.type() != SensorType.AUDIO]:
-            self.process_sensor(sensor, station.id(), station.audio_sensor().first_data_timestamp(),
-                                station.audio_sensor().last_data_timestamp())
+            self.process_sensor(
+                sensor,
+                station.id(),
+                station.audio_sensor().first_data_timestamp(),
+                station.audio_sensor().last_data_timestamp(),
+            )
         # recalculate metadata
         station.update_first_and_last_data_timestamps()
-        station.set_packet_metadata([meta for meta in station.packet_metadata()
-                                     if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp() and
-                                     meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()])
+        station.set_packet_metadata(
+            [
+                meta
+                for meta in station.packet_metadata()
+                if meta.packet_start_mach_timestamp &lt; station.last_data_timestamp()
+                and meta.packet_end_mach_timestamp &gt;= station.first_data_timestamp()
+            ]
+        )
         station.event_data().create_event_window(station.first_data_timestamp(), station.last_data_timestamp())
         if self._fs_writer.is_save_disk():
             station.set_save_mode(io.FileSystemSaveMode.DISK)
@@ -2135,7 +2333,7 @@ Must give at least the station's id.
 Other parameters may be None,
 which means the value will be ignored when searching.
 Results will match all non-None parameters given.</p>
-<p>:param station_id: station id
+<p>:param station_id: station id to get data for
 :param station_uuid: station uuid, default None
 :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
 :return: A list of valid stations or None if the station cannot be found</p></div>
@@ -2143,13 +2341,14 @@ Results will match all non-None parameters given.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_station(self, station_id: str, station_uuid: Optional[str] = None,
-                start_timestamp: Optional[float] = None) -&gt; Optional[List[Station]]:
+<pre><code class="python">def get_station(
+    self, station_id: str, station_uuid: Optional[str] = None, start_timestamp: Optional[float] = None
+) -&gt; Optional[List[Station]]:
     &#34;&#34;&#34;
     Get stations from the DataWindow.  Must give at least the station&#39;s id.  Other parameters may be None,
     which means the value will be ignored when searching.  Results will match all non-None parameters given.
 
-    :param station_id: station id
+    :param station_id: station id to get data for
     :param station_uuid: station uuid, default None
     :param start_timestamp: station start timestamp in microseconds since UTC epoch, default None
     :return: A list of valid stations or None if the station cannot be found
@@ -2244,8 +2443,9 @@ Updates sensor in place, returns nothing.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def process_sensor(self, sensor: SensorData, station_id: str, start_date_timestamp: float,
-                   end_date_timestamp: float):
+<pre><code class="python">def process_sensor(
+    self, sensor: SensorData, station_id: str, start_date_timestamp: float, end_date_timestamp: float
+):
     &#34;&#34;&#34;
     process a sensor to fit within the DataWindow.  Updates sensor in place, returns nothing.
 
@@ -2292,10 +2492,15 @@ Updates sensor in place, returns nothing.</p>
                 sensor.write_pyarrow_table(pa.Table.from_pydict(last_entry))
             elif last_before_start is not None and first_after_end is not None:
                 sensor.write_pyarrow_table(
-                    sensor.interpolate(start_date_timestamp, last_before_start, 1,
-                                       self._config.copy_edge_points == gpu.DataPointCreationMode.COPY))
+                    sensor.interpolate(
+                        start_date_timestamp,
+                        last_before_start,
+                        1,
+                        self._config.copy_edge_points == gpu.DataPointCreationMode.COPY,
+                    )
+                )
         else:
-            _arrow = sensor.pyarrow_table().slice(start_index, end_index-start_index)
+            _arrow = sensor.pyarrow_table().slice(start_index, end_index - start_index)
             # if sensor is audio or location, we want nan&#39;d edge points
             if sensor.type() in [SensorType.LOCATION, SensorType.AUDIO]:
                 new_point_mode = gpu.DataPointCreationMode.NAN
@@ -2313,40 +2518,50 @@ Updates sensor in place, returns nothing.</p>
                 end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s())
                 start_sample_interval = -end_sample_interval
                 if self._config.end_datetime:
-                    end_samples_to_add = int((dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime)
-                                              - slice_end) / end_sample_interval)
+                    end_samples_to_add = int(
+                        (dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime) - slice_end)
+                        / end_sample_interval
+                    )
                 else:
                     end_samples_to_add = 0
                 if self._config.start_datetime:
-                    start_samples_to_add = int((slice_start -
-                                                dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
-                                               / end_sample_interval)
+                    start_samples_to_add = int(
+                        (slice_start - dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
+                        / end_sample_interval
+                    )
                 else:
                     start_samples_to_add = 0
             # add to end
-            _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=_arrow.num_rows - 1,
-                                                sample_interval_micros=end_sample_interval,
-                                                num_samples_to_add=end_samples_to_add,
-                                                point_creation_mode=new_point_mode))
+            _arrow = gpu.add_data_points_to_df(
+                data_table=_arrow,
+                start_index=_arrow.num_rows - 1,
+                sample_interval_micros=end_sample_interval,
+                num_samples_to_add=end_samples_to_add,
+                point_creation_mode=new_point_mode,
+            )
             # add to begin
-            _arrow = (gpu.add_data_points_to_df(data_table=_arrow, start_index=0,
-                                                sample_interval_micros=start_sample_interval,
-                                                num_samples_to_add=start_samples_to_add,
-                                                point_creation_mode=new_point_mode))
+            _arrow = gpu.add_data_points_to_df(
+                data_table=_arrow,
+                start_index=0,
+                sample_interval_micros=start_sample_interval,
+                num_samples_to_add=start_samples_to_add,
+                point_creation_mode=new_point_mode,
+            )
             sensor.sort_by_data_timestamps(_arrow)
     else:
-        self._errors.append(f&#34;Data window for {station_id} {sensor.type().name} &#34;
-                            f&#34;sensor has no data points!&#34;)</code></pre>
+        self._errors.append(f&#34;Data window for {station_id} {sensor.type().name} &#34; f&#34;sensor has no data points!&#34;)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.data_window.DataWindow.remove_station"><code class="name flex">
 <span>def <span class="ident">remove_station</span></span>(<span>self, station_id: Optional[str] = None, start_date: Optional[float] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>remove the first station from the DataWindow, or a specific station if given the id and/or start date
-if an id is given, the first station with that id will be removed
-if a start date is given, the removed station will start at or after the start date
-start date is in microseconds since epoch UTC</p>
+<div class="desc"><p>Remove the first station from the DataWindow, or a specific station if given the id and/or start date.</p>
+<ul>
+<li>If an id is given, the first station with that id will be removed.</li>
+<li>If a start date is given, the removed station will start at or after the start date.</li>
+<li>Start date is in microseconds since epoch UTC.</li>
+</ul>
 <p>:param station_id: id of station to remove
 :param start_date: start date that is at or before the station to remove</p></div>
 <details class="source">
@@ -2355,10 +2570,11 @@ start date is in microseconds since epoch UTC</p>
 </summary>
 <pre><code class="python">def remove_station(self, station_id: Optional[str] = None, start_date: Optional[float] = None):
     &#34;&#34;&#34;
-    remove the first station from the DataWindow, or a specific station if given the id and/or start date
-    if an id is given, the first station with that id will be removed
-    if a start date is given, the removed station will start at or after the start date
-    start date is in microseconds since epoch UTC
+    Remove the first station from the DataWindow, or a specific station if given the id and/or start date.
+
+    * If an id is given, the first station with that id will be removed.
+    * If a start date is given, the removed station will start at or after the start date.
+    * Start date is in microseconds since epoch UTC.
 
     :param station_id: id of station to remove
     :param start_date: start date that is at or before the station to remove
@@ -2410,9 +2626,10 @@ if saving is not enabled, adds an error to the DataWindow and returns an empty p
     &#34;&#34;&#34;
     if self._fs_writer.is_save_disk():
         if self._fs_writer.is_use_disk() and self._fs_writer.make_run_me:
-            shutil.copyfile(os.path.abspath(inspect.getfile(run_me)),
-                            os.path.join(self._fs_writer.save_dir(), &#34;runme.py&#34;))
-        if self._fs_writer.file_extension == &#34;parquet&#34;:
+            shutil.copyfile(
+                os.path.abspath(inspect.getfile(run_me)), os.path.join(self._fs_writer.save_dir(), &#34;runme.py&#34;)
+            )
+        if self._fs_writer.file_extension in [&#34;parquet&#34;, &#34;json&#34;]:
             return self._to_json_file()
         elif self._fs_writer.file_extension == &#34;lz4&#34;:
             return self.serialize()
@@ -2501,8 +2718,8 @@ Default False</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>set the output type of the DataWindow.
-options are "NONE", "PARQUET" and "LZ4".
-invalid values become "NONE"</p>
+options are "NONE", "PARQUET", "LZ4" and "JSON".
+Invalid values become "NONE"</p>
 <p>:param new_out_type: new output type of the DataWindow</p></div>
 <details class="source">
 <summary>
@@ -2510,7 +2727,8 @@ invalid values become "NONE"</p>
 </summary>
 <pre><code class="python">def set_out_type(self, new_out_type: str):
     &#34;&#34;&#34;
-    set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34; and &#34;LZ4&#34;.  invalid values become &#34;NONE&#34;
+    set the output type of the DataWindow.  options are &#34;NONE&#34;, &#34;PARQUET&#34;, &#34;LZ4&#34; and &#34;JSON&#34;.
+    Invalid values become &#34;NONE&#34;
 
     :param new_out_type: new output type of the DataWindow
     &#34;&#34;&#34;
@@ -2668,9 +2886,7 @@ Default True</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">@dataclass_json
-@dataclass
-class DataWindowConfig:
+<pre><code class="python">class DataWindowConfig:
     &#34;&#34;&#34;
     Configuration of DataWindow properties
 
@@ -2713,244 +2929,82 @@ class DataWindowConfig:
         use_model_correction: bool, if True, use the offset model&#39;s correction functions, otherwise use the best
         offset.  Default True
     &#34;&#34;&#34;
-    input_dir: str
-    structured_layout: bool = True
-    start_datetime: Optional[dtu.datetime] = None
-    end_datetime: Optional[dtu.datetime] = None
-    start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD
-    end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD
-    drop_time_s: float = DATA_DROP_DURATION_S
-    station_ids: Optional[Iterable[str]] = None
-    extensions: Optional[Set[str]] = None
-    api_versions: Optional[Set[io.ApiVersion]] = None
-    apply_correction: bool = True
-    use_model_correction: bool = True
-    copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY
 
-    def __post_init__(self):
-        self.start_buffer_td: timedelta = self.start_buffer_td if self.start_buffer_td &gt; timedelta(seconds=0) \
-            else timedelta(seconds=0)
-        self.end_buffer_td: timedelta = self.end_buffer_td if self.end_buffer_td &gt; timedelta(seconds=0) \
-            else timedelta(seconds=0)
-        self.drop_time_s: float = self.drop_time_s if self.drop_time_s &gt; 0 else DATA_DROP_DURATION_S
-        self.station_ids: Optional[Set[str]] = set(self.station_ids) if self.station_ids else None
+    def __init__(
+        self,
+        input_dir: str,
+        structured_layout: bool = True,
+        start_datetime: Optional[dtu.datetime] = None,
+        end_datetime: Optional[dtu.datetime] = None,
+        start_buffer_td: timedelta = DEFAULT_START_BUFFER_TD,
+        end_buffer_td: timedelta = DEFAULT_END_BUFFER_TD,
+        drop_time_s: float = DATA_DROP_DURATION_S,
+        station_ids: Optional[Iterable[str]] = None,
+        extensions: Optional[Set[str]] = None,
+        api_versions: Optional[Set[io.ApiVersion]] = None,
+        apply_correction: bool = True,
+        use_model_correction: bool = True,
+        copy_edge_points: gpu.DataPointCreationMode = gpu.DataPointCreationMode.COPY,
+    ):
+        self.input_dir: str = input_dir
+        self.structured_layout: bool = structured_layout
+        self.start_datetime: Optional[dtu.datetime] = start_datetime
+        self.end_datetime: Optional[dtu.datetime] = end_datetime
+        self.start_buffer_td: timedelta = (
+            start_buffer_td if start_buffer_td &gt; timedelta(seconds=0) else timedelta(seconds=0)
+        )
+        self.end_buffer_td: timedelta = end_buffer_td if end_buffer_td &gt; timedelta(seconds=0) else timedelta(seconds=0)
+        self.drop_time_s: float = drop_time_s if drop_time_s &gt; 0 else DATA_DROP_DURATION_S
+        self.station_ids: Optional[Set[str]] = set(station_ids) if station_ids else None
+        self.extensions: Optional[Set[str]] = extensions
+        self.api_versions: Optional[Set[io.ApiVersion]] = api_versions
+        self.apply_correction: bool = apply_correction
+        self.use_model_correction = use_model_correction
+        self.copy_edge_points = copy_edge_points
 
     def __repr__(self):
-        return f&#34;input_dir: {self.input_dir}, &#34; \
-               f&#34;structured_layout: {self.structured_layout}, &#34; \
-               f&#34;start_datetime: {self.start_datetime.__repr__()}, &#34; \
-               f&#34;end_datetime: {self.end_datetime.__repr__()}, &#34; \
-               f&#34;start_buffer_td: {self.start_buffer_td.__repr__()}, &#34; \
-               f&#34;end_buffer_td: {self.end_buffer_td.__repr__()}, &#34; \
-               f&#34;drop_time_s: {self.drop_time_s}, &#34; \
-               f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34; \
-               f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34; \
-               f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34; \
-               f&#34;apply_correction: {self.apply_correction}, &#34; \
-               f&#34;use_model_correction: {self.use_model_correction}, &#34; \
-               f&#34;copy_edge_points: {self.copy_edge_points.value}&#34;
+        return (
+            f&#34;input_dir: {self.input_dir}, &#34;
+            f&#34;structured_layout: {self.structured_layout}, &#34;
+            f&#34;start_datetime: {self.start_datetime.__repr__()}, &#34;
+            f&#34;end_datetime: {self.end_datetime.__repr__()}, &#34;
+            f&#34;start_buffer_td: {self.start_buffer_td.__repr__()}, &#34;
+            f&#34;end_buffer_td: {self.end_buffer_td.__repr__()}, &#34;
+            f&#34;drop_time_s: {self.drop_time_s}, &#34;
+            f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34;
+            f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34;
+            f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34;
+            f&#34;apply_correction: {self.apply_correction}, &#34;
+            f&#34;use_model_correction: {self.use_model_correction}, &#34;
+            f&#34;copy_edge_points: {self.copy_edge_points.value}&#34;
+        )
 
     def __str__(self):
-        return f&#34;input_dir: {self.input_dir}, &#34; \
-               f&#34;structured_layout: {self.structured_layout}, &#34; \
-               f&#34;start_datetime: &#34; \
-               f&#34;{self.start_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.start_datetime else None}, &#34; \
-               f&#34;end_datetime: {self.end_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.end_datetime else None}, &#34; \
-               f&#34;start_buffer_td (in s): {self.start_buffer_td.total_seconds()}, &#34; \
-               f&#34;end_buffer_td (in s): {self.end_buffer_td.total_seconds()}, &#34; \
-               f&#34;drop_time_s: {self.drop_time_s}, &#34; \
-               f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34; \
-               f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34; \
-               f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34; \
-               f&#34;apply_correction: {self.apply_correction}, &#34; \
-               f&#34;use_model_correction: {self.use_model_correction}, &#34; \
-               f&#34;copy_edge_points: {self.copy_edge_points.name}&#34;
+        return (
+            f&#34;input_dir: {self.input_dir}, &#34;
+            f&#34;structured_layout: {self.structured_layout}, &#34;
+            f&#34;start_datetime: &#34;
+            f&#34;{self.start_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.start_datetime else None}, &#34;
+            f&#34;end_datetime: {self.end_datetime.strftime(&#39;%Y-%m-%dT%H:%M:%S.%fZ&#39;) if self.end_datetime else None}, &#34;
+            f&#34;start_buffer_td (in s): {self.start_buffer_td.total_seconds()}, &#34;
+            f&#34;end_buffer_td (in s): {self.end_buffer_td.total_seconds()}, &#34;
+            f&#34;drop_time_s: {self.drop_time_s}, &#34;
+            f&#34;station_ids: {list(self.station_ids) if self.station_ids else []}, &#34;
+            f&#34;extensions: {list(self.extensions) if self.extensions else []}, &#34;
+            f&#34;api_versions: {[a_v.value for a_v in self.api_versions] if self.api_versions else []}, &#34;
+            f&#34;apply_correction: {self.apply_correction}, &#34;
+            f&#34;use_model_correction: {self.use_model_correction}, &#34;
+            f&#34;copy_edge_points: {self.copy_edge_points.name}&#34;
+        )
 
-    def as_dict(self) -&gt; Dict:
-        return {&#34;input_dir&#34;: self.input_dir,
-                &#34;structured_layout&#34;: self.structured_layout,
-                &#34;start_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.start_datetime),
-                &#34;end_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.end_datetime),
-                &#34;start_buffer_td&#34;: self.start_buffer_td.total_seconds(),
-                &#34;end_buffer_td&#34;: self.end_buffer_td.total_seconds(),
-                &#34;drop_time_s&#34;: self.drop_time_s,
-                &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
-                &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
-                &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
-                &#34;apply_correction&#34;: self.apply_correction,
-                &#34;use_model_correction&#34;: self.use_model_correction,
-                &#34;copy_edge_points&#34;: self.copy_edge_points.value
-                }
-
-    @staticmethod
-    def from_dict(data_dict: Dict) -&gt; &#34;DataWindowConfig&#34;:
-        return DataWindowConfig(data_dict[&#34;input_dir&#34;], data_dict[&#34;structured_layout&#34;],
-                                dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;start_datetime&#34;]),
-                                dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;end_datetime&#34;]),
-                                timedelta(seconds=data_dict[&#34;start_buffer_td&#34;]),
-                                timedelta(seconds=data_dict[&#34;end_buffer_td&#34;]),
-                                data_dict[&#34;drop_time_s&#34;], data_dict[&#34;station_ids&#34;], set(data_dict[&#34;extensions&#34;]),
-                                set([io.ApiVersion.from_str(v) for v in data_dict[&#34;api_versions&#34;]]),
-                                data_dict[&#34;apply_correction&#34;], data_dict[&#34;use_model_correction&#34;],
-                                gpu.DataPointCreationMode(data_dict[&#34;copy_edge_points&#34;])
-                                )</code></pre>
-</details>
-<h3>Class variables</h3>
-<dl>
-<dt id="redvox.common.data_window.DataWindowConfig.api_versions"><code class="name">var <span class="ident">api_versions</span> : Optional[Set[<a title="redvox.common.versioning.ApiVersion" href="versioning.html#redvox.common.versioning.ApiVersion">ApiVersion</a>]]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.apply_correction"><code class="name">var <span class="ident">apply_correction</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.copy_edge_points"><code class="name">var <span class="ident">copy_edge_points</span> : <a title="redvox.common.gap_and_pad_utils.DataPointCreationMode" href="gap_and_pad_utils.html#redvox.common.gap_and_pad_utils.DataPointCreationMode">DataPointCreationMode</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.drop_time_s"><code class="name">var <span class="ident">drop_time_s</span> : float</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.end_buffer_td"><code class="name">var <span class="ident">end_buffer_td</span> : datetime.timedelta</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.end_datetime"><code class="name">var <span class="ident">end_datetime</span> : Optional[datetime.datetime]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.extensions"><code class="name">var <span class="ident">extensions</span> : Optional[Set[str]]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.input_dir"><code class="name">var <span class="ident">input_dir</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.start_buffer_td"><code class="name">var <span class="ident">start_buffer_td</span> : datetime.timedelta</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.start_datetime"><code class="name">var <span class="ident">start_datetime</span> : Optional[datetime.datetime]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.station_ids"><code class="name">var <span class="ident">station_ids</span> : Optional[Iterable[str]]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.structured_layout"><code class="name">var <span class="ident">structured_layout</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.use_model_correction"><code class="name">var <span class="ident">use_model_correction</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="redvox.common.data_window.DataWindowConfig.from_dict"><code class="name flex">
-<span>def <span class="ident">from_dict</span></span>(<span>kvs: Union[dict, list, str, int, float, bool, ForwardRef(None)], *, infer_missing=False) ‑> ~A</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def from_dict(cls: Type[A],
-              kvs: Json,
-              *,
-              infer_missing=False) -&gt; A:
-    return _decode_dataclass(cls, kvs, infer_missing)</code></pre>
-</details>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.from_json"><code class="name flex">
-<span>def <span class="ident">from_json</span></span>(<span>s: Union[str, bytes, bytearray], *, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw) ‑> ~A</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def from_json(cls: Type[A],
-              s: JsonData,
-              *,
-              parse_float=None,
-              parse_int=None,
-              parse_constant=None,
-              infer_missing=False,
-              **kw) -&gt; A:
-    kvs = json.loads(s,
-                     parse_float=parse_float,
-                     parse_int=parse_int,
-                     parse_constant=parse_constant,
-                     **kw)
-    return cls.from_dict(kvs, infer_missing=infer_missing)</code></pre>
-</details>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.schema"><code class="name flex">
-<span>def <span class="ident">schema</span></span>(<span>*, infer_missing: bool = False, only=None, exclude=(), many: bool = False, context=None, load_only=(), dump_only=(), partial: bool = False, unknown=None) ‑> dataclasses_json.mm.SchemaF[~A]</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def schema(cls: Type[A],
-           *,
-           infer_missing: bool = False,
-           only=None,
-           exclude=(),
-           many: bool = False,
-           context=None,
-           load_only=(),
-           dump_only=(),
-           partial: bool = False,
-           unknown=None) -&gt; SchemaType:
-    Schema = build_schema(cls, DataClassJsonMixin, infer_missing, partial)
-
-    if unknown is None:
-        undefined_parameter_action = _undefined_parameter_action_safe(cls)
-        if undefined_parameter_action is not None:
-            # We can just make use of the same-named mm keywords
-            unknown = undefined_parameter_action.name.lower()
-
-    return Schema(only=only,
-                  exclude=exclude,
-                  many=many,
-                  context=context,
-                  load_only=load_only,
-                  dump_only=dump_only,
-                  partial=partial,
-                  unknown=unknown)</code></pre>
-</details>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="redvox.common.data_window.DataWindowConfig.as_dict"><code class="name flex">
-<span>def <span class="ident">as_dict</span></span>(<span>self) ‑> Dict</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def as_dict(self) -&gt; Dict:
-    return {&#34;input_dir&#34;: self.input_dir,
+    def to_dict(self) -&gt; Dict:
+        return {
+            &#34;input_dir&#34;: self.input_dir,
             &#34;structured_layout&#34;: self.structured_layout,
-            &#34;start_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.start_datetime),
-            &#34;end_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.end_datetime),
+            &#34;start_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
+            if self.start_datetime
+            else None,
+            &#34;end_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.end_datetime) if self.end_datetime else None,
             &#34;start_buffer_td&#34;: self.start_buffer_td.total_seconds(),
             &#34;end_buffer_td&#34;: self.end_buffer_td.total_seconds(),
             &#34;drop_time_s&#34;: self.drop_time_s,
@@ -2959,12 +3013,66 @@ def schema(cls: Type[A],
             &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
             &#34;apply_correction&#34;: self.apply_correction,
             &#34;use_model_correction&#34;: self.use_model_correction,
-            &#34;copy_edge_points&#34;: self.copy_edge_points.value
-            }</code></pre>
+            &#34;copy_edge_points&#34;: self.copy_edge_points.value,
+        }
+
+    @staticmethod
+    def from_dict(data_dict: Dict) -&gt; &#34;DataWindowConfig&#34;:
+        return DataWindowConfig(
+            data_dict[&#34;input_dir&#34;],
+            data_dict[&#34;structured_layout&#34;],
+            dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;start_datetime&#34;])
+            if data_dict[&#34;start_datetime&#34;]
+            else None,
+            dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;end_datetime&#34;]) if data_dict[&#34;end_datetime&#34;] else None,
+            timedelta(seconds=data_dict[&#34;start_buffer_td&#34;]),
+            timedelta(seconds=data_dict[&#34;end_buffer_td&#34;]),
+            data_dict[&#34;drop_time_s&#34;],
+            data_dict[&#34;station_ids&#34;],
+            set(data_dict[&#34;extensions&#34;]),
+            set([io.ApiVersion.from_str(v) for v in data_dict[&#34;api_versions&#34;]]),
+            data_dict[&#34;apply_correction&#34;],
+            data_dict[&#34;use_model_correction&#34;],
+            gpu.DataPointCreationMode(data_dict[&#34;copy_edge_points&#34;]),
+        )</code></pre>
+</details>
+<h3>Static methods</h3>
+<dl>
+<dt id="redvox.common.data_window.DataWindowConfig.from_dict"><code class="name flex">
+<span>def <span class="ident">from_dict</span></span>(<span>data_dict: Dict) ‑> <a title="redvox.common.data_window.DataWindowConfig" href="#redvox.common.data_window.DataWindowConfig">DataWindowConfig</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def from_dict(data_dict: Dict) -&gt; &#34;DataWindowConfig&#34;:
+    return DataWindowConfig(
+        data_dict[&#34;input_dir&#34;],
+        data_dict[&#34;structured_layout&#34;],
+        dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;start_datetime&#34;])
+        if data_dict[&#34;start_datetime&#34;]
+        else None,
+        dtu.datetime_from_epoch_microseconds_utc(data_dict[&#34;end_datetime&#34;]) if data_dict[&#34;end_datetime&#34;] else None,
+        timedelta(seconds=data_dict[&#34;start_buffer_td&#34;]),
+        timedelta(seconds=data_dict[&#34;end_buffer_td&#34;]),
+        data_dict[&#34;drop_time_s&#34;],
+        data_dict[&#34;station_ids&#34;],
+        set(data_dict[&#34;extensions&#34;]),
+        set([io.ApiVersion.from_str(v) for v in data_dict[&#34;api_versions&#34;]]),
+        data_dict[&#34;apply_correction&#34;],
+        data_dict[&#34;use_model_correction&#34;],
+        gpu.DataPointCreationMode(data_dict[&#34;copy_edge_points&#34;]),
+    )</code></pre>
 </details>
 </dd>
+</dl>
+<h3>Methods</h3>
+<dl>
 <dt id="redvox.common.data_window.DataWindowConfig.to_dict"><code class="name flex">
-<span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, ForwardRef(None)]]</span>
+<span>def <span class="ident">to_dict</span></span>(<span>self) ‑> Dict</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2972,41 +3080,24 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_dict(self, encode_json=False) -&gt; Dict[str, Json]:
-    return _asdict(self, encode_json=encode_json)</code></pre>
-</details>
-</dd>
-<dt id="redvox.common.data_window.DataWindowConfig.to_json"><code class="name flex">
-<span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys: bool = False, ensure_ascii: bool = True, check_circular: bool = True, allow_nan: bool = True, indent: Union[int, str, ForwardRef(None)] = None, separators: Tuple[str, str] = None, default: Callable = None, sort_keys: bool = False, **kw) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_json(self,
-            *,
-            skipkeys: bool = False,
-            ensure_ascii: bool = True,
-            check_circular: bool = True,
-            allow_nan: bool = True,
-            indent: Optional[Union[int, str]] = None,
-            separators: Tuple[str, str] = None,
-            default: Callable = None,
-            sort_keys: bool = False,
-            **kw) -&gt; str:
-    return json.dumps(self.to_dict(encode_json=False),
-                      cls=_ExtendedEncoder,
-                      skipkeys=skipkeys,
-                      ensure_ascii=ensure_ascii,
-                      check_circular=check_circular,
-                      allow_nan=allow_nan,
-                      indent=indent,
-                      separators=separators,
-                      default=default,
-                      sort_keys=sort_keys,
-                      **kw)</code></pre>
+<pre><code class="python">def to_dict(self) -&gt; Dict:
+    return {
+        &#34;input_dir&#34;: self.input_dir,
+        &#34;structured_layout&#34;: self.structured_layout,
+        &#34;start_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.start_datetime)
+        if self.start_datetime
+        else None,
+        &#34;end_datetime&#34;: dtu.datetime_to_epoch_microseconds_utc(self.end_datetime) if self.end_datetime else None,
+        &#34;start_buffer_td&#34;: self.start_buffer_td.total_seconds(),
+        &#34;end_buffer_td&#34;: self.end_buffer_td.total_seconds(),
+        &#34;drop_time_s&#34;: self.drop_time_s,
+        &#34;station_ids&#34;: list(self.station_ids) if self.station_ids else [],
+        &#34;extensions&#34;: list(self.extensions) if self.extensions else [],
+        &#34;api_versions&#34;: [a_v.value for a_v in self.api_versions] if self.api_versions else [],
+        &#34;apply_correction&#34;: self.apply_correction,
+        &#34;use_model_correction&#34;: self.use_model_correction,
+        &#34;copy_edge_points&#34;: self.copy_edge_points.value,
+    }</code></pre>
 </details>
 </dd>
 </dl>
@@ -3055,6 +3146,7 @@ class EventOrigin:
 
         event_radius_m: float, radius of event in meters, default 0.0
     &#34;&#34;&#34;
+
     provider: str = &#34;UNKNOWN&#34;
     latitude: float = np.nan
     latitude_std: float = np.nan
@@ -3062,34 +3154,7 @@ class EventOrigin:
     longitude_std: float = np.nan
     altitude: float = np.nan
     altitude_std: float = np.nan
-    event_radius_m: float = 0.0
-
-    def __repr__(self):
-        return str(self.as_dict())
-
-    def __str__(self):
-        return str(self.as_dict())
-
-    def as_dict(self) -&gt; Dict:
-        &#34;&#34;&#34;
-        :return: self as dict
-        &#34;&#34;&#34;
-        return {
-            &#34;provider&#34;: self.provider,
-            &#34;latitude&#34;: self.latitude,
-            &#34;latitude_std&#34;: self.latitude_std,
-            &#34;longitude&#34;: self.longitude,
-            &#34;longitude_std&#34;: self.longitude_std,
-            &#34;altitude&#34;: self.altitude,
-            &#34;altitude_std&#34;: self.altitude_std,
-            &#34;event_radius_m&#34;: self.event_radius_m
-        }
-
-    @staticmethod
-    def from_dict(data_dict: Dict) -&gt; &#34;EventOrigin&#34;:
-        return EventOrigin(data_dict[&#34;provider&#34;], data_dict[&#34;latitude&#34;], data_dict[&#34;latitude_std&#34;],
-                           data_dict[&#34;longitude&#34;], data_dict[&#34;longitude_std&#34;], data_dict[&#34;altitude&#34;],
-                           data_dict[&#34;altitude_std&#34;], data_dict[&#34;event_radius_m&#34;])</code></pre>
+    event_radius_m: float = 0.0</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -3213,31 +3278,6 @@ def schema(cls: Type[A],
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="redvox.common.data_window.EventOrigin.as_dict"><code class="name flex">
-<span>def <span class="ident">as_dict</span></span>(<span>self) ‑> Dict</span>
-</code></dt>
-<dd>
-<div class="desc"><p>:return: self as dict</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def as_dict(self) -&gt; Dict:
-    &#34;&#34;&#34;
-    :return: self as dict
-    &#34;&#34;&#34;
-    return {
-        &#34;provider&#34;: self.provider,
-        &#34;latitude&#34;: self.latitude,
-        &#34;latitude_std&#34;: self.latitude_std,
-        &#34;longitude&#34;: self.longitude,
-        &#34;longitude_std&#34;: self.longitude_std,
-        &#34;altitude&#34;: self.altitude,
-        &#34;altitude_std&#34;: self.altitude_std,
-        &#34;event_radius_m&#34;: self.event_radius_m
-    }</code></pre>
-</details>
-</dd>
 <dt id="redvox.common.data_window.EventOrigin.to_dict"><code class="name flex">
 <span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False) ‑> Dict[str, Union[dict, list, str, int, float, bool, ForwardRef(None)]]</span>
 </code></dt>
@@ -3343,25 +3383,8 @@ def schema(cls: Type[A],
 <li>
 <h4><code><a title="redvox.common.data_window.DataWindowConfig" href="#redvox.common.data_window.DataWindowConfig">DataWindowConfig</a></code></h4>
 <ul class="">
-<li><code><a title="redvox.common.data_window.DataWindowConfig.api_versions" href="#redvox.common.data_window.DataWindowConfig.api_versions">api_versions</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.apply_correction" href="#redvox.common.data_window.DataWindowConfig.apply_correction">apply_correction</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.as_dict" href="#redvox.common.data_window.DataWindowConfig.as_dict">as_dict</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.copy_edge_points" href="#redvox.common.data_window.DataWindowConfig.copy_edge_points">copy_edge_points</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.drop_time_s" href="#redvox.common.data_window.DataWindowConfig.drop_time_s">drop_time_s</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.end_buffer_td" href="#redvox.common.data_window.DataWindowConfig.end_buffer_td">end_buffer_td</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.end_datetime" href="#redvox.common.data_window.DataWindowConfig.end_datetime">end_datetime</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.extensions" href="#redvox.common.data_window.DataWindowConfig.extensions">extensions</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindowConfig.from_dict" href="#redvox.common.data_window.DataWindowConfig.from_dict">from_dict</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.from_json" href="#redvox.common.data_window.DataWindowConfig.from_json">from_json</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.input_dir" href="#redvox.common.data_window.DataWindowConfig.input_dir">input_dir</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.schema" href="#redvox.common.data_window.DataWindowConfig.schema">schema</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.start_buffer_td" href="#redvox.common.data_window.DataWindowConfig.start_buffer_td">start_buffer_td</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.start_datetime" href="#redvox.common.data_window.DataWindowConfig.start_datetime">start_datetime</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.station_ids" href="#redvox.common.data_window.DataWindowConfig.station_ids">station_ids</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.structured_layout" href="#redvox.common.data_window.DataWindowConfig.structured_layout">structured_layout</a></code></li>
 <li><code><a title="redvox.common.data_window.DataWindowConfig.to_dict" href="#redvox.common.data_window.DataWindowConfig.to_dict">to_dict</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.to_json" href="#redvox.common.data_window.DataWindowConfig.to_json">to_json</a></code></li>
-<li><code><a title="redvox.common.data_window.DataWindowConfig.use_model_correction" href="#redvox.common.data_window.DataWindowConfig.use_model_correction">use_model_correction</a></code></li>
 </ul>
 </li>
 <li>
@@ -3369,7 +3392,6 @@ def schema(cls: Type[A],
 <ul class="two-column">
 <li><code><a title="redvox.common.data_window.EventOrigin.altitude" href="#redvox.common.data_window.EventOrigin.altitude">altitude</a></code></li>
 <li><code><a title="redvox.common.data_window.EventOrigin.altitude_std" href="#redvox.common.data_window.EventOrigin.altitude_std">altitude_std</a></code></li>
-<li><code><a title="redvox.common.data_window.EventOrigin.as_dict" href="#redvox.common.data_window.EventOrigin.as_dict">as_dict</a></code></li>
 <li><code><a title="redvox.common.data_window.EventOrigin.event_radius_m" href="#redvox.common.data_window.EventOrigin.event_radius_m">event_radius_m</a></code></li>
 <li><code><a title="redvox.common.data_window.EventOrigin.from_dict" href="#redvox.common.data_window.EventOrigin.from_dict">from_dict</a></code></li>
 <li><code><a title="redvox.common.data_window.EventOrigin.from_json" href="#redvox.common.data_window.EventOrigin.from_json">from_json</a></code></li>

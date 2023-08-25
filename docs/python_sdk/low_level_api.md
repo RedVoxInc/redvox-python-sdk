@@ -28,6 +28,7 @@ The SDK provides a lower level API as well as direct access to the underlying pr
   * [Working with Three Channel Sensors](#working-with-three-channel-sensors)
   * [Working with the Location Sensor](#working-with-the-location-sensor)
     + [Working with the BestLocation type](#working-with-the-bestlocation-type)
+  * [Working with Machine Learning](#working-with-machine-learning)
 - [Tweaking SDK Settings](#tweaking-sdk-settings)
   * [Enabling and Disabling Parallelism](#enabling-and-disabling-parallelism)
 
@@ -1889,6 +1890,81 @@ best horizontal_accuracy=3.7900924682617188
 best vertical_accuracy=2.0
 best speed_accuracy=0.0860232561826706
 best bearing_accuracy=0.0
+```
+
+_[Table of Contents](#table-of-contents)_
+
+## Working with Machine Learning
+
+The [ExtractedMl](https://redvoxinc.github.io/redvox-sdk/api_docs/redvox/api1000/wrapped_redvox_packet/ml.html#redvox.api1000.wrapped_redvox_packet.ml.ExtractedMl) 
+class allows you to view the data from the machine learning (ML) model(s) recorded in the packet.  
+
+The ML models take data over specific windows and compares it to a known set of samples.  The model produces paired 
+outputs of the sample's label and its score.  The score is the confidence that the ML has identified the sample correctly.
+
+ExtractedMl objects contain two properties:
+```text
+metadata: describes the properties of the ML model.
+windows: the container for all the ML data.
+```
+
+Let's look at an example:
+
+```python
+from typing import List, TYPE_CHECKING
+from pprint import pprint
+
+import redvox.common.io as rdvx_io
+
+if TYPE_CHECKING:
+  import redvox.api1000.wrapped_redvox_packet.ml as ml
+  from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
+
+
+read_res: rdvx_io.Index = rdvx_io.index_unstructured("/home/opq/data/movement/unstructured")
+packets: List['WrappedRedvoxPacketM'] = read_res.get_index_for_station_id("2553").read()
+packet: 'WrappedRedvoxPacketM' = packets[0]
+extracted_ml: ml.ExtractedMl = ml.extract_ml_from_packet(packet)
+
+# Before we do any post-processing, let's see what we have:
+print(f"ML metadata: {extracted_ml.metadata}")
+print(f"Total ML windows in this packet: {len(extracted_ml.windows)}")
+
+# Let's look at the first ML window for the rest of this example. The other windows would work the same way.
+ml_window: ml.MlWindow = extracted_ml.windows[0]
+
+# We can see that by default labels are sorted in descending order by score
+pprint(ml_window)
+
+# use the prune functions to reduce the number of classifications returned
+# For instance, prune labels with a score of 0
+pprint(ml_window.prune_zeros())
+# the other prune function is prune_lt(min_v: float), which will remove labels with a score less than the given min_v
+
+# Use the retain_top(n: int) function to keep only the top n scores.  Let's only look at the top 3 scores:
+pprint(ml_window.retain_top(3))
+
+# We can sort by score ascending
+ml_window.sort(ml.SortBy.SCORE_ASC)
+pprint(ml_window)
+
+# Score descending
+ml_window.sort(ml.SortBy.SCORE_DESC)
+pprint(ml_window)
+
+# Class name ascending
+ml_window.sort(ml.SortBy.CLASS_ASC)
+pprint(ml_window)
+
+# Class name descending
+ml_window.sort(ml.SortBy.CLASS_DESC)
+pprint(ml_window)
+
+# Lastly, you can apply each of the above functions to ALL windows in the ExtractedML object by invoking them from the 
+# parent ExtractedML object.  This example retains the top 3 scores for ALL windows.
+extracted_ml: ml.ExtractedMl = ml.extract_ml_from_packet(packet)
+extracted_ml.retain_top(3)
+pprint(extracted_ml)
 ```
 
 _[Table of Contents](#table-of-contents)_

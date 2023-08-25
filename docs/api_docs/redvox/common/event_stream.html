@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>redvox.common.event_stream API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="This module provides classes to organize events recorded on a station.
+It will ignore machine learning events." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +23,17 @@
 <h1 class="title">Module <code>redvox.common.event_stream</code></h1>
 </header>
 <section id="section-intro">
+<p>This module provides classes to organize events recorded on a station.
+It will ignore machine learning events.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from typing import List, Optional, Dict, Union
+<pre><code class="python">&#34;&#34;&#34;
+This module provides classes to organize events recorded on a station.
+It will ignore machine learning events.
+&#34;&#34;&#34;
+from typing import List, Optional, Dict, Union
 from dataclasses import dataclass, field
 from pathlib import Path
 import enum
@@ -39,9 +46,11 @@ from dataclasses_json import dataclass_json
 from redvox.api1000.common.mapping import Mapping
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api1000.wrapped_redvox_packet import event_streams as es
+from redvox.api1000.wrapped_redvox_packet import ml
+from redvox.api1000.wrapped_redvox_packet.wrapped_packet import WrappedRedvoxPacketM
 from redvox.common.errors import RedVoxExceptions
 from redvox.common import offset_model as om
-from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode
+from redvox.common.io import FileSystemWriter as Fsw, FileSystemSaveMode, json_file_to_dict
 import redvox.common.event_stream_io as io
 
 
@@ -49,13 +58,14 @@ class EventDataTypes(enum.Enum):
     &#34;&#34;&#34;
     Enumeration of data types for event data
     &#34;&#34;&#34;
-    STRING = 0   # string data
+
+    STRING = 0  # string data
     NUMERIC = 1  # numeric data
     BOOLEAN = 2  # boolean data
-    BYTE = 3     # bytes data
+    BYTE = 3  # bytes data
 
     @staticmethod
-    def types_list() -&gt; List[&#39;EventDataTypes&#39;]:
+    def types_list() -&gt; List[&#34;EventDataTypes&#34;]:
         &#34;&#34;&#34;
         :return: the values of EventDataTypes as a list in order of: STRING, NUMERIC, BOOLEAN, BYTE
         &#34;&#34;&#34;
@@ -75,12 +85,15 @@ class Event:
 
     ALL timestamps in microseconds since epoch UTC unless otherwise stated
     &#34;&#34;&#34;
-    def __init__(self,
-                 timestamp: float,
-                 name: str = &#34;event&#34;,
-                 data: Optional[Dict[EventDataTypes, dict]] = None,
-                 save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
-                 base_dir: str = &#34;.&#34;):
+
+    def __init__(
+        self,
+        timestamp: float,
+        name: str = &#34;event&#34;,
+        data: Optional[Dict[EventDataTypes, dict]] = None,
+        save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
+        base_dir: str = &#34;.&#34;,
+    ):
         &#34;&#34;&#34;
         initialize Event
 
@@ -98,28 +111,28 @@ class Event:
         &#34;&#34;&#34;
         self.name = name
         self.metadata = {}
-
         self._errors = RedVoxExceptions(&#34;Event&#34;)
         self._fs_writer = Fsw(f&#34;event_{name}&#34;, &#34;json&#34;, base_dir, save_mode)
         self._timestamp = timestamp
         self._uncorrected_timestamp = timestamp
-        if data is not None:
-            self._data = data
-        else:
-            self._data = get_empty_event_data_dict()
+        self._data = get_empty_event_data_dict() if data is None else data
 
     def __repr__(self):
-        return f&#34;name: {self.name}, &#34; \
-               f&#34;timestamp: {self._timestamp}, &#34; \
-               f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34; \
-               f&#34;schema: {self.get_schema()}, &#34; \
-               f&#34;save_mode: {self._fs_writer.save_mode()}&#34;
+        return (
+            f&#34;name: {self.name}, &#34;
+            f&#34;timestamp: {self._timestamp}, &#34;
+            f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34;
+            f&#34;schema: {self.get_schema()}, &#34;
+            f&#34;save_mode: {self._fs_writer.save_mode()}&#34;
+        )
 
     def __str__(self):
-        return f&#34;name: {self.name}, &#34; \
-               f&#34;timestamp: {self._timestamp}, &#34; \
-               f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34; \
-               f&#34;schema: {self.__schema_as_str()}&#34;
+        return (
+            f&#34;name: {self.name}, &#34;
+            f&#34;timestamp: {self._timestamp}, &#34;
+            f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34;
+            f&#34;schema: {self.__schema_as_str()}&#34;
+        )
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -131,15 +144,16 @@ class Event:
             &#34;uncorrected_timestamp&#34;: self._uncorrected_timestamp,
             &#34;metadata&#34;: self.metadata,
             &#34;data&#34;: self.__data_as_dict(),
-            &#34;errors&#34;: self._errors.as_dict()
+            &#34;errors&#34;: self._errors.as_dict(),
         }
 
     def __data_as_dict(self) -&gt; dict:
-        return {EventDataTypes.STRING.name: self.get_string_values(),
-                EventDataTypes.NUMERIC.name: self.get_numeric_values(),
-                EventDataTypes.BOOLEAN.name: self.get_boolean_values(),
-                EventDataTypes.BYTE.name: self.get_byte_values()
-                }
+        return {
+            EventDataTypes.STRING.name: self.get_string_values(),
+            EventDataTypes.NUMERIC.name: self.get_numeric_values(),
+            EventDataTypes.BOOLEAN.name: self.get_boolean_values(),
+            EventDataTypes.BYTE.name: self.get_byte_values(),
+        }
 
     def __schema_as_str(self) -&gt; str:
         result = &#34;&#34;
@@ -173,8 +187,15 @@ class Event:
 
         :param event: event to load data from
         &#34;&#34;&#34;
-        return map(Event.__get_items, [event.get_string_payload(), event.get_numeric_payload(),
-                                       event.get_boolean_payload(), event.get_byte_payload()])
+        return map(
+            Event.__get_items,
+            [
+                event.get_string_payload(),
+                event.get_numeric_payload(),
+                event.get_boolean_payload(),
+                event.get_byte_payload(),
+            ],
+        )
 
     @staticmethod
     def __get_data_from_event_raw(event: RedvoxPacketM.EventStream.Event):
@@ -184,8 +205,10 @@ class Event:
 
         :param event: event to load data from
         &#34;&#34;&#34;
-        return map(Event.__get_items_raw, [event.string_payload, event.numeric_payload,
-                                           event.boolean_payload, event.byte_payload])
+        return map(
+            Event.__get_items_raw,
+            [event.string_payload, event.numeric_payload, event.boolean_payload, event.byte_payload],
+        )
 
     def _set_data(self, data: iter):
         &#34;&#34;&#34;
@@ -197,7 +220,7 @@ class Event:
             for k, v in g:
                 self._data[h][k] = v
 
-    def read_event(self, event: es.Event) -&gt; &#39;Event&#39;:
+    def read_event(self, event: es.Event) -&gt; &#34;Event&#34;:
         &#34;&#34;&#34;
         read the payloads of a Redvox Event, separate the data by payload type, then add it to the SDK Event
 
@@ -210,7 +233,7 @@ class Event:
         self._set_data(self.__get_data_from_event(event))
         return self
 
-    def read_raw(self, event: RedvoxPacketM.EventStream.Event) -&gt; &#39;Event&#39;:
+    def read_raw(self, event: RedvoxPacketM.EventStream.Event) -&gt; &#34;Event&#34;:
         &#34;&#34;&#34;
         read the contents of a Redvox Api1000 protobuf stream
 
@@ -345,8 +368,12 @@ class Event:
         :param data_key: key of data to get
         :return: data with matching data_key or the list of all possible data keys
         &#34;&#34;&#34;
-        for r in [self.get_string_item(data_key), self.get_numeric_item(data_key),
-                  self.get_boolean_item(data_key), self.get_byte_item(data_key)]:
+        for r in [
+            self.get_string_item(data_key),
+            self.get_numeric_item(data_key),
+            self.get_boolean_item(data_key),
+            self.get_byte_item(data_key),
+        ]:
             if r is not None:
                 return r
         return self.get_data_keys()
@@ -500,6 +527,12 @@ class Event:
         &#34;&#34;&#34;
         self._fs_writer.set_save_mode(save_mode)
 
+    def save_mode(self) -&gt; FileSystemSaveMode:
+        &#34;&#34;&#34;
+        :return: the save mode
+        &#34;&#34;&#34;
+        return self._fs_writer.save_mode()
+
     def set_file_name(self, new_file: Optional[str] = None):
         &#34;&#34;&#34;
         * set the pyarrow file name or use the default: event_{Event.name}
@@ -587,15 +620,14 @@ class Event:
         :param file_name: name of file to load data from
         :return: Event from json file
         &#34;&#34;&#34;
-        json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
+        json_data = json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
         if &#34;timestamp&#34; in json_data.keys():
             data = get_empty_event_data_dict()
             data[EventDataTypes.STRING] = json_data[&#34;data&#34;][&#34;STRING&#34;]
             data[EventDataTypes.NUMERIC] = json_data[&#34;data&#34;][&#34;NUMERIC&#34;]
             data[EventDataTypes.BOOLEAN] = json_data[&#34;data&#34;][&#34;BOOLEAN&#34;]
             data[EventDataTypes.BYTE] = json_data[&#34;data&#34;][&#34;BYTE&#34;]
-            result = Event(json_data[&#34;timestamp&#34;], json_data[&#34;name&#34;], data, FileSystemSaveMode.DISK,
-                           file_dir)
+            result = Event(json_data[&#34;timestamp&#34;], json_data[&#34;name&#34;], data, FileSystemSaveMode.DISK, file_dir)
             result.metadata = json_data[&#34;metadata&#34;]
             result._uncorrected_timestamp = json_data[&#34;uncorrected_timestamp&#34;]
             result.set_errors(RedVoxExceptions.from_dict(json_data[&#34;errors&#34;]))
@@ -669,6 +701,7 @@ class EventStream:
 
         debug: boolean; if True, outputs additional information at runtime.  Default False.
     &#34;&#34;&#34;
+
     name: str = &#34;stream&#34;
     events: List[Event] = field(default_factory=lambda: [])
     input_sample_rate: int = 0
@@ -679,20 +712,24 @@ class EventStream:
     debug: bool = False
 
     def __repr__(self):
-        return f&#34;name: {self.name}, &#34; \
-               f&#34;events: {[s.__repr__() for s in self.events]}, &#34; \
-               f&#34;input_sample_rate: {self.input_sample_rate}, &#34; \
-               f&#34;samples_per_window: {self.samples_per_window}, &#34; \
-               f&#34;samples_per_hop: {self.samples_per_hop}, &#34; \
-               f&#34;model_version: {self.model_version}&#34;
+        return (
+            f&#34;name: {self.name}, &#34;
+            f&#34;events: {[s.__repr__() for s in self.events]}, &#34;
+            f&#34;input_sample_rate: {self.input_sample_rate}, &#34;
+            f&#34;samples_per_window: {self.samples_per_window}, &#34;
+            f&#34;samples_per_hop: {self.samples_per_hop}, &#34;
+            f&#34;model_version: {self.model_version}&#34;
+        )
 
     def __str__(self):
-        return f&#34;name: {self.name}, &#34; \
-               f&#34;events: {[s.__str__() for s in self.events]}, &#34; \
-               f&#34;input_sample_rate: {self.input_sample_rate}, &#34; \
-               f&#34;samples_per_window: {self.samples_per_window}, &#34; \
-               f&#34;samples_per_hop: {self.samples_per_hop}, &#34; \
-               f&#34;model_version: {self.model_version}&#34;
+        return (
+            f&#34;name: {self.name}, &#34;
+            f&#34;events: {[s.__str__() for s in self.events]}, &#34;
+            f&#34;input_sample_rate: {self.input_sample_rate}, &#34;
+            f&#34;samples_per_window: {self.samples_per_window}, &#34;
+            f&#34;samples_per_hop: {self.samples_per_hop}, &#34;
+            f&#34;model_version: {self.model_version}&#34;
+        )
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -705,7 +742,7 @@ class EventStream:
             &#34;samples_per_window&#34;: self.samples_per_window,
             &#34;samples_per_hop&#34;: self.samples_per_hop,
             &#34;model_version&#34;: self.model_version,
-            &#34;metadata&#34;: self.metadata
+            &#34;metadata&#34;: self.metadata,
         }
 
     def has_data(self):
@@ -754,9 +791,9 @@ class EventStream:
         return list(column_list)
 
     @staticmethod
-    def from_eventstream(stream: RedvoxPacketM.EventStream,
-                         save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
-                         base_dir: str = &#34;.&#34;) -&gt; &#39;EventStream&#39;:
+    def from_eventstream(
+        stream: RedvoxPacketM.EventStream, save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM, base_dir: str = &#34;.&#34;
+    ) -&gt; &#34;EventStream&#34;:
         &#34;&#34;&#34;
         convert a Redvox Api1000 Packet EventStream into its sdk version
 
@@ -777,14 +814,15 @@ class EventStream:
             result.samples_per_hop = int(stream.metadata.get(&#34;input_samples_per_hop&#34;))
         if &#34;model_version&#34; in stream.metadata.keys():
             result.model_version = stream.metadata.get(&#34;model_version&#34;)
-        result.add_events(stream,
-                          save_mode=save_mode,
-                          base_dir=base_dir)
+        result.add_events(stream, save_mode=save_mode, base_dir=base_dir)
         return result
 
-    def add_events(self, stream: RedvoxPacketM.EventStream,
-                   save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
-                   base_dir: str = &#34;.&#34;):
+    def add_events(
+        self,
+        stream: RedvoxPacketM.EventStream,
+        save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
+        base_dir: str = &#34;.&#34;,
+    ):
         &#34;&#34;&#34;
         add events from a Redvox Api1000 Packet EventStream with the same name.
         Does nothing if names do not match
@@ -800,8 +838,7 @@ class EventStream:
             timestamps = stream.timestamps.timestamps
             events = stream.events
             for i in range(len(timestamps)):
-                self.events.append(Event(timestamps[i], save_mode=save_mode,
-                                         base_dir=base_dir).read_raw(events[i]))
+                self.events.append(Event(timestamps[i], save_mode=save_mode, base_dir=base_dir).read_raw(events[i]))
         elif self.debug:
             print(f&#34;Stream name mismatch while adding to EventStream.  Expected {self.name}, got {stream.name}.&#34;)
 
@@ -917,9 +954,15 @@ class EventStream:
         :return: EventStream from json dict
         &#34;&#34;&#34;
         if &#34;name&#34; in json_dict.keys():
-            result = EventStream(json_dict[&#34;name&#34;], [Event.from_json_dict(e) for e in json_dict[&#34;events&#34;]],
-                                 json_dict[&#34;input_sample_rate&#34;], json_dict[&#34;samples_per_window&#34;],
-                                 json_dict[&#34;samples_per_hop&#34;], json_dict[&#34;model_version&#34;], json_dict[&#34;metadata&#34;])
+            result = EventStream(
+                json_dict[&#34;name&#34;],
+                [Event.from_json_dict(e) for e in json_dict[&#34;events&#34;]],
+                json_dict[&#34;input_sample_rate&#34;],
+                json_dict[&#34;samples_per_window&#34;],
+                json_dict[&#34;samples_per_hop&#34;],
+                json_dict[&#34;model_version&#34;],
+                json_dict[&#34;metadata&#34;],
+            )
         else:
             result = EventStream(&#34;Empty Stream; no name for identification&#34;)
         return result
@@ -931,11 +974,17 @@ class EventStream:
         :param file_name: name of file to load data from
         :return: EventStream from json file
         &#34;&#34;&#34;
-        json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
+        json_data = json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
         if &#34;name&#34; in json_data.keys():
-            result = EventStream(json_data[&#34;name&#34;], json_data[&#34;events&#34;], json_data[&#34;input_sample_rate&#34;],
-                                 json_data[&#34;samples_per_window&#34;], json_data[&#34;samples_per_hop&#34;],
-                                 json_data[&#34;model_version&#34;], json_data[&#34;metadata&#34;])
+            result = EventStream(
+                json_data[&#34;name&#34;],
+                json_data[&#34;events&#34;],
+                json_data[&#34;input_sample_rate&#34;],
+                json_data[&#34;samples_per_window&#34;],
+                json_data[&#34;samples_per_hop&#34;],
+                json_data[&#34;model_version&#34;],
+                json_data[&#34;metadata&#34;],
+            )
             result.set_save_mode(FileSystemSaveMode.DISK)
             result.set_save_dir(file_dir)
         else:
@@ -973,23 +1022,29 @@ class EventStreams:
     Properties:
         streams: List[EventStream]; list of all EventStream.  Default empty list
 
+        ml_data: Optional ExtractedMl from the packets.  Default None
+
         debug: bool; if True, output additional information during runtime.  Default False
     &#34;&#34;&#34;
+
     streams: List[EventStream] = field(default_factory=lambda: [])
+    ml_data: Optional[ml.ExtractedMl] = None
     debug: bool = False
 
     def __repr__(self):
-        return f&#34;streams: {[s.__repr__() for s in self.streams]}, &#34; \
-               f&#34;debug: {self.debug}&#34;
+        return f&#34;streams: {[s.__repr__() for s in self.streams]}, ml: {self.ml_data}, debug: {self.debug}&#34;
 
     def __str__(self):
-        return str([s.__str__() for s in self.streams])
+        return f&#34;streams: {[s.__str__() for s in self.streams]}, ml: {self.ml_data}&#34;
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
         :return: EventStreams as dict
         &#34;&#34;&#34;
-        return {&#34;streams&#34;: [s.as_dict() for s in self.streams]}
+        return {
+            &#34;streams&#34;: [s.as_dict() for s in self.streams],
+            &#34;ml_data&#34;: self.ml_data.to_dict() if self.ml_data else None,
+        }
 
     def read_from_packet(self, packet: RedvoxPacketM):
         &#34;&#34;&#34;
@@ -998,11 +1053,17 @@ class EventStreams:
         :param packet: packet to read data from
         &#34;&#34;&#34;
         for st in packet.event_streams:
-            if st.name in self.get_stream_names() and self.get_stream(st.name).has_data():
-                self.get_stream(st.name).add_events(st)
+            if st.name == ml.ML_EVENT_STREAM_NAME:
+                if self.ml_data:
+                    self.ml_data.windows.extend(ml.extract_ml_windows(_find_ml_event_stream(packet)))
+                else:
+                    self.ml_data = ml.extract_ml_from_packet(WrappedRedvoxPacketM(packet))
             else:
-                self.remove_stream(st.name)
-                self.streams.append(EventStream.from_eventstream(st))
+                if st.name in self.get_stream_names() and self.get_stream(st.name).has_data():
+                    self.get_stream(st.name).add_events(st)
+                else:
+                    self.remove_stream(st.name)
+                    self.streams.append(EventStream.from_eventstream(st))
 
     def read_from_packets_list(self, packets: List[RedvoxPacketM]):
         &#34;&#34;&#34;
@@ -1024,6 +1085,18 @@ class EventStreams:
             self.get_stream(other_stream.name).add_events(other_stream)
         else:
             self.streams.append(other_stream)
+
+    def append_ml(self, other_ml: ml.ExtractedMl):
+        &#34;&#34;&#34;
+        append the windows from another extracted machine learning object or
+        set the existing ML object if its empty.
+
+        :param other_ml: other ExtractedMl to add
+        &#34;&#34;&#34;
+        if self.ml_data:
+            self.ml_data.windows.extend(other_ml.windows)
+        else:
+            self.ml_data = other_ml
 
     def append_streams(self, other_streams: &#34;EventStreams&#34;):
         &#34;&#34;&#34;
@@ -1062,7 +1135,7 @@ class EventStreams:
 
     def create_event_window(self, start: float = -np.inf, end: float = np.inf):
         &#34;&#34;&#34;
-        removes any event in the streams that doesn&#39;t match start &lt;= event &lt; end
+        removes any event in the streams and ML that doesn&#39;t match start &lt;= event &lt; end
         default start is negative infinity, default end is infinity
         all times in microseconds since epoch UTC
 
@@ -1071,6 +1144,8 @@ class EventStreams:
         &#34;&#34;&#34;
         for s in self.streams:
             s.create_event_window(start, end)
+        if self.ml_data:
+            self.ml_data.windows = [s for s in self.ml_data.windows if start &lt;= s.timestamp &lt; end]
 
     def set_save_dir(self, new_dir: str):
         &#34;&#34;&#34;
@@ -1100,6 +1175,9 @@ class EventStreams:
         &#34;&#34;&#34;
         for evnt in self.streams:
             evnt.update_timestamps(offset_model, use_model_function)
+        if self.ml_data:
+            for w in self.ml_data.windows:
+                w.timestamp = offset_model.update_time(w.timestamp, use_model_function)
 
     def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         &#34;&#34;&#34;
@@ -1111,6 +1189,22 @@ class EventStreams:
         &#34;&#34;&#34;
         for evnt in self.streams:
             evnt.original_timestamps(offset_model, use_model_function)
+        if self.ml_data:
+            for w in self.ml_data.windows:
+                w.timestamp = offset_model.get_original_time(w.timestamp, use_model_function)
+
+    @staticmethod
+    def from_dict(in_dict: dict) -&gt; &#34;EventStreams&#34;:
+        &#34;&#34;&#34;
+        :param in_dict: dictionary representing an EventStreams object
+        :return: the EventStreams object from the dictionary
+        &#34;&#34;&#34;
+        result = EventStreams()
+        if &#34;streams&#34; in in_dict.keys():
+            result.streams = [EventStream.from_json_dict(s) for s in in_dict[&#34;streams&#34;]]
+        if &#34;ml_data&#34; in in_dict.keys():
+            result.ml_data = ml.ExtractedMl.from_dict(in_dict[&#34;ml_data&#34;])
+        return result
 
     @staticmethod
     def from_json_file(file_dir: str, file_name: str) -&gt; &#34;EventStreams&#34;:
@@ -1119,14 +1213,7 @@ class EventStreams:
         :param file_name: name of file to load data from
         :return: EventStreams from json file
         &#34;&#34;&#34;
-        json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
-        if &#34;streams&#34; in json_data.keys():
-            result = EventStreams([EventStream.from_json_dict(s) for s in json_data[&#34;streams&#34;]])
-            result.set_save_mode(FileSystemSaveMode.DISK)
-            result.set_save_dir(file_dir)
-        else:
-            result = EventStreams()
-        return result
+        return EventStreams.from_dict(json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;)))
 
     def to_json_file(self, file_dir: str = &#34;.&#34;, file_name: Optional[str] = None) -&gt; Path:
         &#34;&#34;&#34;
@@ -1138,7 +1225,31 @@ class EventStreams:
                             eventstreams.json
         :return: path to json file
         &#34;&#34;&#34;
-        return io.eventstreams_to_json_file(self, file_dir, file_name)</code></pre>
+        return io.eventstreams_to_json_file(self, file_dir, file_name)
+
+
+def _find_ml_event_stream(packet: RedvoxPacketM) -&gt; Optional[es.EventStream]:
+    &#34;&#34;&#34;
+    Attempts to find an event stream with ML data.
+
+    :param packet: The packet to search in.
+    :return: An instance of the matching event stream or None.
+    &#34;&#34;&#34;
+    stream: RedvoxPacketM.EventStream
+    for stream in packet.event_streams:
+        if stream.name == ml.ML_EVENT_STREAM_NAME:
+            return es.EventStream(stream)
+    return None
+
+
+def _get_ml_from_packet(packet: RedvoxPacketM) -&gt; Optional[ml.ExtractedMl]:
+    &#34;&#34;&#34;
+    reads the machine learning payload from a single Redvox Api1000 packet
+
+    :param packet: packet to read machine learning data from
+    &#34;&#34;&#34;
+    stream: Optional[es.EventStream] = _find_ml_event_stream(packet)
+    return None if stream is None else ml.extract_ml_from_event_stream(stream)</code></pre>
 </details>
 </section>
 <section>
@@ -1203,12 +1314,15 @@ Default current directory (".")</p></div>
 
     ALL timestamps in microseconds since epoch UTC unless otherwise stated
     &#34;&#34;&#34;
-    def __init__(self,
-                 timestamp: float,
-                 name: str = &#34;event&#34;,
-                 data: Optional[Dict[EventDataTypes, dict]] = None,
-                 save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
-                 base_dir: str = &#34;.&#34;):
+
+    def __init__(
+        self,
+        timestamp: float,
+        name: str = &#34;event&#34;,
+        data: Optional[Dict[EventDataTypes, dict]] = None,
+        save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
+        base_dir: str = &#34;.&#34;,
+    ):
         &#34;&#34;&#34;
         initialize Event
 
@@ -1226,28 +1340,28 @@ Default current directory (".")</p></div>
         &#34;&#34;&#34;
         self.name = name
         self.metadata = {}
-
         self._errors = RedVoxExceptions(&#34;Event&#34;)
         self._fs_writer = Fsw(f&#34;event_{name}&#34;, &#34;json&#34;, base_dir, save_mode)
         self._timestamp = timestamp
         self._uncorrected_timestamp = timestamp
-        if data is not None:
-            self._data = data
-        else:
-            self._data = get_empty_event_data_dict()
+        self._data = get_empty_event_data_dict() if data is None else data
 
     def __repr__(self):
-        return f&#34;name: {self.name}, &#34; \
-               f&#34;timestamp: {self._timestamp}, &#34; \
-               f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34; \
-               f&#34;schema: {self.get_schema()}, &#34; \
-               f&#34;save_mode: {self._fs_writer.save_mode()}&#34;
+        return (
+            f&#34;name: {self.name}, &#34;
+            f&#34;timestamp: {self._timestamp}, &#34;
+            f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34;
+            f&#34;schema: {self.get_schema()}, &#34;
+            f&#34;save_mode: {self._fs_writer.save_mode()}&#34;
+        )
 
     def __str__(self):
-        return f&#34;name: {self.name}, &#34; \
-               f&#34;timestamp: {self._timestamp}, &#34; \
-               f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34; \
-               f&#34;schema: {self.__schema_as_str()}&#34;
+        return (
+            f&#34;name: {self.name}, &#34;
+            f&#34;timestamp: {self._timestamp}, &#34;
+            f&#34;uncorrected_timestamp: {self._uncorrected_timestamp}, &#34;
+            f&#34;schema: {self.__schema_as_str()}&#34;
+        )
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -1259,15 +1373,16 @@ Default current directory (".")</p></div>
             &#34;uncorrected_timestamp&#34;: self._uncorrected_timestamp,
             &#34;metadata&#34;: self.metadata,
             &#34;data&#34;: self.__data_as_dict(),
-            &#34;errors&#34;: self._errors.as_dict()
+            &#34;errors&#34;: self._errors.as_dict(),
         }
 
     def __data_as_dict(self) -&gt; dict:
-        return {EventDataTypes.STRING.name: self.get_string_values(),
-                EventDataTypes.NUMERIC.name: self.get_numeric_values(),
-                EventDataTypes.BOOLEAN.name: self.get_boolean_values(),
-                EventDataTypes.BYTE.name: self.get_byte_values()
-                }
+        return {
+            EventDataTypes.STRING.name: self.get_string_values(),
+            EventDataTypes.NUMERIC.name: self.get_numeric_values(),
+            EventDataTypes.BOOLEAN.name: self.get_boolean_values(),
+            EventDataTypes.BYTE.name: self.get_byte_values(),
+        }
 
     def __schema_as_str(self) -&gt; str:
         result = &#34;&#34;
@@ -1301,8 +1416,15 @@ Default current directory (".")</p></div>
 
         :param event: event to load data from
         &#34;&#34;&#34;
-        return map(Event.__get_items, [event.get_string_payload(), event.get_numeric_payload(),
-                                       event.get_boolean_payload(), event.get_byte_payload()])
+        return map(
+            Event.__get_items,
+            [
+                event.get_string_payload(),
+                event.get_numeric_payload(),
+                event.get_boolean_payload(),
+                event.get_byte_payload(),
+            ],
+        )
 
     @staticmethod
     def __get_data_from_event_raw(event: RedvoxPacketM.EventStream.Event):
@@ -1312,8 +1434,10 @@ Default current directory (".")</p></div>
 
         :param event: event to load data from
         &#34;&#34;&#34;
-        return map(Event.__get_items_raw, [event.string_payload, event.numeric_payload,
-                                           event.boolean_payload, event.byte_payload])
+        return map(
+            Event.__get_items_raw,
+            [event.string_payload, event.numeric_payload, event.boolean_payload, event.byte_payload],
+        )
 
     def _set_data(self, data: iter):
         &#34;&#34;&#34;
@@ -1325,7 +1449,7 @@ Default current directory (".")</p></div>
             for k, v in g:
                 self._data[h][k] = v
 
-    def read_event(self, event: es.Event) -&gt; &#39;Event&#39;:
+    def read_event(self, event: es.Event) -&gt; &#34;Event&#34;:
         &#34;&#34;&#34;
         read the payloads of a Redvox Event, separate the data by payload type, then add it to the SDK Event
 
@@ -1338,7 +1462,7 @@ Default current directory (".")</p></div>
         self._set_data(self.__get_data_from_event(event))
         return self
 
-    def read_raw(self, event: RedvoxPacketM.EventStream.Event) -&gt; &#39;Event&#39;:
+    def read_raw(self, event: RedvoxPacketM.EventStream.Event) -&gt; &#34;Event&#34;:
         &#34;&#34;&#34;
         read the contents of a Redvox Api1000 protobuf stream
 
@@ -1473,8 +1597,12 @@ Default current directory (".")</p></div>
         :param data_key: key of data to get
         :return: data with matching data_key or the list of all possible data keys
         &#34;&#34;&#34;
-        for r in [self.get_string_item(data_key), self.get_numeric_item(data_key),
-                  self.get_boolean_item(data_key), self.get_byte_item(data_key)]:
+        for r in [
+            self.get_string_item(data_key),
+            self.get_numeric_item(data_key),
+            self.get_boolean_item(data_key),
+            self.get_byte_item(data_key),
+        ]:
             if r is not None:
                 return r
         return self.get_data_keys()
@@ -1628,6 +1756,12 @@ Default current directory (".")</p></div>
         &#34;&#34;&#34;
         self._fs_writer.set_save_mode(save_mode)
 
+    def save_mode(self) -&gt; FileSystemSaveMode:
+        &#34;&#34;&#34;
+        :return: the save mode
+        &#34;&#34;&#34;
+        return self._fs_writer.save_mode()
+
     def set_file_name(self, new_file: Optional[str] = None):
         &#34;&#34;&#34;
         * set the pyarrow file name or use the default: event_{Event.name}
@@ -1715,15 +1849,14 @@ Default current directory (".")</p></div>
         :param file_name: name of file to load data from
         :return: Event from json file
         &#34;&#34;&#34;
-        json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
+        json_data = json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
         if &#34;timestamp&#34; in json_data.keys():
             data = get_empty_event_data_dict()
             data[EventDataTypes.STRING] = json_data[&#34;data&#34;][&#34;STRING&#34;]
             data[EventDataTypes.NUMERIC] = json_data[&#34;data&#34;][&#34;NUMERIC&#34;]
             data[EventDataTypes.BOOLEAN] = json_data[&#34;data&#34;][&#34;BOOLEAN&#34;]
             data[EventDataTypes.BYTE] = json_data[&#34;data&#34;][&#34;BYTE&#34;]
-            result = Event(json_data[&#34;timestamp&#34;], json_data[&#34;name&#34;], data, FileSystemSaveMode.DISK,
-                           file_dir)
+            result = Event(json_data[&#34;timestamp&#34;], json_data[&#34;name&#34;], data, FileSystemSaveMode.DISK, file_dir)
             result.metadata = json_data[&#34;metadata&#34;]
             result._uncorrected_timestamp = json_data[&#34;uncorrected_timestamp&#34;]
             result.set_errors(RedVoxExceptions.from_dict(json_data[&#34;errors&#34;]))
@@ -1823,15 +1956,14 @@ def from_json_file(file_dir: str, file_name: str) -&gt; &#34;Event&#34;:
     :param file_name: name of file to load data from
     :return: Event from json file
     &#34;&#34;&#34;
-    json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
+    json_data = json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
     if &#34;timestamp&#34; in json_data.keys():
         data = get_empty_event_data_dict()
         data[EventDataTypes.STRING] = json_data[&#34;data&#34;][&#34;STRING&#34;]
         data[EventDataTypes.NUMERIC] = json_data[&#34;data&#34;][&#34;NUMERIC&#34;]
         data[EventDataTypes.BOOLEAN] = json_data[&#34;data&#34;][&#34;BOOLEAN&#34;]
         data[EventDataTypes.BYTE] = json_data[&#34;data&#34;][&#34;BYTE&#34;]
-        result = Event(json_data[&#34;timestamp&#34;], json_data[&#34;name&#34;], data, FileSystemSaveMode.DISK,
-                       file_dir)
+        result = Event(json_data[&#34;timestamp&#34;], json_data[&#34;name&#34;], data, FileSystemSaveMode.DISK, file_dir)
         result.metadata = json_data[&#34;metadata&#34;]
         result._uncorrected_timestamp = json_data[&#34;uncorrected_timestamp&#34;]
         result.set_errors(RedVoxExceptions.from_dict(json_data[&#34;errors&#34;]))
@@ -1882,7 +2014,7 @@ def from_json_file(file_dir: str, file_name: str) -&gt; &#34;Event&#34;:
         &#34;uncorrected_timestamp&#34;: self._uncorrected_timestamp,
         &#34;metadata&#34;: self.metadata,
         &#34;data&#34;: self.__data_as_dict(),
-        &#34;errors&#34;: self._errors.as_dict()
+        &#34;errors&#34;: self._errors.as_dict(),
     }</code></pre>
 </details>
 </dd>
@@ -2231,8 +2363,12 @@ this function will return all byte data points with keys that start with [column
     :param data_key: key of data to get
     :return: data with matching data_key or the list of all possible data keys
     &#34;&#34;&#34;
-    for r in [self.get_string_item(data_key), self.get_numeric_item(data_key),
-              self.get_boolean_item(data_key), self.get_byte_item(data_key)]:
+    for r in [
+        self.get_string_item(data_key),
+        self.get_numeric_item(data_key),
+        self.get_boolean_item(data_key),
+        self.get_byte_item(data_key),
+    ]:
         if r is not None:
             return r
     return self.get_data_keys()</code></pre>
@@ -2563,7 +2699,7 @@ Default False</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_event(self, event: es.Event) -&gt; &#39;Event&#39;:
+<pre><code class="python">def read_event(self, event: es.Event) -&gt; &#34;Event&#34;:
     &#34;&#34;&#34;
     read the payloads of a Redvox Event, separate the data by payload type, then add it to the SDK Event
 
@@ -2587,7 +2723,7 @@ Default False</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_raw(self, event: RedvoxPacketM.EventStream.Event) -&gt; &#39;Event&#39;:
+<pre><code class="python">def read_raw(self, event: RedvoxPacketM.EventStream.Event) -&gt; &#34;Event&#34;:
     &#34;&#34;&#34;
     read the contents of a Redvox Api1000 protobuf stream
 
@@ -2614,6 +2750,22 @@ Default False</p></div>
     :return: directory containing parquet files for the sensor
     &#34;&#34;&#34;
     return self._fs_writer.save_dir()</code></pre>
+</details>
+</dd>
+<dt id="redvox.common.event_stream.Event.save_mode"><code class="name flex">
+<span>def <span class="ident">save_mode</span></span>(<span>self) ‑> <a title="redvox.common.io.FileSystemSaveMode" href="io.html#redvox.common.io.FileSystemSaveMode">FileSystemSaveMode</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>:return: the save mode</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_mode(self) -&gt; FileSystemSaveMode:
+    &#34;&#34;&#34;
+    :return: the save mode
+    &#34;&#34;&#34;
+    return self._fs_writer.save_mode()</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.Event.set_errors"><code class="name flex">
@@ -2781,13 +2933,14 @@ Default False</p></div>
     &#34;&#34;&#34;
     Enumeration of data types for event data
     &#34;&#34;&#34;
-    STRING = 0   # string data
+
+    STRING = 0  # string data
     NUMERIC = 1  # numeric data
     BOOLEAN = 2  # boolean data
-    BYTE = 3     # bytes data
+    BYTE = 3  # bytes data
 
     @staticmethod
-    def types_list() -&gt; List[&#39;EventDataTypes&#39;]:
+    def types_list() -&gt; List[&#34;EventDataTypes&#34;]:
         &#34;&#34;&#34;
         :return: the values of EventDataTypes as a list in order of: STRING, NUMERIC, BOOLEAN, BYTE
         &#34;&#34;&#34;
@@ -2828,7 +2981,7 @@ Default False</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def types_list() -&gt; List[&#39;EventDataTypes&#39;]:
+def types_list() -&gt; List[&#34;EventDataTypes&#34;]:
     &#34;&#34;&#34;
     :return: the values of EventDataTypes as a list in order of: STRING, NUMERIC, BOOLEAN, BYTE
     &#34;&#34;&#34;
@@ -2890,6 +3043,7 @@ class EventStream:
 
         debug: boolean; if True, outputs additional information at runtime.  Default False.
     &#34;&#34;&#34;
+
     name: str = &#34;stream&#34;
     events: List[Event] = field(default_factory=lambda: [])
     input_sample_rate: int = 0
@@ -2900,20 +3054,24 @@ class EventStream:
     debug: bool = False
 
     def __repr__(self):
-        return f&#34;name: {self.name}, &#34; \
-               f&#34;events: {[s.__repr__() for s in self.events]}, &#34; \
-               f&#34;input_sample_rate: {self.input_sample_rate}, &#34; \
-               f&#34;samples_per_window: {self.samples_per_window}, &#34; \
-               f&#34;samples_per_hop: {self.samples_per_hop}, &#34; \
-               f&#34;model_version: {self.model_version}&#34;
+        return (
+            f&#34;name: {self.name}, &#34;
+            f&#34;events: {[s.__repr__() for s in self.events]}, &#34;
+            f&#34;input_sample_rate: {self.input_sample_rate}, &#34;
+            f&#34;samples_per_window: {self.samples_per_window}, &#34;
+            f&#34;samples_per_hop: {self.samples_per_hop}, &#34;
+            f&#34;model_version: {self.model_version}&#34;
+        )
 
     def __str__(self):
-        return f&#34;name: {self.name}, &#34; \
-               f&#34;events: {[s.__str__() for s in self.events]}, &#34; \
-               f&#34;input_sample_rate: {self.input_sample_rate}, &#34; \
-               f&#34;samples_per_window: {self.samples_per_window}, &#34; \
-               f&#34;samples_per_hop: {self.samples_per_hop}, &#34; \
-               f&#34;model_version: {self.model_version}&#34;
+        return (
+            f&#34;name: {self.name}, &#34;
+            f&#34;events: {[s.__str__() for s in self.events]}, &#34;
+            f&#34;input_sample_rate: {self.input_sample_rate}, &#34;
+            f&#34;samples_per_window: {self.samples_per_window}, &#34;
+            f&#34;samples_per_hop: {self.samples_per_hop}, &#34;
+            f&#34;model_version: {self.model_version}&#34;
+        )
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -2926,7 +3084,7 @@ class EventStream:
             &#34;samples_per_window&#34;: self.samples_per_window,
             &#34;samples_per_hop&#34;: self.samples_per_hop,
             &#34;model_version&#34;: self.model_version,
-            &#34;metadata&#34;: self.metadata
+            &#34;metadata&#34;: self.metadata,
         }
 
     def has_data(self):
@@ -2975,9 +3133,9 @@ class EventStream:
         return list(column_list)
 
     @staticmethod
-    def from_eventstream(stream: RedvoxPacketM.EventStream,
-                         save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
-                         base_dir: str = &#34;.&#34;) -&gt; &#39;EventStream&#39;:
+    def from_eventstream(
+        stream: RedvoxPacketM.EventStream, save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM, base_dir: str = &#34;.&#34;
+    ) -&gt; &#34;EventStream&#34;:
         &#34;&#34;&#34;
         convert a Redvox Api1000 Packet EventStream into its sdk version
 
@@ -2998,14 +3156,15 @@ class EventStream:
             result.samples_per_hop = int(stream.metadata.get(&#34;input_samples_per_hop&#34;))
         if &#34;model_version&#34; in stream.metadata.keys():
             result.model_version = stream.metadata.get(&#34;model_version&#34;)
-        result.add_events(stream,
-                          save_mode=save_mode,
-                          base_dir=base_dir)
+        result.add_events(stream, save_mode=save_mode, base_dir=base_dir)
         return result
 
-    def add_events(self, stream: RedvoxPacketM.EventStream,
-                   save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
-                   base_dir: str = &#34;.&#34;):
+    def add_events(
+        self,
+        stream: RedvoxPacketM.EventStream,
+        save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
+        base_dir: str = &#34;.&#34;,
+    ):
         &#34;&#34;&#34;
         add events from a Redvox Api1000 Packet EventStream with the same name.
         Does nothing if names do not match
@@ -3021,8 +3180,7 @@ class EventStream:
             timestamps = stream.timestamps.timestamps
             events = stream.events
             for i in range(len(timestamps)):
-                self.events.append(Event(timestamps[i], save_mode=save_mode,
-                                         base_dir=base_dir).read_raw(events[i]))
+                self.events.append(Event(timestamps[i], save_mode=save_mode, base_dir=base_dir).read_raw(events[i]))
         elif self.debug:
             print(f&#34;Stream name mismatch while adding to EventStream.  Expected {self.name}, got {stream.name}.&#34;)
 
@@ -3138,9 +3296,15 @@ class EventStream:
         :return: EventStream from json dict
         &#34;&#34;&#34;
         if &#34;name&#34; in json_dict.keys():
-            result = EventStream(json_dict[&#34;name&#34;], [Event.from_json_dict(e) for e in json_dict[&#34;events&#34;]],
-                                 json_dict[&#34;input_sample_rate&#34;], json_dict[&#34;samples_per_window&#34;],
-                                 json_dict[&#34;samples_per_hop&#34;], json_dict[&#34;model_version&#34;], json_dict[&#34;metadata&#34;])
+            result = EventStream(
+                json_dict[&#34;name&#34;],
+                [Event.from_json_dict(e) for e in json_dict[&#34;events&#34;]],
+                json_dict[&#34;input_sample_rate&#34;],
+                json_dict[&#34;samples_per_window&#34;],
+                json_dict[&#34;samples_per_hop&#34;],
+                json_dict[&#34;model_version&#34;],
+                json_dict[&#34;metadata&#34;],
+            )
         else:
             result = EventStream(&#34;Empty Stream; no name for identification&#34;)
         return result
@@ -3152,11 +3316,17 @@ class EventStream:
         :param file_name: name of file to load data from
         :return: EventStream from json file
         &#34;&#34;&#34;
-        json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
+        json_data = json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
         if &#34;name&#34; in json_data.keys():
-            result = EventStream(json_data[&#34;name&#34;], json_data[&#34;events&#34;], json_data[&#34;input_sample_rate&#34;],
-                                 json_data[&#34;samples_per_window&#34;], json_data[&#34;samples_per_hop&#34;],
-                                 json_data[&#34;model_version&#34;], json_data[&#34;metadata&#34;])
+            result = EventStream(
+                json_data[&#34;name&#34;],
+                json_data[&#34;events&#34;],
+                json_data[&#34;input_sample_rate&#34;],
+                json_data[&#34;samples_per_window&#34;],
+                json_data[&#34;samples_per_hop&#34;],
+                json_data[&#34;model_version&#34;],
+                json_data[&#34;metadata&#34;],
+            )
             result.set_save_mode(FileSystemSaveMode.DISK)
             result.set_save_dir(file_dir)
         else:
@@ -3255,9 +3425,9 @@ Default current directory (".")
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def from_eventstream(stream: RedvoxPacketM.EventStream,
-                     save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
-                     base_dir: str = &#34;.&#34;) -&gt; &#39;EventStream&#39;:
+def from_eventstream(
+    stream: RedvoxPacketM.EventStream, save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM, base_dir: str = &#34;.&#34;
+) -&gt; &#34;EventStream&#34;:
     &#34;&#34;&#34;
     convert a Redvox Api1000 Packet EventStream into its sdk version
 
@@ -3278,9 +3448,7 @@ def from_eventstream(stream: RedvoxPacketM.EventStream,
         result.samples_per_hop = int(stream.metadata.get(&#34;input_samples_per_hop&#34;))
     if &#34;model_version&#34; in stream.metadata.keys():
         result.model_version = stream.metadata.get(&#34;model_version&#34;)
-    result.add_events(stream,
-                      save_mode=save_mode,
-                      base_dir=base_dir)
+    result.add_events(stream, save_mode=save_mode, base_dir=base_dir)
     return result</code></pre>
 </details>
 </dd>
@@ -3327,9 +3495,15 @@ def from_json_dict(json_dict: dict) -&gt; &#34;EventStream&#34;:
     :return: EventStream from json dict
     &#34;&#34;&#34;
     if &#34;name&#34; in json_dict.keys():
-        result = EventStream(json_dict[&#34;name&#34;], [Event.from_json_dict(e) for e in json_dict[&#34;events&#34;]],
-                             json_dict[&#34;input_sample_rate&#34;], json_dict[&#34;samples_per_window&#34;],
-                             json_dict[&#34;samples_per_hop&#34;], json_dict[&#34;model_version&#34;], json_dict[&#34;metadata&#34;])
+        result = EventStream(
+            json_dict[&#34;name&#34;],
+            [Event.from_json_dict(e) for e in json_dict[&#34;events&#34;]],
+            json_dict[&#34;input_sample_rate&#34;],
+            json_dict[&#34;samples_per_window&#34;],
+            json_dict[&#34;samples_per_hop&#34;],
+            json_dict[&#34;model_version&#34;],
+            json_dict[&#34;metadata&#34;],
+        )
     else:
         result = EventStream(&#34;Empty Stream; no name for identification&#34;)
     return result</code></pre>
@@ -3353,11 +3527,17 @@ def from_json_file(file_dir: str, file_name: str) -&gt; &#34;EventStream&#34;:
     :param file_name: name of file to load data from
     :return: EventStream from json file
     &#34;&#34;&#34;
-    json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
+    json_data = json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
     if &#34;name&#34; in json_data.keys():
-        result = EventStream(json_data[&#34;name&#34;], json_data[&#34;events&#34;], json_data[&#34;input_sample_rate&#34;],
-                             json_data[&#34;samples_per_window&#34;], json_data[&#34;samples_per_hop&#34;],
-                             json_data[&#34;model_version&#34;], json_data[&#34;metadata&#34;])
+        result = EventStream(
+            json_data[&#34;name&#34;],
+            json_data[&#34;events&#34;],
+            json_data[&#34;input_sample_rate&#34;],
+            json_data[&#34;samples_per_window&#34;],
+            json_data[&#34;samples_per_hop&#34;],
+            json_data[&#34;model_version&#34;],
+            json_data[&#34;metadata&#34;],
+        )
         result.set_save_mode(FileSystemSaveMode.DISK)
         result.set_save_dir(file_dir)
     else:
@@ -3425,9 +3605,12 @@ Default current directory (".")</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_events(self, stream: RedvoxPacketM.EventStream,
-               save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
-               base_dir: str = &#34;.&#34;):
+<pre><code class="python">def add_events(
+    self,
+    stream: RedvoxPacketM.EventStream,
+    save_mode: FileSystemSaveMode = FileSystemSaveMode.MEM,
+    base_dir: str = &#34;.&#34;,
+):
     &#34;&#34;&#34;
     add events from a Redvox Api1000 Packet EventStream with the same name.
     Does nothing if names do not match
@@ -3443,8 +3626,7 @@ Default current directory (".")</p></div>
         timestamps = stream.timestamps.timestamps
         events = stream.events
         for i in range(len(timestamps)):
-            self.events.append(Event(timestamps[i], save_mode=save_mode,
-                                     base_dir=base_dir).read_raw(events[i]))
+            self.events.append(Event(timestamps[i], save_mode=save_mode, base_dir=base_dir).read_raw(events[i]))
     elif self.debug:
         print(f&#34;Stream name mismatch while adding to EventStream.  Expected {self.name}, got {stream.name}.&#34;)</code></pre>
 </details>
@@ -3469,7 +3651,7 @@ Default current directory (".")</p></div>
         &#34;samples_per_window&#34;: self.samples_per_window,
         &#34;samples_per_hop&#34;: self.samples_per_hop,
         &#34;model_version&#34;: self.model_version,
-        &#34;metadata&#34;: self.metadata
+        &#34;metadata&#34;: self.metadata,
     }</code></pre>
 </details>
 </dd>
@@ -3902,7 +4084,7 @@ Default False</p></div>
 </dd>
 <dt id="redvox.common.event_stream.EventStreams"><code class="flex name class">
 <span>class <span class="ident">EventStreams</span></span>
-<span>(</span><span>streams: List[<a title="redvox.common.event_stream.EventStream" href="#redvox.common.event_stream.EventStream">EventStream</a>] = &lt;factory&gt;, debug: bool = False)</span>
+<span>(</span><span>streams: List[<a title="redvox.common.event_stream.EventStream" href="#redvox.common.event_stream.EventStream">EventStream</a>] = &lt;factory&gt;, ml_data: Optional[<a title="redvox.api1000.wrapped_redvox_packet.ml.ExtractedMl" href="../api1000/wrapped_redvox_packet/ml.html#redvox.api1000.wrapped_redvox_packet.ml.ExtractedMl">ExtractedMl</a>] = None, debug: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>stores multiple event streams per station.</p>
@@ -3910,6 +4092,8 @@ Default False</p></div>
 <h2 id="properties">Properties</h2>
 <p>streams: List[EventStream]; list of all EventStream.
 Default empty list</p>
+<p>ml_data: Optional ExtractedMl from the packets.
+Default None</p>
 <p>debug: bool; if True, output additional information during runtime.
 Default False</p></div>
 <details class="source">
@@ -3927,23 +4111,29 @@ class EventStreams:
     Properties:
         streams: List[EventStream]; list of all EventStream.  Default empty list
 
+        ml_data: Optional ExtractedMl from the packets.  Default None
+
         debug: bool; if True, output additional information during runtime.  Default False
     &#34;&#34;&#34;
+
     streams: List[EventStream] = field(default_factory=lambda: [])
+    ml_data: Optional[ml.ExtractedMl] = None
     debug: bool = False
 
     def __repr__(self):
-        return f&#34;streams: {[s.__repr__() for s in self.streams]}, &#34; \
-               f&#34;debug: {self.debug}&#34;
+        return f&#34;streams: {[s.__repr__() for s in self.streams]}, ml: {self.ml_data}, debug: {self.debug}&#34;
 
     def __str__(self):
-        return str([s.__str__() for s in self.streams])
+        return f&#34;streams: {[s.__str__() for s in self.streams]}, ml: {self.ml_data}&#34;
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
         :return: EventStreams as dict
         &#34;&#34;&#34;
-        return {&#34;streams&#34;: [s.as_dict() for s in self.streams]}
+        return {
+            &#34;streams&#34;: [s.as_dict() for s in self.streams],
+            &#34;ml_data&#34;: self.ml_data.to_dict() if self.ml_data else None,
+        }
 
     def read_from_packet(self, packet: RedvoxPacketM):
         &#34;&#34;&#34;
@@ -3952,11 +4142,17 @@ class EventStreams:
         :param packet: packet to read data from
         &#34;&#34;&#34;
         for st in packet.event_streams:
-            if st.name in self.get_stream_names() and self.get_stream(st.name).has_data():
-                self.get_stream(st.name).add_events(st)
+            if st.name == ml.ML_EVENT_STREAM_NAME:
+                if self.ml_data:
+                    self.ml_data.windows.extend(ml.extract_ml_windows(_find_ml_event_stream(packet)))
+                else:
+                    self.ml_data = ml.extract_ml_from_packet(WrappedRedvoxPacketM(packet))
             else:
-                self.remove_stream(st.name)
-                self.streams.append(EventStream.from_eventstream(st))
+                if st.name in self.get_stream_names() and self.get_stream(st.name).has_data():
+                    self.get_stream(st.name).add_events(st)
+                else:
+                    self.remove_stream(st.name)
+                    self.streams.append(EventStream.from_eventstream(st))
 
     def read_from_packets_list(self, packets: List[RedvoxPacketM]):
         &#34;&#34;&#34;
@@ -3978,6 +4174,18 @@ class EventStreams:
             self.get_stream(other_stream.name).add_events(other_stream)
         else:
             self.streams.append(other_stream)
+
+    def append_ml(self, other_ml: ml.ExtractedMl):
+        &#34;&#34;&#34;
+        append the windows from another extracted machine learning object or
+        set the existing ML object if its empty.
+
+        :param other_ml: other ExtractedMl to add
+        &#34;&#34;&#34;
+        if self.ml_data:
+            self.ml_data.windows.extend(other_ml.windows)
+        else:
+            self.ml_data = other_ml
 
     def append_streams(self, other_streams: &#34;EventStreams&#34;):
         &#34;&#34;&#34;
@@ -4016,7 +4224,7 @@ class EventStreams:
 
     def create_event_window(self, start: float = -np.inf, end: float = np.inf):
         &#34;&#34;&#34;
-        removes any event in the streams that doesn&#39;t match start &lt;= event &lt; end
+        removes any event in the streams and ML that doesn&#39;t match start &lt;= event &lt; end
         default start is negative infinity, default end is infinity
         all times in microseconds since epoch UTC
 
@@ -4025,6 +4233,8 @@ class EventStreams:
         &#34;&#34;&#34;
         for s in self.streams:
             s.create_event_window(start, end)
+        if self.ml_data:
+            self.ml_data.windows = [s for s in self.ml_data.windows if start &lt;= s.timestamp &lt; end]
 
     def set_save_dir(self, new_dir: str):
         &#34;&#34;&#34;
@@ -4054,6 +4264,9 @@ class EventStreams:
         &#34;&#34;&#34;
         for evnt in self.streams:
             evnt.update_timestamps(offset_model, use_model_function)
+        if self.ml_data:
+            for w in self.ml_data.windows:
+                w.timestamp = offset_model.update_time(w.timestamp, use_model_function)
 
     def original_timestamps(self, offset_model: om.OffsetModel, use_model_function: bool = False):
         &#34;&#34;&#34;
@@ -4065,6 +4278,22 @@ class EventStreams:
         &#34;&#34;&#34;
         for evnt in self.streams:
             evnt.original_timestamps(offset_model, use_model_function)
+        if self.ml_data:
+            for w in self.ml_data.windows:
+                w.timestamp = offset_model.get_original_time(w.timestamp, use_model_function)
+
+    @staticmethod
+    def from_dict(in_dict: dict) -&gt; &#34;EventStreams&#34;:
+        &#34;&#34;&#34;
+        :param in_dict: dictionary representing an EventStreams object
+        :return: the EventStreams object from the dictionary
+        &#34;&#34;&#34;
+        result = EventStreams()
+        if &#34;streams&#34; in in_dict.keys():
+            result.streams = [EventStream.from_json_dict(s) for s in in_dict[&#34;streams&#34;]]
+        if &#34;ml_data&#34; in in_dict.keys():
+            result.ml_data = ml.ExtractedMl.from_dict(in_dict[&#34;ml_data&#34;])
+        return result
 
     @staticmethod
     def from_json_file(file_dir: str, file_name: str) -&gt; &#34;EventStreams&#34;:
@@ -4073,14 +4302,7 @@ class EventStreams:
         :param file_name: name of file to load data from
         :return: EventStreams from json file
         &#34;&#34;&#34;
-        json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
-        if &#34;streams&#34; in json_data.keys():
-            result = EventStreams([EventStream.from_json_dict(s) for s in json_data[&#34;streams&#34;]])
-            result.set_save_mode(FileSystemSaveMode.DISK)
-            result.set_save_dir(file_dir)
-        else:
-            result = EventStreams()
-        return result
+        return EventStreams.from_dict(json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;)))
 
     def to_json_file(self, file_dir: str = &#34;.&#34;, file_name: Optional[str] = None) -&gt; Path:
         &#34;&#34;&#34;
@@ -4097,6 +4319,10 @@ class EventStreams:
 <h3>Class variables</h3>
 <dl>
 <dt id="redvox.common.event_stream.EventStreams.debug"><code class="name">var <span class="ident">debug</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="redvox.common.event_stream.EventStreams.ml_data"><code class="name">var <span class="ident">ml_data</span> : Optional[<a title="redvox.api1000.wrapped_redvox_packet.ml.ExtractedMl" href="../api1000/wrapped_redvox_packet/ml.html#redvox.api1000.wrapped_redvox_packet.ml.ExtractedMl">ExtractedMl</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -4168,14 +4394,7 @@ def from_json_file(file_dir: str, file_name: str) -&gt; &#34;EventStreams&#34;:
     :param file_name: name of file to load data from
     :return: EventStreams from json file
     &#34;&#34;&#34;
-    json_data = io.json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;))
-    if &#34;streams&#34; in json_data.keys():
-        result = EventStreams([EventStream.from_json_dict(s) for s in json_data[&#34;streams&#34;]])
-        result.set_save_mode(FileSystemSaveMode.DISK)
-        result.set_save_dir(file_dir)
-    else:
-        result = EventStreams()
-    return result</code></pre>
+    return EventStreams.from_dict(json_file_to_dict(os.path.join(file_dir, f&#34;{file_name}&#34;)))</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStreams.schema"><code class="name flex">
@@ -4242,6 +4461,30 @@ def schema(cls: Type[A],
         self.streams.append(other_stream)</code></pre>
 </details>
 </dd>
+<dt id="redvox.common.event_stream.EventStreams.append_ml"><code class="name flex">
+<span>def <span class="ident">append_ml</span></span>(<span>self, other_ml: <a title="redvox.api1000.wrapped_redvox_packet.ml.ExtractedMl" href="../api1000/wrapped_redvox_packet/ml.html#redvox.api1000.wrapped_redvox_packet.ml.ExtractedMl">ExtractedMl</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>append the windows from another extracted machine learning object or
+set the existing ML object if its empty.</p>
+<p>:param other_ml: other ExtractedMl to add</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append_ml(self, other_ml: ml.ExtractedMl):
+    &#34;&#34;&#34;
+    append the windows from another extracted machine learning object or
+    set the existing ML object if its empty.
+
+    :param other_ml: other ExtractedMl to add
+    &#34;&#34;&#34;
+    if self.ml_data:
+        self.ml_data.windows.extend(other_ml.windows)
+    else:
+        self.ml_data = other_ml</code></pre>
+</details>
+</dd>
 <dt id="redvox.common.event_stream.EventStreams.append_streams"><code class="name flex">
 <span>def <span class="ident">append_streams</span></span>(<span>self, other_streams: <a title="redvox.common.event_stream.EventStreams" href="#redvox.common.event_stream.EventStreams">EventStreams</a>)</span>
 </code></dt>
@@ -4275,14 +4518,17 @@ def schema(cls: Type[A],
     &#34;&#34;&#34;
     :return: EventStreams as dict
     &#34;&#34;&#34;
-    return {&#34;streams&#34;: [s.as_dict() for s in self.streams]}</code></pre>
+    return {
+        &#34;streams&#34;: [s.as_dict() for s in self.streams],
+        &#34;ml_data&#34;: self.ml_data.to_dict() if self.ml_data else None,
+    }</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStreams.create_event_window"><code class="name flex">
 <span>def <span class="ident">create_event_window</span></span>(<span>self, start: float = -inf, end: float = inf)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>removes any event in the streams that doesn't match start &lt;= event &lt; end
+<div class="desc"><p>removes any event in the streams and ML that doesn't match start &lt;= event &lt; end
 default start is negative infinity, default end is infinity
 all times in microseconds since epoch UTC</p>
 <p>:param start: inclusive start time of events to keep
@@ -4293,7 +4539,7 @@ all times in microseconds since epoch UTC</p>
 </summary>
 <pre><code class="python">def create_event_window(self, start: float = -np.inf, end: float = np.inf):
     &#34;&#34;&#34;
-    removes any event in the streams that doesn&#39;t match start &lt;= event &lt; end
+    removes any event in the streams and ML that doesn&#39;t match start &lt;= event &lt; end
     default start is negative infinity, default end is infinity
     all times in microseconds since epoch UTC
 
@@ -4301,7 +4547,9 @@ all times in microseconds since epoch UTC</p>
     :param end: exclusive end time of events to keep
     &#34;&#34;&#34;
     for s in self.streams:
-        s.create_event_window(start, end)</code></pre>
+        s.create_event_window(start, end)
+    if self.ml_data:
+        self.ml_data.windows = [s for s in self.ml_data.windows if start &lt;= s.timestamp &lt; end]</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStreams.get_stream"><code class="name flex">
@@ -4365,7 +4613,10 @@ Default False</p></div>
                                 otherwise uses the best offset (model&#39;s intercept value).  Default False
     &#34;&#34;&#34;
     for evnt in self.streams:
-        evnt.original_timestamps(offset_model, use_model_function)</code></pre>
+        evnt.original_timestamps(offset_model, use_model_function)
+    if self.ml_data:
+        for w in self.ml_data.windows:
+            w.timestamp = offset_model.get_original_time(w.timestamp, use_model_function)</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStreams.read_from_packet"><code class="name flex">
@@ -4385,11 +4636,17 @@ Default False</p></div>
     :param packet: packet to read data from
     &#34;&#34;&#34;
     for st in packet.event_streams:
-        if st.name in self.get_stream_names() and self.get_stream(st.name).has_data():
-            self.get_stream(st.name).add_events(st)
+        if st.name == ml.ML_EVENT_STREAM_NAME:
+            if self.ml_data:
+                self.ml_data.windows.extend(ml.extract_ml_windows(_find_ml_event_stream(packet)))
+            else:
+                self.ml_data = ml.extract_ml_from_packet(WrappedRedvoxPacketM(packet))
         else:
-            self.remove_stream(st.name)
-            self.streams.append(EventStream.from_eventstream(st))</code></pre>
+            if st.name in self.get_stream_names() and self.get_stream(st.name).has_data():
+                self.get_stream(st.name).add_events(st)
+            else:
+                self.remove_stream(st.name)
+                self.streams.append(EventStream.from_eventstream(st))</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.event_stream.EventStreams.read_from_packets_list"><code class="name flex">
@@ -4569,7 +4826,10 @@ Default False</p></div>
                                 otherwise uses the best offset (model&#39;s intercept value).  Default False
     &#34;&#34;&#34;
     for evnt in self.streams:
-        evnt.update_timestamps(offset_model, use_model_function)</code></pre>
+        evnt.update_timestamps(offset_model, use_model_function)
+    if self.ml_data:
+        for w in self.ml_data.windows:
+            w.timestamp = offset_model.update_time(w.timestamp, use_model_function)</code></pre>
 </details>
 </dd>
 </dl>
@@ -4698,6 +4958,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.event_stream.Event.read_event" href="#redvox.common.event_stream.Event.read_event">read_event</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.read_raw" href="#redvox.common.event_stream.Event.read_raw">read_raw</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.save_dir" href="#redvox.common.event_stream.Event.save_dir">save_dir</a></code></li>
+<li><code><a title="redvox.common.event_stream.Event.save_mode" href="#redvox.common.event_stream.Event.save_mode">save_mode</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.set_errors" href="#redvox.common.event_stream.Event.set_errors">set_errors</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.set_file_name" href="#redvox.common.event_stream.Event.set_file_name">set_file_name</a></code></li>
 <li><code><a title="redvox.common.event_stream.Event.set_save_dir" href="#redvox.common.event_stream.Event.set_save_dir">set_save_dir</a></code></li>
@@ -4762,6 +5023,7 @@ Default False</p></div>
 <h4><code><a title="redvox.common.event_stream.EventStreams" href="#redvox.common.event_stream.EventStreams">EventStreams</a></code></h4>
 <ul class="">
 <li><code><a title="redvox.common.event_stream.EventStreams.append" href="#redvox.common.event_stream.EventStreams.append">append</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStreams.append_ml" href="#redvox.common.event_stream.EventStreams.append_ml">append_ml</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.append_streams" href="#redvox.common.event_stream.EventStreams.append_streams">append_streams</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.as_dict" href="#redvox.common.event_stream.EventStreams.as_dict">as_dict</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.create_event_window" href="#redvox.common.event_stream.EventStreams.create_event_window">create_event_window</a></code></li>
@@ -4771,6 +5033,7 @@ Default False</p></div>
 <li><code><a title="redvox.common.event_stream.EventStreams.from_json_file" href="#redvox.common.event_stream.EventStreams.from_json_file">from_json_file</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.get_stream" href="#redvox.common.event_stream.EventStreams.get_stream">get_stream</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.get_stream_names" href="#redvox.common.event_stream.EventStreams.get_stream_names">get_stream_names</a></code></li>
+<li><code><a title="redvox.common.event_stream.EventStreams.ml_data" href="#redvox.common.event_stream.EventStreams.ml_data">ml_data</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.original_timestamps" href="#redvox.common.event_stream.EventStreams.original_timestamps">original_timestamps</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.read_from_packet" href="#redvox.common.event_stream.EventStreams.read_from_packet">read_from_packet</a></code></li>
 <li><code><a title="redvox.common.event_stream.EventStreams.read_from_packets_list" href="#redvox.common.event_stream.EventStreams.read_from_packets_list">read_from_packets_list</a></code></li>

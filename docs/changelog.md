@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.6.2 (2023-8-25)
+* Added LocationSummary class to produce a simple summary of a Station's location
+* Updated LocalSessionModels class to better mimic cloud functions
+
 ### 3.6.1 (2023-8-16)
 * Fixed bug with SDK SessionModel not setting sub keys properly
 * Added container for Sessions in the ApiReader class

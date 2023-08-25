@@ -190,7 +190,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
             self.get_timing_information().get_packet_start_mach_timestamp()
         )
         date_time: datetime = dt_utils.datetime_from_epoch_microseconds_utc(timestamp)
-        year: str = f&#34;{date_time.year}:0&gt;4&#34;
+        year: str = f&#34;{date_time.year:0&gt;4}&#34;
         month: str = f&#34;{date_time.month:0&gt;2}&#34;
         day: str = f&#34;{date_time.day:0&gt;2}&#34;
         hour: str = f&#34;{date_time.hour:0&gt;2}&#34;
@@ -828,7 +828,7 @@ class WrappedRedvoxPacketM(ProtoBase[RedvoxPacketM]):
             self.get_timing_information().get_packet_start_mach_timestamp()
         )
         date_time: datetime = dt_utils.datetime_from_epoch_microseconds_utc(timestamp)
-        year: str = f&#34;{date_time.year}:0&gt;4&#34;
+        year: str = f&#34;{date_time.year:0&gt;4}&#34;
         month: str = f&#34;{date_time.month:0&gt;2}&#34;
         day: str = f&#34;{date_time.day:0&gt;2}&#34;
         hour: str = f&#34;{date_time.hour:0&gt;2}&#34;
@@ -1343,7 +1343,7 @@ Directory structure for this packet when using structured layout</p></div>
         self.get_timing_information().get_packet_start_mach_timestamp()
     )
     date_time: datetime = dt_utils.datetime_from_epoch_microseconds_utc(timestamp)
-    year: str = f&#34;{date_time.year}:0&gt;4&#34;
+    year: str = f&#34;{date_time.year:0&gt;4}&#34;
     month: str = f&#34;{date_time.month:0&gt;2}&#34;
     day: str = f&#34;{date_time.day:0&gt;2}&#34;
     hour: str = f&#34;{date_time.hour:0&gt;2}&#34;

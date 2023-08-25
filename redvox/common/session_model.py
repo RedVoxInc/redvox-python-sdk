@@ -382,7 +382,28 @@ class LocalSessionModels:
     """
 
     def __init__(self):
-        self.sessions: Dict[str, SessionModel] = {}
+        self.sessions: List[SessionModel] = []
+
+    def __repr__(self):
+        return f"sessions: {[s.__repr__() for s in self.sessions]}"
+
+    def as_dict(self) -> Dict:
+        """
+        :return: LocalSessionModels as a dictionary
+        """
+        return {"sessions": [s.as_dict() for s in self.sessions]}
+
+    @staticmethod
+    def from_dict(in_dict: Dict) -> "LocalSessionModels":
+        """
+        :param in_dict: dictionary to convert from
+        :return: LocalSessionModels object from dictionary
+        """
+        if "sessions" not in in_dict.keys():
+            return LocalSessionModels()
+        result = LocalSessionModels()
+        result.sessions = in_dict["sessions"]
+        return result
 
     def add_packet(self, packet: api_m.RedvoxPacketM) -> str:
         """
@@ -395,17 +416,40 @@ class LocalSessionModels:
             f"{packet.station_information.id}:{packet.station_information.uuid}:"
             f"{int(packet.timing_information.app_start_mach_timestamp)}"
         )
-        if key not in self.sessions.keys():
-            self.sessions[key] = SessionModel.create_from_packet(packet)
-        else:
-            self.sessions[key].add_data_from_packet(packet)
-        return self.sessions[key].cloud_session.session_key()
+        for s in self.sessions:
+            if key == s.cloud_session.session_key():
+                s.add_data_from_packet(packet)
+                return s.cloud_session.session_key()
+        # if here, key is not in the sessions.
+        self.sessions.append(SessionModel.create_from_packet(packet))
+        return key
+
+    def add_stream(self, data_stream: List[api_m.RedvoxPacketM]):
+        """
+        add data from the stream into the models.  Makes new models as needed.
+
+        :param data_stream: list of API M packets to read
+        """
+        for p in data_stream:
+            self.add_packet(p)
+
+    @staticmethod
+    def create_from_stream(data_stream: List[api_m.RedvoxPacketM]) -> "LocalSessionModels":
+        """
+        :param data_stream: list of API M packets to read
+        :return: LocalSessionModels using the data packets from the stream
+        """
+        result = LocalSessionModels()
+        for p in data_stream:
+            result.add_packet(p)
+        return result
 
     def get_session(self, key: str) -> Optional[SessionModel]:
         """
         :param key: key of SessionModel to get
         :return: SessionModel that matches the given key or None
         """
-        if key in self.sessions.keys():
-            return self.sessions[key]
+        for s in self.sessions:
+            if key == s.cloud_session.session_key():
+                return s
         return None

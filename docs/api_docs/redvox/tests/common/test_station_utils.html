@@ -63,10 +63,11 @@ class StationPacketMetadataTest(unittest.TestCase):
 class StationKeyTest(unittest.TestCase):
     def test_init_key(self):
         key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
-        other_key = su.StationKey(&#34;other_id&#34;, &#34;other_uuid&#34;, 1.0)
-        copy_key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
-        self.assertEqual(key, copy_key)
-        self.assertNotEqual(key, other_key)</code></pre>
+        self.assertTrue(key.check_key())
+        self.assertTrue(key.check_key(&#34;test_id&#34;))
+        self.assertTrue(key.check_key(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0))
+        self.assertFalse(key.check_key(&#34;other_id&#34;, &#34;other_uuid&#34;, 1.0))
+        self.assertFalse(key.check_key(&#34;test_id&#34;, &#34;other_uuid&#34;))</code></pre>
 </details>
 </section>
 <section>
@@ -118,10 +119,11 @@ not have a method with the specified name.</p></div>
 <pre><code class="python">class StationKeyTest(unittest.TestCase):
     def test_init_key(self):
         key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
-        other_key = su.StationKey(&#34;other_id&#34;, &#34;other_uuid&#34;, 1.0)
-        copy_key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
-        self.assertEqual(key, copy_key)
-        self.assertNotEqual(key, other_key)</code></pre>
+        self.assertTrue(key.check_key())
+        self.assertTrue(key.check_key(&#34;test_id&#34;))
+        self.assertTrue(key.check_key(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0))
+        self.assertFalse(key.check_key(&#34;other_id&#34;, &#34;other_uuid&#34;, 1.0))
+        self.assertFalse(key.check_key(&#34;test_id&#34;, &#34;other_uuid&#34;))</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -140,10 +142,11 @@ not have a method with the specified name.</p></div>
 </summary>
 <pre><code class="python">def test_init_key(self):
     key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
-    other_key = su.StationKey(&#34;other_id&#34;, &#34;other_uuid&#34;, 1.0)
-    copy_key = su.StationKey(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0)
-    self.assertEqual(key, copy_key)
-    self.assertNotEqual(key, other_key)</code></pre>
+    self.assertTrue(key.check_key())
+    self.assertTrue(key.check_key(&#34;test_id&#34;))
+    self.assertTrue(key.check_key(&#34;test_id&#34;, &#34;test_uuid&#34;, 0.0))
+    self.assertFalse(key.check_key(&#34;other_id&#34;, &#34;other_uuid&#34;, 1.0))
+    self.assertFalse(key.check_key(&#34;test_id&#34;, &#34;other_uuid&#34;))</code></pre>
 </details>
 </dd>
 </dl>

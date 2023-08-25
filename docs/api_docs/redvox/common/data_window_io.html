@@ -46,14 +46,11 @@ from typing import (
 
 import lz4.frame
 
-from redvox.common.io import FileSystemWriter, FileSystemSaveMode, json_to_dict, dict_to_json
-from redvox.common.date_time_utils import (
-    datetime_to_epoch_microseconds_utc as us_dt,
-)
+from redvox.common.io import FileSystemWriter, FileSystemSaveMode, json_to_dict
 
 
 if TYPE_CHECKING:
-    from redvox.common.data_window import DataWindow, DataWindowConfig
+    from redvox.common.data_window import DataWindow
 
 
 class DataWindowOutputType(enum.Enum):
@@ -64,6 +61,7 @@ class DataWindowOutputType(enum.Enum):
     NONE: int = 0
     LZ4: int = 1
     PARQUET: int = 2
+    JSON: int = 3
 
     @staticmethod
     def list_names() -&gt; List[str]:
@@ -89,7 +87,7 @@ class DataWindowOutputType(enum.Enum):
         :return: DataWindowOutputType matching string given or NONE
         &#34;&#34;&#34;
         str_type = str_type.upper()
-        if str_type == &#34;LZ4&#34; or str_type == &#34;PARQUET&#34;:
+        if str_type in DataWindowOutputType.list_non_none_names():
             return DataWindowOutputType[str_type]
         return DataWindowOutputType[&#34;NONE&#34;]
 
@@ -128,15 +126,19 @@ class DataWindowFileSystemWriter(FileSystemWriter):
         if not os.path.exists(base_dir):
             os.makedirs(base_dir, exist_ok=True)
         os.chdir(base_dir)
-        super().__init__(file_name, file_ext, &#34;.&#34;,
-                         FileSystemSaveMode.DISK
-                         if DataWindowOutputType.str_to_type(file_ext) != DataWindowOutputType.NONE
-                         else FileSystemSaveMode.MEM)
+        super().__init__(
+            file_name,
+            file_ext,
+            &#34;.&#34;,
+            FileSystemSaveMode.DISK
+            if DataWindowOutputType.str_to_type(file_ext) != DataWindowOutputType.NONE
+            else FileSystemSaveMode.MEM,
+        )
         self.make_run_me = make_run_me
 
     def set_extension(self, ext: str):
         &#34;&#34;&#34;
-        change the file extension.  Valid values are &#34;PARQUET&#34;, &#34;LZ4&#34; and &#34;NONE&#34;.  Invalid values become &#34;NONE&#34;
+        change the file extension.  Valid values are &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;JSON&#34; and &#34;NONE&#34;.  Invalid values become &#34;NONE&#34;
 
         :param ext: extension to change to
         &#34;&#34;&#34;
@@ -150,9 +152,7 @@ class DataWindowSerializationResult:
     compressed_bytes: int
 
 
-def data_window_as_json(
-        data_window: &#34;DataWindow&#34;
-) -&gt; str:
+def data_window_as_json(data_window: &#34;DataWindow&#34;) -&gt; str:
     &#34;&#34;&#34;
     Converts the DataWindow&#39;s metadata into a JSON dictionary
 
@@ -163,9 +163,9 @@ def data_window_as_json(
 
 
 def data_window_to_json(
-        data_window: &#34;DataWindow&#34;,
-        base_dir: str = &#34;.&#34;,
-        file_name: Optional[str] = None,
+    data_window: &#34;DataWindow&#34;,
+    base_dir: str = &#34;.&#34;,
+    file_name: Optional[str] = None,
 ) -&gt; Path:
     &#34;&#34;&#34;
     Converts the DataWindow into a JSON metadata file
@@ -198,10 +198,10 @@ def json_file_to_data_window(file_path: str) -&gt; Dict:
 
 
 def serialize_data_window(
-        data_window: &#34;DataWindow&#34;,
-        base_dir: str = &#34;.&#34;,
-        file_name: Optional[str] = None,
-        compression_factor: int = 4,
+    data_window: &#34;DataWindow&#34;,
+    base_dir: str = &#34;.&#34;,
+    file_name: Optional[str] = None,
+    compression_factor: int = 4,
 ) -&gt; Path:
     &#34;&#34;&#34;
     Serializes and compresses a DataWindow to a file and creates a JSON metadata file for the compressed file.
@@ -219,8 +219,8 @@ def serialize_data_window(
         file_name
         if file_name is not None
         else f&#34;{int(data_window.start_date())}&#34;
-             f&#34;_{int(data_window.end_date())}&#34;
-             f&#34;_{len(data_window.event_name)}.pkl.lz4&#34;
+        f&#34;_{int(data_window.end_date())}&#34;
+        f&#34;_{len(data_window.event_name)}.pkl.lz4&#34;
     )
 
     json_path: Path = data_window.fs_writer().json_path()
@@ -230,9 +230,7 @@ def serialize_data_window(
 
     file_path: Path = Path(base_dir).joinpath(_file_name)
 
-    with lz4.frame.open(
-            file_path, &#34;wb&#34;, compression_level=compression_factor
-    ) as compressed_out:
+    with lz4.frame.open(file_path, &#34;wb&#34;, compression_level=compression_factor) as compressed_out:
         pickle.dump(data_window, compressed_out)
         compressed_out.flush()
         return file_path.resolve(False)
@@ -267,9 +265,7 @@ def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def data_window_as_json(
-        data_window: &#34;DataWindow&#34;
-) -&gt; str:
+<pre><code class="python">def data_window_as_json(data_window: &#34;DataWindow&#34;) -&gt; str:
     &#34;&#34;&#34;
     Converts the DataWindow&#39;s metadata into a JSON dictionary
 
@@ -294,9 +290,9 @@ def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def data_window_to_json(
-        data_window: &#34;DataWindow&#34;,
-        base_dir: str = &#34;.&#34;,
-        file_name: Optional[str] = None,
+    data_window: &#34;DataWindow&#34;,
+    base_dir: str = &#34;.&#34;,
+    file_name: Optional[str] = None,
 ) -&gt; Path:
     &#34;&#34;&#34;
     Converts the DataWindow into a JSON metadata file
@@ -378,10 +374,10 @@ def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def serialize_data_window(
-        data_window: &#34;DataWindow&#34;,
-        base_dir: str = &#34;.&#34;,
-        file_name: Optional[str] = None,
-        compression_factor: int = 4,
+    data_window: &#34;DataWindow&#34;,
+    base_dir: str = &#34;.&#34;,
+    file_name: Optional[str] = None,
+    compression_factor: int = 4,
 ) -&gt; Path:
     &#34;&#34;&#34;
     Serializes and compresses a DataWindow to a file and creates a JSON metadata file for the compressed file.
@@ -399,8 +395,8 @@ def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
         file_name
         if file_name is not None
         else f&#34;{int(data_window.start_date())}&#34;
-             f&#34;_{int(data_window.end_date())}&#34;
-             f&#34;_{len(data_window.event_name)}.pkl.lz4&#34;
+        f&#34;_{int(data_window.end_date())}&#34;
+        f&#34;_{len(data_window.event_name)}.pkl.lz4&#34;
     )
 
     json_path: Path = data_window.fs_writer().json_path()
@@ -410,9 +406,7 @@ def deserialize_data_window(path: str) -&gt; &#34;DataWindow&#34;:
 
     file_path: Path = Path(base_dir).joinpath(_file_name)
 
-    with lz4.frame.open(
-            file_path, &#34;wb&#34;, compression_level=compression_factor
-    ) as compressed_out:
+    with lz4.frame.open(file_path, &#34;wb&#34;, compression_level=compression_factor) as compressed_out:
         pickle.dump(data_window, compressed_out)
         compressed_out.flush()
         return file_path.resolve(False)</code></pre>
@@ -486,15 +480,19 @@ Default False</p></div>
         if not os.path.exists(base_dir):
             os.makedirs(base_dir, exist_ok=True)
         os.chdir(base_dir)
-        super().__init__(file_name, file_ext, &#34;.&#34;,
-                         FileSystemSaveMode.DISK
-                         if DataWindowOutputType.str_to_type(file_ext) != DataWindowOutputType.NONE
-                         else FileSystemSaveMode.MEM)
+        super().__init__(
+            file_name,
+            file_ext,
+            &#34;.&#34;,
+            FileSystemSaveMode.DISK
+            if DataWindowOutputType.str_to_type(file_ext) != DataWindowOutputType.NONE
+            else FileSystemSaveMode.MEM,
+        )
         self.make_run_me = make_run_me
 
     def set_extension(self, ext: str):
         &#34;&#34;&#34;
-        change the file extension.  Valid values are &#34;PARQUET&#34;, &#34;LZ4&#34; and &#34;NONE&#34;.  Invalid values become &#34;NONE&#34;
+        change the file extension.  Valid values are &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;JSON&#34; and &#34;NONE&#34;.  Invalid values become &#34;NONE&#34;
 
         :param ext: extension to change to
         &#34;&#34;&#34;
@@ -511,7 +509,7 @@ Default False</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>change the file extension.
-Valid values are "PARQUET", "LZ4" and "NONE".
+Valid values are "PARQUET", "LZ4", "JSON" and "NONE".
 Invalid values become "NONE"</p>
 <p>:param ext: extension to change to</p></div>
 <details class="source">
@@ -520,7 +518,7 @@ Invalid values become "NONE"</p>
 </summary>
 <pre><code class="python">def set_extension(self, ext: str):
     &#34;&#34;&#34;
-    change the file extension.  Valid values are &#34;PARQUET&#34;, &#34;LZ4&#34; and &#34;NONE&#34;.  Invalid values become &#34;NONE&#34;
+    change the file extension.  Valid values are &#34;PARQUET&#34;, &#34;LZ4&#34;, &#34;JSON&#34; and &#34;NONE&#34;.  Invalid values become &#34;NONE&#34;
 
     :param ext: extension to change to
     &#34;&#34;&#34;
@@ -574,6 +572,7 @@ Invalid values become "NONE"</p>
     NONE: int = 0
     LZ4: int = 1
     PARQUET: int = 2
+    JSON: int = 3
 
     @staticmethod
     def list_names() -&gt; List[str]:
@@ -599,7 +598,7 @@ Invalid values become "NONE"</p>
         :return: DataWindowOutputType matching string given or NONE
         &#34;&#34;&#34;
         str_type = str_type.upper()
-        if str_type == &#34;LZ4&#34; or str_type == &#34;PARQUET&#34;:
+        if str_type in DataWindowOutputType.list_non_none_names():
             return DataWindowOutputType[str_type]
         return DataWindowOutputType[&#34;NONE&#34;]</code></pre>
 </details>
@@ -609,6 +608,10 @@ Invalid values become "NONE"</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="redvox.common.data_window_io.DataWindowOutputType.JSON"><code class="name">var <span class="ident">JSON</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="redvox.common.data_window_io.DataWindowOutputType.LZ4"><code class="name">var <span class="ident">LZ4</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
@@ -680,7 +683,7 @@ def str_to_type(str_type: str) -&gt; &#34;DataWindowOutputType&#34;:
     :return: DataWindowOutputType matching string given or NONE
     &#34;&#34;&#34;
     str_type = str_type.upper()
-    if str_type == &#34;LZ4&#34; or str_type == &#34;PARQUET&#34;:
+    if str_type in DataWindowOutputType.list_non_none_names():
         return DataWindowOutputType[str_type]
     return DataWindowOutputType[&#34;NONE&#34;]</code></pre>
 </details>
@@ -753,6 +756,7 @@ class DataWindowSerializationResult:
 <li>
 <h4><code><a title="redvox.common.data_window_io.DataWindowOutputType" href="#redvox.common.data_window_io.DataWindowOutputType">DataWindowOutputType</a></code></h4>
 <ul class="two-column">
+<li><code><a title="redvox.common.data_window_io.DataWindowOutputType.JSON" href="#redvox.common.data_window_io.DataWindowOutputType.JSON">JSON</a></code></li>
 <li><code><a title="redvox.common.data_window_io.DataWindowOutputType.LZ4" href="#redvox.common.data_window_io.DataWindowOutputType.LZ4">LZ4</a></code></li>
 <li><code><a title="redvox.common.data_window_io.DataWindowOutputType.NONE" href="#redvox.common.data_window_io.DataWindowOutputType.NONE">NONE</a></code></li>
 <li><code><a title="redvox.common.data_window_io.DataWindowOutputType.PARQUET" href="#redvox.common.data_window_io.DataWindowOutputType.PARQUET">PARQUET</a></code></li>

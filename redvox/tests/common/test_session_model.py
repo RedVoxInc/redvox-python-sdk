@@ -45,3 +45,20 @@ class SessionModelTest(unittest.TestCase):
         self.assertEqual(len(loaded.get_daily_dynamic_sessions()), len(model.get_daily_dynamic_sessions()))
 
         tmpdir.cleanup()
+
+
+class LocalSessionModelsTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.input_dir = tests.TEST_DATA_DIR
+
+    def test_local_models(self):
+        files = ApiReader(self.input_dir)
+
+        lsm = sm.LocalSessionModels()
+        for f in files.files_index:
+            lsm.add_stream(files.read_files_in_index(f))
+
+        self.assertEqual(3, len(lsm.sessions))
+        self.assertEqual(2, len(lsm.sessions[0].dynamic_sessions))
+        self.assertEqual("0000000001:0000000001:1597189452943691", lsm.sessions[2].cloud_session.session_key())

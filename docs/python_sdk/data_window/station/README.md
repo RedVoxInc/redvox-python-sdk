@@ -26,6 +26,7 @@ RedVox data, but it is capable of representing a variety of station and sensor c
   * [Events](#events)
     * [EventStreams](#eventstreams)
     * [EventStream](#eventstream)
+  * [Station Summary](#station-summary)
 - [Sensor Data](#sensor-data)
   * [Sensor Data Creation](#sensor-data-creation)
   * [Sensor Data Properties](#sensor-data-properties)
@@ -234,26 +235,26 @@ _[Table of Contents](#table-of-contents)_
 
 The table below shows the sensor name and the function calls required to access, set, and check for the sensor.
 
-|Sensor Name         |Accessor Function            |Exists                           |Has Data                       |Setter |
-|--------------------|-----------------------------|---------------------------------|-------------------------------|-------|
-|audio               |audio_sensor()               |has_audio_sensor()               |has_audio_data()               |set_audio_sensor() |
-|compressed audio    |compressed_audio_sensor()    |has_compressed_audio_sensor()    |has_compressed_audio_data()    |set_compressed_audio_sensor() |
-|image               |image_sensor()               |has_image_sensor()               |has_image_data()               |set_image_sensor() |
-|pressure            |pressure_sensor()            |has_pressure_sensor()            |has_pressure_data()            |set_pressure_sensor() |
-|light               |light_sensor()               |has_light_sensor()               |has_light_data()               |set_light_sensor() |
-|proximity           |proximity_sensor()           |has_proximity_sensor()           |has_proximity_data()           |set_proximity_sensor() |
-|ambient temperature |ambient_temperature_sensor() |has_ambient_temperature_sensor() |has_ambient_temperature_data() |set_ambient_temperature_sensor() |
-|relative humidity   |relative_humidity_sensor()   |has_relative_humidity_sensor()   |has_relative_humidity_data()   |set_relative_humidity_sensor() |
-|accelerometer       |accelerometer_sensor()       |has_accelerometer_sensor()       |has_accelerometer_data()       |set_accelerometer_sensor() |
-|magnetometer        |magnetometer_sensor()        |has_magnetometer_sensor()        |has_magnetometer_data()        |set_magnetometer_sensor() |
-|linear acceleration |linear_acceleration_sensor() |has_linear_acceleration_sensor() |has_linear_acceleration_data() |set_linear_acceleration_sensor() |
-|orientation         |orientation_sensor()         |has_orientation_sensor()         |has_orientation_data()         |set_orientation_sensor() |
-|rotation vector     |rotation_vector_sensor()     |has_rotation_vector_sensor()     |has_rotation_vector_data()     |set_rotation_vector_sensor() |
-|gyroscope           |gyroscope_sensor()           |has_gyroscope_sensor()           |has_gyroscope_data()           |set_gyroscope_sensor() |
-|gravity             |gravity_sensor()             |has_gravity_sensor()             |has_gravity_data()             |set_gravity_sensor() |
-|location            |location_sensor()            |has_location_sensor()            |has_location_data()            |set_location_sensor() |
-|best location       |best_location_sensor()       |has_best_location_sensor()       |has_best_location_data()       |set_best_location_sensor() |
-|station health      |health_sensor()              |has_health_sensor()              |has_health_data()              |set_health_sensor() |
+| Sensor Name         | Accessor Function            | Exists                           | Has Data                       | Setter                           |
+|---------------------|------------------------------|----------------------------------|--------------------------------|----------------------------------|
+| audio               | audio_sensor()               | has_audio_sensor()               | has_audio_data()               | set_audio_sensor()               |
+| compressed audio    | compressed_audio_sensor()    | has_compressed_audio_sensor()    | has_compressed_audio_data()    | set_compressed_audio_sensor()    |
+| image               | image_sensor()               | has_image_sensor()               | has_image_data()               | set_image_sensor()               |
+| pressure            | pressure_sensor()            | has_pressure_sensor()            | has_pressure_data()            | set_pressure_sensor()            |
+| light               | light_sensor()               | has_light_sensor()               | has_light_data()               | set_light_sensor()               |
+| proximity           | proximity_sensor()           | has_proximity_sensor()           | has_proximity_data()           | set_proximity_sensor()           |
+| ambient temperature | ambient_temperature_sensor() | has_ambient_temperature_sensor() | has_ambient_temperature_data() | set_ambient_temperature_sensor() |
+| relative humidity   | relative_humidity_sensor()   | has_relative_humidity_sensor()   | has_relative_humidity_data()   | set_relative_humidity_sensor()   |
+| accelerometer       | accelerometer_sensor()       | has_accelerometer_sensor()       | has_accelerometer_data()       | set_accelerometer_sensor()       |
+| magnetometer        | magnetometer_sensor()        | has_magnetometer_sensor()        | has_magnetometer_data()        | set_magnetometer_sensor()        |
+| linear acceleration | linear_acceleration_sensor() | has_linear_acceleration_sensor() | has_linear_acceleration_data() | set_linear_acceleration_sensor() |
+| orientation         | orientation_sensor()         | has_orientation_sensor()         | has_orientation_data()         | set_orientation_sensor()         |
+| rotation vector     | rotation_vector_sensor()     | has_rotation_vector_sensor()     | has_rotation_vector_data()     | set_rotation_vector_sensor()     |
+| gyroscope           | gyroscope_sensor()           | has_gyroscope_sensor()           | has_gyroscope_data()           | set_gyroscope_sensor()           |
+| gravity             | gravity_sensor()             | has_gravity_sensor()             | has_gravity_data()             | set_gravity_sensor()             |
+| location            | location_sensor()            | has_location_sensor()            | has_location_data()            | set_location_sensor()            |
+| best location       | best_location_sensor()       | has_best_location_sensor()       | has_best_location_data()       | set_best_location_sensor()       |
+| station health      | health_sensor()              | has_health_sensor()              | has_health_data()              | set_health_sensor()              |
 
 *** Some stations may use alternate names for their sensors instead of the ones listed above.
 The functions do not change if the sensor's name changes (i.e. you still use audio_sensor() to access the microphone sensor and its data)  
@@ -467,7 +468,7 @@ print(my_om.slope)
 print(my_om.intercept)
 ```
 
-### Altering Offset Model Defaults 
+### Altering Offset Model Defaults
 You may alter the default values of these three OffsetModel properties:
 1. `min_valid_latency_us`
 2. `min_samples_per_bin`
@@ -494,25 +495,29 @@ EventStreams are comprised of many EventStream, organized by their name.
 
 These are the properties of an EventStreams:
 1. `streams`: List of all EventStream objects.  Default empty list
-2. `debug`: boolean, if `True`, outputs additional messages during program execution.  Default `False`
+2. `ml_data`: Optional ExtractedMl object.  Default None
+3. `debug`: boolean, if `True`, outputs additional messages during program execution.  Default `False`
 
 EventStreams have multiple methods available:
 1. `as_dict(self) -> dict`: returns the `streams` property as a dictionary.
-2. `read_from_packet(self, packet: RedvoxPacketM)`: reads the EventStream payload from a single Redvox Api1000 packet
-   and stores it in the EventStreams
-3. `read_from_packets_list(self, packets: List[RedvoxPacketM])`: read the EventStream payload from multiple Redvox
-   Api1000 packets and store them in the EventStreams
-4. `append(self, other_stream: EventStream)`: append another EventStream to an existing EventStream or add to the 
-   list of EventStream
-5. `append_streams(self, other_streams: "EventStreams")`: append another EventStreams object to an existing 
-   EventStreams object
-6. `get_stream(self, stream_name: str) -> Optional[EventStream]`: returns the EventStream that has the name specified 
+2. `read_from_packet(self, packet: RedvoxPacketM)`: reads the EventStream and ML payload from a single Redvox Api1000 
+   packet and stores it in the EventStreams
+3. `read_from_packets_list(self, packets: List[RedvoxPacketM])`: read the EventStream and ML payload from multiple 
+   Redvox Api1000 packets and store them in the EventStreams
+4. `append(self, other_stream: EventStream)`: append another EventStream to an existing EventStream or add a new entry 
+   to the list of EventStream
+5. `append_ml(self, other_ml: ml.ExtractedMl)`: append another ExtractedMl object to the EventStreams
+6. `append_streams(self, other_streams: "EventStreams")`: append another EventStreams object to an existing
+   EventStreams
+7. `get_stream(self, stream_name: str) -> Optional[EventStream]`: returns the EventStream that has the name specified 
    or `None` if it doesn't exist
-7. `get_stream_names(self) -> List[str]`: returns the names of all EventStream in the EventStreams
-8. `set_save_mode(self, new_save_mode: FileSystemSaveMode)`: sets all EventStream save_mode property to `new_save_mode`.
+8. `get_stream_names(self) -> List[str]`: returns the names of all EventStream in the EventStreams
+9. `set_save_mode(self, new_save_mode: FileSystemSaveMode)`: sets all EventStream save_mode property to `new_save_mode`.
    Options are: `FileSystemSaveMode.NONE, FileSystemSaveMode.PARQUET, FileSystemSaveMode.LZ4`.
-9. `set_save_dir(self, new_dir: str)`: changes the directory where data is saved to `new_dir`
+10. `set_save_dir(self, new_dir: str)`: changes the directory where data is saved to `new_dir`
 
+Refer to [Working with Machine Learning](https://github.com/RedVoxInc/redvox-python-sdk/blob/master/docs/python_sdk/low_level_api.md#working-with-machine-learning)
+documentation for information on how to access the machine learning data.
 
 #### EventStream
 
@@ -559,6 +564,13 @@ These are the methods used to access the EventStream's data:
     an empty numpy array if the `column_name` doesn't exist in the byte data.
 15. `timestamps(self) -> np.array`: Returns the timestamps of the data as a numpy array
 16. `unaltered_timestamps(self) -> np.array`: Returns the unaltered timestamps of the data as a numpy array
+
+_[Table of Contents](#table-of-contents)_
+
+### Station Summary
+
+Station contains a lot of information, and you may want a shorter summary of the Station.  Refer to the function and 
+example code in the [Station Summary Documentation](https://github.com/RedVoxInc/redvox-python-sdk/tree/master/docs/python_sdk/data_window/station/summary_functions.md)
 
 _[Table of Contents](#table-of-contents)_
 
@@ -731,14 +743,10 @@ for the list of enumerated values.
 
 Use these functions to save and load Sensor data.
 
-1. `save(self, file_name: Optional[str] = None) -> Optional[Path]`
-
-Saves the Sensor's data to disk if enabled, then returns the path to the saved JSON file.  Does nothing and
-returns `None` if saving is not enabled.
-
-2. `load(in_dir: str = "") -> "SensorData"`
-
-Uses the first JSON file in the `in_dir` to load the Sensor's data.  Creates an error if the file cannot be found.
+1. `save(self, file_name: Optional[str] = None) -> Optional[Path]`: Saves the Sensor's data to disk if enabled, then 
+returns the path to the saved JSON file.  Does nothing and returns `None` if saving is not enabled.
+2. `load(in_dir: str = "") -> "SensorData"`: Uses the first JSON file in the `in_dir` to load the Sensor's data. 
+Creates an error if the file cannot be found.
 
 
 _[Table of Contents](#table-of-contents)_
@@ -747,26 +755,26 @@ _[Table of Contents](#table-of-contents)_
 
 The table below shows which columns can be accessed by each sensor using the `get_channel_data()` function
 
-|Sensor name            |Table columns                   |
-|-----------------------|--------------------------------|
-|all                    |timestamps, unaltered_timestamps|
-|audio                  |microphone                      |
-|compressed audio       |compressed_audio, audio_codec   |
-|image                  |image, image_codec              |
-|pressure               |pressure                        |
-|light                  |light                           |
-|proximity              |proximity                       |
-|ambient temperature    |ambient_temp                    |
-|relative humidity      |rel_humidity                    |
-|accelerometer          |accelerometer_x, accelerometer_y, accelerometer_z|
-|magnetometer           |magnetometer_x, magnetometer_y, magnetometer_z|
-|linear acceleration    |linear_accel_x, linear_accel_y, linear_accel_z|
-|orientation            |orientation_x, orientation_y, orientation_z|
-|rotation vector        |rotation_vector_x, rotation_vector_y, rotation_vector_z|
-|gyroscope              |gyroscope_x, gyroscope_y, gyroscope_z|
-|gravity                |gravity_x, gravity_y, gravity_z |
-|location, best location|gps_timestamps, latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider|
-|station health         |battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service, cpu_utilization, wifi_wake_lock, screen_state, screen_brightness|
+| Sensor name             | Table columns                                                                                                                                                                                                           |
+|-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| all                     | timestamps, unaltered_timestamps                                                                                                                                                                                        |
+| audio                   | microphone                                                                                                                                                                                                              |
+| compressed audio        | compressed_audio, audio_codec                                                                                                                                                                                           |
+| image                   | image, image_codec                                                                                                                                                                                                      |
+| pressure                | pressure                                                                                                                                                                                                                |
+| light                   | light                                                                                                                                                                                                                   |
+| proximity               | proximity                                                                                                                                                                                                               |
+| ambient temperature     | ambient_temp                                                                                                                                                                                                            |
+| relative humidity       | rel_humidity                                                                                                                                                                                                            |
+| accelerometer           | accelerometer_x, accelerometer_y, accelerometer_z                                                                                                                                                                       |
+| magnetometer            | magnetometer_x, magnetometer_y, magnetometer_z                                                                                                                                                                          |
+| linear acceleration     | linear_accel_x, linear_accel_y, linear_accel_z                                                                                                                                                                          |
+| orientation             | orientation_x, orientation_y, orientation_z                                                                                                                                                                             |
+| rotation vector         | rotation_vector_x, rotation_vector_y, rotation_vector_z                                                                                                                                                                 |
+| gyroscope               | gyroscope_x, gyroscope_y, gyroscope_z                                                                                                                                                                                   |
+| gravity                 | gravity_x, gravity_y, gravity_z                                                                                                                                                                                         |
+| location, best location | gps_timestamps, latitude, longitude, altitude, speed, bearing, horizontal_accuracy, vertical_accuracy, speed_accuracy, bearing_accuracy, location_provider                                                              |
+| station health          | battery_charge_remaining, battery_current_strength, internal_temp_c, network_type, network_strength, power_state, avail_ram, avail_disk, cell_service, cpu_utilization, wifi_wake_lock, screen_state, screen_brightness |
 
 For more details on accessing the values from specific types of sensors, please read [Sensor Subclasses](#sensor-subclasses).
 
@@ -777,39 +785,39 @@ Use the function `print_errors()` to see if any errors occurred while accessing 
 
 The table below lists the sensors and their data's units
 
-|Sensor name             |Column Name             |units of data|
-|------------------------|------------------------|-------------|
-|all                     |timestamps, unaltered_timestamps|microseconds since epoch UTC|
-|accelerometer           |                        |meters/second^2|
-|ambient temperature     |                        |degrees Celsius|
-|audio                   |                        |normalized counts (normalization constant = 0x7FFFFF)|
-|compressed audio        |                        |bytes (codec specific)|
-|gravity                 |                        |meters/second^2|
-|gyroscope               |                        |radians/second|
-|image                   |                        |bytes (codec specific)|
-|light                   |                        |lux|
-|linear acceleration     |                        |meters/second^2|
-|magnetometer            |                        |microtesla|
-|orientation             |                        |radians|
-|pressure                |                        |kilopascal (this is also known as barometer sensor)|
-|proximity               |                        |cm (this is also known as infrared sensor)|
-|relative humidity       |                        |percentage|
-|rotation vector         |                        |Unitless|
-|location, best location |gps_timestamps          |microseconds since epoch UTC|
-|                        |latitude, longitude, bearing, bearing accuracy|degrees| 
-|                        |altitude, horizontal accuracy, vertical accuracy|meters|
-|                        |speed, speed_accuracy   |meters per second|
-|                        |location_provider       |enumeration of LocationProvider|
-|station health          |battery_charge_remaining, cpu_utilization, screen_brightness|percentage|
-|                        |battery_current_strength|microamperes|
-|                        |internal_temp_c         |degrees Celsius|
-|                        |network_type            |enumeration of NetworkType|
-|                        |network_strength        |decibel|
-|                        |power_state             |enumeration of PowerState|
-|                        |avail_ram, avail_disk   |bytes|
-|                        |cell_service            |enumeration of CellServiceState|
-|                        |wifi_wake_lock          |enumeration of WifiWakeLock|
-|                        |screen_state            |enumeration of ScreenState|
+| Sensor name             | Column Name                                                  | Units of Data                                         |
+|-------------------------|--------------------------------------------------------------|-------------------------------------------------------|
+| all                     | timestamps, unaltered_timestamps                             | microseconds since epoch UTC                          |
+| accelerometer           |                                                              | meters/second^2                                       |
+| ambient temperature     |                                                              | degrees Celsius                                       |
+| audio                   |                                                              | normalized counts (normalization constant = 0x7FFFFF) |
+| compressed audio        |                                                              | bytes (codec specific)                                |
+| gravity                 |                                                              | meters/second^2                                       |
+| gyroscope               |                                                              | radians/second                                        |
+| image                   |                                                              | bytes (codec specific)                                |
+| light                   |                                                              | lux                                                   |
+| linear acceleration     |                                                              | meters/second^2                                       |
+| magnetometer            |                                                              | microtesla                                            |
+| orientation             |                                                              | radians                                               |
+| pressure                |                                                              | kilopascal (this is also known as barometer sensor)   |
+| proximity               |                                                              | cm (this is also known as infrared sensor)            |
+| relative humidity       |                                                              | percentage                                            |
+| rotation vector         |                                                              | Unitless                                              |
+| location, best location | gps_timestamps                                               | microseconds since epoch UTC                          |
+|                         | latitude, longitude, bearing, bearing accuracy               | degrees                                               | 
+|                         | altitude, horizontal accuracy, vertical accuracy             | meters                                                |
+|                         | speed, speed_accuracy                                        | meters per second                                     |
+|                         | location_provider                                            | enumeration of LocationProvider                       |
+| station health          | battery_charge_remaining, cpu_utilization, screen_brightness | percentage                                            |
+|                         | battery_current_strength                                     | microamperes                                          |
+|                         | internal_temp_c                                              | degrees Celsius                                       |
+|                         | network_type                                                 | enumeration of NetworkType                            |
+|                         | network_strength                                             | decibel                                               |
+|                         | power_state                                                  | enumeration of PowerState                             |
+|                         | avail_ram, avail_disk                                        | bytes                                                 |
+|                         | cell_service                                                 | enumeration of CellServiceState                       |
+|                         | wifi_wake_lock                                               | enumeration of WifiWakeLock                           |
+|                         | screen_state                                                 | enumeration of ScreenState                            |
 
 If Column Name is blank, then all non-timestamp columns in the table have the unit specified.
 Refer to the previous table for specific column names for each sensor.

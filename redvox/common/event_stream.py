@@ -1001,10 +1001,10 @@ class EventStreams:
     debug: bool = False
 
     def __repr__(self):
-        return f"streams: {[s.__repr__() for s in self.streams]}, ml: {self.ml_data}, debug: {self.debug}"
+        return f"streams: {[s.__repr__() for s in self.streams]}, ml_data: {self.ml_data}, debug: {self.debug}"
 
     def __str__(self):
-        return f"streams: {[s.__str__() for s in self.streams]}, ml: {self.ml_data}"
+        return f"streams: {[s.__str__() for s in self.streams]}, ml_data: {self.ml_data}"
 
     def as_dict(self) -> dict:
         """
@@ -1075,6 +1075,7 @@ class EventStreams:
         """
         for s in other_streams.streams:
             self.append(s)
+        self.append_ml(other_streams.ml_data)
 
     def remove_stream(self, stream_name: str):
         """

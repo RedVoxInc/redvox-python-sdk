@@ -37,21 +37,20 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from redvox.common.io import json_to_dict, json_file_to_dict, get_json_file
-
 if TYPE_CHECKING:
     from redvox.common.sensor_data import SensorData
 
 
-def to_json(sensor: &#34;SensorData&#34;,) -&gt; str:
+def to_json(
+    sensor: &#34;SensorData&#34;,
+) -&gt; str:
     &#34;&#34;&#34;
     :return: sensor as json string
     &#34;&#34;&#34;
     return json.dumps(sensor.as_dict())
 
 
-def to_json_file(sensor: &#34;SensorData&#34;,
-                 file_name: Optional[str] = None) -&gt; Path:
+def to_json_file(sensor: &#34;SensorData&#34;, file_name: Optional[str] = None) -&gt; Path:
     &#34;&#34;&#34;
     saves the sensor as json and data in the same directory.
 
@@ -61,11 +60,7 @@ def to_json_file(sensor: &#34;SensorData&#34;,
                         [sensor_type]_[first_timestamp].json
     :return: path to json file
     &#34;&#34;&#34;
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else sensor.file_name()
-    )
+    _file_name: str = file_name if file_name is not None else sensor.file_name()
     file_path: Path = sensor.fs_writer().json_path()
     with open(file_path, &#34;w&#34;) as f_p:
         f_p.write(to_json(sensor))
@@ -88,7 +83,9 @@ def to_json_file(sensor: &#34;SensorData&#34;,
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_json(sensor: &#34;SensorData&#34;,) -&gt; str:
+<pre><code class="python">def to_json(
+    sensor: &#34;SensorData&#34;,
+) -&gt; str:
     &#34;&#34;&#34;
     :return: sensor as json string
     &#34;&#34;&#34;
@@ -110,8 +107,7 @@ If None, a default file name is created using this format:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_json_file(sensor: &#34;SensorData&#34;,
-                 file_name: Optional[str] = None) -&gt; Path:
+<pre><code class="python">def to_json_file(sensor: &#34;SensorData&#34;, file_name: Optional[str] = None) -&gt; Path:
     &#34;&#34;&#34;
     saves the sensor as json and data in the same directory.
 
@@ -121,11 +117,7 @@ If None, a default file name is created using this format:
                         [sensor_type]_[first_timestamp].json
     :return: path to json file
     &#34;&#34;&#34;
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else sensor.file_name()
-    )
+    _file_name: str = file_name if file_name is not None else sensor.file_name()
     file_path: Path = sensor.fs_writer().json_path()
     with open(file_path, &#34;w&#34;) as f_p:
         f_p.write(to_json(sensor))

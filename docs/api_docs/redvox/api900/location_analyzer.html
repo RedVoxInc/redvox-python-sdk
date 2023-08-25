@@ -64,8 +64,16 @@ from typing import List, Dict, Optional, Tuple
 from fastkml import kml, styles
 from fastkml.geometry import Point
 from redvox.api900 import reader
-from redvox.common.constants import EPSILON, DEG_TO_RAD, AVG_SEA_LEVEL_PRESSURE_KPA, EARTH_RADIUS_M, \
-    STANDARD_TEMPERATURE_K, MOLAR_MASS_AIR_KG_PER_MOL, GRAVITY_M_PER_S2, UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
+from redvox.common.constants import (
+    EPSILON,
+    DEG_TO_RAD,
+    AVG_SEA_LEVEL_PRESSURE_KPA,
+    EARTH_RADIUS_M,
+    STANDARD_TEMPERATURE_K,
+    MOLAR_MASS_AIR_KG_PER_MOL,
+    GRAVITY_M_PER_S2,
+    UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2,
+)
 
 # instruments have only so much accuracy, so if something has a distance less than the following values
 #  from a given point, we could feasibly consider it to be close enough to be at the given point.
@@ -102,11 +110,13 @@ class DataHolder:
     &#34;&#34;&#34;
     Stores an array of float data.  The data is privatized for security.
     It also keeps track of the &#34;best value&#34; of the data set.
+
     Properties:
-        id: a string identifier for the data
-        _data: private data storage; all values must be floats
-        best_value: the value that best represents the data set
+        * id: a string identifier for the data
+        * _data: private data storage; all values must be floats
+        * best_value: the value that best represents the data set
     &#34;&#34;&#34;
+
     #
     def __init__(self, name: str):
         &#34;&#34;&#34;
@@ -143,28 +153,24 @@ class DataHolder:
 
     def get_mean(self) -&gt; float:
         &#34;&#34;&#34;
-        return the mean of the data
         :return: the mean of the data
         &#34;&#34;&#34;
         return np.mean(self._data)
 
     def get_std(self) -&gt; float:
         &#34;&#34;&#34;
-        return the standard deviation of the data
         :return: the standard deviation of the data
         &#34;&#34;&#34;
         return np.std(self._data)
 
     def get_data(self) -&gt; List[float]:
         &#34;&#34;&#34;
-        return the data
         :return: the data
         &#34;&#34;&#34;
         return self._data
 
     def get_len_data(self) -&gt; int:
         &#34;&#34;&#34;
-        return the length of the data array
         :return: the length of the data array
         &#34;&#34;&#34;
         return len(self._data)
@@ -174,16 +180,24 @@ class GPSDataHolder:
     &#34;&#34;&#34;
     holds gps data (latitude, longitude, altitude, and accuracy) and barometric data
     uses a dataframe to organize the gps data
+
     Properties:
-        gps_df: a dataframe to hold all the gps data
-        barometer: a DataHolder for barometer data
-        id: string identifier for the data set
-        os_type: string identifier for the operating system of the data set
-        mic_samp_rate_hz: float sample rate of station microphone in hz
-        best_data_index: the index that corresponds to the best representative of the data
+        * gps_df: a dataframe to hold all the gps data
+        * barometer: a DataHolder for barometer data
+        * id: string identifier for the data set
+        * os_type: string identifier for the operating system of the data set
+        * mic_samp_rate_hz: float sample rate of station microphone in hz
+        * best_data_index: the index that corresponds to the best representative of the data
     &#34;&#34;&#34;
-    def __init__(self, name: str, opsys: str, data: Optional[List[List[float]]] = None,
-                 mic_samp_rate_hz: float = 80., bar: Optional[DataHolder] = None):
+
+    def __init__(
+        self,
+        name: str,
+        opsys: str,
+        data: Optional[List[List[float]]] = None,
+        mic_samp_rate_hz: float = 80.0,
+        bar: Optional[DataHolder] = None,
+    ):
         &#34;&#34;&#34;
         sets up the GPSDataHolder
         :param name: string identifier for the data set
@@ -201,7 +215,6 @@ class GPSDataHolder:
 
     def clone(self):
         &#34;&#34;&#34;
-        return a copy of the GPSDataHolder
         :return: an exact copy of the GPSDataHolder
         &#34;&#34;&#34;
         # return a copy of the calling data frame
@@ -218,10 +231,11 @@ class GPSDataHolder:
         &#34;&#34;&#34;
         self.gps_df = pd.DataFrame(new_data, index=GPS_DATA_INDICES)
 
-    def set_metadata(self, new_id: Optional[str] = None, new_os: Optional[str] = None,
-                     new_mic_samp_rate_hz: Optional[float] = None):
+    def set_metadata(
+        self, new_id: Optional[str] = None, new_os: Optional[str] = None, new_mic_samp_rate_hz: Optional[float] = None
+    ):
         &#34;&#34;&#34;
-        set metadata fields; id, os and mic sample rate
+        set metadata fields: id, os_type and mic_sample_rate_hz
         :param new_id: the new string identifier for the data set, default None
         :param new_os: the new string identifier for the data set&#39;s os, default None
         :param new_mic_samp_rate_hz: float of new microphone sample rate in hz, default None
@@ -235,8 +249,7 @@ class GPSDataHolder:
 
     def get_mean_all(self) -&gt; Dict[str, float]:
         &#34;&#34;&#34;
-        return the means of the latitude, longitude, altitude, accuracy, and barometer
-        :return: means of all 5 measurements
+        :return: means of the latitude, longitude, altitude, accuracy, and barometer
         &#34;&#34;&#34;
         bar_mean = self.barometer.get_mean()
         if bar_mean == 0 or bar_mean is None:
@@ -250,8 +263,7 @@ class GPSDataHolder:
 
     def get_std_all(self) -&gt; Dict[str, float]:
         &#34;&#34;&#34;
-        return the standard deviations of the latitude, longitude, altitude, accuracy, and barometer
-        :return: standard deviations of all 5 measurements
+        :return: standard deviations of the latitude, longitude, altitude, accuracy, and barometer
         &#34;&#34;&#34;
         bar_std = self.barometer.get_std()
         if bar_std == 0 or bar_std is None:
@@ -282,7 +294,6 @@ class GPSDataHolder:
 
     def get_size(self) -&gt; (int, int):
         &#34;&#34;&#34;
-        return the amount of gps and barometer data points
         :return: the amount of gps and barometer data points
         &#34;&#34;&#34;
         return self.gps_df.iloc[0].size, self.barometer.get_len_data()
@@ -297,20 +308,25 @@ class LocationAnalyzer:
     the real location dictionary may contain other keys than ones listed in SURVEY_KEYS
     keys in OPTIONAL_SURVEY_KEYS have special meaning and can only be used as this program intends to use them
     uses dataframes with station id as the index
+
     Properties:
-        all_stations_info_df: dataframe with metadata about all stations
-        all_stations_mean_df: dataframe with means from all stations
-        all_stations_std_df: dataframe with stds from all stations
-        all_stations_closest_df: dataframe with the closest point to the real location and its distance to the
-                                    real location for all stations
-        invalid_points: a list of gps points that are blacklisted
-        _real_location: the surveyed point that the station is located at.  privatized for security
-        all_gps_data: a list of all GPSDataHolders that form the data set
-        valid_gps_data: a list of all GPSDataHolders that pass validation checks
+        * all_stations_info_df: dataframe with metadata about all stations
+        * all_stations_mean_df: dataframe with means from all stations
+        * all_stations_std_df: dataframe with stds from all stations
+        * all_stations_closest_df: dataframe with the closest point to the real location and its distance to the
+          real location for all stations
+        * invalid_points: a list of gps points that are blacklisted
+        * _real_location: the surveyed point that the station is located at.  privatized for security
+        * all_gps_data: a list of all GPSDataHolders that form the data set
+        * valid_gps_data: a list of all GPSDataHolders that pass validation checks
     &#34;&#34;&#34;
-    def __init__(self, wrapped_packets: List[List[reader.WrappedRedvoxPacket]] = None,
-                 real_location: Optional[Dict[str, float]] = None,
-                 invalid_points: Optional[List[Dict[str, float]]] = None):
+
+    def __init__(
+        self,
+        wrapped_packets: List[List[reader.WrappedRedvoxPacket]] = None,
+        real_location: Optional[Dict[str, float]] = None,
+        invalid_points: Optional[List[Dict[str, float]]] = None,
+    ):
         &#34;&#34;&#34;
         set up the LocationAnalyzer
         :param wrapped_packets: a list of wrapped redvox packet lists to analyze, default None
@@ -339,23 +355,24 @@ class LocationAnalyzer:
 
     def get_real_location(self) -&gt; Dict[str, float]:
         &#34;&#34;&#34;
-        return the station&#39;s real location
         :return: the station&#39;s real location
         &#34;&#34;&#34;
         return self._real_location
 
     def get_all_dataframes(self) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
-        fuse all dataframes together, joined by station id
-        :return: all 4 dataframes fused together
+        :return: all 4 dataframes fused together, joined by station id
         &#34;&#34;&#34;
-        frames = [self.all_stations_info_df, self.all_stations_closest_df,
-                  self.all_stations_mean_df, self.all_stations_std_df]
+        frames = [
+            self.all_stations_info_df,
+            self.all_stations_closest_df,
+            self.all_stations_mean_df,
+            self.all_stations_std_df,
+        ]
         return pd.concat(frames, axis=1)
 
     def get_stats_dataframes(self) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
-        fuse informational and statistic dataframes together, joined by station id
         :return: station info, mean and std dataframes fused together
         &#34;&#34;&#34;
         frames = [self.all_stations_info_df, self.all_stations_mean_df, self.all_stations_std_df]
@@ -364,6 +381,7 @@ class LocationAnalyzer:
     def get_loc_from_packets(self, w_p: List[reader.WrappedRedvoxPacket]):
         &#34;&#34;&#34;
         store the location information and their mean and std using a collection of wrapped redvox packets
+
         assumes a list of redvox packets shares 1 device id
         :param w_p: a list of wrapped redvox packets to read
         &#34;&#34;&#34;
@@ -378,23 +396,38 @@ class LocationAnalyzer:
         # store the information
         self.all_gps_data.append(packet_gps_data)
         self.all_stations_info_df.loc[idd] = [dev_os_type, sample_rate]
-        self.all_stations_std_df.loc[idd] = [std_loc[&#34;acc&#34;], std_loc[&#34;lat&#34;], std_loc[&#34;lon&#34;],
-                                             std_loc[&#34;alt&#34;], std_loc[&#34;bar&#34;]]
-        self.all_stations_mean_df.loc[idd] = [mean_loc[&#34;acc&#34;], mean_loc[&#34;lat&#34;], mean_loc[&#34;lon&#34;],
-                                              mean_loc[&#34;alt&#34;], mean_loc[&#34;bar&#34;]]
+        self.all_stations_std_df.loc[idd] = [
+            std_loc[&#34;acc&#34;],
+            std_loc[&#34;lat&#34;],
+            std_loc[&#34;lon&#34;],
+            std_loc[&#34;alt&#34;],
+            std_loc[&#34;bar&#34;],
+        ]
+        self.all_stations_mean_df.loc[idd] = [
+            mean_loc[&#34;acc&#34;],
+            mean_loc[&#34;lat&#34;],
+            mean_loc[&#34;lon&#34;],
+            mean_loc[&#34;alt&#34;],
+            mean_loc[&#34;bar&#34;],
+        ]
 
     def analyze_data(self, write_output: bool = False):
         &#34;&#34;&#34;
         analyze data, then if a real location exists, compare data to real location
-          output is written if enabled
+
+        output is written if enabled
         :param write_output: boolean to write any debugging output, default False
         &#34;&#34;&#34;
         self.validate_all()
         # if there&#39;s no real location, make the mean the real location
         if self._real_location is None:
             means = self.all_stations_mean_df
-            self._real_location = {&#34;lat&#34;: np.mean(means[&#34;mean lat&#34;]), &#34;lon&#34;: np.mean(means[&#34;mean lon&#34;]),
-                                   &#34;alt&#34;: np.mean(means[&#34;mean alt&#34;]), &#34;bar&#34;: np.mean(means[&#34;mean bar&#34;])}
+            self._real_location = {
+                &#34;lat&#34;: np.mean(means[&#34;mean lat&#34;]),
+                &#34;lon&#34;: np.mean(means[&#34;mean lon&#34;]),
+                &#34;alt&#34;: np.mean(means[&#34;mean alt&#34;]),
+                &#34;bar&#34;: np.mean(means[&#34;mean bar&#34;]),
+            }
         self.compare_with_real_location()
         # print results
         if write_output:
@@ -413,9 +446,14 @@ class LocationAnalyzer:
         barometric_heights = pd.DataFrame(bar_heights, index=[&#34;bar height&#34;], columns=self.all_stations_mean_df.index)
         return barometric_heights.T
 
-    def validate_all(self, validation_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
-                                                                            DEFAULT_INCLUSION_VERTICAL_M,
-                                                                            DEFAULT_INCLUSION_VERTICAL_BAR_M), ):
+    def validate_all(
+        self,
+        validation_ranges: Tuple[float, float, float] = (
+            DEFAULT_INCLUSION_HORIZONTAL_M,
+            DEFAULT_INCLUSION_VERTICAL_M,
+            DEFAULT_INCLUSION_VERTICAL_BAR_M,
+        ),
+    ):
         &#34;&#34;&#34;
         check that all data in the data set are valid.  Remove outliers and strange values
         :param validation_ranges: tuple of floats that the data values are compared against for validation
@@ -484,7 +522,6 @@ class LocationAnalyzer:
 
 def get_all_ios_station(station_df: pd.DataFrame) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    return all iOS stations in the dataframe
     :param station_df: the dataframe to search
     :return: a dataframe with all data related to iOS stations in the dataframe
     &#34;&#34;&#34;
@@ -493,7 +530,6 @@ def get_all_ios_station(station_df: pd.DataFrame) -&gt; pd.DataFrame:
 
 def get_all_android_station(station_df: pd.DataFrame) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    return all android stations in the dataframe
     :param station_df: the dataframe to search
     :return: a dataframe with all data related to android stations in the dataframe
     &#34;&#34;&#34;
@@ -516,7 +552,6 @@ def print_station_df(station_df: pd.DataFrame, os_type: Optional[str] = None):
 
 def load_position_data(w_p: List[reader.WrappedRedvoxPacket]) -&gt; GPSDataHolder:
     &#34;&#34;&#34;
-    load gps data from a list of wrapped redvox packets
     :param w_p: list of wrapped packets to read
     :return: all gps data from the packets in a GPSDataHolder
     &#34;&#34;&#34;
@@ -550,28 +585,30 @@ def load_position_data(w_p: List[reader.WrappedRedvoxPacket]) -&gt; GPSDataHolde
                 print(&#34;WARNING: {} Location empty, using default values!&#34;.format(packet_name))
     except Exception as eror:
         if packet is not None:
-            error_string = &#34;Something went wrong while reading location data from file: {}.  &#34; \
-                           &#34;Original message: {}&#34;
+            error_string = &#34;Something went wrong while reading location data from file: {}.  &#34; &#34;Original message: {}&#34;
             raise Exception(error_string.format(packet_name, eror))
         else:
             raise Exception(&#34;No packet found in file.  Original message: {}&#34;.format(eror))
 
     # load data into data holder
     redvox_id = w_p[0].redvox_id()
-    gps_dfh = GPSDataHolder(str(redvox_id), w_p[0].device_os(), gps_data,
-                            w_p[0].microphone_sensor().sample_rate_hz())
+    gps_dfh = GPSDataHolder(str(redvox_id), w_p[0].device_os(), gps_data, w_p[0].microphone_sensor().sample_rate_hz())
     gps_dfh.set_barometer(bar_data)
 
     return gps_dfh
 
 
-def compute_barometric_height(barometric_pressure: float, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
-                              standard_temp: float = STANDARD_TEMPERATURE_K,
-                              molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
-                              gravity: float = GRAVITY_M_PER_S2,
-                              gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2) -&gt; float:
+def compute_barometric_height(
+    barometric_pressure: float,
+    sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
+    standard_temp: float = STANDARD_TEMPERATURE_K,
+    molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
+    gravity: float = GRAVITY_M_PER_S2,
+    gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2,
+) -&gt; float:
     &#34;&#34;&#34;
     compute height of a single point using a station&#39;s barometric and sea-level pressure
+
     barometric equation from https://www.math24.net/barometric-formula/
     :param barometric_pressure: pressure at a station in kPa
     :param sea_pressure: pressure at sea level in kPa, default AVG_SEA_LEVEL_PRESSURE_KPA
@@ -596,15 +633,19 @@ def compute_barometric_height(barometric_pressure: float, sea_pressure: float = 
     if barometric_pressure == 0.0:
         barometric_pressure = EPSILON
     barometric_height = np.log(sea_pressure / barometric_pressure) / (
-            (molar_air_mass * gravity) / (standard_temp * gas_constant))
+        (molar_air_mass * gravity) / (standard_temp * gas_constant)
+    )
     return barometric_height
 
 
-def compute_barometric_height_array(barometric_pressure: np.array, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
-                                    standard_temp: float = STANDARD_TEMPERATURE_K,
-                                    molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
-                                    gravity: float = GRAVITY_M_PER_S2,
-                                    gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2) -&gt; np.array:
+def compute_barometric_height_array(
+    barometric_pressure: np.array,
+    sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
+    standard_temp: float = STANDARD_TEMPERATURE_K,
+    molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
+    gravity: float = GRAVITY_M_PER_S2,
+    gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2,
+) -&gt; np.array:
     &#34;&#34;&#34;
     compute height of many points using each station&#39;s barometric and sea-level pressure
     :param barometric_pressure: array of pressures at stations in kPa
@@ -623,12 +664,12 @@ def compute_barometric_height_array(barometric_pressure: np.array, sea_pressure:
         if barometric_pressure[index] == 0.0:
             barometric_pressure[index] = EPSILON
     barometric_height = np.log(sea_pressure / barometric_pressure) / (
-            (molar_air_mass * gravity) / (standard_temp * gas_constant))
+        (molar_air_mass * gravity) / (standard_temp * gas_constant)
+    )
     return barometric_height
 
 
-def get_component_dist_to_point(point: Dict[str, float], gps_data: pd.Series, bar_mean: float) -&gt; \
-        (float, float, float):
+def get_component_dist_to_point(point: Dict[str, float], gps_data: pd.Series, bar_mean: float) -&gt; (float, float, float):
     &#34;&#34;&#34;
     compute distance from the gps data point to the chosen point using haversine formula
     :param point: dict with location to compute distance to
@@ -639,9 +680,11 @@ def get_component_dist_to_point(point: Dict[str, float], gps_data: pd.Series, ba
     # horizontal distance, use haversine formula
     dlon = gps_data[&#34;longitude&#34;] - point[&#34;lon&#34;]
     dlat = gps_data[&#34;latitude&#34;] - point[&#34;lat&#34;]
-    haver = np.sin(dlat * DEG_TO_RAD / 2.0) ** 2.0 + (np.cos(point[&#34;lat&#34;] * DEG_TO_RAD) *
-                                                      np.cos(gps_data[&#34;latitude&#34;] * DEG_TO_RAD) *
-                                                      np.sin(dlon * DEG_TO_RAD / 2.0) ** 2.0)
+    haver = np.sin(dlat * DEG_TO_RAD / 2.0) ** 2.0 + (
+        np.cos(point[&#34;lat&#34;] * DEG_TO_RAD)
+        * np.cos(gps_data[&#34;latitude&#34;] * DEG_TO_RAD)
+        * np.sin(dlon * DEG_TO_RAD / 2.0) ** 2.0
+    )
     c = 2.0 * np.arcsin(np.min([1.0, np.sqrt(haver)]))
     h_dist = EARTH_RADIUS_M * c
     # vertical distance
@@ -651,8 +694,9 @@ def get_component_dist_to_point(point: Dict[str, float], gps_data: pd.Series, ba
     return h_dist, v_dist, v_bar_dist
 
 
-def get_gps_dist_to_location(point: Dict[str, float], gps_dataholder: GPSDataHolder,
-                             bar_alt: Optional[float] = None) -&gt; np.array:
+def get_gps_dist_to_location(
+    point: Dict[str, float], gps_dataholder: GPSDataHolder, bar_alt: Optional[float] = None
+) -&gt; np.array:
     &#34;&#34;&#34;
     compute distance from multiple gps points to the chosen point using haversine formula
     :param point: dict with location to compute distance to
@@ -669,22 +713,28 @@ def get_gps_dist_to_location(point: Dict[str, float], gps_dataholder: GPSDataHol
     # user haversine formula
     dlon = gps_dataholder.gps_df.loc[&#34;longitude&#34;].to_numpy() - point[&#34;lon&#34;]
     dlat = gps_dataholder.gps_df.loc[&#34;latitude&#34;].to_numpy() - point[&#34;lat&#34;]
-    haver = np.sin(dlat * DEG_TO_RAD / 2.0) ** 2.0 + (np.cos(point[&#34;lat&#34;] * DEG_TO_RAD) *
-                                                      np.cos(gps_dataholder.gps_df.loc[&#34;latitude&#34;].to_numpy()
-                                                             * DEG_TO_RAD)
-                                                      * np.sin(dlon * DEG_TO_RAD / 2.0) ** 2.0)
+    haver = np.sin(dlat * DEG_TO_RAD / 2.0) ** 2.0 + (
+        np.cos(point[&#34;lat&#34;] * DEG_TO_RAD)
+        * np.cos(gps_dataholder.gps_df.loc[&#34;latitude&#34;].to_numpy() * DEG_TO_RAD)
+        * np.sin(dlon * DEG_TO_RAD / 2.0) ** 2.0
+    )
     c = 2 * np.arcsin(np.minimum([1.0], np.sqrt(haver)))
     h_dist = EARTH_RADIUS_M * c
-    dist_array = (h_dist ** 2 + (point[&#34;alt&#34;] - station_alt) ** 2)
+    dist_array = h_dist**2 + (point[&#34;alt&#34;] - station_alt) ** 2
     return np.sqrt(dist_array)
 
 
-def validate_blacklist(gps_data: pd.Series, point: Dict[str, float], bar_mean: float,
-                       inclusion_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
-                                                                       DEFAULT_INCLUSION_VERTICAL_M,
-                                                                       DEFAULT_INCLUSION_VERTICAL_BAR_M)) -&gt; bool:
+def validate_blacklist(
+    gps_data: pd.Series,
+    point: Dict[str, float],
+    bar_mean: float,
+    inclusion_ranges: Tuple[float, float, float] = (
+        DEFAULT_INCLUSION_HORIZONTAL_M,
+        DEFAULT_INCLUSION_VERTICAL_M,
+        DEFAULT_INCLUSION_VERTICAL_BAR_M,
+    ),
+) -&gt; bool:
     &#34;&#34;&#34;
-    return True if the gps point is NOT in the blacklist
     :param gps_data: data to compare
     :param point: the point that is blacklisted
     :param bar_mean: the mean of the barometer measurements
@@ -697,12 +747,17 @@ def validate_blacklist(gps_data: pd.Series, point: Dict[str, float], bar_mean: f
     return h_dist &gt; inclusion_ranges[0] and (v_dist &gt; inclusion_ranges[1] or v_bar_dist &gt; inclusion_ranges[2])
 
 
-def validate_near_point(gps_data: pd.Series, point: Dict[str, float], bar_mean: float,
-                        inclusion_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
-                                                                        DEFAULT_INCLUSION_VERTICAL_M,
-                                                                        DEFAULT_INCLUSION_VERTICAL_BAR_M)) -&gt; bool:
+def validate_near_point(
+    gps_data: pd.Series,
+    point: Dict[str, float],
+    bar_mean: float,
+    inclusion_ranges: Tuple[float, float, float] = (
+        DEFAULT_INCLUSION_HORIZONTAL_M,
+        DEFAULT_INCLUSION_VERTICAL_M,
+        DEFAULT_INCLUSION_VERTICAL_BAR_M,
+    ),
+) -&gt; bool:
     &#34;&#34;&#34;
-    return True if the gps point IS close to the chosen point
     :param gps_data: data to compare
     :param point: the chosen point to compare against
     :param bar_mean: the mean of the barometer measurements
@@ -718,19 +773,23 @@ def validate_near_point(gps_data: pd.Series, point: Dict[str, float], bar_mean: 
 def point_on_line_side(line_points: Tuple[Dict[str, float], Dict[str, float]], point: Dict[str, float]) -&gt; float:
     &#34;&#34;&#34;
     check which side of a line the point is on
+
     algorithm from: http://geomalgorithms.com/a03-_inclusion.html
     :param line_points: two coordinates that define a line
     :param point: point to test
     :return: &lt; 0 for right side, == 0 for on line, &gt; 0 for left side
     &#34;&#34;&#34;
-    return ((line_points[1][&#34;lon&#34;] - line_points[0][&#34;lon&#34;]) * (point[&#34;lat&#34;] - line_points[0][&#34;lat&#34;]) -
-            (point[&#34;lon&#34;] - line_points[0][&#34;lon&#34;]) * (line_points[1][&#34;lat&#34;] - line_points[0][&#34;lat&#34;]))
+    return (line_points[1][&#34;lon&#34;] - line_points[0][&#34;lon&#34;]) * (point[&#34;lat&#34;] - line_points[0][&#34;lat&#34;]) - (
+        point[&#34;lon&#34;] - line_points[0][&#34;lon&#34;]
+    ) * (line_points[1][&#34;lat&#34;] - line_points[0][&#34;lat&#34;])
 
 
 def validate_point_in_polygon(point: Dict[str, float], edges: List[Dict[str, float]]) -&gt; bool:
     &#34;&#34;&#34;
     Use winding number algorithm to determine if a point is in a polygon (or on the edge)
+
     if winding number is 0, point is outside polygon
+
     algorithm from: http://geomalgorithms.com/a03-_inclusion.html
     :param point: coordinates of the point to compare
     :param edges: list of coordinates of the edges of the polygon, with the last edge equal to the first
@@ -748,12 +807,17 @@ def validate_point_in_polygon(point: Dict[str, float], edges: List[Dict[str, flo
     return wn != 0
 
 
-def validate(data_to_test: GPSDataHolder,
-             inclusion_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
-                                                             DEFAULT_INCLUSION_VERTICAL_M,
-                                                             DEFAULT_INCLUSION_VERTICAL_BAR_M),
-             validation_type: str = None, validation_points: List[Dict[str, float]] = None,
-             debug: bool = False) -&gt; GPSDataHolder:
+def validate(
+    data_to_test: GPSDataHolder,
+    inclusion_ranges: Tuple[float, float, float] = (
+        DEFAULT_INCLUSION_HORIZONTAL_M,
+        DEFAULT_INCLUSION_VERTICAL_M,
+        DEFAULT_INCLUSION_VERTICAL_BAR_M,
+    ),
+    validation_type: str = None,
+    validation_points: List[Dict[str, float]] = None,
+    debug: bool = False,
+) -&gt; GPSDataHolder:
     &#34;&#34;&#34;
     validation master function.  Can perform any kind of validation requested
     :param data_to_test: gps data to validate
@@ -777,13 +841,15 @@ def validate(data_to_test: GPSDataHolder,
             point_valid = True  # assume point is valid
             for point in validation_points:
                 if validation_type == &#34;solution&#34; or validation_type == &#34;mean&#34;:
-                    point_valid = validate_near_point(gps_data, point,
-                                                      data_to_test.barometer.get_mean(), inclusion_ranges)
+                    point_valid = validate_near_point(
+                        gps_data, point, data_to_test.barometer.get_mean(), inclusion_ranges
+                    )
                     if not point_valid:  # if point_valid ever becomes false, we can stop processing
                         break
                 else:
-                    point_valid = validate_blacklist(gps_data, point,
-                                                     data_to_test.barometer.get_mean(), inclusion_ranges)
+                    point_valid = validate_blacklist(
+                        gps_data, point, data_to_test.barometer.get_mean(), inclusion_ranges
+                    )
                     if not point_valid:  # if point_valid ever becomes false, we can stop processing
                         break
             if point_valid:  # add only valid points
@@ -792,8 +858,13 @@ def validate(data_to_test: GPSDataHolder,
                 validated_gps_data[2].append(gps_data[&#34;altitude&#34;])
                 validated_gps_data[3].append(gps_data[&#34;accuracy&#34;])
         # create the object to return.
-        validated_gps = GPSDataHolder(data_to_test.id, data_to_test.os_type, validated_gps_data,
-                                      data_to_test.mic_samp_rate_hz, data_to_test.barometer)
+        validated_gps = GPSDataHolder(
+            data_to_test.id,
+            data_to_test.os_type,
+            validated_gps_data,
+            data_to_test.mic_samp_rate_hz,
+            data_to_test.barometer,
+        )
         if validated_gps.get_size() == need_to_test_gps.get_size():
             # print message if user allows it
             if debug:
@@ -807,7 +878,6 @@ def validate(data_to_test: GPSDataHolder,
 
 def compute_distance_all(point: Dict[str, float], all_gps_data: List[GPSDataHolder]) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    compute distance from all gps data points to the chosen point
     :param point: the point to compute distance to
     :param all_gps_data: the gps data points to compute distance from
     :return: dataframe containing all information about the gps points&#39; distance to the chosen point
@@ -821,7 +891,6 @@ def compute_distance_all(point: Dict[str, float], all_gps_data: List[GPSDataHold
 
 def compute_distance(point: dict, gps_data: GPSDataHolder) -&gt; dict:
     &#34;&#34;&#34;
-    compute the distance from the gps points to the chosen point
     :param point: the chosen point to compute distance to
     :param gps_data: the data points to compute distance from
     :return: dictionary containing all information about the gps points&#39; distance to the chosen point
@@ -831,7 +900,7 @@ def compute_distance(point: dict, gps_data: GPSDataHolder) -&gt; dict:
     stations_data = {idd: None}
     gps_loc = gps_data.get_mean_all()
 
-    # find closest barometer altitude to location
+    # find the closest barometer altitude to location
     # bar_alt_tmp = (((SEA_PRESSURE / np.array(gps_data.barometer.data)) ** 0.190263096) - 1) * (SOL_TEMP / 0.0065)
     if &#34;sea bar&#34; in point.keys() and point[&#34;sea_bar&#34;] is not None:
         bar_alt_tmp = compute_barometric_height_array(np.array(gps_data.barometer.get_data()), point[&#34;sea_bar&#34;])
@@ -864,11 +933,26 @@ def compute_distance(point: dict, gps_data: GPSDataHolder) -&gt; dict:
     bar_std = gps_data.barometer.get_std()
 
     # put data into dictionary to store in data frames later
-    stations_data[idd] = [gps_data.os_type, gps_data.mic_samp_rate_hz, gps_data.gps_df.loc[&#34;accuracy&#34;, min_index],
-                          gps_data.gps_df.loc[&#34;latitude&#34;, min_index], gps_data.gps_df.loc[&#34;longitude&#34;, min_index],
-                          gps_data.gps_df.loc[&#34;altitude&#34;, min_index], gps_data.barometer.best_value,
-                          dist_array[min_index], gps_loc[&#34;acc&#34;], gps_loc[&#34;lat&#34;], gps_loc[&#34;lon&#34;],
-                          gps_loc[&#34;alt&#34;], gps_loc[&#34;bar&#34;], acc_std, lat_std, lon_std, alt_std, bar_std]
+    stations_data[idd] = [
+        gps_data.os_type,
+        gps_data.mic_samp_rate_hz,
+        gps_data.gps_df.loc[&#34;accuracy&#34;, min_index],
+        gps_data.gps_df.loc[&#34;latitude&#34;, min_index],
+        gps_data.gps_df.loc[&#34;longitude&#34;, min_index],
+        gps_data.gps_df.loc[&#34;altitude&#34;, min_index],
+        gps_data.barometer.best_value,
+        dist_array[min_index],
+        gps_loc[&#34;acc&#34;],
+        gps_loc[&#34;lat&#34;],
+        gps_loc[&#34;lon&#34;],
+        gps_loc[&#34;alt&#34;],
+        gps_loc[&#34;bar&#34;],
+        acc_std,
+        lat_std,
+        lon_std,
+        alt_std,
+        bar_std,
+    ]
 
     return stations_data
 
@@ -879,7 +963,7 @@ def load_kml(kml_file: str) -&gt; Dict[str, Dict[str, float]]:
     :param kml_file: full path of the file to load data from
     :return: dictionary of locations with identifiers
     &#34;&#34;&#34;
-    with open(kml_file, &#39;r&#39;, encoding=&#34;utf-8&#34;) as my_file:
+    with open(kml_file, &#34;r&#34;, encoding=&#34;utf-8&#34;) as my_file:
         kml_doc = my_file.read()
     kml_data = kml.KML()
     kml_data.from_string(bytes(kml_doc, encoding=&#34;utf8&#34;))
@@ -896,13 +980,13 @@ def write_kml(kml_file: str, master_dict: Dict[str, Dict[str, float]]):
     :param kml_file: full path of kml file to write data to
     :param master_dict: the dictionary of information to write
     &#34;&#34;&#34;
-    ns = &#39;{http://www.opengis.net/kml/2.2}&#39;
+    ns = &#34;{http://www.opengis.net/kml/2.2}&#34;
     # declare kml structure and the document
     kmlz = kml.KML(ns=ns)
-    doc = kml.Document(ns, &#39;1&#39;)
+    doc = kml.Document(ns, &#34;1&#34;)
     # declare, then add styles to doc
-    doc_style = styles.Style(id=&#39;2&#39;)
-    pnt_style = styles.IconStyle(id=&#39;3&#39;, color=&#39;ff0000ff&#39;)
+    doc_style = styles.Style(id=&#34;2&#34;)
+    pnt_style = styles.IconStyle(id=&#34;3&#34;, color=&#34;ff0000ff&#34;)
     pnt_style.icon_href = &#34;http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png&#34;
     doc_style.append_style(pnt_style)
     doc.append_style(doc_style)
@@ -913,7 +997,7 @@ def write_kml(kml_file: str, master_dict: Dict[str, Dict[str, float]]):
         # set point description to os and sample rate
         description = &#34;{} {}hz&#34;.format(master_dict[key][&#34;os&#34;], str(master_dict[key][&#34;sample rate&#34;]))
         # declare the placemark, then give it some coordinates
-        pnt = kml.Placemark(ns, id=str(new_id), name=key, description=description, styleUrl=&#39;#2&#39;)
+        pnt = kml.Placemark(ns, id=str(new_id), name=key, description=description, styleUrl=&#34;#2&#34;)
         new_id += 1
         pnt.geometry = Point(master_dict[key][&#34;mean lon&#34;], master_dict[key][&#34;mean lat&#34;], master_dict[key][&#34;mean alt&#34;])
         # add placemark to doc
@@ -921,7 +1005,7 @@ def write_kml(kml_file: str, master_dict: Dict[str, Dict[str, float]]):
     # add the doc to the kml file
     kmlz.append(doc)
     # write the kml file, with nice formatting
-    with open(kml_file, &#39;w&#39;, encoding=&#34;utf-8&#34;) as my_file:
+    with open(kml_file, &#34;w&#34;, encoding=&#34;utf-8&#34;) as my_file:
         my_file.write(&#39;&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;\n&#39;)
         my_file.write(kmlz.to_string(prettyprint=True))</code></pre>
 </details>
@@ -937,8 +1021,8 @@ def write_kml(kml_file: str, master_dict: Dict[str, Dict[str, float]]):
 <span>def <span class="ident">compute_barometric_height</span></span>(<span>barometric_pressure: float, sea_pressure: float = 101.325, standard_temp: float = 288.15, molar_air_mass: float = 0.02896, gravity: float = 9.80665, gas_constant: float = 8.3143) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>compute height of a single point using a station's barometric and sea-level pressure
-barometric equation from <a href="https://www.math24.net/barometric-formula/">https://www.math24.net/barometric-formula/</a>
+<div class="desc"><p>compute height of a single point using a station's barometric and sea-level pressure</p>
+<p>barometric equation from <a href="https://www.math24.net/barometric-formula/">https://www.math24.net/barometric-formula/</a>
 :param barometric_pressure: pressure at a station in kPa
 :param sea_pressure: pressure at sea level in kPa, default AVG_SEA_LEVEL_PRESSURE_KPA
 :param standard_temp: surface temperature in K, default STANDARD_TEMPERATURE_K
@@ -951,13 +1035,17 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def compute_barometric_height(barometric_pressure: float, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
-                              standard_temp: float = STANDARD_TEMPERATURE_K,
-                              molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
-                              gravity: float = GRAVITY_M_PER_S2,
-                              gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2) -&gt; float:
+<pre><code class="python">def compute_barometric_height(
+    barometric_pressure: float,
+    sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
+    standard_temp: float = STANDARD_TEMPERATURE_K,
+    molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
+    gravity: float = GRAVITY_M_PER_S2,
+    gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2,
+) -&gt; float:
     &#34;&#34;&#34;
     compute height of a single point using a station&#39;s barometric and sea-level pressure
+
     barometric equation from https://www.math24.net/barometric-formula/
     :param barometric_pressure: pressure at a station in kPa
     :param sea_pressure: pressure at sea level in kPa, default AVG_SEA_LEVEL_PRESSURE_KPA
@@ -982,7 +1070,8 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
     if barometric_pressure == 0.0:
         barometric_pressure = EPSILON
     barometric_height = np.log(sea_pressure / barometric_pressure) / (
-            (molar_air_mass * gravity) / (standard_temp * gas_constant))
+        (molar_air_mass * gravity) / (standard_temp * gas_constant)
+    )
     return barometric_height</code></pre>
 </details>
 </dd>
@@ -1003,11 +1092,14 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def compute_barometric_height_array(barometric_pressure: np.array, sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
-                                    standard_temp: float = STANDARD_TEMPERATURE_K,
-                                    molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
-                                    gravity: float = GRAVITY_M_PER_S2,
-                                    gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2) -&gt; np.array:
+<pre><code class="python">def compute_barometric_height_array(
+    barometric_pressure: np.array,
+    sea_pressure: float = AVG_SEA_LEVEL_PRESSURE_KPA,
+    standard_temp: float = STANDARD_TEMPERATURE_K,
+    molar_air_mass: float = MOLAR_MASS_AIR_KG_PER_MOL,
+    gravity: float = GRAVITY_M_PER_S2,
+    gas_constant: float = UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2,
+) -&gt; np.array:
     &#34;&#34;&#34;
     compute height of many points using each station&#39;s barometric and sea-level pressure
     :param barometric_pressure: array of pressures at stations in kPa
@@ -1026,7 +1118,8 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
         if barometric_pressure[index] == 0.0:
             barometric_pressure[index] = EPSILON
     barometric_height = np.log(sea_pressure / barometric_pressure) / (
-            (molar_air_mass * gravity) / (standard_temp * gas_constant))
+        (molar_air_mass * gravity) / (standard_temp * gas_constant)
+    )
     return barometric_height</code></pre>
 </details>
 </dd>
@@ -1034,8 +1127,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <span>def <span class="ident">compute_distance</span></span>(<span>point: dict, gps_data: <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a>) ‑> dict</span>
 </code></dt>
 <dd>
-<div class="desc"><p>compute the distance from the gps points to the chosen point
-:param point: the chosen point to compute distance to
+<div class="desc"><p>:param point: the chosen point to compute distance to
 :param gps_data: the data points to compute distance from
 :return: dictionary containing all information about the gps points' distance to the chosen point</p></div>
 <details class="source">
@@ -1044,7 +1136,6 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </summary>
 <pre><code class="python">def compute_distance(point: dict, gps_data: GPSDataHolder) -&gt; dict:
     &#34;&#34;&#34;
-    compute the distance from the gps points to the chosen point
     :param point: the chosen point to compute distance to
     :param gps_data: the data points to compute distance from
     :return: dictionary containing all information about the gps points&#39; distance to the chosen point
@@ -1054,7 +1145,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
     stations_data = {idd: None}
     gps_loc = gps_data.get_mean_all()
 
-    # find closest barometer altitude to location
+    # find the closest barometer altitude to location
     # bar_alt_tmp = (((SEA_PRESSURE / np.array(gps_data.barometer.data)) ** 0.190263096) - 1) * (SOL_TEMP / 0.0065)
     if &#34;sea bar&#34; in point.keys() and point[&#34;sea_bar&#34;] is not None:
         bar_alt_tmp = compute_barometric_height_array(np.array(gps_data.barometer.get_data()), point[&#34;sea_bar&#34;])
@@ -1087,11 +1178,26 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
     bar_std = gps_data.barometer.get_std()
 
     # put data into dictionary to store in data frames later
-    stations_data[idd] = [gps_data.os_type, gps_data.mic_samp_rate_hz, gps_data.gps_df.loc[&#34;accuracy&#34;, min_index],
-                          gps_data.gps_df.loc[&#34;latitude&#34;, min_index], gps_data.gps_df.loc[&#34;longitude&#34;, min_index],
-                          gps_data.gps_df.loc[&#34;altitude&#34;, min_index], gps_data.barometer.best_value,
-                          dist_array[min_index], gps_loc[&#34;acc&#34;], gps_loc[&#34;lat&#34;], gps_loc[&#34;lon&#34;],
-                          gps_loc[&#34;alt&#34;], gps_loc[&#34;bar&#34;], acc_std, lat_std, lon_std, alt_std, bar_std]
+    stations_data[idd] = [
+        gps_data.os_type,
+        gps_data.mic_samp_rate_hz,
+        gps_data.gps_df.loc[&#34;accuracy&#34;, min_index],
+        gps_data.gps_df.loc[&#34;latitude&#34;, min_index],
+        gps_data.gps_df.loc[&#34;longitude&#34;, min_index],
+        gps_data.gps_df.loc[&#34;altitude&#34;, min_index],
+        gps_data.barometer.best_value,
+        dist_array[min_index],
+        gps_loc[&#34;acc&#34;],
+        gps_loc[&#34;lat&#34;],
+        gps_loc[&#34;lon&#34;],
+        gps_loc[&#34;alt&#34;],
+        gps_loc[&#34;bar&#34;],
+        acc_std,
+        lat_std,
+        lon_std,
+        alt_std,
+        bar_std,
+    ]
 
     return stations_data</code></pre>
 </details>
@@ -1100,8 +1206,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <span>def <span class="ident">compute_distance_all</span></span>(<span>point: Dict[str, float], all_gps_data: List[<a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a>]) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
-<div class="desc"><p>compute distance from all gps data points to the chosen point
-:param point: the point to compute distance to
+<div class="desc"><p>:param point: the point to compute distance to
 :param all_gps_data: the gps data points to compute distance from
 :return: dataframe containing all information about the gps points' distance to the chosen point</p></div>
 <details class="source">
@@ -1110,7 +1215,6 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </summary>
 <pre><code class="python">def compute_distance_all(point: Dict[str, float], all_gps_data: List[GPSDataHolder]) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    compute distance from all gps data points to the chosen point
     :param point: the point to compute distance to
     :param all_gps_data: the gps data points to compute distance from
     :return: dataframe containing all information about the gps points&#39; distance to the chosen point
@@ -1126,8 +1230,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <span>def <span class="ident">get_all_android_station</span></span>(<span>station_df: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return all android stations in the dataframe
-:param station_df: the dataframe to search
+<div class="desc"><p>:param station_df: the dataframe to search
 :return: a dataframe with all data related to android stations in the dataframe</p></div>
 <details class="source">
 <summary>
@@ -1135,7 +1238,6 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </summary>
 <pre><code class="python">def get_all_android_station(station_df: pd.DataFrame) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    return all android stations in the dataframe
     :param station_df: the dataframe to search
     :return: a dataframe with all data related to android stations in the dataframe
     &#34;&#34;&#34;
@@ -1146,8 +1248,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <span>def <span class="ident">get_all_ios_station</span></span>(<span>station_df: pandas.core.frame.DataFrame) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return all iOS stations in the dataframe
-:param station_df: the dataframe to search
+<div class="desc"><p>:param station_df: the dataframe to search
 :return: a dataframe with all data related to iOS stations in the dataframe</p></div>
 <details class="source">
 <summary>
@@ -1155,7 +1256,6 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </summary>
 <pre><code class="python">def get_all_ios_station(station_df: pd.DataFrame) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    return all iOS stations in the dataframe
     :param station_df: the dataframe to search
     :return: a dataframe with all data related to iOS stations in the dataframe
     &#34;&#34;&#34;
@@ -1175,8 +1275,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_component_dist_to_point(point: Dict[str, float], gps_data: pd.Series, bar_mean: float) -&gt; \
-        (float, float, float):
+<pre><code class="python">def get_component_dist_to_point(point: Dict[str, float], gps_data: pd.Series, bar_mean: float) -&gt; (float, float, float):
     &#34;&#34;&#34;
     compute distance from the gps data point to the chosen point using haversine formula
     :param point: dict with location to compute distance to
@@ -1187,9 +1286,11 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
     # horizontal distance, use haversine formula
     dlon = gps_data[&#34;longitude&#34;] - point[&#34;lon&#34;]
     dlat = gps_data[&#34;latitude&#34;] - point[&#34;lat&#34;]
-    haver = np.sin(dlat * DEG_TO_RAD / 2.0) ** 2.0 + (np.cos(point[&#34;lat&#34;] * DEG_TO_RAD) *
-                                                      np.cos(gps_data[&#34;latitude&#34;] * DEG_TO_RAD) *
-                                                      np.sin(dlon * DEG_TO_RAD / 2.0) ** 2.0)
+    haver = np.sin(dlat * DEG_TO_RAD / 2.0) ** 2.0 + (
+        np.cos(point[&#34;lat&#34;] * DEG_TO_RAD)
+        * np.cos(gps_data[&#34;latitude&#34;] * DEG_TO_RAD)
+        * np.sin(dlon * DEG_TO_RAD / 2.0) ** 2.0
+    )
     c = 2.0 * np.arcsin(np.min([1.0, np.sqrt(haver)]))
     h_dist = EARTH_RADIUS_M * c
     # vertical distance
@@ -1212,8 +1313,9 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_gps_dist_to_location(point: Dict[str, float], gps_dataholder: GPSDataHolder,
-                             bar_alt: Optional[float] = None) -&gt; np.array:
+<pre><code class="python">def get_gps_dist_to_location(
+    point: Dict[str, float], gps_dataholder: GPSDataHolder, bar_alt: Optional[float] = None
+) -&gt; np.array:
     &#34;&#34;&#34;
     compute distance from multiple gps points to the chosen point using haversine formula
     :param point: dict with location to compute distance to
@@ -1230,13 +1332,14 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
     # user haversine formula
     dlon = gps_dataholder.gps_df.loc[&#34;longitude&#34;].to_numpy() - point[&#34;lon&#34;]
     dlat = gps_dataholder.gps_df.loc[&#34;latitude&#34;].to_numpy() - point[&#34;lat&#34;]
-    haver = np.sin(dlat * DEG_TO_RAD / 2.0) ** 2.0 + (np.cos(point[&#34;lat&#34;] * DEG_TO_RAD) *
-                                                      np.cos(gps_dataholder.gps_df.loc[&#34;latitude&#34;].to_numpy()
-                                                             * DEG_TO_RAD)
-                                                      * np.sin(dlon * DEG_TO_RAD / 2.0) ** 2.0)
+    haver = np.sin(dlat * DEG_TO_RAD / 2.0) ** 2.0 + (
+        np.cos(point[&#34;lat&#34;] * DEG_TO_RAD)
+        * np.cos(gps_dataholder.gps_df.loc[&#34;latitude&#34;].to_numpy() * DEG_TO_RAD)
+        * np.sin(dlon * DEG_TO_RAD / 2.0) ** 2.0
+    )
     c = 2 * np.arcsin(np.minimum([1.0], np.sqrt(haver)))
     h_dist = EARTH_RADIUS_M * c
-    dist_array = (h_dist ** 2 + (point[&#34;alt&#34;] - station_alt) ** 2)
+    dist_array = h_dist**2 + (point[&#34;alt&#34;] - station_alt) ** 2
     return np.sqrt(dist_array)</code></pre>
 </details>
 </dd>
@@ -1257,7 +1360,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
     :param kml_file: full path of the file to load data from
     :return: dictionary of locations with identifiers
     &#34;&#34;&#34;
-    with open(kml_file, &#39;r&#39;, encoding=&#34;utf-8&#34;) as my_file:
+    with open(kml_file, &#34;r&#34;, encoding=&#34;utf-8&#34;) as my_file:
         kml_doc = my_file.read()
     kml_data = kml.KML()
     kml_data.from_string(bytes(kml_doc, encoding=&#34;utf8&#34;))
@@ -1272,8 +1375,7 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <span>def <span class="ident">load_position_data</span></span>(<span>w_p: List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>]) ‑> <a title="redvox.api900.location_analyzer.GPSDataHolder" href="#redvox.api900.location_analyzer.GPSDataHolder">GPSDataHolder</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>load gps data from a list of wrapped redvox packets
-:param w_p: list of wrapped packets to read
+<div class="desc"><p>:param w_p: list of wrapped packets to read
 :return: all gps data from the packets in a GPSDataHolder</p></div>
 <details class="source">
 <summary>
@@ -1281,7 +1383,6 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 </summary>
 <pre><code class="python">def load_position_data(w_p: List[reader.WrappedRedvoxPacket]) -&gt; GPSDataHolder:
     &#34;&#34;&#34;
-    load gps data from a list of wrapped redvox packets
     :param w_p: list of wrapped packets to read
     :return: all gps data from the packets in a GPSDataHolder
     &#34;&#34;&#34;
@@ -1315,16 +1416,14 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
                 print(&#34;WARNING: {} Location empty, using default values!&#34;.format(packet_name))
     except Exception as eror:
         if packet is not None:
-            error_string = &#34;Something went wrong while reading location data from file: {}.  &#34; \
-                           &#34;Original message: {}&#34;
+            error_string = &#34;Something went wrong while reading location data from file: {}.  &#34; &#34;Original message: {}&#34;
             raise Exception(error_string.format(packet_name, eror))
         else:
             raise Exception(&#34;No packet found in file.  Original message: {}&#34;.format(eror))
 
     # load data into data holder
     redvox_id = w_p[0].redvox_id()
-    gps_dfh = GPSDataHolder(str(redvox_id), w_p[0].device_os(), gps_data,
-                            w_p[0].microphone_sensor().sample_rate_hz())
+    gps_dfh = GPSDataHolder(str(redvox_id), w_p[0].device_os(), gps_data, w_p[0].microphone_sensor().sample_rate_hz())
     gps_dfh.set_barometer(bar_data)
 
     return gps_dfh</code></pre>
@@ -1334,8 +1433,8 @@ default UNIVERSAL_GAS_CONSTANT_KG_M2_PER_K_MOL_S2
 <span>def <span class="ident">point_on_line_side</span></span>(<span>line_points: Tuple[Dict[str, float], Dict[str, float]], point: Dict[str, float]) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>check which side of a line the point is on
-algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://geomalgorithms.com/a03-_inclusion.html</a>
+<div class="desc"><p>check which side of a line the point is on</p>
+<p>algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://geomalgorithms.com/a03-_inclusion.html</a>
 :param line_points: two coordinates that define a line
 :param point: point to test
 :return: &lt; 0 for right side, == 0 for on line, &gt; 0 for left side</p></div>
@@ -1346,13 +1445,15 @@ algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://g
 <pre><code class="python">def point_on_line_side(line_points: Tuple[Dict[str, float], Dict[str, float]], point: Dict[str, float]) -&gt; float:
     &#34;&#34;&#34;
     check which side of a line the point is on
+
     algorithm from: http://geomalgorithms.com/a03-_inclusion.html
     :param line_points: two coordinates that define a line
     :param point: point to test
     :return: &lt; 0 for right side, == 0 for on line, &gt; 0 for left side
     &#34;&#34;&#34;
-    return ((line_points[1][&#34;lon&#34;] - line_points[0][&#34;lon&#34;]) * (point[&#34;lat&#34;] - line_points[0][&#34;lat&#34;]) -
-            (point[&#34;lon&#34;] - line_points[0][&#34;lon&#34;]) * (line_points[1][&#34;lat&#34;] - line_points[0][&#34;lat&#34;]))</code></pre>
+    return (line_points[1][&#34;lon&#34;] - line_points[0][&#34;lon&#34;]) * (point[&#34;lat&#34;] - line_points[0][&#34;lat&#34;]) - (
+        point[&#34;lon&#34;] - line_points[0][&#34;lon&#34;]
+    ) * (line_points[1][&#34;lat&#34;] - line_points[0][&#34;lat&#34;])</code></pre>
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.print_station_df"><code class="name flex">
@@ -1396,12 +1497,17 @@ Can perform any kind of validation requested
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def validate(data_to_test: GPSDataHolder,
-             inclusion_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
-                                                             DEFAULT_INCLUSION_VERTICAL_M,
-                                                             DEFAULT_INCLUSION_VERTICAL_BAR_M),
-             validation_type: str = None, validation_points: List[Dict[str, float]] = None,
-             debug: bool = False) -&gt; GPSDataHolder:
+<pre><code class="python">def validate(
+    data_to_test: GPSDataHolder,
+    inclusion_ranges: Tuple[float, float, float] = (
+        DEFAULT_INCLUSION_HORIZONTAL_M,
+        DEFAULT_INCLUSION_VERTICAL_M,
+        DEFAULT_INCLUSION_VERTICAL_BAR_M,
+    ),
+    validation_type: str = None,
+    validation_points: List[Dict[str, float]] = None,
+    debug: bool = False,
+) -&gt; GPSDataHolder:
     &#34;&#34;&#34;
     validation master function.  Can perform any kind of validation requested
     :param data_to_test: gps data to validate
@@ -1425,13 +1531,15 @@ Can perform any kind of validation requested
             point_valid = True  # assume point is valid
             for point in validation_points:
                 if validation_type == &#34;solution&#34; or validation_type == &#34;mean&#34;:
-                    point_valid = validate_near_point(gps_data, point,
-                                                      data_to_test.barometer.get_mean(), inclusion_ranges)
+                    point_valid = validate_near_point(
+                        gps_data, point, data_to_test.barometer.get_mean(), inclusion_ranges
+                    )
                     if not point_valid:  # if point_valid ever becomes false, we can stop processing
                         break
                 else:
-                    point_valid = validate_blacklist(gps_data, point,
-                                                     data_to_test.barometer.get_mean(), inclusion_ranges)
+                    point_valid = validate_blacklist(
+                        gps_data, point, data_to_test.barometer.get_mean(), inclusion_ranges
+                    )
                     if not point_valid:  # if point_valid ever becomes false, we can stop processing
                         break
             if point_valid:  # add only valid points
@@ -1440,8 +1548,13 @@ Can perform any kind of validation requested
                 validated_gps_data[2].append(gps_data[&#34;altitude&#34;])
                 validated_gps_data[3].append(gps_data[&#34;accuracy&#34;])
         # create the object to return.
-        validated_gps = GPSDataHolder(data_to_test.id, data_to_test.os_type, validated_gps_data,
-                                      data_to_test.mic_samp_rate_hz, data_to_test.barometer)
+        validated_gps = GPSDataHolder(
+            data_to_test.id,
+            data_to_test.os_type,
+            validated_gps_data,
+            data_to_test.mic_samp_rate_hz,
+            data_to_test.barometer,
+        )
         if validated_gps.get_size() == need_to_test_gps.get_size():
             # print message if user allows it
             if debug:
@@ -1457,8 +1570,7 @@ Can perform any kind of validation requested
 <span>def <span class="ident">validate_blacklist</span></span>(<span>gps_data: pandas.core.series.Series, point: Dict[str, float], bar_mean: float, inclusion_ranges: Tuple[float, float, float] = (100.0, 50.0, 10.0)) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return True if the gps point is NOT in the blacklist
-:param gps_data: data to compare
+<div class="desc"><p>:param gps_data: data to compare
 :param point: the point that is blacklisted
 :param bar_mean: the mean of the barometer measurements
 :param inclusion_ranges: distance from blacklisted point to be considered close enough
@@ -1467,12 +1579,17 @@ Can perform any kind of validation requested
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def validate_blacklist(gps_data: pd.Series, point: Dict[str, float], bar_mean: float,
-                       inclusion_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
-                                                                       DEFAULT_INCLUSION_VERTICAL_M,
-                                                                       DEFAULT_INCLUSION_VERTICAL_BAR_M)) -&gt; bool:
+<pre><code class="python">def validate_blacklist(
+    gps_data: pd.Series,
+    point: Dict[str, float],
+    bar_mean: float,
+    inclusion_ranges: Tuple[float, float, float] = (
+        DEFAULT_INCLUSION_HORIZONTAL_M,
+        DEFAULT_INCLUSION_VERTICAL_M,
+        DEFAULT_INCLUSION_VERTICAL_BAR_M,
+    ),
+) -&gt; bool:
     &#34;&#34;&#34;
-    return True if the gps point is NOT in the blacklist
     :param gps_data: data to compare
     :param point: the point that is blacklisted
     :param bar_mean: the mean of the barometer measurements
@@ -1489,8 +1606,7 @@ Can perform any kind of validation requested
 <span>def <span class="ident">validate_near_point</span></span>(<span>gps_data: pandas.core.series.Series, point: Dict[str, float], bar_mean: float, inclusion_ranges: Tuple[float, float, float] = (100.0, 50.0, 10.0)) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return True if the gps point IS close to the chosen point
-:param gps_data: data to compare
+<div class="desc"><p>:param gps_data: data to compare
 :param point: the chosen point to compare against
 :param bar_mean: the mean of the barometer measurements
 :param inclusion_ranges: distance from chosen point to be considered close enough
@@ -1499,12 +1615,17 @@ Can perform any kind of validation requested
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def validate_near_point(gps_data: pd.Series, point: Dict[str, float], bar_mean: float,
-                        inclusion_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
-                                                                        DEFAULT_INCLUSION_VERTICAL_M,
-                                                                        DEFAULT_INCLUSION_VERTICAL_BAR_M)) -&gt; bool:
+<pre><code class="python">def validate_near_point(
+    gps_data: pd.Series,
+    point: Dict[str, float],
+    bar_mean: float,
+    inclusion_ranges: Tuple[float, float, float] = (
+        DEFAULT_INCLUSION_HORIZONTAL_M,
+        DEFAULT_INCLUSION_VERTICAL_M,
+        DEFAULT_INCLUSION_VERTICAL_BAR_M,
+    ),
+) -&gt; bool:
     &#34;&#34;&#34;
-    return True if the gps point IS close to the chosen point
     :param gps_data: data to compare
     :param point: the chosen point to compare against
     :param bar_mean: the mean of the barometer measurements
@@ -1521,9 +1642,9 @@ Can perform any kind of validation requested
 <span>def <span class="ident">validate_point_in_polygon</span></span>(<span>point: Dict[str, float], edges: List[Dict[str, float]]) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Use winding number algorithm to determine if a point is in a polygon (or on the edge)
-if winding number is 0, point is outside polygon
-algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://geomalgorithms.com/a03-_inclusion.html</a>
+<div class="desc"><p>Use winding number algorithm to determine if a point is in a polygon (or on the edge)</p>
+<p>if winding number is 0, point is outside polygon</p>
+<p>algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://geomalgorithms.com/a03-_inclusion.html</a>
 :param point: coordinates of the point to compare
 :param edges: list of coordinates of the edges of the polygon, with the last edge equal to the first
 :return: True if point is in the polygon</p></div>
@@ -1534,7 +1655,9 @@ algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://g
 <pre><code class="python">def validate_point_in_polygon(point: Dict[str, float], edges: List[Dict[str, float]]) -&gt; bool:
     &#34;&#34;&#34;
     Use winding number algorithm to determine if a point is in a polygon (or on the edge)
+
     if winding number is 0, point is outside polygon
+
     algorithm from: http://geomalgorithms.com/a03-_inclusion.html
     :param point: coordinates of the point to compare
     :param edges: list of coordinates of the edges of the polygon, with the last edge equal to the first
@@ -1569,13 +1692,13 @@ algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://g
     :param kml_file: full path of kml file to write data to
     :param master_dict: the dictionary of information to write
     &#34;&#34;&#34;
-    ns = &#39;{http://www.opengis.net/kml/2.2}&#39;
+    ns = &#34;{http://www.opengis.net/kml/2.2}&#34;
     # declare kml structure and the document
     kmlz = kml.KML(ns=ns)
-    doc = kml.Document(ns, &#39;1&#39;)
+    doc = kml.Document(ns, &#34;1&#34;)
     # declare, then add styles to doc
-    doc_style = styles.Style(id=&#39;2&#39;)
-    pnt_style = styles.IconStyle(id=&#39;3&#39;, color=&#39;ff0000ff&#39;)
+    doc_style = styles.Style(id=&#34;2&#34;)
+    pnt_style = styles.IconStyle(id=&#34;3&#34;, color=&#34;ff0000ff&#34;)
     pnt_style.icon_href = &#34;http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png&#34;
     doc_style.append_style(pnt_style)
     doc.append_style(doc_style)
@@ -1586,7 +1709,7 @@ algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://g
         # set point description to os and sample rate
         description = &#34;{} {}hz&#34;.format(master_dict[key][&#34;os&#34;], str(master_dict[key][&#34;sample rate&#34;]))
         # declare the placemark, then give it some coordinates
-        pnt = kml.Placemark(ns, id=str(new_id), name=key, description=description, styleUrl=&#39;#2&#39;)
+        pnt = kml.Placemark(ns, id=str(new_id), name=key, description=description, styleUrl=&#34;#2&#34;)
         new_id += 1
         pnt.geometry = Point(master_dict[key][&#34;mean lon&#34;], master_dict[key][&#34;mean lat&#34;], master_dict[key][&#34;mean alt&#34;])
         # add placemark to doc
@@ -1594,7 +1717,7 @@ algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://g
     # add the doc to the kml file
     kmlz.append(doc)
     # write the kml file, with nice formatting
-    with open(kml_file, &#39;w&#39;, encoding=&#34;utf-8&#34;) as my_file:
+    with open(kml_file, &#34;w&#34;, encoding=&#34;utf-8&#34;) as my_file:
         my_file.write(&#39;&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;\n&#39;)
         my_file.write(kmlz.to_string(prettyprint=True))</code></pre>
 </details>
@@ -1613,9 +1736,11 @@ algorithm from: <a href="http://geomalgorithms.com/a03-_inclusion.html">http://g
 The data is privatized for security.
 It also keeps track of the "best value" of the data set.</p>
 <h2 id="properties">Properties</h2>
-<p>id: a string identifier for the data
-_data: private data storage; all values must be floats
-best_value: the value that best represents the data set</p>
+<ul>
+<li>id: a string identifier for the data</li>
+<li>_data: private data storage; all values must be floats</li>
+<li>best_value: the value that best represents the data set</li>
+</ul>
 <p>sets up the DataHolder
 :param name: a string identifier for the data</p></div>
 <details class="source">
@@ -1626,11 +1751,13 @@ best_value: the value that best represents the data set</p>
     &#34;&#34;&#34;
     Stores an array of float data.  The data is privatized for security.
     It also keeps track of the &#34;best value&#34; of the data set.
+
     Properties:
-        id: a string identifier for the data
-        _data: private data storage; all values must be floats
-        best_value: the value that best represents the data set
+        * id: a string identifier for the data
+        * _data: private data storage; all values must be floats
+        * best_value: the value that best represents the data set
     &#34;&#34;&#34;
+
     #
     def __init__(self, name: str):
         &#34;&#34;&#34;
@@ -1667,28 +1794,24 @@ best_value: the value that best represents the data set</p>
 
     def get_mean(self) -&gt; float:
         &#34;&#34;&#34;
-        return the mean of the data
         :return: the mean of the data
         &#34;&#34;&#34;
         return np.mean(self._data)
 
     def get_std(self) -&gt; float:
         &#34;&#34;&#34;
-        return the standard deviation of the data
         :return: the standard deviation of the data
         &#34;&#34;&#34;
         return np.std(self._data)
 
     def get_data(self) -&gt; List[float]:
         &#34;&#34;&#34;
-        return the data
         :return: the data
         &#34;&#34;&#34;
         return self._data
 
     def get_len_data(self) -&gt; int:
         &#34;&#34;&#34;
-        return the length of the data array
         :return: the length of the data array
         &#34;&#34;&#34;
         return len(self._data)</code></pre>
@@ -1718,15 +1841,13 @@ best_value: the value that best represents the data set</p>
 <span>def <span class="ident">get_data</span></span>(<span>self) ‑> List[float]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the data
-:return: the data</p></div>
+<div class="desc"><p>:return: the data</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_data(self) -&gt; List[float]:
     &#34;&#34;&#34;
-    return the data
     :return: the data
     &#34;&#34;&#34;
     return self._data</code></pre>
@@ -1736,15 +1857,13 @@ best_value: the value that best represents the data set</p>
 <span>def <span class="ident">get_len_data</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the length of the data array
-:return: the length of the data array</p></div>
+<div class="desc"><p>:return: the length of the data array</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_len_data(self) -&gt; int:
     &#34;&#34;&#34;
-    return the length of the data array
     :return: the length of the data array
     &#34;&#34;&#34;
     return len(self._data)</code></pre>
@@ -1754,15 +1873,13 @@ best_value: the value that best represents the data set</p>
 <span>def <span class="ident">get_mean</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the mean of the data
-:return: the mean of the data</p></div>
+<div class="desc"><p>:return: the mean of the data</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_mean(self) -&gt; float:
     &#34;&#34;&#34;
-    return the mean of the data
     :return: the mean of the data
     &#34;&#34;&#34;
     return np.mean(self._data)</code></pre>
@@ -1772,15 +1889,13 @@ best_value: the value that best represents the data set</p>
 <span>def <span class="ident">get_std</span></span>(<span>self) ‑> float</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the standard deviation of the data
-:return: the standard deviation of the data</p></div>
+<div class="desc"><p>:return: the standard deviation of the data</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_std(self) -&gt; float:
     &#34;&#34;&#34;
-    return the standard deviation of the data
     :return: the standard deviation of the data
     &#34;&#34;&#34;
     return np.std(self._data)</code></pre>
@@ -1833,12 +1948,14 @@ best_value: the value that best represents the data set</p>
 <div class="desc"><p>holds gps data (latitude, longitude, altitude, and accuracy) and barometric data
 uses a dataframe to organize the gps data</p>
 <h2 id="properties">Properties</h2>
-<p>gps_df: a dataframe to hold all the gps data
-barometer: a DataHolder for barometer data
-id: string identifier for the data set
-os_type: string identifier for the operating system of the data set
-mic_samp_rate_hz: float sample rate of station microphone in hz
-best_data_index: the index that corresponds to the best representative of the data</p>
+<ul>
+<li>gps_df: a dataframe to hold all the gps data</li>
+<li>barometer: a DataHolder for barometer data</li>
+<li>id: string identifier for the data set</li>
+<li>os_type: string identifier for the operating system of the data set</li>
+<li>mic_samp_rate_hz: float sample rate of station microphone in hz</li>
+<li>best_data_index: the index that corresponds to the best representative of the data</li>
+</ul>
 <p>sets up the GPSDataHolder
 :param name: string identifier for the data set
 :param opsys: string identifier for the data set's operating system
@@ -1853,16 +1970,24 @@ best_data_index: the index that corresponds to the best representative of the da
     &#34;&#34;&#34;
     holds gps data (latitude, longitude, altitude, and accuracy) and barometric data
     uses a dataframe to organize the gps data
+
     Properties:
-        gps_df: a dataframe to hold all the gps data
-        barometer: a DataHolder for barometer data
-        id: string identifier for the data set
-        os_type: string identifier for the operating system of the data set
-        mic_samp_rate_hz: float sample rate of station microphone in hz
-        best_data_index: the index that corresponds to the best representative of the data
+        * gps_df: a dataframe to hold all the gps data
+        * barometer: a DataHolder for barometer data
+        * id: string identifier for the data set
+        * os_type: string identifier for the operating system of the data set
+        * mic_samp_rate_hz: float sample rate of station microphone in hz
+        * best_data_index: the index that corresponds to the best representative of the data
     &#34;&#34;&#34;
-    def __init__(self, name: str, opsys: str, data: Optional[List[List[float]]] = None,
-                 mic_samp_rate_hz: float = 80., bar: Optional[DataHolder] = None):
+
+    def __init__(
+        self,
+        name: str,
+        opsys: str,
+        data: Optional[List[List[float]]] = None,
+        mic_samp_rate_hz: float = 80.0,
+        bar: Optional[DataHolder] = None,
+    ):
         &#34;&#34;&#34;
         sets up the GPSDataHolder
         :param name: string identifier for the data set
@@ -1880,7 +2005,6 @@ best_data_index: the index that corresponds to the best representative of the da
 
     def clone(self):
         &#34;&#34;&#34;
-        return a copy of the GPSDataHolder
         :return: an exact copy of the GPSDataHolder
         &#34;&#34;&#34;
         # return a copy of the calling data frame
@@ -1897,10 +2021,11 @@ best_data_index: the index that corresponds to the best representative of the da
         &#34;&#34;&#34;
         self.gps_df = pd.DataFrame(new_data, index=GPS_DATA_INDICES)
 
-    def set_metadata(self, new_id: Optional[str] = None, new_os: Optional[str] = None,
-                     new_mic_samp_rate_hz: Optional[float] = None):
+    def set_metadata(
+        self, new_id: Optional[str] = None, new_os: Optional[str] = None, new_mic_samp_rate_hz: Optional[float] = None
+    ):
         &#34;&#34;&#34;
-        set metadata fields; id, os and mic sample rate
+        set metadata fields: id, os_type and mic_sample_rate_hz
         :param new_id: the new string identifier for the data set, default None
         :param new_os: the new string identifier for the data set&#39;s os, default None
         :param new_mic_samp_rate_hz: float of new microphone sample rate in hz, default None
@@ -1914,8 +2039,7 @@ best_data_index: the index that corresponds to the best representative of the da
 
     def get_mean_all(self) -&gt; Dict[str, float]:
         &#34;&#34;&#34;
-        return the means of the latitude, longitude, altitude, accuracy, and barometer
-        :return: means of all 5 measurements
+        :return: means of the latitude, longitude, altitude, accuracy, and barometer
         &#34;&#34;&#34;
         bar_mean = self.barometer.get_mean()
         if bar_mean == 0 or bar_mean is None:
@@ -1929,8 +2053,7 @@ best_data_index: the index that corresponds to the best representative of the da
 
     def get_std_all(self) -&gt; Dict[str, float]:
         &#34;&#34;&#34;
-        return the standard deviations of the latitude, longitude, altitude, accuracy, and barometer
-        :return: standard deviations of all 5 measurements
+        :return: standard deviations of the latitude, longitude, altitude, accuracy, and barometer
         &#34;&#34;&#34;
         bar_std = self.barometer.get_std()
         if bar_std == 0 or bar_std is None:
@@ -1961,7 +2084,6 @@ best_data_index: the index that corresponds to the best representative of the da
 
     def get_size(self) -&gt; (int, int):
         &#34;&#34;&#34;
-        return the amount of gps and barometer data points
         :return: the amount of gps and barometer data points
         &#34;&#34;&#34;
         return self.gps_df.iloc[0].size, self.barometer.get_len_data()</code></pre>
@@ -1972,15 +2094,13 @@ best_data_index: the index that corresponds to the best representative of the da
 <span>def <span class="ident">clone</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return a copy of the GPSDataHolder
-:return: an exact copy of the GPSDataHolder</p></div>
+<div class="desc"><p>:return: an exact copy of the GPSDataHolder</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def clone(self):
     &#34;&#34;&#34;
-    return a copy of the GPSDataHolder
     :return: an exact copy of the GPSDataHolder
     &#34;&#34;&#34;
     # return a copy of the calling data frame
@@ -1994,16 +2114,14 @@ best_data_index: the index that corresponds to the best representative of the da
 <span>def <span class="ident">get_mean_all</span></span>(<span>self) ‑> Dict[str, float]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the means of the latitude, longitude, altitude, accuracy, and barometer
-:return: means of all 5 measurements</p></div>
+<div class="desc"><p>:return: means of the latitude, longitude, altitude, accuracy, and barometer</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_mean_all(self) -&gt; Dict[str, float]:
     &#34;&#34;&#34;
-    return the means of the latitude, longitude, altitude, accuracy, and barometer
-    :return: means of all 5 measurements
+    :return: means of the latitude, longitude, altitude, accuracy, and barometer
     &#34;&#34;&#34;
     bar_mean = self.barometer.get_mean()
     if bar_mean == 0 or bar_mean is None:
@@ -2020,15 +2138,13 @@ best_data_index: the index that corresponds to the best representative of the da
 <span>def <span class="ident">get_size</span></span>(<span>self) ‑> (<class 'int'>, <class 'int'>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the amount of gps and barometer data points
-:return: the amount of gps and barometer data points</p></div>
+<div class="desc"><p>:return: the amount of gps and barometer data points</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_size(self) -&gt; (int, int):
     &#34;&#34;&#34;
-    return the amount of gps and barometer data points
     :return: the amount of gps and barometer data points
     &#34;&#34;&#34;
     return self.gps_df.iloc[0].size, self.barometer.get_len_data()</code></pre>
@@ -2038,16 +2154,14 @@ best_data_index: the index that corresponds to the best representative of the da
 <span>def <span class="ident">get_std_all</span></span>(<span>self) ‑> Dict[str, float]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the standard deviations of the latitude, longitude, altitude, accuracy, and barometer
-:return: standard deviations of all 5 measurements</p></div>
+<div class="desc"><p>:return: standard deviations of the latitude, longitude, altitude, accuracy, and barometer</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_std_all(self) -&gt; Dict[str, float]:
     &#34;&#34;&#34;
-    return the standard deviations of the latitude, longitude, altitude, accuracy, and barometer
-    :return: standard deviations of all 5 measurements
+    :return: standard deviations of the latitude, longitude, altitude, accuracy, and barometer
     &#34;&#34;&#34;
     bar_std = self.barometer.get_std()
     if bar_std == 0 or bar_std is None:
@@ -2114,7 +2228,7 @@ and accuracy values
 <span>def <span class="ident">set_metadata</span></span>(<span>self, new_id: Optional[str] = None, new_os: Optional[str] = None, new_mic_samp_rate_hz: Optional[float] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>set metadata fields; id, os and mic sample rate
+<div class="desc"><p>set metadata fields: id, os_type and mic_sample_rate_hz
 :param new_id: the new string identifier for the data set, default None
 :param new_os: the new string identifier for the data set's os, default None
 :param new_mic_samp_rate_hz: float of new microphone sample rate in hz, default None</p></div>
@@ -2122,10 +2236,11 @@ and accuracy values
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def set_metadata(self, new_id: Optional[str] = None, new_os: Optional[str] = None,
-                 new_mic_samp_rate_hz: Optional[float] = None):
+<pre><code class="python">def set_metadata(
+    self, new_id: Optional[str] = None, new_os: Optional[str] = None, new_mic_samp_rate_hz: Optional[float] = None
+):
     &#34;&#34;&#34;
-    set metadata fields; id, os and mic sample rate
+    set metadata fields: id, os_type and mic_sample_rate_hz
     :param new_id: the new string identifier for the data set, default None
     :param new_os: the new string identifier for the data set&#39;s os, default None
     :param new_mic_samp_rate_hz: float of new microphone sample rate in hz, default None
@@ -2154,16 +2269,18 @@ the real location dictionary may contain other keys than ones listed in SURVEY_K
 keys in OPTIONAL_SURVEY_KEYS have special meaning and can only be used as this program intends to use them
 uses dataframes with station id as the index</p>
 <h2 id="properties">Properties</h2>
-<p>all_stations_info_df: dataframe with metadata about all stations
-all_stations_mean_df: dataframe with means from all stations
-all_stations_std_df: dataframe with stds from all stations
-all_stations_closest_df: dataframe with the closest point to the real location and its distance to the
-real location for all stations
-invalid_points: a list of gps points that are blacklisted
-_real_location: the surveyed point that the station is located at.
-privatized for security
-all_gps_data: a list of all GPSDataHolders that form the data set
-valid_gps_data: a list of all GPSDataHolders that pass validation checks</p>
+<ul>
+<li>all_stations_info_df: dataframe with metadata about all stations</li>
+<li>all_stations_mean_df: dataframe with means from all stations</li>
+<li>all_stations_std_df: dataframe with stds from all stations</li>
+<li>all_stations_closest_df: dataframe with the closest point to the real location and its distance to the
+real location for all stations</li>
+<li>invalid_points: a list of gps points that are blacklisted</li>
+<li>_real_location: the surveyed point that the station is located at.
+privatized for security</li>
+<li>all_gps_data: a list of all GPSDataHolders that form the data set</li>
+<li>valid_gps_data: a list of all GPSDataHolders that pass validation checks</li>
+</ul>
 <p>set up the LocationAnalyzer
 :param wrapped_packets: a list of wrapped redvox packet lists to analyze, default None
 :param real_location: dictionary containing the real location of the station, default None
@@ -2181,20 +2298,25 @@ valid_gps_data: a list of all GPSDataHolders that pass validation checks</p>
     the real location dictionary may contain other keys than ones listed in SURVEY_KEYS
     keys in OPTIONAL_SURVEY_KEYS have special meaning and can only be used as this program intends to use them
     uses dataframes with station id as the index
+
     Properties:
-        all_stations_info_df: dataframe with metadata about all stations
-        all_stations_mean_df: dataframe with means from all stations
-        all_stations_std_df: dataframe with stds from all stations
-        all_stations_closest_df: dataframe with the closest point to the real location and its distance to the
-                                    real location for all stations
-        invalid_points: a list of gps points that are blacklisted
-        _real_location: the surveyed point that the station is located at.  privatized for security
-        all_gps_data: a list of all GPSDataHolders that form the data set
-        valid_gps_data: a list of all GPSDataHolders that pass validation checks
+        * all_stations_info_df: dataframe with metadata about all stations
+        * all_stations_mean_df: dataframe with means from all stations
+        * all_stations_std_df: dataframe with stds from all stations
+        * all_stations_closest_df: dataframe with the closest point to the real location and its distance to the
+          real location for all stations
+        * invalid_points: a list of gps points that are blacklisted
+        * _real_location: the surveyed point that the station is located at.  privatized for security
+        * all_gps_data: a list of all GPSDataHolders that form the data set
+        * valid_gps_data: a list of all GPSDataHolders that pass validation checks
     &#34;&#34;&#34;
-    def __init__(self, wrapped_packets: List[List[reader.WrappedRedvoxPacket]] = None,
-                 real_location: Optional[Dict[str, float]] = None,
-                 invalid_points: Optional[List[Dict[str, float]]] = None):
+
+    def __init__(
+        self,
+        wrapped_packets: List[List[reader.WrappedRedvoxPacket]] = None,
+        real_location: Optional[Dict[str, float]] = None,
+        invalid_points: Optional[List[Dict[str, float]]] = None,
+    ):
         &#34;&#34;&#34;
         set up the LocationAnalyzer
         :param wrapped_packets: a list of wrapped redvox packet lists to analyze, default None
@@ -2223,23 +2345,24 @@ valid_gps_data: a list of all GPSDataHolders that pass validation checks</p>
 
     def get_real_location(self) -&gt; Dict[str, float]:
         &#34;&#34;&#34;
-        return the station&#39;s real location
         :return: the station&#39;s real location
         &#34;&#34;&#34;
         return self._real_location
 
     def get_all_dataframes(self) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
-        fuse all dataframes together, joined by station id
-        :return: all 4 dataframes fused together
+        :return: all 4 dataframes fused together, joined by station id
         &#34;&#34;&#34;
-        frames = [self.all_stations_info_df, self.all_stations_closest_df,
-                  self.all_stations_mean_df, self.all_stations_std_df]
+        frames = [
+            self.all_stations_info_df,
+            self.all_stations_closest_df,
+            self.all_stations_mean_df,
+            self.all_stations_std_df,
+        ]
         return pd.concat(frames, axis=1)
 
     def get_stats_dataframes(self) -&gt; pd.DataFrame:
         &#34;&#34;&#34;
-        fuse informational and statistic dataframes together, joined by station id
         :return: station info, mean and std dataframes fused together
         &#34;&#34;&#34;
         frames = [self.all_stations_info_df, self.all_stations_mean_df, self.all_stations_std_df]
@@ -2248,6 +2371,7 @@ valid_gps_data: a list of all GPSDataHolders that pass validation checks</p>
     def get_loc_from_packets(self, w_p: List[reader.WrappedRedvoxPacket]):
         &#34;&#34;&#34;
         store the location information and their mean and std using a collection of wrapped redvox packets
+
         assumes a list of redvox packets shares 1 device id
         :param w_p: a list of wrapped redvox packets to read
         &#34;&#34;&#34;
@@ -2262,23 +2386,38 @@ valid_gps_data: a list of all GPSDataHolders that pass validation checks</p>
         # store the information
         self.all_gps_data.append(packet_gps_data)
         self.all_stations_info_df.loc[idd] = [dev_os_type, sample_rate]
-        self.all_stations_std_df.loc[idd] = [std_loc[&#34;acc&#34;], std_loc[&#34;lat&#34;], std_loc[&#34;lon&#34;],
-                                             std_loc[&#34;alt&#34;], std_loc[&#34;bar&#34;]]
-        self.all_stations_mean_df.loc[idd] = [mean_loc[&#34;acc&#34;], mean_loc[&#34;lat&#34;], mean_loc[&#34;lon&#34;],
-                                              mean_loc[&#34;alt&#34;], mean_loc[&#34;bar&#34;]]
+        self.all_stations_std_df.loc[idd] = [
+            std_loc[&#34;acc&#34;],
+            std_loc[&#34;lat&#34;],
+            std_loc[&#34;lon&#34;],
+            std_loc[&#34;alt&#34;],
+            std_loc[&#34;bar&#34;],
+        ]
+        self.all_stations_mean_df.loc[idd] = [
+            mean_loc[&#34;acc&#34;],
+            mean_loc[&#34;lat&#34;],
+            mean_loc[&#34;lon&#34;],
+            mean_loc[&#34;alt&#34;],
+            mean_loc[&#34;bar&#34;],
+        ]
 
     def analyze_data(self, write_output: bool = False):
         &#34;&#34;&#34;
         analyze data, then if a real location exists, compare data to real location
-          output is written if enabled
+
+        output is written if enabled
         :param write_output: boolean to write any debugging output, default False
         &#34;&#34;&#34;
         self.validate_all()
         # if there&#39;s no real location, make the mean the real location
         if self._real_location is None:
             means = self.all_stations_mean_df
-            self._real_location = {&#34;lat&#34;: np.mean(means[&#34;mean lat&#34;]), &#34;lon&#34;: np.mean(means[&#34;mean lon&#34;]),
-                                   &#34;alt&#34;: np.mean(means[&#34;mean alt&#34;]), &#34;bar&#34;: np.mean(means[&#34;mean bar&#34;])}
+            self._real_location = {
+                &#34;lat&#34;: np.mean(means[&#34;mean lat&#34;]),
+                &#34;lon&#34;: np.mean(means[&#34;mean lon&#34;]),
+                &#34;alt&#34;: np.mean(means[&#34;mean alt&#34;]),
+                &#34;bar&#34;: np.mean(means[&#34;mean bar&#34;]),
+            }
         self.compare_with_real_location()
         # print results
         if write_output:
@@ -2297,9 +2436,14 @@ valid_gps_data: a list of all GPSDataHolders that pass validation checks</p>
         barometric_heights = pd.DataFrame(bar_heights, index=[&#34;bar height&#34;], columns=self.all_stations_mean_df.index)
         return barometric_heights.T
 
-    def validate_all(self, validation_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
-                                                                            DEFAULT_INCLUSION_VERTICAL_M,
-                                                                            DEFAULT_INCLUSION_VERTICAL_BAR_M), ):
+    def validate_all(
+        self,
+        validation_ranges: Tuple[float, float, float] = (
+            DEFAULT_INCLUSION_HORIZONTAL_M,
+            DEFAULT_INCLUSION_VERTICAL_M,
+            DEFAULT_INCLUSION_VERTICAL_BAR_M,
+        ),
+    ):
         &#34;&#34;&#34;
         check that all data in the data set are valid.  Remove outliers and strange values
         :param validation_ranges: tuple of floats that the data values are compared against for validation
@@ -2371,8 +2515,8 @@ valid_gps_data: a list of all GPSDataHolders that pass validation checks</p>
 <span>def <span class="ident">analyze_data</span></span>(<span>self, write_output: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>analyze data, then if a real location exists, compare data to real location
-output is written if enabled
+<div class="desc"><p>analyze data, then if a real location exists, compare data to real location</p>
+<p>output is written if enabled
 :param write_output: boolean to write any debugging output, default False</p></div>
 <details class="source">
 <summary>
@@ -2381,15 +2525,20 @@ output is written if enabled
 <pre><code class="python">def analyze_data(self, write_output: bool = False):
     &#34;&#34;&#34;
     analyze data, then if a real location exists, compare data to real location
-      output is written if enabled
+
+    output is written if enabled
     :param write_output: boolean to write any debugging output, default False
     &#34;&#34;&#34;
     self.validate_all()
     # if there&#39;s no real location, make the mean the real location
     if self._real_location is None:
         means = self.all_stations_mean_df
-        self._real_location = {&#34;lat&#34;: np.mean(means[&#34;mean lat&#34;]), &#34;lon&#34;: np.mean(means[&#34;mean lon&#34;]),
-                               &#34;alt&#34;: np.mean(means[&#34;mean alt&#34;]), &#34;bar&#34;: np.mean(means[&#34;mean bar&#34;])}
+        self._real_location = {
+            &#34;lat&#34;: np.mean(means[&#34;mean lat&#34;]),
+            &#34;lon&#34;: np.mean(means[&#34;mean lon&#34;]),
+            &#34;alt&#34;: np.mean(means[&#34;mean alt&#34;]),
+            &#34;bar&#34;: np.mean(means[&#34;mean bar&#34;]),
+        }
     self.compare_with_real_location()
     # print results
     if write_output:
@@ -2422,19 +2571,21 @@ information is stored in the data frames</p></div>
 <span>def <span class="ident">get_all_dataframes</span></span>(<span>self) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
-<div class="desc"><p>fuse all dataframes together, joined by station id
-:return: all 4 dataframes fused together</p></div>
+<div class="desc"><p>:return: all 4 dataframes fused together, joined by station id</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_all_dataframes(self) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    fuse all dataframes together, joined by station id
-    :return: all 4 dataframes fused together
+    :return: all 4 dataframes fused together, joined by station id
     &#34;&#34;&#34;
-    frames = [self.all_stations_info_df, self.all_stations_closest_df,
-              self.all_stations_mean_df, self.all_stations_std_df]
+    frames = [
+        self.all_stations_info_df,
+        self.all_stations_closest_df,
+        self.all_stations_mean_df,
+        self.all_stations_std_df,
+    ]
     return pd.concat(frames, axis=1)</code></pre>
 </details>
 </dd>
@@ -2467,8 +2618,8 @@ information is stored in the data frames</p></div>
 <span>def <span class="ident">get_loc_from_packets</span></span>(<span>self, w_p: List[<a title="redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket" href="wrapped_redvox_packet.html#redvox.api900.wrapped_redvox_packet.WrappedRedvoxPacket">WrappedRedvoxPacket</a>])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>store the location information and their mean and std using a collection of wrapped redvox packets
-assumes a list of redvox packets shares 1 device id
+<div class="desc"><p>store the location information and their mean and std using a collection of wrapped redvox packets</p>
+<p>assumes a list of redvox packets shares 1 device id
 :param w_p: a list of wrapped redvox packets to read</p></div>
 <details class="source">
 <summary>
@@ -2477,6 +2628,7 @@ assumes a list of redvox packets shares 1 device id
 <pre><code class="python">def get_loc_from_packets(self, w_p: List[reader.WrappedRedvoxPacket]):
     &#34;&#34;&#34;
     store the location information and their mean and std using a collection of wrapped redvox packets
+
     assumes a list of redvox packets shares 1 device id
     :param w_p: a list of wrapped redvox packets to read
     &#34;&#34;&#34;
@@ -2491,25 +2643,33 @@ assumes a list of redvox packets shares 1 device id
     # store the information
     self.all_gps_data.append(packet_gps_data)
     self.all_stations_info_df.loc[idd] = [dev_os_type, sample_rate]
-    self.all_stations_std_df.loc[idd] = [std_loc[&#34;acc&#34;], std_loc[&#34;lat&#34;], std_loc[&#34;lon&#34;],
-                                         std_loc[&#34;alt&#34;], std_loc[&#34;bar&#34;]]
-    self.all_stations_mean_df.loc[idd] = [mean_loc[&#34;acc&#34;], mean_loc[&#34;lat&#34;], mean_loc[&#34;lon&#34;],
-                                          mean_loc[&#34;alt&#34;], mean_loc[&#34;bar&#34;]]</code></pre>
+    self.all_stations_std_df.loc[idd] = [
+        std_loc[&#34;acc&#34;],
+        std_loc[&#34;lat&#34;],
+        std_loc[&#34;lon&#34;],
+        std_loc[&#34;alt&#34;],
+        std_loc[&#34;bar&#34;],
+    ]
+    self.all_stations_mean_df.loc[idd] = [
+        mean_loc[&#34;acc&#34;],
+        mean_loc[&#34;lat&#34;],
+        mean_loc[&#34;lon&#34;],
+        mean_loc[&#34;alt&#34;],
+        mean_loc[&#34;bar&#34;],
+    ]</code></pre>
 </details>
 </dd>
 <dt id="redvox.api900.location_analyzer.LocationAnalyzer.get_real_location"><code class="name flex">
 <span>def <span class="ident">get_real_location</span></span>(<span>self) ‑> Dict[str, float]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>return the station's real location
-:return: the station's real location</p></div>
+<div class="desc"><p>:return: the station's real location</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_real_location(self) -&gt; Dict[str, float]:
     &#34;&#34;&#34;
-    return the station&#39;s real location
     :return: the station&#39;s real location
     &#34;&#34;&#34;
     return self._real_location</code></pre>
@@ -2519,15 +2679,13 @@ assumes a list of redvox packets shares 1 device id
 <span>def <span class="ident">get_stats_dataframes</span></span>(<span>self) ‑> pandas.core.frame.DataFrame</span>
 </code></dt>
 <dd>
-<div class="desc"><p>fuse informational and statistic dataframes together, joined by station id
-:return: station info, mean and std dataframes fused together</p></div>
+<div class="desc"><p>:return: station info, mean and std dataframes fused together</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_stats_dataframes(self) -&gt; pd.DataFrame:
     &#34;&#34;&#34;
-    fuse informational and statistic dataframes together, joined by station id
     :return: station info, mean and std dataframes fused together
     &#34;&#34;&#34;
     frames = [self.all_stations_info_df, self.all_stations_mean_df, self.all_stations_std_df]
@@ -2627,9 +2785,14 @@ Remove outliers and strange values
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def validate_all(self, validation_ranges: Tuple[float, float, float] = (DEFAULT_INCLUSION_HORIZONTAL_M,
-                                                                        DEFAULT_INCLUSION_VERTICAL_M,
-                                                                        DEFAULT_INCLUSION_VERTICAL_BAR_M), ):
+<pre><code class="python">def validate_all(
+    self,
+    validation_ranges: Tuple[float, float, float] = (
+        DEFAULT_INCLUSION_HORIZONTAL_M,
+        DEFAULT_INCLUSION_VERTICAL_M,
+        DEFAULT_INCLUSION_VERTICAL_BAR_M,
+    ),
+):
     &#34;&#34;&#34;
     check that all data in the data set are valid.  Remove outliers and strange values
     :param validation_ranges: tuple of floats that the data values are compared against for validation

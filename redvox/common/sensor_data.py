@@ -845,8 +845,7 @@ class SensorData:
         """
         converts all timestamps in the sensor to the original values from the data
         """
-        timestamps = self.unaltered_data_timestamps()
-        self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", timestamps))
+        self.write_pyarrow_table(self.pyarrow_table().set_column(0, "timestamps", self.unaltered_data_timestamps()))
         self._timestamps_altered = False
 
     def interpolate(

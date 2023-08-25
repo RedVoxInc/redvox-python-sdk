@@ -231,7 +231,7 @@ class ApiReader:
                 checked_index = [all_index.get_index_for_station_id(station_id)]
             # if we need to update the start or end, use the first session model from cloud if it exists
             elif station_id in resp_ids:
-                checked_index = self._reset_index(self.session_models.get_model_by_key(station_id))
+                checked_index = self._reset_index(self.session_models.get_model_by_partial_key(station_id))
             # if no models from cloud, use the data available to update start and end of index
             else:
                 id_index = all_index.get_index_for_station_id(station_id)

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>redvox.common.packet_to_pyarrow API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Converts data from RedVox packets into pyarrow tables." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,11 +22,16 @@
 <h1 class="title">Module <code>redvox.common.packet_to_pyarrow</code></h1>
 </header>
 <section id="section-intro">
+<p>Converts data from RedVox packets into pyarrow tables.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from typing import Optional, Dict, Callable, List, Tuple
+<pre><code class="python">&#34;&#34;&#34;
+Converts data from RedVox packets into pyarrow tables.
+&#34;&#34;&#34;
+
+from typing import Optional, Dict, Callable, List, Tuple
 import os
 from pathlib import Path
 from itertools import repeat
@@ -47,24 +52,36 @@ from redvox.common.sensor_data import SensorType
 from redvox.common.errors import RedVoxExceptions
 
 
-packet_schema = pa.schema([(&#34;packet_start_mach_timestamp&#34;, pa.float64()),
-                           (&#34;packet_end_mach_timestamp&#34;, pa.float64()),
-                           (&#34;packet_start_os_timestamp&#34;, pa.float64()),
-                           (&#34;packet_end_os_timestamp&#34;, pa.float64()),
-                           (&#34;timing_info_score&#34;, pa.int64())
-                           ])
+packet_schema = pa.schema(
+    [
+        (&#34;packet_start_mach_timestamp&#34;, pa.float64()),
+        (&#34;packet_end_mach_timestamp&#34;, pa.float64()),
+        (&#34;packet_start_os_timestamp&#34;, pa.float64()),
+        (&#34;packet_end_os_timestamp&#34;, pa.float64()),
+        (&#34;timing_info_score&#34;, pa.int64()),
+    ]
+)
 
-sensor_schema = pa.schema([(&#34;description&#34;, pa.string()),
-                           (&#34;first_timestamp&#34;, pa.float64())
-                           ])
+sensor_schema = pa.schema([(&#34;description&#34;, pa.string()), (&#34;first_timestamp&#34;, pa.float64())])
 
-station_schema = pa.schema([(&#34;id&#34;, pa.string()), (&#34;uuid&#34;, pa.string()),
-                            (&#34;start_time&#34;, pa.float64()), (&#34;api&#34;, pa.float64()),
-                            (&#34;sub_api&#34;, pa.float64()), (&#34;make&#34;, pa.string()),
-                            (&#34;model&#34;, pa.string()), (&#34;os&#34;, pa.int64()), (&#34;os_version&#34;, pa.string()),
-                            (&#34;app&#34;, pa.string()), (&#34;app_version&#34;, pa.string()),
-                            (&#34;is_private&#34;, pa.bool_()), (&#34;packet_duration_s&#34;, pa.float64()),
-                            (&#34;station_description&#34;, pa.string())])
+station_schema = pa.schema(
+    [
+        (&#34;id&#34;, pa.string()),
+        (&#34;uuid&#34;, pa.string()),
+        (&#34;start_time&#34;, pa.float64()),
+        (&#34;api&#34;, pa.float64()),
+        (&#34;sub_api&#34;, pa.float64()),
+        (&#34;make&#34;, pa.string()),
+        (&#34;model&#34;, pa.string()),
+        (&#34;os&#34;, pa.int64()),
+        (&#34;os_version&#34;, pa.string()),
+        (&#34;app&#34;, pa.string()),
+        (&#34;app_version&#34;, pa.string()),
+        (&#34;is_private&#34;, pa.bool_()),
+        (&#34;packet_duration_s&#34;, pa.float64()),
+        (&#34;station_description&#34;, pa.string()),
+    ]
+)
 
 
 @dataclass_json
@@ -92,6 +109,7 @@ class PyarrowSummary:
 
         _data: optional data as a Pyarrow Table
     &#34;&#34;&#34;
+
     name: str
     stype: srupa.SensorType
     start: float
@@ -101,21 +119,6 @@ class PyarrowSummary:
     smint_s: float = np.nan
     sstd_s: float = np.nan
     _data: Optional[pa.Table] = None
-
-    def to_dict(self) -&gt; dict:
-        &#34;&#34;&#34;
-        :return: dictionary representation of the data
-        &#34;&#34;&#34;
-        return {
-            &#34;name&#34;: self.name,
-            &#34;stype&#34;: self.stype.name,
-            &#34;start&#34;: self.start,
-            &#34;srate_hz&#34;: self.srate_hz,
-            &#34;fdir&#34;: self.fdir,
-            &#34;smint_s&#34;: self.smint_s,
-            &#34;sstd_s&#34;: self.sstd_s,
-            &#34;scount&#34;: self.scount
-        }
 
     def file_name(self) -&gt; str:
         &#34;&#34;&#34;
@@ -179,32 +182,12 @@ class AggregateSummary:
         summaries: the summaries of sensors
         gaps: gaps in audio data as a list of tuples of start and end time
     &#34;&#34;&#34;
+
     summaries: List[PyarrowSummary] = field(default_factory=lambda: [])
     gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
     errors: RedVoxExceptions = RedVoxExceptions(&#34;AggregateSummary&#34;)
 
-    def to_dict(self) -&gt; dict:
-        &#34;&#34;&#34;
-        :return: dictionary representation of all summaries
-        &#34;&#34;&#34;
-        result = {}
-        for ps in self.summaries:
-            result[ps.stype.name] = ps.to_dict()
-        return result
-
-    @staticmethod
-    def from_dict(summary_dict: dict) -&gt; &#34;AggregateSummary&#34;:
-        &#34;&#34;&#34;
-        :param summary_dict: dictionary to load data from
-        :return: AggregateSummary from a dictionary
-        &#34;&#34;&#34;
-        result = AggregateSummary()
-        for v in summary_dict.values():
-            result.summaries.append(PyarrowSummary(v[&#34;name&#34;], SensorType[v[&#34;stype&#34;]], v[&#34;start&#34;], v[&#34;srate_hz&#34;],
-                                                   v[&#34;fdir&#34;], v[&#34;scount&#34;], v[&#34;smint_s&#34;], v[&#34;sstd_s&#34;]))
-        return result
-
-    def add_aggregate_summary(self, agg_sum: &#39;AggregateSummary&#39;):
+    def add_aggregate_summary(self, agg_sum: &#34;AggregateSummary&#34;):
         &#34;&#34;&#34;
         adds another aggregate summary to this one
 
@@ -231,13 +214,19 @@ class AggregateSummary:
         for adl in audio_lst:
             pckt_info.append((int(adl.start), adl.data()))
 
-        audio_data = gpu.fill_audio_gaps(pckt_info,
-                                         dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
-                                         )
+        audio_data = gpu.fill_audio_gaps(pckt_info, dtu.seconds_to_microseconds(1 / frst_audio.srate_hz))
         tbl = audio_data.create_timestamps()
-        frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
-                                    frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
-                                    tbl)
+        frst_audio = PyarrowSummary(
+            frst_audio.name,
+            frst_audio.stype,
+            frst_audio.start,
+            frst_audio.srate_hz,
+            frst_audio.fdir,
+            tbl.num_rows,
+            frst_audio.smint_s,
+            frst_audio.sstd_s,
+            tbl,
+        )
         if not use_mem:
             frst_audio.write_data(True)
 
@@ -283,15 +272,24 @@ class AggregateSummary:
                     mnint = np.nan
                     stdint = np.nan
                 if not combined_mint + combined_std &gt; mnint &gt; combined_mint - combined_std:
-                    self.errors.append(f&#34;Mean interval s of combined {styp.name} sensor does not match the &#34;
-                                       f&#34;compilation of individual mean interval s per packet.  Will use compilation &#34;
-                                       f&#34;of individual values.&#34;)
+                    self.errors.append(
+                        f&#34;Mean interval s of combined {styp.name} sensor does not match the &#34;
+                        f&#34;compilation of individual mean interval s per packet.  Will use compilation &#34;
+                        f&#34;of individual values.&#34;
+                    )
                     mnint = combined_mint
                     stdint = combined_std
-                single_smry = PyarrowSummary(first_summary.name, styp, first_summary.start,
-                                             1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
-                                             first_summary.data() if first_summary.check_data() else None
-                                             )
+                single_smry = PyarrowSummary(
+                    first_summary.name,
+                    styp,
+                    first_summary.start,
+                    1 / mnint,
+                    first_summary.fdir,
+                    tbl.num_rows,
+                    mnint,
+                    stdint,
+                    first_summary.data() if first_summary.check_data() else None,
+                )
                 self.summaries.append(single_smry)
 
     def merge_summaries_of_type(self, stype: SensorType):
@@ -322,10 +320,17 @@ class AggregateSummary:
                 os.remove(smrys.file_name())
         mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
         stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
-        single_smry = PyarrowSummary(first_summary.name, first_summary.stype, first_summary.start,
-                                     1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
-                                     first_summary.data() if first_summary.check_data() else None
-                                     )
+        single_smry = PyarrowSummary(
+            first_summary.name,
+            first_summary.stype,
+            first_summary.start,
+            1 / mnint,
+            first_summary.fdir,
+            tbl.num_rows,
+            mnint,
+            stdint,
+            first_summary.data() if first_summary.check_data() else None,
+        )
         self.summaries = other_smrs
         self.summaries.append(single_smry)
 
@@ -382,7 +387,7 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
 
     :param packets: redvox packets to convert
     :param out_dir: optional directory to write the pyarrow files to; if None, don&#39;t write files.  default None
-    :return: summary of the sensors, their data and their file locations if possible
+    :return: AggregateSummary of the sensors&#39; metadata, data, and location of the data if written to disk
     &#34;&#34;&#34;
     summary = AggregateSummary()
     for k in map(packet_to_pyarrow, packets, repeat(out_dir)):
@@ -394,11 +399,11 @@ def stream_to_pyarrow(packets: List[RedvoxPacketM], out_dir: Optional[str] = Non
 
 def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -&gt; AggregateSummary:
     &#34;&#34;&#34;
-    gets non-audio sensor information by writing it into folders with the sensor names to the out_dir
+    gets non-audio sensor information by keeping it memory or writing it into folders named with the sensor names
 
     :param packet: packet to extract data from
     :param out_dir: optional directory to write the pyarrow files to; if None, don&#39;t write files.  default None
-    :return: sensor type: sensor name, start_timestamp, sample rate (if fixed, np.nan otherwise)
+    :return: AggregateSummary of the sensors&#39; metadata, data, and location of the data if written to disk
     &#34;&#34;&#34;
     result = AggregateSummary()
     packet_start = int(packet.timing_information.packet_start_mach_timestamp)
@@ -444,9 +449,15 @@ def load_apim_audio(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
     if srupa.__has_sensor(packet, srupa.__AUDIO_FIELD_NAME):
         audio_sensor: RedvoxPacketM.Sensors.Audio = packet.sensors.audio
         return PyarrowSummary(
-            audio_sensor.sensor_description, srupa.SensorType.AUDIO, np.nan, audio_sensor.sample_rate, &#34;&#34;,
-            int(audio_sensor.samples.value_statistics.count), 1./audio_sensor.sample_rate, 0.,
-            pa.Table.from_pydict({&#34;microphone&#34;: np.array(audio_sensor.samples.values)})
+            audio_sensor.sensor_description,
+            srupa.SensorType.AUDIO,
+            np.nan,
+            audio_sensor.sample_rate,
+            &#34;&#34;,
+            int(audio_sensor.samples.value_statistics.count),
+            1.0 / audio_sensor.sample_rate,
+            0.0,
+            pa.Table.from_pydict({&#34;microphone&#34;: np.array(audio_sensor.samples.values)}),
         )
     return None
 
@@ -459,13 +470,17 @@ def load_apim_compressed_audio(packet: RedvoxPacketM) -&gt; Optional[PyarrowSumm
     :return: compressed audio sensor data if it exists, None otherwise
     &#34;&#34;&#34;
     if srupa.__has_sensor(packet, srupa.__COMPRESSED_AUDIO_FIELD_NAME):
-        comp_audio: RedvoxPacketM.Sensors.CompressedAudio = (
-            packet.sensors.compressed_audio
-        )
+        comp_audio: RedvoxPacketM.Sensors.CompressedAudio = packet.sensors.compressed_audio
         return PyarrowSummary(
-            comp_audio.sensor_description, srupa.SensorType.COMPRESSED_AUDIO, np.nan,
-            comp_audio.sample_rate, &#34;&#34;, np.nan, 1./comp_audio.sample_rate, 0.,
-            srupa.apim_compressed_audio_to_pyarrow(comp_audio)
+            comp_audio.sensor_description,
+            srupa.SensorType.COMPRESSED_AUDIO,
+            np.nan,
+            comp_audio.sample_rate,
+            &#34;&#34;,
+            np.nan,
+            1.0 / comp_audio.sample_rate,
+            0.0,
+            srupa.apim_compressed_audio_to_pyarrow(comp_audio),
         )
     return None
 
@@ -482,15 +497,22 @@ def load_apim_image(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
         timestamps = image_sensor.timestamps.timestamps
         additional_inputs = packet.station_information.app_settings.additional_input_sensors
         if RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_SECOND in additional_inputs:
-            sample_rate = 1.
+            sample_rate = 1.0
         # elif RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_PACKET in additional_inputs:
         else:
             sample_rate = 1 / srupa.__packet_duration_s(packet)
         # else:
         #   sample_rate = np.nan
         return PyarrowSummary(
-            image_sensor.sensor_description, srupa.SensorType.IMAGE, np.nan, sample_rate, &#34;&#34;,
-            len(timestamps), 1./sample_rate, 0., srupa.apim_image_to_pyarrow(image_sensor)
+            image_sensor.sensor_description,
+            srupa.SensorType.IMAGE,
+            np.nan,
+            sample_rate,
+            &#34;&#34;,
+            len(timestamps),
+            1.0 / sample_rate,
+            0.0,
+            srupa.apim_image_to_pyarrow(image_sensor),
         )
     return None
 
@@ -511,10 +533,17 @@ def load_apim_location(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
                 intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
             else:
                 m_intv = srupa.__packet_duration_s(packet)
-                intv_std = 0.
+                intv_std = 0.0
             return PyarrowSummary(
-                loc.sensor_description, srupa.SensorType.LOCATION, np.nan, np.nan, &#34;&#34;,
-                len(timestamps), m_intv, intv_std, srupa.apim_location_to_pyarrow(loc)
+                loc.sensor_description,
+                srupa.SensorType.LOCATION,
+                np.nan,
+                np.nan,
+                &#34;&#34;,
+                len(timestamps),
+                m_intv,
+                intv_std,
+                srupa.apim_location_to_pyarrow(loc),
             )
     return None
 
@@ -536,10 +565,15 @@ def load_apim_best_location(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary
                 best_loc = loc.overall_best_location
             packet_len_s = srupa.__packet_duration_s(packet)
             return PyarrowSummary(
-                loc.sensor_description, srupa.SensorType.BEST_LOCATION, np.nan,
-                1./packet_len_s, &#34;&#34;, 1, packet_len_s, 0.,
-                srupa.apim_best_location_to_pyarrow(best_loc,
-                                                    packet.timing_information.packet_start_mach_timestamp),
+                loc.sensor_description,
+                srupa.SensorType.BEST_LOCATION,
+                np.nan,
+                1.0 / packet_len_s,
+                &#34;&#34;,
+                1,
+                packet_len_s,
+                0.0,
+                srupa.apim_best_location_to_pyarrow(best_loc, packet.timing_information.packet_start_mach_timestamp),
             )
     return None
 
@@ -551,9 +585,7 @@ def load_apim_health(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
     :param packet: packet with data to load
     :return: station health data if it exists, None otherwise
     &#34;&#34;&#34;
-    metrics: RedvoxPacketM.StationInformation.StationMetrics = (
-        packet.station_information.station_metrics
-    )
+    metrics: RedvoxPacketM.StationInformation.StationMetrics = packet.station_information.station_metrics
     timestamps = metrics.timestamps.timestamps
     rate = packet.station_information.app_settings.metrics_rate
     if rate == RedvoxPacketM.StationInformation.MetricsRate.ONCE_PER_SECOND:
@@ -564,20 +596,25 @@ def load_apim_health(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]:
         sample_rate = np.nan
     if len(timestamps) &gt; 0:
         return PyarrowSummary(
-            &#34;station health&#34;, srupa.SensorType.STATION_HEALTH, np.nan, sample_rate, &#34;&#34;,
-            len(timestamps), 1./sample_rate, 0., srupa.apim_health_to_pyarrow(metrics)
+            &#34;station health&#34;,
+            srupa.SensorType.STATION_HEALTH,
+            np.nan,
+            sample_rate,
+            &#34;&#34;,
+            len(timestamps),
+            1.0 / sample_rate,
+            0.0,
+            srupa.apim_health_to_pyarrow(metrics),
         )
     return None
 
 
 def load_single(
-        packet: RedvoxPacketM,
-        sensor_type: srupa.SensorType,
+    packet: RedvoxPacketM,
+    sensor_type: srupa.SensorType,
 ) -&gt; Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
-    sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.Sensor]
-    ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    sensor_fn: Optional[Callable[[RedvoxPacketM], srupa.Sensor]] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
         t = sensor.timestamps.timestamps
@@ -586,11 +623,18 @@ def load_single(
             intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
         else:
             m_intv = srupa.__packet_duration_s(packet)
-            intv_std = 0.
+            intv_std = 0.0
         if len(t) &gt; 0:
             return PyarrowSummary(
-                sensor.sensor_description, sensor_type, np.nan, np.nan, &#34;&#34;,
-                len(t), m_intv, intv_std, srupa.read_apim_single_sensor(sensor, field_name)
+                sensor.sensor_description,
+                sensor_type,
+                np.nan,
+                np.nan,
+                &#34;&#34;,
+                len(t),
+                m_intv,
+                intv_std,
+                srupa.read_apim_single_sensor(sensor, field_name),
             )
     return None
 
@@ -646,13 +690,11 @@ def load_apim_rel_humidity(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary]
 
 
 def load_xyz(
-        packet: RedvoxPacketM,
-        sensor_type: srupa.SensorType,
+    packet: RedvoxPacketM,
+    sensor_type: srupa.SensorType,
 ) -&gt; Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
-    sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.Sensor]
-    ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    sensor_fn: Optional[Callable[[RedvoxPacketM], srupa.Sensor]] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
         t = sensor.timestamps.timestamps
@@ -661,13 +703,20 @@ def load_xyz(
             intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
         else:
             m_intv = srupa.__packet_duration_s(packet)
-            intv_std = 0.
+            intv_std = 0.0
         if len(t) &gt; 0:
             # read packet.station_information.app_settings.additional_input_sensors for fast sensors
             # rename if needed
             return PyarrowSummary(
-                sensor.sensor_description, sensor_type, np.nan, np.nan, &#34;&#34;,
-                len(t), m_intv, intv_std, srupa.read_apim_xyz_sensor(sensor, field_name)
+                sensor.sensor_description,
+                sensor_type,
+                np.nan,
+                np.nan,
+                &#34;&#34;,
+                len(t),
+                m_intv,
+                intv_std,
+                srupa.read_apim_xyz_sensor(sensor, field_name),
             )
     return None
 
@@ -682,7 +731,9 @@ def load_apim_accelerometer(packet: RedvoxPacketM) -&gt; Optional[PyarrowSummary
     return load_xyz(packet, srupa.SensorType.ACCELEROMETER)
 
 
-def load_apim_magnetometer(packet: RedvoxPacketM,) -&gt; Optional[PyarrowSummary]:
+def load_apim_magnetometer(
+    packet: RedvoxPacketM,
+) -&gt; Optional[PyarrowSummary]:
     &#34;&#34;&#34;
     load magnetometer data from a single redvox packet
 
@@ -823,9 +874,15 @@ data and sample rate</p></div>
     if srupa.__has_sensor(packet, srupa.__AUDIO_FIELD_NAME):
         audio_sensor: RedvoxPacketM.Sensors.Audio = packet.sensors.audio
         return PyarrowSummary(
-            audio_sensor.sensor_description, srupa.SensorType.AUDIO, np.nan, audio_sensor.sample_rate, &#34;&#34;,
-            int(audio_sensor.samples.value_statistics.count), 1./audio_sensor.sample_rate, 0.,
-            pa.Table.from_pydict({&#34;microphone&#34;: np.array(audio_sensor.samples.values)})
+            audio_sensor.sensor_description,
+            srupa.SensorType.AUDIO,
+            np.nan,
+            audio_sensor.sample_rate,
+            &#34;&#34;,
+            int(audio_sensor.samples.value_statistics.count),
+            1.0 / audio_sensor.sample_rate,
+            0.0,
+            pa.Table.from_pydict({&#34;microphone&#34;: np.array(audio_sensor.samples.values)}),
         )
     return None</code></pre>
 </details>
@@ -858,10 +915,15 @@ data and sample rate</p></div>
                 best_loc = loc.overall_best_location
             packet_len_s = srupa.__packet_duration_s(packet)
             return PyarrowSummary(
-                loc.sensor_description, srupa.SensorType.BEST_LOCATION, np.nan,
-                1./packet_len_s, &#34;&#34;, 1, packet_len_s, 0.,
-                srupa.apim_best_location_to_pyarrow(best_loc,
-                                                    packet.timing_information.packet_start_mach_timestamp),
+                loc.sensor_description,
+                srupa.SensorType.BEST_LOCATION,
+                np.nan,
+                1.0 / packet_len_s,
+                &#34;&#34;,
+                1,
+                packet_len_s,
+                0.0,
+                srupa.apim_best_location_to_pyarrow(best_loc, packet.timing_information.packet_start_mach_timestamp),
             )
     return None</code></pre>
 </details>
@@ -885,13 +947,17 @@ data and sample rate</p></div>
     :return: compressed audio sensor data if it exists, None otherwise
     &#34;&#34;&#34;
     if srupa.__has_sensor(packet, srupa.__COMPRESSED_AUDIO_FIELD_NAME):
-        comp_audio: RedvoxPacketM.Sensors.CompressedAudio = (
-            packet.sensors.compressed_audio
-        )
+        comp_audio: RedvoxPacketM.Sensors.CompressedAudio = packet.sensors.compressed_audio
         return PyarrowSummary(
-            comp_audio.sensor_description, srupa.SensorType.COMPRESSED_AUDIO, np.nan,
-            comp_audio.sample_rate, &#34;&#34;, np.nan, 1./comp_audio.sample_rate, 0.,
-            srupa.apim_compressed_audio_to_pyarrow(comp_audio)
+            comp_audio.sensor_description,
+            srupa.SensorType.COMPRESSED_AUDIO,
+            np.nan,
+            comp_audio.sample_rate,
+            &#34;&#34;,
+            np.nan,
+            1.0 / comp_audio.sample_rate,
+            0.0,
+            srupa.apim_compressed_audio_to_pyarrow(comp_audio),
         )
     return None</code></pre>
 </details>
@@ -956,9 +1022,7 @@ data and sample rate</p></div>
     :param packet: packet with data to load
     :return: station health data if it exists, None otherwise
     &#34;&#34;&#34;
-    metrics: RedvoxPacketM.StationInformation.StationMetrics = (
-        packet.station_information.station_metrics
-    )
+    metrics: RedvoxPacketM.StationInformation.StationMetrics = packet.station_information.station_metrics
     timestamps = metrics.timestamps.timestamps
     rate = packet.station_information.app_settings.metrics_rate
     if rate == RedvoxPacketM.StationInformation.MetricsRate.ONCE_PER_SECOND:
@@ -969,8 +1033,15 @@ data and sample rate</p></div>
         sample_rate = np.nan
     if len(timestamps) &gt; 0:
         return PyarrowSummary(
-            &#34;station health&#34;, srupa.SensorType.STATION_HEALTH, np.nan, sample_rate, &#34;&#34;,
-            len(timestamps), 1./sample_rate, 0., srupa.apim_health_to_pyarrow(metrics)
+            &#34;station health&#34;,
+            srupa.SensorType.STATION_HEALTH,
+            np.nan,
+            sample_rate,
+            &#34;&#34;,
+            len(timestamps),
+            1.0 / sample_rate,
+            0.0,
+            srupa.apim_health_to_pyarrow(metrics),
         )
     return None</code></pre>
 </details>
@@ -998,15 +1069,22 @@ data and sample rate</p></div>
         timestamps = image_sensor.timestamps.timestamps
         additional_inputs = packet.station_information.app_settings.additional_input_sensors
         if RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_SECOND in additional_inputs:
-            sample_rate = 1.
+            sample_rate = 1.0
         # elif RedvoxPacketM.StationInformation.AppSettings.InputSensor.IMAGE_PER_PACKET in additional_inputs:
         else:
             sample_rate = 1 / srupa.__packet_duration_s(packet)
         # else:
         #   sample_rate = np.nan
         return PyarrowSummary(
-            image_sensor.sensor_description, srupa.SensorType.IMAGE, np.nan, sample_rate, &#34;&#34;,
-            len(timestamps), 1./sample_rate, 0., srupa.apim_image_to_pyarrow(image_sensor)
+            image_sensor.sensor_description,
+            srupa.SensorType.IMAGE,
+            np.nan,
+            sample_rate,
+            &#34;&#34;,
+            len(timestamps),
+            1.0 / sample_rate,
+            0.0,
+            srupa.apim_image_to_pyarrow(image_sensor),
         )
     return None</code></pre>
 </details>
@@ -1080,10 +1158,17 @@ data and sample rate</p></div>
                 intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(timestamps))))
             else:
                 m_intv = srupa.__packet_duration_s(packet)
-                intv_std = 0.
+                intv_std = 0.0
             return PyarrowSummary(
-                loc.sensor_description, srupa.SensorType.LOCATION, np.nan, np.nan, &#34;&#34;,
-                len(timestamps), m_intv, intv_std, srupa.apim_location_to_pyarrow(loc)
+                loc.sensor_description,
+                srupa.SensorType.LOCATION,
+                np.nan,
+                np.nan,
+                &#34;&#34;,
+                len(timestamps),
+                m_intv,
+                intv_std,
+                srupa.apim_location_to_pyarrow(loc),
             )
     return None</code></pre>
 </details>
@@ -1099,7 +1184,9 @@ data and sample rate</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def load_apim_magnetometer(packet: RedvoxPacketM,) -&gt; Optional[PyarrowSummary]:
+<pre><code class="python">def load_apim_magnetometer(
+    packet: RedvoxPacketM,
+) -&gt; Optional[PyarrowSummary]:
     &#34;&#34;&#34;
     load magnetometer data from a single redvox packet
 
@@ -1245,13 +1332,11 @@ data and sample rate</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def load_single(
-        packet: RedvoxPacketM,
-        sensor_type: srupa.SensorType,
+    packet: RedvoxPacketM,
+    sensor_type: srupa.SensorType,
 ) -&gt; Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
-    sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.Sensor]
-    ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    sensor_fn: Optional[Callable[[RedvoxPacketM], srupa.Sensor]] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
         t = sensor.timestamps.timestamps
@@ -1260,11 +1345,18 @@ data and sample rate</p></div>
             intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
         else:
             m_intv = srupa.__packet_duration_s(packet)
-            intv_std = 0.
+            intv_std = 0.0
         if len(t) &gt; 0:
             return PyarrowSummary(
-                sensor.sensor_description, sensor_type, np.nan, np.nan, &#34;&#34;,
-                len(t), m_intv, intv_std, srupa.read_apim_single_sensor(sensor, field_name)
+                sensor.sensor_description,
+                sensor_type,
+                np.nan,
+                np.nan,
+                &#34;&#34;,
+                len(t),
+                m_intv,
+                intv_std,
+                srupa.read_apim_single_sensor(sensor, field_name),
             )
     return None</code></pre>
 </details>
@@ -1279,13 +1371,11 @@ data and sample rate</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def load_xyz(
-        packet: RedvoxPacketM,
-        sensor_type: srupa.SensorType,
+    packet: RedvoxPacketM,
+    sensor_type: srupa.SensorType,
 ) -&gt; Optional[PyarrowSummary]:
     field_name: str = srupa.__SENSOR_TYPE_TO_FIELD_NAME[sensor_type]
-    sensor_fn: Optional[
-        Callable[[RedvoxPacketM], srupa.Sensor]
-    ] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
+    sensor_fn: Optional[Callable[[RedvoxPacketM], srupa.Sensor]] = srupa.__SENSOR_TYPE_TO_SENSOR_FN[sensor_type]
     if srupa.__has_sensor(packet, field_name) and sensor_fn is not None:
         sensor = sensor_fn(packet)
         t = sensor.timestamps.timestamps
@@ -1294,13 +1384,20 @@ data and sample rate</p></div>
             intv_std = dtu.microseconds_to_seconds(float(np.std(np.diff(t))))
         else:
             m_intv = srupa.__packet_duration_s(packet)
-            intv_std = 0.
+            intv_std = 0.0
         if len(t) &gt; 0:
             # read packet.station_information.app_settings.additional_input_sensors for fast sensors
             # rename if needed
             return PyarrowSummary(
-                sensor.sensor_description, sensor_type, np.nan, np.nan, &#34;&#34;,
-                len(t), m_intv, intv_std, srupa.read_apim_xyz_sensor(sensor, field_name)
+                sensor.sensor_description,
+                sensor_type,
+                np.nan,
+                np.nan,
+                &#34;&#34;,
+                len(t),
+                m_intv,
+                intv_std,
+                srupa.read_apim_xyz_sensor(sensor, field_name),
             )
     return None</code></pre>
 </details>
@@ -1309,22 +1406,22 @@ data and sample rate</p></div>
 <span>def <span class="ident">packet_to_pyarrow</span></span>(<span>packet: src.redvox_api_m.redvox_api_m_pb2.RedvoxPacketM, out_dir: Optional[str] = None) ‑> <a title="redvox.common.packet_to_pyarrow.AggregateSummary" href="#redvox.common.packet_to_pyarrow.AggregateSummary">AggregateSummary</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>gets non-audio sensor information by writing it into folders with the sensor names to the out_dir</p>
+<div class="desc"><p>gets non-audio sensor information by keeping it memory or writing it into folders named with the sensor names</p>
 <p>:param packet: packet to extract data from
 :param out_dir: optional directory to write the pyarrow files to; if None, don't write files.
 default None
-:return: sensor type: sensor name, start_timestamp, sample rate (if fixed, np.nan otherwise)</p></div>
+:return: AggregateSummary of the sensors' metadata, data, and location of the data if written to disk</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def packet_to_pyarrow(packet: RedvoxPacketM, out_dir: Optional[str] = None) -&gt; AggregateSummary:
     &#34;&#34;&#34;
-    gets non-audio sensor information by writing it into folders with the sensor names to the out_dir
+    gets non-audio sensor information by keeping it memory or writing it into folders named with the sensor names
 
     :param packet: packet to extract data from
     :param out_dir: optional directory to write the pyarrow files to; if None, don&#39;t write files.  default None
-    :return: sensor type: sensor name, start_timestamp, sample rate (if fixed, np.nan otherwise)
+    :return: AggregateSummary of the sensors&#39; metadata, data, and location of the data if written to disk
     &#34;&#34;&#34;
     result = AggregateSummary()
     packet_start = int(packet.timing_information.packet_start_mach_timestamp)
@@ -1368,7 +1465,7 @@ default None
 <p>:param packets: redvox packets to convert
 :param out_dir: optional directory to write the pyarrow files to; if None, don't write files.
 default None
-:return: summary of the sensors, their data and their file locations if possible</p></div>
+:return: AggregateSummary of the sensors' metadata, data, and location of the data if written to disk</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1379,7 +1476,7 @@ default None
 
     :param packets: redvox packets to convert
     :param out_dir: optional directory to write the pyarrow files to; if None, don&#39;t write files.  default None
-    :return: summary of the sensors, their data and their file locations if possible
+    :return: AggregateSummary of the sensors&#39; metadata, data, and location of the data if written to disk
     &#34;&#34;&#34;
     summary = AggregateSummary()
     for k in map(packet_to_pyarrow, packets, repeat(out_dir)):
@@ -1417,32 +1514,12 @@ class AggregateSummary:
         summaries: the summaries of sensors
         gaps: gaps in audio data as a list of tuples of start and end time
     &#34;&#34;&#34;
+
     summaries: List[PyarrowSummary] = field(default_factory=lambda: [])
     gaps: List[Tuple[float, float]] = field(default_factory=lambda: [])
     errors: RedVoxExceptions = RedVoxExceptions(&#34;AggregateSummary&#34;)
 
-    def to_dict(self) -&gt; dict:
-        &#34;&#34;&#34;
-        :return: dictionary representation of all summaries
-        &#34;&#34;&#34;
-        result = {}
-        for ps in self.summaries:
-            result[ps.stype.name] = ps.to_dict()
-        return result
-
-    @staticmethod
-    def from_dict(summary_dict: dict) -&gt; &#34;AggregateSummary&#34;:
-        &#34;&#34;&#34;
-        :param summary_dict: dictionary to load data from
-        :return: AggregateSummary from a dictionary
-        &#34;&#34;&#34;
-        result = AggregateSummary()
-        for v in summary_dict.values():
-            result.summaries.append(PyarrowSummary(v[&#34;name&#34;], SensorType[v[&#34;stype&#34;]], v[&#34;start&#34;], v[&#34;srate_hz&#34;],
-                                                   v[&#34;fdir&#34;], v[&#34;scount&#34;], v[&#34;smint_s&#34;], v[&#34;sstd_s&#34;]))
-        return result
-
-    def add_aggregate_summary(self, agg_sum: &#39;AggregateSummary&#39;):
+    def add_aggregate_summary(self, agg_sum: &#34;AggregateSummary&#34;):
         &#34;&#34;&#34;
         adds another aggregate summary to this one
 
@@ -1469,13 +1546,19 @@ class AggregateSummary:
         for adl in audio_lst:
             pckt_info.append((int(adl.start), adl.data()))
 
-        audio_data = gpu.fill_audio_gaps(pckt_info,
-                                         dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
-                                         )
+        audio_data = gpu.fill_audio_gaps(pckt_info, dtu.seconds_to_microseconds(1 / frst_audio.srate_hz))
         tbl = audio_data.create_timestamps()
-        frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
-                                    frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
-                                    tbl)
+        frst_audio = PyarrowSummary(
+            frst_audio.name,
+            frst_audio.stype,
+            frst_audio.start,
+            frst_audio.srate_hz,
+            frst_audio.fdir,
+            tbl.num_rows,
+            frst_audio.smint_s,
+            frst_audio.sstd_s,
+            tbl,
+        )
         if not use_mem:
             frst_audio.write_data(True)
 
@@ -1521,15 +1604,24 @@ class AggregateSummary:
                     mnint = np.nan
                     stdint = np.nan
                 if not combined_mint + combined_std &gt; mnint &gt; combined_mint - combined_std:
-                    self.errors.append(f&#34;Mean interval s of combined {styp.name} sensor does not match the &#34;
-                                       f&#34;compilation of individual mean interval s per packet.  Will use compilation &#34;
-                                       f&#34;of individual values.&#34;)
+                    self.errors.append(
+                        f&#34;Mean interval s of combined {styp.name} sensor does not match the &#34;
+                        f&#34;compilation of individual mean interval s per packet.  Will use compilation &#34;
+                        f&#34;of individual values.&#34;
+                    )
                     mnint = combined_mint
                     stdint = combined_std
-                single_smry = PyarrowSummary(first_summary.name, styp, first_summary.start,
-                                             1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
-                                             first_summary.data() if first_summary.check_data() else None
-                                             )
+                single_smry = PyarrowSummary(
+                    first_summary.name,
+                    styp,
+                    first_summary.start,
+                    1 / mnint,
+                    first_summary.fdir,
+                    tbl.num_rows,
+                    mnint,
+                    stdint,
+                    first_summary.data() if first_summary.check_data() else None,
+                )
                 self.summaries.append(single_smry)
 
     def merge_summaries_of_type(self, stype: SensorType):
@@ -1560,10 +1652,17 @@ class AggregateSummary:
                 os.remove(smrys.file_name())
         mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
         stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
-        single_smry = PyarrowSummary(first_summary.name, first_summary.stype, first_summary.start,
-                                     1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
-                                     first_summary.data() if first_summary.check_data() else None
-                                     )
+        single_smry = PyarrowSummary(
+            first_summary.name,
+            first_summary.stype,
+            first_summary.start,
+            1 / mnint,
+            first_summary.fdir,
+            tbl.num_rows,
+            mnint,
+            stdint,
+            first_summary.data() if first_summary.check_data() else None,
+        )
         self.summaries = other_smrs
         self.summaries.append(single_smry)
 
@@ -1725,7 +1824,7 @@ def schema(cls: Type[A],
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def add_aggregate_summary(self, agg_sum: &#39;AggregateSummary&#39;):
+<pre><code class="python">def add_aggregate_summary(self, agg_sum: &#34;AggregateSummary&#34;):
     &#34;&#34;&#34;
     adds another aggregate summary to this one
 
@@ -1860,13 +1959,19 @@ def schema(cls: Type[A],
     for adl in audio_lst:
         pckt_info.append((int(adl.start), adl.data()))
 
-    audio_data = gpu.fill_audio_gaps(pckt_info,
-                                     dtu.seconds_to_microseconds(1 / frst_audio.srate_hz)
-                                     )
+    audio_data = gpu.fill_audio_gaps(pckt_info, dtu.seconds_to_microseconds(1 / frst_audio.srate_hz))
     tbl = audio_data.create_timestamps()
-    frst_audio = PyarrowSummary(frst_audio.name, frst_audio.stype, frst_audio.start, frst_audio.srate_hz,
-                                frst_audio.fdir, tbl.num_rows, frst_audio.smint_s, frst_audio.sstd_s,
-                                tbl)
+    frst_audio = PyarrowSummary(
+        frst_audio.name,
+        frst_audio.stype,
+        frst_audio.start,
+        frst_audio.srate_hz,
+        frst_audio.fdir,
+        tbl.num_rows,
+        frst_audio.smint_s,
+        frst_audio.sstd_s,
+        tbl,
+    )
     if not use_mem:
         frst_audio.write_data(True)
 
@@ -1922,15 +2027,24 @@ def schema(cls: Type[A],
                 mnint = np.nan
                 stdint = np.nan
             if not combined_mint + combined_std &gt; mnint &gt; combined_mint - combined_std:
-                self.errors.append(f&#34;Mean interval s of combined {styp.name} sensor does not match the &#34;
-                                   f&#34;compilation of individual mean interval s per packet.  Will use compilation &#34;
-                                   f&#34;of individual values.&#34;)
+                self.errors.append(
+                    f&#34;Mean interval s of combined {styp.name} sensor does not match the &#34;
+                    f&#34;compilation of individual mean interval s per packet.  Will use compilation &#34;
+                    f&#34;of individual values.&#34;
+                )
                 mnint = combined_mint
                 stdint = combined_std
-            single_smry = PyarrowSummary(first_summary.name, styp, first_summary.start,
-                                         1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
-                                         first_summary.data() if first_summary.check_data() else None
-                                         )
+            single_smry = PyarrowSummary(
+                first_summary.name,
+                styp,
+                first_summary.start,
+                1 / mnint,
+                first_summary.fdir,
+                tbl.num_rows,
+                mnint,
+                stdint,
+                first_summary.data() if first_summary.check_data() else None,
+            )
             self.summaries.append(single_smry)</code></pre>
 </details>
 </dd>
@@ -1973,10 +2087,17 @@ def schema(cls: Type[A],
             os.remove(smrys.file_name())
     mnint = dtu.microseconds_to_seconds(float(np.mean(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
     stdint = dtu.microseconds_to_seconds(float(np.std(np.diff(tbl[&#34;timestamps&#34;].to_numpy()))))
-    single_smry = PyarrowSummary(first_summary.name, first_summary.stype, first_summary.start,
-                                 1 / mnint, first_summary.fdir, tbl.num_rows, mnint, stdint,
-                                 first_summary.data() if first_summary.check_data() else None
-                                 )
+    single_smry = PyarrowSummary(
+        first_summary.name,
+        first_summary.stype,
+        first_summary.start,
+        1 / mnint,
+        first_summary.fdir,
+        tbl.num_rows,
+        mnint,
+        stdint,
+        first_summary.data() if first_summary.check_data() else None,
+    )
     self.summaries = other_smrs
     self.summaries.append(single_smry)</code></pre>
 </details>
@@ -2094,6 +2215,7 @@ class PyarrowSummary:
 
         _data: optional data as a Pyarrow Table
     &#34;&#34;&#34;
+
     name: str
     stype: srupa.SensorType
     start: float
@@ -2103,21 +2225,6 @@ class PyarrowSummary:
     smint_s: float = np.nan
     sstd_s: float = np.nan
     _data: Optional[pa.Table] = None
-
-    def to_dict(self) -&gt; dict:
-        &#34;&#34;&#34;
-        :return: dictionary representation of the data
-        &#34;&#34;&#34;
-        return {
-            &#34;name&#34;: self.name,
-            &#34;stype&#34;: self.stype.name,
-            &#34;start&#34;: self.start,
-            &#34;srate_hz&#34;: self.srate_hz,
-            &#34;fdir&#34;: self.fdir,
-            &#34;smint_s&#34;: self.smint_s,
-            &#34;sstd_s&#34;: self.sstd_s,
-            &#34;scount&#34;: self.scount
-        }
 
     def file_name(self) -&gt; str:
         &#34;&#34;&#34;

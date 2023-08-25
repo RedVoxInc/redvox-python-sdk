@@ -33,12 +33,9 @@ This module provides IO primitives for working with timesync data.
 from pathlib import Path
 import json
 from typing import (
-    Dict,
     Optional,
     TYPE_CHECKING,
 )
-
-from redvox.common.io import json_file_to_dict
 
 import pyarrow.parquet as pq
 
@@ -47,15 +44,16 @@ if TYPE_CHECKING:
     from redvox.common.timesync import TimeSync
 
 
-def to_json(timesync: &#34;TimeSync&#34;,) -&gt; str:
+def to_json(
+    timesync: &#34;TimeSync&#34;,
+) -&gt; str:
     &#34;&#34;&#34;
     :return: timesync as json string
     &#34;&#34;&#34;
     return json.dumps(timesync.as_dict())
 
 
-def to_json_file(timesync: &#34;TimeSync&#34;,
-                 file_name: Optional[str] = None) -&gt; Path:
+def to_json_file(timesync: &#34;TimeSync&#34;, file_name: Optional[str] = None) -&gt; Path:
     &#34;&#34;&#34;
     saves the timesync as json and data in the same directory.
 
@@ -64,14 +62,9 @@ def to_json_file(timesync: &#34;TimeSync&#34;,
                         If None, uses the timesync&#39;s file name.
     :return: path to json file
     &#34;&#34;&#34;
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else timesync.arrow_file
-    )
+    _file_name: str = file_name if file_name is not None else timesync.arrow_file
     file_path: Path = Path(timesync.arrow_dir).joinpath(f&#34;{_file_name}.json&#34;)
-    pq.write_table(timesync.data_as_pyarrow(),
-                   Path(timesync.arrow_dir).joinpath(f&#34;{_file_name}.parquet&#34;))
+    pq.write_table(timesync.data_as_pyarrow(), Path(timesync.arrow_dir).joinpath(f&#34;{_file_name}.parquet&#34;))
     with open(file_path, &#34;w&#34;) as f_p:
         f_p.write(to_json(timesync))
         return file_path.resolve(False)</code></pre>
@@ -93,7 +86,9 @@ def to_json_file(timesync: &#34;TimeSync&#34;,
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_json(timesync: &#34;TimeSync&#34;,) -&gt; str:
+<pre><code class="python">def to_json(
+    timesync: &#34;TimeSync&#34;,
+) -&gt; str:
     &#34;&#34;&#34;
     :return: timesync as json string
     &#34;&#34;&#34;
@@ -114,8 +109,7 @@ If None, uses the timesync's file name.
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_json_file(timesync: &#34;TimeSync&#34;,
-                 file_name: Optional[str] = None) -&gt; Path:
+<pre><code class="python">def to_json_file(timesync: &#34;TimeSync&#34;, file_name: Optional[str] = None) -&gt; Path:
     &#34;&#34;&#34;
     saves the timesync as json and data in the same directory.
 
@@ -124,14 +118,9 @@ If None, uses the timesync's file name.
                         If None, uses the timesync&#39;s file name.
     :return: path to json file
     &#34;&#34;&#34;
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else timesync.arrow_file
-    )
+    _file_name: str = file_name if file_name is not None else timesync.arrow_file
     file_path: Path = Path(timesync.arrow_dir).joinpath(f&#34;{_file_name}.json&#34;)
-    pq.write_table(timesync.data_as_pyarrow(),
-                   Path(timesync.arrow_dir).joinpath(f&#34;{_file_name}.parquet&#34;))
+    pq.write_table(timesync.data_as_pyarrow(), Path(timesync.arrow_dir).joinpath(f&#34;{_file_name}.parquet&#34;))
     with open(file_path, &#34;w&#34;) as f_p:
         f_p.write(to_json(timesync))
         return file_path.resolve(False)</code></pre>

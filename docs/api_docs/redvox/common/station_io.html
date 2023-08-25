@@ -38,22 +38,21 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from redvox.common.io import get_json_file, json_file_to_dict, json_to_dict
-
 
 if TYPE_CHECKING:
     from redvox.common.station import Station
 
 
-def to_json(station: &#34;Station&#34;,) -&gt; str:
+def to_json(
+    station: &#34;Station&#34;,
+) -&gt; str:
     &#34;&#34;&#34;
     :return: station as json string
     &#34;&#34;&#34;
     return json.dumps(station.as_dict())
 
 
-def to_json_file(station: &#34;Station&#34;,
-                 file_name: Optional[str] = None) -&gt; Path:
+def to_json_file(station: &#34;Station&#34;, file_name: Optional[str] = None) -&gt; Path:
     &#34;&#34;&#34;
     saves the station as json and data in the same directory.
 
@@ -62,21 +61,15 @@ def to_json_file(station: &#34;Station&#34;,
                         If None, uses the default [id]_[startdate].json
     :return: path to json file
     &#34;&#34;&#34;
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else station.default_station_json_file_name()
-    )
+    _file_name: str = file_name if file_name is not None else station.default_station_json_file_name()
 
     # write the sensor objects, using the default values
     for datas in station.data():
         datas.to_json_file()
 
-    # ts_dir = os.path.join(station.save_dir(), &#34;timesync&#34;)
     os.makedirs(station.timesync_data().arrow_dir, exist_ok=True)
     station.timesync_data().to_json_file()
 
-    # ev_dir = os.path.join(station.save_dir(), &#34;events&#34;)
     os.makedirs(station.get_event_data_dir(), exist_ok=True)
     station.event_data().to_json_file(station.get_event_data_dir())
 
@@ -102,7 +95,9 @@ def to_json_file(station: &#34;Station&#34;,
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_json(station: &#34;Station&#34;,) -&gt; str:
+<pre><code class="python">def to_json(
+    station: &#34;Station&#34;,
+) -&gt; str:
     &#34;&#34;&#34;
     :return: station as json string
     &#34;&#34;&#34;
@@ -123,8 +118,7 @@ If None, uses the default [id]_[startdate].json
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def to_json_file(station: &#34;Station&#34;,
-                 file_name: Optional[str] = None) -&gt; Path:
+<pre><code class="python">def to_json_file(station: &#34;Station&#34;, file_name: Optional[str] = None) -&gt; Path:
     &#34;&#34;&#34;
     saves the station as json and data in the same directory.
 
@@ -133,21 +127,15 @@ If None, uses the default [id]_[startdate].json
                         If None, uses the default [id]_[startdate].json
     :return: path to json file
     &#34;&#34;&#34;
-    _file_name: str = (
-        file_name
-        if file_name is not None
-        else station.default_station_json_file_name()
-    )
+    _file_name: str = file_name if file_name is not None else station.default_station_json_file_name()
 
     # write the sensor objects, using the default values
     for datas in station.data():
         datas.to_json_file()
 
-    # ts_dir = os.path.join(station.save_dir(), &#34;timesync&#34;)
     os.makedirs(station.timesync_data().arrow_dir, exist_ok=True)
     station.timesync_data().to_json_file()
 
-    # ev_dir = os.path.join(station.save_dir(), &#34;events&#34;)
     os.makedirs(station.get_event_data_dir(), exist_ok=True)
     station.event_data().to_json_file(station.get_event_data_dir())
 

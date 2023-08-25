@@ -6,7 +6,7 @@
 <meta name="generator" content="pdoc 0.10.0" />
 <title>redvox.common.timesync API documentation</title>
 <meta name="description" content="Modules for extracting time synchronization statistics for API 900 and 1000 data.
-Currently uses API M packets due to versatility of the packet.
+Expects API M packets due to versatility of the packet.
 Also …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -25,7 +25,7 @@ Also …" />
 </header>
 <section id="section-intro">
 <p>Modules for extracting time synchronization statistics for API 900 and 1000 data.
-Currently uses API M packets due to versatility of the packet.
+Expects API M packets due to versatility of the packet.
 Also includes functions for correcting time arrays.
 ALL timestamps in microseconds unless otherwise stated</p>
 <details class="source">
@@ -34,7 +34,7 @@ ALL timestamps in microseconds unless otherwise stated</p>
 </summary>
 <pre><code class="python">&#34;&#34;&#34;
 Modules for extracting time synchronization statistics for API 900 and 1000 data.
-Currently uses API M packets due to versatility of the packet.
+Expects API M packets due to versatility of the packet.
 Also includes functions for correcting time arrays.
 ALL timestamps in microseconds unless otherwise stated
 &#34;&#34;&#34;
@@ -50,14 +50,13 @@ import pyarrow as pa
 import pyarrow.dataset as ds
 
 import redvox.common.timesync_io as io
+from redvox.common.io import json_file_to_dict
 import redvox.api900.lib.api900_pb2 as api900_pb2
 from redvox.api1000.proto.redvox_api_m_pb2 import RedvoxPacketM
 from redvox.api900.lib.api900_pb2 import RedvoxPacket
 import redvox.api900.reader_utils as util_900
 from redvox.common.offset_model import OffsetModel
-from redvox.common import (
-    tri_message_stats as tms,
-)
+from redvox.common import tri_message_stats as tms
 
 
 class TimeSync:
@@ -105,22 +104,22 @@ class TimeSync:
     &#34;&#34;&#34;
 
     def __init__(
-            self,
-            time_sync_exchanges_list: Optional[List[float]] = None,
-            latencies: Optional[np.ndarray] = None,
-            best_latency: float = np.nan,
-            mean_latency: float = np.nan,
-            latency_std: float = np.nan,
-            offsets: Optional[np.ndarray] = None,
-            best_offset: float = 0.0,
-            mean_offset: float = np.nan,
-            offset_std: float = np.nan,
-            data_start: float = np.nan,
-            data_end: float = np.nan,
-            best_latency_index: int = np.nan,
-            best_array_index: int = 0,
-            arrow_dir: str = &#34;.&#34;,
-            arrow_file_name: str = &#34;timesync&#34;
+        self,
+        time_sync_exchanges_list: Optional[List[float]] = None,
+        latencies: Optional[np.ndarray] = None,
+        best_latency: float = np.nan,
+        mean_latency: float = np.nan,
+        latency_std: float = np.nan,
+        offsets: Optional[np.ndarray] = None,
+        best_offset: float = 0.0,
+        mean_offset: float = np.nan,
+        offset_std: float = np.nan,
+        data_start: float = np.nan,
+        data_end: float = np.nan,
+        best_latency_index: int = np.nan,
+        best_array_index: int = 0,
+        arrow_dir: str = &#34;.&#34;,
+        arrow_file_name: str = &#34;timesync&#34;,
     ):
         &#34;&#34;&#34;
         Initialize properties
@@ -136,8 +135,8 @@ class TimeSync:
         :param offset_std: the standard deviation of all offsets, default np.nan
         :param data_start: the start timestamp of the data, default np.nan
         :param data_end: the end timestamp of the data, default np.nan
-        :param best_latency_index: index of best latency in latencies array, default np.nan
-        :param best_array_index: index of best latency array; must be either 1 (first array) or 3 (second array),
+        :param best_latency_index: index of the best latency in latencies array, default np.nan
+        :param best_array_index: index of the best latency array; must be either 1 (first array) or 3 (second array),
                                     any other value is invalid, default 0
         :param arrow_dir: directory to save timesync data in, default &#34;.&#34;
         :param arrow_file_name: name of file to save timesync data as.  do not include extensions.  default &#34;timesync&#34;
@@ -162,10 +161,9 @@ class TimeSync:
             self._best_exchange_index_list = []
             self._offset_model: OffsetModel = OffsetModel.empty_model()
         else:
-            self._time_sync_exchanges_list = np.transpose([
-                time_sync_exchanges_list[i: i + 6]
-                for i in range(0, len(time_sync_exchanges_list), 6)
-            ])
+            self._time_sync_exchanges_list = np.transpose(
+                [time_sync_exchanges_list[i : i + 6] for i in range(0, len(time_sync_exchanges_list), 6)]
+            )
             if self._latencies is None:
                 if not np.isnan(self._data_start):
                     self._data_start = self.get_exchange_timestamps(4)[0]
@@ -174,22 +172,26 @@ class TimeSync:
                 self._stats_from_exchanges()
 
     def __repr__(self):
-        return f&#34;best_latency_index: {self._best_latency_index}, &#34; \
-               f&#34;best_latency: {self._best_latency}, &#34; \
-               f&#34;mean_latency: {self._mean_latency}, &#34; \
-               f&#34;latency_std: {self._latency_std}, &#34; \
-               f&#34;best_offset: {self._best_offset}, &#34; \
-               f&#34;mean_offset: {self._mean_offset}, &#34; \
-               f&#34;offset_std: {self._offset_std}&#34;
+        return (
+            f&#34;best_latency_index: {self._best_latency_index}, &#34;
+            f&#34;best_latency: {self._best_latency}, &#34;
+            f&#34;mean_latency: {self._mean_latency}, &#34;
+            f&#34;latency_std: {self._latency_std}, &#34;
+            f&#34;best_offset: {self._best_offset}, &#34;
+            f&#34;mean_offset: {self._mean_offset}, &#34;
+            f&#34;offset_std: {self._offset_std}&#34;
+        )
 
     def __str__(self):
-        return f&#34;best_latency_index: {self._best_latency_index}, &#34; \
-               f&#34;best_latency: {self._best_latency}, &#34; \
-               f&#34;mean_latency: {self._mean_latency}, &#34; \
-               f&#34;latency_std: {self._latency_std}, &#34; \
-               f&#34;best_offset: {self._best_offset}, &#34; \
-               f&#34;mean_offset: {self._mean_offset}, &#34; \
-               f&#34;offset_std: {self._offset_std}&#34;
+        return (
+            f&#34;best_latency_index: {self._best_latency_index}, &#34;
+            f&#34;best_latency: {self._best_latency}, &#34;
+            f&#34;mean_latency: {self._mean_latency}, &#34;
+            f&#34;latency_std: {self._latency_std}, &#34;
+            f&#34;best_offset: {self._best_offset}, &#34;
+            f&#34;mean_offset: {self._mean_offset}, &#34;
+            f&#34;offset_std: {self._offset_std}&#34;
+        )
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -207,7 +209,7 @@ class TimeSync:
             &#34;data_start&#34;: self._data_start,
             &#34;data_end&#34;: self._data_end,
             &#34;arrow_dir&#34;: self.arrow_dir,
-            &#34;arrow_file_name&#34;: self.arrow_file
+            &#34;arrow_file_name&#34;: self.arrow_file,
         }
 
     def to_json(self):
@@ -235,17 +237,39 @@ class TimeSync:
         :param file_path: full path of file to load data from.
         :return: TimeSyncArrow object
         &#34;&#34;&#34;
-        json_data = io.json_file_to_dict(file_path)
-        data = ds.dataset(os.path.join(json_data[&#34;arrow_dir&#34;], json_data[&#34;arrow_file_name&#34;] + &#34;.parquet&#34;),
-                          format=&#34;parquet&#34;, exclude_invalid_files=True).to_table()
-        result = TimeSync(None, np.array((data[&#34;latencies1&#34;], data[&#34;latencies3&#34;])),
-                          json_data[&#34;best_latency&#34;], json_data[&#34;mean_latency&#34;], json_data[&#34;latency_std&#34;],
-                          np.array((data[&#34;offsets1&#34;], data[&#34;offsets3&#34;])),
-                          json_data[&#34;best_offset&#34;], json_data[&#34;mean_offset&#34;], json_data[&#34;offset_std&#34;],
-                          json_data[&#34;data_start&#34;], json_data[&#34;data_end&#34;], json_data[&#34;best_latency_index&#34;],
-                          json_data[&#34;best_msg_array_index&#34;], json_data[&#34;arrow_dir&#34;], json_data[&#34;arrow_file_name&#34;])
-        result.set_sync_exchanges([data[&#34;a1&#34;].to_numpy(), data[&#34;a2&#34;].to_numpy(), data[&#34;a3&#34;].to_numpy(),
-                                   data[&#34;b1&#34;].to_numpy(), data[&#34;b2&#34;].to_numpy(), data[&#34;b3&#34;].to_numpy()])
+        json_data = json_file_to_dict(file_path)
+        data = ds.dataset(
+            os.path.join(json_data[&#34;arrow_dir&#34;], json_data[&#34;arrow_file_name&#34;] + &#34;.parquet&#34;),
+            format=&#34;parquet&#34;,
+            exclude_invalid_files=True,
+        ).to_table()
+        result = TimeSync(
+            None,
+            np.array((data[&#34;latencies1&#34;], data[&#34;latencies3&#34;])),
+            json_data[&#34;best_latency&#34;],
+            json_data[&#34;mean_latency&#34;],
+            json_data[&#34;latency_std&#34;],
+            np.array((data[&#34;offsets1&#34;], data[&#34;offsets3&#34;])),
+            json_data[&#34;best_offset&#34;],
+            json_data[&#34;mean_offset&#34;],
+            json_data[&#34;offset_std&#34;],
+            json_data[&#34;data_start&#34;],
+            json_data[&#34;data_end&#34;],
+            json_data[&#34;best_latency_index&#34;],
+            json_data[&#34;best_msg_array_index&#34;],
+            json_data[&#34;arrow_dir&#34;],
+            json_data[&#34;arrow_file_name&#34;],
+        )
+        result.set_sync_exchanges(
+            [
+                data[&#34;a1&#34;].to_numpy(),
+                data[&#34;a2&#34;].to_numpy(),
+                data[&#34;a3&#34;].to_numpy(),
+                data[&#34;b1&#34;].to_numpy(),
+                data[&#34;b2&#34;].to_numpy(),
+                data[&#34;b3&#34;].to_numpy(),
+            ]
+        )
         return result
 
     @staticmethod
@@ -263,18 +287,20 @@ class TimeSync:
         &#34;&#34;&#34;
         :return: convert timesync exchanges, latencies, and offsets into a pyarrow table
         &#34;&#34;&#34;
-        return pa.Table.from_pydict({
-            &#34;a1&#34;: self._time_sync_exchanges_list[0],
-            &#34;a2&#34;: self._time_sync_exchanges_list[1],
-            &#34;a3&#34;: self._time_sync_exchanges_list[2],
-            &#34;b1&#34;: self._time_sync_exchanges_list[3],
-            &#34;b2&#34;: self._time_sync_exchanges_list[4],
-            &#34;b3&#34;: self._time_sync_exchanges_list[5],
-            &#34;latencies1&#34;: self._latencies[0],
-            &#34;latencies3&#34;: self._latencies[1],
-            &#34;offsets1&#34;: self._offsets[0],
-            &#34;offsets3&#34;: self._offsets[1]
-        })
+        return pa.Table.from_pydict(
+            {
+                &#34;a1&#34;: self._time_sync_exchanges_list[0],
+                &#34;a2&#34;: self._time_sync_exchanges_list[1],
+                &#34;a3&#34;: self._time_sync_exchanges_list[2],
+                &#34;b1&#34;: self._time_sync_exchanges_list[3],
+                &#34;b2&#34;: self._time_sync_exchanges_list[4],
+                &#34;b3&#34;: self._time_sync_exchanges_list[5],
+                &#34;latencies1&#34;: self._latencies[0],
+                &#34;latencies3&#34;: self._latencies[1],
+                &#34;offsets1&#34;: self._offsets[0],
+                &#34;offsets3&#34;: self._offsets[1],
+            }
+        )
 
     def _stats_from_exchanges(self):
         &#34;&#34;&#34;
@@ -307,9 +333,13 @@ class TimeSync:
             self._latencies = np.array((tse.latency1, tse.latency3))
             self._offsets = np.array((tse.offset1, tse.offset3))
             if not np.isnan(self._data_start) and not np.isnan(self._data_end):
-                self._offset_model = OffsetModel(self._latencies.flatten(), self._offsets.flatten(),
-                                                 self.get_device_exchanges_timestamps(),
-                                                 self._data_start, self._data_end)
+                self._offset_model = OffsetModel(
+                    self._latencies.flatten(),
+                    self._offsets.flatten(),
+                    self.get_device_exchanges_timestamps(),
+                    self._data_start,
+                    self._data_end,
+                )
                 # Compute the statistics for latency using the model
                 self._mean_latency = self._offset_model.mean_latency
                 self._latency_std = self._offset_model.std_dev_latency
@@ -375,18 +405,24 @@ class TimeSync:
 
         :param new_data: another TimeSyncArrow object
         &#34;&#34;&#34;
-        self._time_sync_exchanges_list[0] = np.append(self._time_sync_exchanges_list[0],
-                                                      new_data._time_sync_exchanges_list[0])
-        self._time_sync_exchanges_list[1] = np.append(self._time_sync_exchanges_list[1],
-                                                      new_data._time_sync_exchanges_list[1])
-        self._time_sync_exchanges_list[2] = np.append(self._time_sync_exchanges_list[2],
-                                                      new_data._time_sync_exchanges_list[2])
-        self._time_sync_exchanges_list[3] = np.append(self._time_sync_exchanges_list[3],
-                                                      new_data._time_sync_exchanges_list[3])
-        self._time_sync_exchanges_list[4] = np.append(self._time_sync_exchanges_list[4],
-                                                      new_data._time_sync_exchanges_list[4])
-        self._time_sync_exchanges_list[5] = np.append(self._time_sync_exchanges_list[5],
-                                                      new_data._time_sync_exchanges_list[5])
+        self._time_sync_exchanges_list[0] = np.append(
+            self._time_sync_exchanges_list[0], new_data._time_sync_exchanges_list[0]
+        )
+        self._time_sync_exchanges_list[1] = np.append(
+            self._time_sync_exchanges_list[1], new_data._time_sync_exchanges_list[1]
+        )
+        self._time_sync_exchanges_list[2] = np.append(
+            self._time_sync_exchanges_list[2], new_data._time_sync_exchanges_list[2]
+        )
+        self._time_sync_exchanges_list[3] = np.append(
+            self._time_sync_exchanges_list[3], new_data._time_sync_exchanges_list[3]
+        )
+        self._time_sync_exchanges_list[4] = np.append(
+            self._time_sync_exchanges_list[4], new_data._time_sync_exchanges_list[4]
+        )
+        self._time_sync_exchanges_list[5] = np.append(
+            self._time_sync_exchanges_list[5], new_data._time_sync_exchanges_list[5]
+        )
         if np.isnan(self._data_start):
             self._data_start = new_data._data_start
         elif not np.isnan(new_data._data_start):
@@ -397,7 +433,7 @@ class TimeSync:
             self._data_end = np.max([self._data_end, new_data._data_end])
         self._stats_from_exchanges()
 
-    def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -&gt; &#39;TimeSync&#39;:
+    def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -&gt; &#34;TimeSync&#34;:
         &#34;&#34;&#34;
         converts packets into TimeSyncData objects, then performs analysis
 
@@ -417,9 +453,13 @@ class TimeSync:
         packet: Union[RedvoxPacketM, RedvoxPacket]
         for packet in packets:
             if isinstance(packet, RedvoxPacketM):
-                all_exchanges.extend(reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
-                                            packet.timing_information.synch_exchanges,
-                                            []))
+                all_exchanges.extend(
+                    reduce(
+                        lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
+                        packet.timing_information.synch_exchanges,
+                        [],
+                    )
+                )
             else:
                 # Get synch exchanges
                 ch: api900_pb2.UnevenlySampledChannel
@@ -428,9 +468,9 @@ class TimeSync:
                         all_exchanges.extend(util_900.extract_payload(ch))
 
         if len(all_exchanges) &gt; 0:
-            self._time_sync_exchanges_list = np.transpose([
-                all_exchanges[i: i + 6] for i in range(0, len(all_exchanges), 6)
-            ])
+            self._time_sync_exchanges_list = np.transpose(
+                [all_exchanges[i : i + 6] for i in range(0, len(all_exchanges), 6)]
+            )
             self._stats_from_exchanges()
         return self
 
@@ -476,7 +516,7 @@ class TimeSync:
 
     def best_latency_index(self) -&gt; int:
         &#34;&#34;&#34;
-        :return: index/position of best latency or np.nan if no best latency exists
+        :return: index/position of the best latency or np.nan if no best latency exists
         &#34;&#34;&#34;
         return self._best_latency_index
 
@@ -666,8 +706,8 @@ Default 0</p>
 :param offset_std: the standard deviation of all offsets, default np.nan
 :param data_start: the start timestamp of the data, default np.nan
 :param data_end: the end timestamp of the data, default np.nan
-:param best_latency_index: index of best latency in latencies array, default np.nan
-:param best_array_index: index of best latency array; must be either 1 (first array) or 3 (second array),
+:param best_latency_index: index of the best latency in latencies array, default np.nan
+:param best_array_index: index of the best latency array; must be either 1 (first array) or 3 (second array),
 any other value is invalid, default 0
 :param arrow_dir: directory to save timesync data in, default "."
 :param arrow_file_name: name of file to save timesync data as.
@@ -722,22 +762,22 @@ default "timesync"</p></div>
     &#34;&#34;&#34;
 
     def __init__(
-            self,
-            time_sync_exchanges_list: Optional[List[float]] = None,
-            latencies: Optional[np.ndarray] = None,
-            best_latency: float = np.nan,
-            mean_latency: float = np.nan,
-            latency_std: float = np.nan,
-            offsets: Optional[np.ndarray] = None,
-            best_offset: float = 0.0,
-            mean_offset: float = np.nan,
-            offset_std: float = np.nan,
-            data_start: float = np.nan,
-            data_end: float = np.nan,
-            best_latency_index: int = np.nan,
-            best_array_index: int = 0,
-            arrow_dir: str = &#34;.&#34;,
-            arrow_file_name: str = &#34;timesync&#34;
+        self,
+        time_sync_exchanges_list: Optional[List[float]] = None,
+        latencies: Optional[np.ndarray] = None,
+        best_latency: float = np.nan,
+        mean_latency: float = np.nan,
+        latency_std: float = np.nan,
+        offsets: Optional[np.ndarray] = None,
+        best_offset: float = 0.0,
+        mean_offset: float = np.nan,
+        offset_std: float = np.nan,
+        data_start: float = np.nan,
+        data_end: float = np.nan,
+        best_latency_index: int = np.nan,
+        best_array_index: int = 0,
+        arrow_dir: str = &#34;.&#34;,
+        arrow_file_name: str = &#34;timesync&#34;,
     ):
         &#34;&#34;&#34;
         Initialize properties
@@ -753,8 +793,8 @@ default "timesync"</p></div>
         :param offset_std: the standard deviation of all offsets, default np.nan
         :param data_start: the start timestamp of the data, default np.nan
         :param data_end: the end timestamp of the data, default np.nan
-        :param best_latency_index: index of best latency in latencies array, default np.nan
-        :param best_array_index: index of best latency array; must be either 1 (first array) or 3 (second array),
+        :param best_latency_index: index of the best latency in latencies array, default np.nan
+        :param best_array_index: index of the best latency array; must be either 1 (first array) or 3 (second array),
                                     any other value is invalid, default 0
         :param arrow_dir: directory to save timesync data in, default &#34;.&#34;
         :param arrow_file_name: name of file to save timesync data as.  do not include extensions.  default &#34;timesync&#34;
@@ -779,10 +819,9 @@ default "timesync"</p></div>
             self._best_exchange_index_list = []
             self._offset_model: OffsetModel = OffsetModel.empty_model()
         else:
-            self._time_sync_exchanges_list = np.transpose([
-                time_sync_exchanges_list[i: i + 6]
-                for i in range(0, len(time_sync_exchanges_list), 6)
-            ])
+            self._time_sync_exchanges_list = np.transpose(
+                [time_sync_exchanges_list[i : i + 6] for i in range(0, len(time_sync_exchanges_list), 6)]
+            )
             if self._latencies is None:
                 if not np.isnan(self._data_start):
                     self._data_start = self.get_exchange_timestamps(4)[0]
@@ -791,22 +830,26 @@ default "timesync"</p></div>
                 self._stats_from_exchanges()
 
     def __repr__(self):
-        return f&#34;best_latency_index: {self._best_latency_index}, &#34; \
-               f&#34;best_latency: {self._best_latency}, &#34; \
-               f&#34;mean_latency: {self._mean_latency}, &#34; \
-               f&#34;latency_std: {self._latency_std}, &#34; \
-               f&#34;best_offset: {self._best_offset}, &#34; \
-               f&#34;mean_offset: {self._mean_offset}, &#34; \
-               f&#34;offset_std: {self._offset_std}&#34;
+        return (
+            f&#34;best_latency_index: {self._best_latency_index}, &#34;
+            f&#34;best_latency: {self._best_latency}, &#34;
+            f&#34;mean_latency: {self._mean_latency}, &#34;
+            f&#34;latency_std: {self._latency_std}, &#34;
+            f&#34;best_offset: {self._best_offset}, &#34;
+            f&#34;mean_offset: {self._mean_offset}, &#34;
+            f&#34;offset_std: {self._offset_std}&#34;
+        )
 
     def __str__(self):
-        return f&#34;best_latency_index: {self._best_latency_index}, &#34; \
-               f&#34;best_latency: {self._best_latency}, &#34; \
-               f&#34;mean_latency: {self._mean_latency}, &#34; \
-               f&#34;latency_std: {self._latency_std}, &#34; \
-               f&#34;best_offset: {self._best_offset}, &#34; \
-               f&#34;mean_offset: {self._mean_offset}, &#34; \
-               f&#34;offset_std: {self._offset_std}&#34;
+        return (
+            f&#34;best_latency_index: {self._best_latency_index}, &#34;
+            f&#34;best_latency: {self._best_latency}, &#34;
+            f&#34;mean_latency: {self._mean_latency}, &#34;
+            f&#34;latency_std: {self._latency_std}, &#34;
+            f&#34;best_offset: {self._best_offset}, &#34;
+            f&#34;mean_offset: {self._mean_offset}, &#34;
+            f&#34;offset_std: {self._offset_std}&#34;
+        )
 
     def as_dict(self) -&gt; dict:
         &#34;&#34;&#34;
@@ -824,7 +867,7 @@ default "timesync"</p></div>
             &#34;data_start&#34;: self._data_start,
             &#34;data_end&#34;: self._data_end,
             &#34;arrow_dir&#34;: self.arrow_dir,
-            &#34;arrow_file_name&#34;: self.arrow_file
+            &#34;arrow_file_name&#34;: self.arrow_file,
         }
 
     def to_json(self):
@@ -852,17 +895,39 @@ default "timesync"</p></div>
         :param file_path: full path of file to load data from.
         :return: TimeSyncArrow object
         &#34;&#34;&#34;
-        json_data = io.json_file_to_dict(file_path)
-        data = ds.dataset(os.path.join(json_data[&#34;arrow_dir&#34;], json_data[&#34;arrow_file_name&#34;] + &#34;.parquet&#34;),
-                          format=&#34;parquet&#34;, exclude_invalid_files=True).to_table()
-        result = TimeSync(None, np.array((data[&#34;latencies1&#34;], data[&#34;latencies3&#34;])),
-                          json_data[&#34;best_latency&#34;], json_data[&#34;mean_latency&#34;], json_data[&#34;latency_std&#34;],
-                          np.array((data[&#34;offsets1&#34;], data[&#34;offsets3&#34;])),
-                          json_data[&#34;best_offset&#34;], json_data[&#34;mean_offset&#34;], json_data[&#34;offset_std&#34;],
-                          json_data[&#34;data_start&#34;], json_data[&#34;data_end&#34;], json_data[&#34;best_latency_index&#34;],
-                          json_data[&#34;best_msg_array_index&#34;], json_data[&#34;arrow_dir&#34;], json_data[&#34;arrow_file_name&#34;])
-        result.set_sync_exchanges([data[&#34;a1&#34;].to_numpy(), data[&#34;a2&#34;].to_numpy(), data[&#34;a3&#34;].to_numpy(),
-                                   data[&#34;b1&#34;].to_numpy(), data[&#34;b2&#34;].to_numpy(), data[&#34;b3&#34;].to_numpy()])
+        json_data = json_file_to_dict(file_path)
+        data = ds.dataset(
+            os.path.join(json_data[&#34;arrow_dir&#34;], json_data[&#34;arrow_file_name&#34;] + &#34;.parquet&#34;),
+            format=&#34;parquet&#34;,
+            exclude_invalid_files=True,
+        ).to_table()
+        result = TimeSync(
+            None,
+            np.array((data[&#34;latencies1&#34;], data[&#34;latencies3&#34;])),
+            json_data[&#34;best_latency&#34;],
+            json_data[&#34;mean_latency&#34;],
+            json_data[&#34;latency_std&#34;],
+            np.array((data[&#34;offsets1&#34;], data[&#34;offsets3&#34;])),
+            json_data[&#34;best_offset&#34;],
+            json_data[&#34;mean_offset&#34;],
+            json_data[&#34;offset_std&#34;],
+            json_data[&#34;data_start&#34;],
+            json_data[&#34;data_end&#34;],
+            json_data[&#34;best_latency_index&#34;],
+            json_data[&#34;best_msg_array_index&#34;],
+            json_data[&#34;arrow_dir&#34;],
+            json_data[&#34;arrow_file_name&#34;],
+        )
+        result.set_sync_exchanges(
+            [
+                data[&#34;a1&#34;].to_numpy(),
+                data[&#34;a2&#34;].to_numpy(),
+                data[&#34;a3&#34;].to_numpy(),
+                data[&#34;b1&#34;].to_numpy(),
+                data[&#34;b2&#34;].to_numpy(),
+                data[&#34;b3&#34;].to_numpy(),
+            ]
+        )
         return result
 
     @staticmethod
@@ -880,18 +945,20 @@ default "timesync"</p></div>
         &#34;&#34;&#34;
         :return: convert timesync exchanges, latencies, and offsets into a pyarrow table
         &#34;&#34;&#34;
-        return pa.Table.from_pydict({
-            &#34;a1&#34;: self._time_sync_exchanges_list[0],
-            &#34;a2&#34;: self._time_sync_exchanges_list[1],
-            &#34;a3&#34;: self._time_sync_exchanges_list[2],
-            &#34;b1&#34;: self._time_sync_exchanges_list[3],
-            &#34;b2&#34;: self._time_sync_exchanges_list[4],
-            &#34;b3&#34;: self._time_sync_exchanges_list[5],
-            &#34;latencies1&#34;: self._latencies[0],
-            &#34;latencies3&#34;: self._latencies[1],
-            &#34;offsets1&#34;: self._offsets[0],
-            &#34;offsets3&#34;: self._offsets[1]
-        })
+        return pa.Table.from_pydict(
+            {
+                &#34;a1&#34;: self._time_sync_exchanges_list[0],
+                &#34;a2&#34;: self._time_sync_exchanges_list[1],
+                &#34;a3&#34;: self._time_sync_exchanges_list[2],
+                &#34;b1&#34;: self._time_sync_exchanges_list[3],
+                &#34;b2&#34;: self._time_sync_exchanges_list[4],
+                &#34;b3&#34;: self._time_sync_exchanges_list[5],
+                &#34;latencies1&#34;: self._latencies[0],
+                &#34;latencies3&#34;: self._latencies[1],
+                &#34;offsets1&#34;: self._offsets[0],
+                &#34;offsets3&#34;: self._offsets[1],
+            }
+        )
 
     def _stats_from_exchanges(self):
         &#34;&#34;&#34;
@@ -924,9 +991,13 @@ default "timesync"</p></div>
             self._latencies = np.array((tse.latency1, tse.latency3))
             self._offsets = np.array((tse.offset1, tse.offset3))
             if not np.isnan(self._data_start) and not np.isnan(self._data_end):
-                self._offset_model = OffsetModel(self._latencies.flatten(), self._offsets.flatten(),
-                                                 self.get_device_exchanges_timestamps(),
-                                                 self._data_start, self._data_end)
+                self._offset_model = OffsetModel(
+                    self._latencies.flatten(),
+                    self._offsets.flatten(),
+                    self.get_device_exchanges_timestamps(),
+                    self._data_start,
+                    self._data_end,
+                )
                 # Compute the statistics for latency using the model
                 self._mean_latency = self._offset_model.mean_latency
                 self._latency_std = self._offset_model.std_dev_latency
@@ -992,18 +1063,24 @@ default "timesync"</p></div>
 
         :param new_data: another TimeSyncArrow object
         &#34;&#34;&#34;
-        self._time_sync_exchanges_list[0] = np.append(self._time_sync_exchanges_list[0],
-                                                      new_data._time_sync_exchanges_list[0])
-        self._time_sync_exchanges_list[1] = np.append(self._time_sync_exchanges_list[1],
-                                                      new_data._time_sync_exchanges_list[1])
-        self._time_sync_exchanges_list[2] = np.append(self._time_sync_exchanges_list[2],
-                                                      new_data._time_sync_exchanges_list[2])
-        self._time_sync_exchanges_list[3] = np.append(self._time_sync_exchanges_list[3],
-                                                      new_data._time_sync_exchanges_list[3])
-        self._time_sync_exchanges_list[4] = np.append(self._time_sync_exchanges_list[4],
-                                                      new_data._time_sync_exchanges_list[4])
-        self._time_sync_exchanges_list[5] = np.append(self._time_sync_exchanges_list[5],
-                                                      new_data._time_sync_exchanges_list[5])
+        self._time_sync_exchanges_list[0] = np.append(
+            self._time_sync_exchanges_list[0], new_data._time_sync_exchanges_list[0]
+        )
+        self._time_sync_exchanges_list[1] = np.append(
+            self._time_sync_exchanges_list[1], new_data._time_sync_exchanges_list[1]
+        )
+        self._time_sync_exchanges_list[2] = np.append(
+            self._time_sync_exchanges_list[2], new_data._time_sync_exchanges_list[2]
+        )
+        self._time_sync_exchanges_list[3] = np.append(
+            self._time_sync_exchanges_list[3], new_data._time_sync_exchanges_list[3]
+        )
+        self._time_sync_exchanges_list[4] = np.append(
+            self._time_sync_exchanges_list[4], new_data._time_sync_exchanges_list[4]
+        )
+        self._time_sync_exchanges_list[5] = np.append(
+            self._time_sync_exchanges_list[5], new_data._time_sync_exchanges_list[5]
+        )
         if np.isnan(self._data_start):
             self._data_start = new_data._data_start
         elif not np.isnan(new_data._data_start):
@@ -1014,7 +1091,7 @@ default "timesync"</p></div>
             self._data_end = np.max([self._data_end, new_data._data_end])
         self._stats_from_exchanges()
 
-    def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -&gt; &#39;TimeSync&#39;:
+    def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -&gt; &#34;TimeSync&#34;:
         &#34;&#34;&#34;
         converts packets into TimeSyncData objects, then performs analysis
 
@@ -1034,9 +1111,13 @@ default "timesync"</p></div>
         packet: Union[RedvoxPacketM, RedvoxPacket]
         for packet in packets:
             if isinstance(packet, RedvoxPacketM):
-                all_exchanges.extend(reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
-                                            packet.timing_information.synch_exchanges,
-                                            []))
+                all_exchanges.extend(
+                    reduce(
+                        lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
+                        packet.timing_information.synch_exchanges,
+                        [],
+                    )
+                )
             else:
                 # Get synch exchanges
                 ch: api900_pb2.UnevenlySampledChannel
@@ -1045,9 +1126,9 @@ default "timesync"</p></div>
                         all_exchanges.extend(util_900.extract_payload(ch))
 
         if len(all_exchanges) &gt; 0:
-            self._time_sync_exchanges_list = np.transpose([
-                all_exchanges[i: i + 6] for i in range(0, len(all_exchanges), 6)
-            ])
+            self._time_sync_exchanges_list = np.transpose(
+                [all_exchanges[i : i + 6] for i in range(0, len(all_exchanges), 6)]
+            )
             self._stats_from_exchanges()
         return self
 
@@ -1093,7 +1174,7 @@ default "timesync"</p></div>
 
     def best_latency_index(self) -&gt; int:
         &#34;&#34;&#34;
-        :return: index/position of best latency or np.nan if no best latency exists
+        :return: index/position of the best latency or np.nan if no best latency exists
         &#34;&#34;&#34;
         return self._best_latency_index
 
@@ -1196,17 +1277,39 @@ def from_json_file(file_path: str) -&gt; &#34;TimeSync&#34;:
     :param file_path: full path of file to load data from.
     :return: TimeSyncArrow object
     &#34;&#34;&#34;
-    json_data = io.json_file_to_dict(file_path)
-    data = ds.dataset(os.path.join(json_data[&#34;arrow_dir&#34;], json_data[&#34;arrow_file_name&#34;] + &#34;.parquet&#34;),
-                      format=&#34;parquet&#34;, exclude_invalid_files=True).to_table()
-    result = TimeSync(None, np.array((data[&#34;latencies1&#34;], data[&#34;latencies3&#34;])),
-                      json_data[&#34;best_latency&#34;], json_data[&#34;mean_latency&#34;], json_data[&#34;latency_std&#34;],
-                      np.array((data[&#34;offsets1&#34;], data[&#34;offsets3&#34;])),
-                      json_data[&#34;best_offset&#34;], json_data[&#34;mean_offset&#34;], json_data[&#34;offset_std&#34;],
-                      json_data[&#34;data_start&#34;], json_data[&#34;data_end&#34;], json_data[&#34;best_latency_index&#34;],
-                      json_data[&#34;best_msg_array_index&#34;], json_data[&#34;arrow_dir&#34;], json_data[&#34;arrow_file_name&#34;])
-    result.set_sync_exchanges([data[&#34;a1&#34;].to_numpy(), data[&#34;a2&#34;].to_numpy(), data[&#34;a3&#34;].to_numpy(),
-                               data[&#34;b1&#34;].to_numpy(), data[&#34;b2&#34;].to_numpy(), data[&#34;b3&#34;].to_numpy()])
+    json_data = json_file_to_dict(file_path)
+    data = ds.dataset(
+        os.path.join(json_data[&#34;arrow_dir&#34;], json_data[&#34;arrow_file_name&#34;] + &#34;.parquet&#34;),
+        format=&#34;parquet&#34;,
+        exclude_invalid_files=True,
+    ).to_table()
+    result = TimeSync(
+        None,
+        np.array((data[&#34;latencies1&#34;], data[&#34;latencies3&#34;])),
+        json_data[&#34;best_latency&#34;],
+        json_data[&#34;mean_latency&#34;],
+        json_data[&#34;latency_std&#34;],
+        np.array((data[&#34;offsets1&#34;], data[&#34;offsets3&#34;])),
+        json_data[&#34;best_offset&#34;],
+        json_data[&#34;mean_offset&#34;],
+        json_data[&#34;offset_std&#34;],
+        json_data[&#34;data_start&#34;],
+        json_data[&#34;data_end&#34;],
+        json_data[&#34;best_latency_index&#34;],
+        json_data[&#34;best_msg_array_index&#34;],
+        json_data[&#34;arrow_dir&#34;],
+        json_data[&#34;arrow_file_name&#34;],
+    )
+    result.set_sync_exchanges(
+        [
+            data[&#34;a1&#34;].to_numpy(),
+            data[&#34;a2&#34;].to_numpy(),
+            data[&#34;a3&#34;].to_numpy(),
+            data[&#34;b1&#34;].to_numpy(),
+            data[&#34;b2&#34;].to_numpy(),
+            data[&#34;b3&#34;].to_numpy(),
+        ]
+    )
     return result</code></pre>
 </details>
 </dd>
@@ -1229,18 +1332,24 @@ def from_json_file(file_path: str) -&gt; &#34;TimeSync&#34;:
 
     :param new_data: another TimeSyncArrow object
     &#34;&#34;&#34;
-    self._time_sync_exchanges_list[0] = np.append(self._time_sync_exchanges_list[0],
-                                                  new_data._time_sync_exchanges_list[0])
-    self._time_sync_exchanges_list[1] = np.append(self._time_sync_exchanges_list[1],
-                                                  new_data._time_sync_exchanges_list[1])
-    self._time_sync_exchanges_list[2] = np.append(self._time_sync_exchanges_list[2],
-                                                  new_data._time_sync_exchanges_list[2])
-    self._time_sync_exchanges_list[3] = np.append(self._time_sync_exchanges_list[3],
-                                                  new_data._time_sync_exchanges_list[3])
-    self._time_sync_exchanges_list[4] = np.append(self._time_sync_exchanges_list[4],
-                                                  new_data._time_sync_exchanges_list[4])
-    self._time_sync_exchanges_list[5] = np.append(self._time_sync_exchanges_list[5],
-                                                  new_data._time_sync_exchanges_list[5])
+    self._time_sync_exchanges_list[0] = np.append(
+        self._time_sync_exchanges_list[0], new_data._time_sync_exchanges_list[0]
+    )
+    self._time_sync_exchanges_list[1] = np.append(
+        self._time_sync_exchanges_list[1], new_data._time_sync_exchanges_list[1]
+    )
+    self._time_sync_exchanges_list[2] = np.append(
+        self._time_sync_exchanges_list[2], new_data._time_sync_exchanges_list[2]
+    )
+    self._time_sync_exchanges_list[3] = np.append(
+        self._time_sync_exchanges_list[3], new_data._time_sync_exchanges_list[3]
+    )
+    self._time_sync_exchanges_list[4] = np.append(
+        self._time_sync_exchanges_list[4], new_data._time_sync_exchanges_list[4]
+    )
+    self._time_sync_exchanges_list[5] = np.append(
+        self._time_sync_exchanges_list[5], new_data._time_sync_exchanges_list[5]
+    )
     if np.isnan(self._data_start):
         self._data_start = new_data._data_start
     elif not np.isnan(new_data._data_start):
@@ -1277,7 +1386,7 @@ def from_json_file(file_path: str) -&gt; &#34;TimeSync&#34;:
         &#34;data_start&#34;: self._data_start,
         &#34;data_end&#34;: self._data_end,
         &#34;arrow_dir&#34;: self.arrow_dir,
-        &#34;arrow_file_name&#34;: self.arrow_file
+        &#34;arrow_file_name&#34;: self.arrow_file,
     }</code></pre>
 </details>
 </dd>
@@ -1301,14 +1410,14 @@ def from_json_file(file_path: str) -&gt; &#34;TimeSync&#34;:
 <span>def <span class="ident">best_latency_index</span></span>(<span>self) ‑> int</span>
 </code></dt>
 <dd>
-<div class="desc"><p>:return: index/position of best latency or np.nan if no best latency exists</p></div>
+<div class="desc"><p>:return: index/position of the best latency or np.nan if no best latency exists</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def best_latency_index(self) -&gt; int:
     &#34;&#34;&#34;
-    :return: index/position of best latency or np.nan if no best latency exists
+    :return: index/position of the best latency or np.nan if no best latency exists
     &#34;&#34;&#34;
     return self._best_latency_index</code></pre>
 </details>
@@ -1374,18 +1483,20 @@ def from_json_file(file_path: str) -&gt; &#34;TimeSync&#34;:
     &#34;&#34;&#34;
     :return: convert timesync exchanges, latencies, and offsets into a pyarrow table
     &#34;&#34;&#34;
-    return pa.Table.from_pydict({
-        &#34;a1&#34;: self._time_sync_exchanges_list[0],
-        &#34;a2&#34;: self._time_sync_exchanges_list[1],
-        &#34;a3&#34;: self._time_sync_exchanges_list[2],
-        &#34;b1&#34;: self._time_sync_exchanges_list[3],
-        &#34;b2&#34;: self._time_sync_exchanges_list[4],
-        &#34;b3&#34;: self._time_sync_exchanges_list[5],
-        &#34;latencies1&#34;: self._latencies[0],
-        &#34;latencies3&#34;: self._latencies[1],
-        &#34;offsets1&#34;: self._offsets[0],
-        &#34;offsets3&#34;: self._offsets[1]
-    })</code></pre>
+    return pa.Table.from_pydict(
+        {
+            &#34;a1&#34;: self._time_sync_exchanges_list[0],
+            &#34;a2&#34;: self._time_sync_exchanges_list[1],
+            &#34;a3&#34;: self._time_sync_exchanges_list[2],
+            &#34;b1&#34;: self._time_sync_exchanges_list[3],
+            &#34;b2&#34;: self._time_sync_exchanges_list[4],
+            &#34;b3&#34;: self._time_sync_exchanges_list[5],
+            &#34;latencies1&#34;: self._latencies[0],
+            &#34;latencies3&#34;: self._latencies[1],
+            &#34;offsets1&#34;: self._offsets[0],
+            &#34;offsets3&#34;: self._offsets[1],
+        }
+    )</code></pre>
 </details>
 </dd>
 <dt id="redvox.common.timesync.TimeSync.data_end_timestamp"><code class="name flex">
@@ -1431,7 +1542,7 @@ def from_json_file(file_path: str) -&gt; &#34;TimeSync&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -&gt; &#39;TimeSync&#39;:
+<pre><code class="python">def from_raw_packets(self, packets: List[Union[RedvoxPacketM, RedvoxPacket]]) -&gt; &#34;TimeSync&#34;:
     &#34;&#34;&#34;
     converts packets into TimeSyncData objects, then performs analysis
 
@@ -1451,9 +1562,13 @@ def from_json_file(file_path: str) -&gt; &#34;TimeSync&#34;:
     packet: Union[RedvoxPacketM, RedvoxPacket]
     for packet in packets:
         if isinstance(packet, RedvoxPacketM):
-            all_exchanges.extend(reduce(lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
-                                        packet.timing_information.synch_exchanges,
-                                        []))
+            all_exchanges.extend(
+                reduce(
+                    lambda acc, ex: acc + [ex.a1, ex.a2, ex.a3, ex.b1, ex.b2, ex.b3],
+                    packet.timing_information.synch_exchanges,
+                    [],
+                )
+            )
         else:
             # Get synch exchanges
             ch: api900_pb2.UnevenlySampledChannel
@@ -1462,9 +1577,9 @@ def from_json_file(file_path: str) -&gt; &#34;TimeSync&#34;:
                     all_exchanges.extend(util_900.extract_payload(ch))
 
     if len(all_exchanges) &gt; 0:
-        self._time_sync_exchanges_list = np.transpose([
-            all_exchanges[i: i + 6] for i in range(0, len(all_exchanges), 6)
-        ])
+        self._time_sync_exchanges_list = np.transpose(
+            [all_exchanges[i : i + 6] for i in range(0, len(all_exchanges), 6)]
+        )
         self._stats_from_exchanges()
     return self</code></pre>
 </details>

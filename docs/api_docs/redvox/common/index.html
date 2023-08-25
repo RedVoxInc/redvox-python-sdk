@@ -77,7 +77,7 @@ combines the base data files into a single composite object based on the user �
 </dd>
 <dt><code class="name"><a title="redvox.common.data_window_configuration" href="data_window_configuration.html">redvox.common.data_window_configuration</a></code></dt>
 <dd>
-<div class="desc"><p>This module provide type-safe data window configuration</p></div>
+<div class="desc"><p>This module provides type-safe data window configuration using an external file</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.data_window_io" href="data_window_io.html">redvox.common.data_window_io</a></code></dt>
 <dd>
@@ -94,7 +94,8 @@ functions take inputs and output in UTC.</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.event_stream" href="event_stream.html">redvox.common.event_stream</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>This module provides classes to organize events recorded on a station.
+It will ignore machine learning events.</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.event_stream_io" href="event_stream_io.html">redvox.common.event_stream_io</a></code></dt>
 <dd>
@@ -106,7 +107,7 @@ functions take inputs and output in UTC.</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.gap_and_pad_utils" href="gap_and_pad_utils.html">redvox.common.gap_and_pad_utils</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>This module provides tools to fill gaps and pad the ends of timestamp arrays</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.gui" href="gui/index.html">redvox.common.gui</a></code></dt>
 <dd>
@@ -122,11 +123,16 @@ functions take inputs and output in UTC.</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.packet_to_pyarrow" href="packet_to_pyarrow.html">redvox.common.packet_to_pyarrow</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Converts data from RedVox packets into pyarrow tables.</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.parallel_utils" href="parallel_utils.html">redvox.common.parallel_utils</a></code></dt>
 <dd>
 <div class="desc"><p>Module that contains utilities for working with data in parallel.</p></div>
+</dd>
+<dt><code class="name"><a title="redvox.common.reader_session_model" href="reader_session_model.html">redvox.common.reader_session_model</a></code></dt>
+<dd>
+<div class="desc"><p>This module describes methods to store session models from different sources.
+This information can be utilized by users as they see fit</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.run_me" href="run_me.html">redvox.common.run_me</a></code></dt>
 <dd>
@@ -170,8 +176,9 @@ Utilizes …</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.station_model" href="station_model.html">redvox.common.station_model</a></code></dt>
 <dd>
-<div class="desc"><p>Prototype class
-In Development …</p></div>
+<div class="desc"><p>Prototype functions for station location and timing summary
+Provides an example of how to access the information from a Station object
+This module …</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.station_utils" href="station_utils.html">redvox.common.station_utils</a></code></dt>
 <dd>
@@ -186,7 +193,7 @@ Requires numpy</p></div>
 <dt><code class="name"><a title="redvox.common.timesync" href="timesync.html">redvox.common.timesync</a></code></dt>
 <dd>
 <div class="desc"><p>Modules for extracting time synchronization statistics for API 900 and 1000 data.
-Currently uses API M packets due to versatility of the packet.
+Expects API M packets due to versatility of the packet.
 Also …</p></div>
 </dd>
 <dt><code class="name"><a title="redvox.common.timesync_io" href="timesync_io.html">redvox.common.timesync_io</a></code></dt>
@@ -280,6 +287,7 @@ payload for ONE data packet/decoder …</p></div>
 <li><code><a title="redvox.common.offset_model" href="offset_model.html">redvox.common.offset_model</a></code></li>
 <li><code><a title="redvox.common.packet_to_pyarrow" href="packet_to_pyarrow.html">redvox.common.packet_to_pyarrow</a></code></li>
 <li><code><a title="redvox.common.parallel_utils" href="parallel_utils.html">redvox.common.parallel_utils</a></code></li>
+<li><code><a title="redvox.common.reader_session_model" href="reader_session_model.html">redvox.common.reader_session_model</a></code></li>
 <li><code><a title="redvox.common.run_me" href="run_me.html">redvox.common.run_me</a></code></li>
 <li><code><a title="redvox.common.sensor_data" href="sensor_data.html">redvox.common.sensor_data</a></code></li>
 <li><code><a title="redvox.common.sensor_io" href="sensor_io.html">redvox.common.sensor_io</a></code></li>

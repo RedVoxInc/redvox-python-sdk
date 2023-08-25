@@ -106,7 +106,12 @@ def download_file(
     buf: Optional[bytes] = get_file(url, retries, session)
 
     if buf:
-        data_key = find_between(&#34;/rdvxdata/&#34;, &#34;?X-Amz-Algorithm=&#34;, url)
+        if &#34;/rdvxdata/&#34; in url:
+            data_key = find_between(&#34;/rdvxdata/&#34;, &#34;?X-Amz-Algorithm=&#34;, url)
+        else:
+            data_key = find_between(
+                &#34;/rdvxdata.s3.amazonaws.com/&#34;, &#34;?AWSAccessKeyId=&#34;, url
+            )
 
         directory = os.path.dirname(data_key)
         full_dir = f&#34;{out_dir}/{directory}&#34;
@@ -159,7 +164,12 @@ def download_file(
     buf: Optional[bytes] = get_file(url, retries, session)
 
     if buf:
-        data_key = find_between(&#34;/rdvxdata/&#34;, &#34;?X-Amz-Algorithm=&#34;, url)
+        if &#34;/rdvxdata/&#34; in url:
+            data_key = find_between(&#34;/rdvxdata/&#34;, &#34;?X-Amz-Algorithm=&#34;, url)
+        else:
+            data_key = find_between(
+                &#34;/rdvxdata.s3.amazonaws.com/&#34;, &#34;?AWSAccessKeyId=&#34;, url
+            )
 
         directory = os.path.dirname(data_key)
         full_dir = f&#34;{out_dir}/{directory}&#34;

@@ -37,17 +37,40 @@ import redvox.common.date_time_utils as dt
 from redvox.common import data_window as dw
 
 
+class EventOriginTest(unittest.TestCase):
+    def test_load_empty_origin(self):
+        ev_orig: dw.EventOrigin = dw.EventOrigin.from_dict({})
+        self.assertEqual(ev_orig.provider, &#34;UNKNOWN&#34;)
+        self.assertEqual(ev_orig.event_radius_m, 0.0)
+
+    def test_load_origin(self):
+        ev_orig: dw.EventOrigin = dw.EventOrigin.from_dict(
+            {&#34;provider&#34;: &#34;TEST&#34;, &#34;latitude&#34;: 19.75, &#34;longitude&#34;: -156.05, &#34;altitude&#34;: 23.48, &#34;event_radius_m&#34;: 1.0}
+        )
+        self.assertEqual(ev_orig.provider, &#34;TEST&#34;)
+        self.assertEqual(ev_orig.latitude, 19.75)
+        self.assertEqual(ev_orig.event_radius_m, 1.0)
+
+
+class DataWindowConfigTest(unittest.TestCase):
+    def test_load_empty_config(self):
+        &#34;&#34;&#34;
+        specifically tests for failure to load from a dictionary.
+        &#34;&#34;&#34;
+        try:
+            _ = dw.DataWindowConfig.from_dict({})
+            self.assertTrue(False)
+        except KeyError:
+            self.assertTrue(True)
+
+
 class DataWindowTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -&gt; None:
         cls.input_dir = tests.TEST_DATA_DIR
 
     def test_data_window_simple(self):
-        # with contextlib.redirect_stdout(None):
-        datawindow = dw.DataWindow(
-            config=dw.DataWindowConfig(
-                input_dir=self.input_dir, structured_layout=False)
-        )
+        datawindow = dw.DataWindow(config=dw.DataWindowConfig(input_dir=self.input_dir, structured_layout=False))
         self.assertEqual(len(datawindow.stations()), 3)
         self.assertEqual(len(datawindow.station_ids()), 3)
         self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids())
@@ -55,7 +78,6 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(datawindow.config().api_versions), 2)
 
     def test_data_window(self):
-        # with contextlib.redirect_stdout(None):
         datawindow = dw.DataWindow(
             config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
@@ -66,8 +88,9 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(len(datawindow.stations()), 2)
         test_station = datawindow.get_station(&#34;1637650010&#34;)[0]
         self.assertTrue(test_station.is_timestamps_updated)
-        self.assertNotEqual(test_station.first_data_timestamp,
-                            test_station.audio_sensor().unaltered_data_timestamps()[0])
+        self.assertNotEqual(
+            test_station.first_data_timestamp, test_station.audio_sensor().unaltered_data_timestamps()[0]
+        )
         self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;)[0].audio_sensor())
         test_sensor = datawindow.get_station(&#34;1637650010&#34;)[0].accelerometer_sensor()
         self.assertEqual(test_sensor.num_samples(), 643)
@@ -80,7 +103,6 @@ class DataWindowTest(unittest.TestCase):
         self.assertEqual(test_sensor.num_samples(), 4)
 
     def test_dw_with_start_end(self):
-        # with contextlib.redirect_stdout(None):
         dw_with_start_end = dw.DataWindow(
             config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
@@ -111,8 +133,7 @@ class DataWindowTest(unittest.TestCase):
 
     def test_dw_first_station(self):
         dw_test = dw.DataWindow(
-            config=dw.DataWindowConfig(
-                input_dir=self.input_dir, structured_layout=False, station_ids=[&#34;1637650010&#34;])
+            config=dw.DataWindowConfig(input_dir=self.input_dir, structured_layout=False, station_ids=[&#34;1637650010&#34;])
         )
         first_station = dw_test.first_station()
         self.assertEqual(&#34;1637650010&#34;, first_station.id())
@@ -134,6 +155,82 @@ class DataWindowTest(unittest.TestCase):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="redvox.tests.common.test_data_window.DataWindowConfigTest"><code class="flex name class">
+<span>class <span class="ident">DataWindowConfigTest</span></span>
+<span>(</span><span>methodName='runTest')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class whose instances are single test cases.</p>
+<p>By default, the test code itself should be placed in a method named
+'runTest'.</p>
+<p>If the fixture may be used for many test cases, create as
+many test methods as are needed. When instantiating such a TestCase
+subclass, specify in the constructor arguments the name of the test method
+that the instance is to execute.</p>
+<p>Test authors should subclass TestCase for their own tests. Construction
+and deconstruction of the test's environment ('fixture') can be
+implemented by overriding the 'setUp' and 'tearDown' methods respectively.</p>
+<p>If it is necessary to override the <strong>init</strong> method, the base class
+<strong>init</strong> method must always be called. It is important that subclasses
+should not change the signature of their <strong>init</strong> method, since instances
+of the classes are instantiated automatically by parts of the framework
+in order to be run.</p>
+<p>When subclassing TestCase, you can set these attributes:
+* failureException: determines which exception will be raised when
+the instance's assertion methods fail; test methods raising this
+exception will be deemed to have 'failed' rather than 'errored'.
+* longMessage: determines whether long messages (including repr of
+objects used in assert methods) will be printed on failure in <em>addition</em>
+to any explicit message passed.
+* maxDiff: sets the maximum length of a diff in failure messages
+by assert methods using difflib. It is looked up as an instance
+attribute so can be configured by individual tests if required.</p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DataWindowConfigTest(unittest.TestCase):
+    def test_load_empty_config(self):
+        &#34;&#34;&#34;
+        specifically tests for failure to load from a dictionary.
+        &#34;&#34;&#34;
+        try:
+            _ = dw.DataWindowConfig.from_dict({})
+            self.assertTrue(False)
+        except KeyError:
+            self.assertTrue(True)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>unittest.case.TestCase</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.tests.common.test_data_window.DataWindowConfigTest.test_load_empty_config"><code class="name flex">
+<span>def <span class="ident">test_load_empty_config</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>specifically tests for failure to load from a dictionary.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_load_empty_config(self):
+    &#34;&#34;&#34;
+    specifically tests for failure to load from a dictionary.
+    &#34;&#34;&#34;
+    try:
+        _ = dw.DataWindowConfig.from_dict({})
+        self.assertTrue(False)
+    except KeyError:
+        self.assertTrue(True)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="redvox.tests.common.test_data_window.DataWindowTest"><code class="flex name class">
 <span>class <span class="ident">DataWindowTest</span></span>
 <span>(</span><span>methodName='runTest')</span>
@@ -177,11 +274,7 @@ not have a method with the specified name.</p></div>
         cls.input_dir = tests.TEST_DATA_DIR
 
     def test_data_window_simple(self):
-        # with contextlib.redirect_stdout(None):
-        datawindow = dw.DataWindow(
-            config=dw.DataWindowConfig(
-                input_dir=self.input_dir, structured_layout=False)
-        )
+        datawindow = dw.DataWindow(config=dw.DataWindowConfig(input_dir=self.input_dir, structured_layout=False))
         self.assertEqual(len(datawindow.stations()), 3)
         self.assertEqual(len(datawindow.station_ids()), 3)
         self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids())
@@ -189,7 +282,6 @@ not have a method with the specified name.</p></div>
         self.assertEqual(len(datawindow.config().api_versions), 2)
 
     def test_data_window(self):
-        # with contextlib.redirect_stdout(None):
         datawindow = dw.DataWindow(
             config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
@@ -200,8 +292,9 @@ not have a method with the specified name.</p></div>
         self.assertEqual(len(datawindow.stations()), 2)
         test_station = datawindow.get_station(&#34;1637650010&#34;)[0]
         self.assertTrue(test_station.is_timestamps_updated)
-        self.assertNotEqual(test_station.first_data_timestamp,
-                            test_station.audio_sensor().unaltered_data_timestamps()[0])
+        self.assertNotEqual(
+            test_station.first_data_timestamp, test_station.audio_sensor().unaltered_data_timestamps()[0]
+        )
         self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;)[0].audio_sensor())
         test_sensor = datawindow.get_station(&#34;1637650010&#34;)[0].accelerometer_sensor()
         self.assertEqual(test_sensor.num_samples(), 643)
@@ -214,7 +307,6 @@ not have a method with the specified name.</p></div>
         self.assertEqual(test_sensor.num_samples(), 4)
 
     def test_dw_with_start_end(self):
-        # with contextlib.redirect_stdout(None):
         dw_with_start_end = dw.DataWindow(
             config=dw.DataWindowConfig(
                 input_dir=self.input_dir,
@@ -245,8 +337,7 @@ not have a method with the specified name.</p></div>
 
     def test_dw_first_station(self):
         dw_test = dw.DataWindow(
-            config=dw.DataWindowConfig(
-                input_dir=self.input_dir, structured_layout=False, station_ids=[&#34;1637650010&#34;])
+            config=dw.DataWindowConfig(input_dir=self.input_dir, structured_layout=False, station_ids=[&#34;1637650010&#34;])
         )
         first_station = dw_test.first_station()
         self.assertEqual(&#34;1637650010&#34;, first_station.id())</code></pre>
@@ -284,7 +375,6 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_data_window(self):
-    # with contextlib.redirect_stdout(None):
     datawindow = dw.DataWindow(
         config=dw.DataWindowConfig(
             input_dir=self.input_dir,
@@ -295,8 +385,9 @@ def setUpClass(cls) -&gt; None:
     self.assertEqual(len(datawindow.stations()), 2)
     test_station = datawindow.get_station(&#34;1637650010&#34;)[0]
     self.assertTrue(test_station.is_timestamps_updated)
-    self.assertNotEqual(test_station.first_data_timestamp,
-                        test_station.audio_sensor().unaltered_data_timestamps()[0])
+    self.assertNotEqual(
+        test_station.first_data_timestamp, test_station.audio_sensor().unaltered_data_timestamps()[0]
+    )
     self.assertIsNotNone(datawindow.get_station(&#34;1637650010&#34;)[0].audio_sensor())
     test_sensor = datawindow.get_station(&#34;1637650010&#34;)[0].accelerometer_sensor()
     self.assertEqual(test_sensor.num_samples(), 643)
@@ -319,11 +410,7 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_data_window_simple(self):
-    # with contextlib.redirect_stdout(None):
-    datawindow = dw.DataWindow(
-        config=dw.DataWindowConfig(
-            input_dir=self.input_dir, structured_layout=False)
-    )
+    datawindow = dw.DataWindow(config=dw.DataWindowConfig(input_dir=self.input_dir, structured_layout=False))
     self.assertEqual(len(datawindow.stations()), 3)
     self.assertEqual(len(datawindow.station_ids()), 3)
     self.assertTrue(&#34;1637680001&#34; in datawindow.station_ids())
@@ -342,8 +429,7 @@ def setUpClass(cls) -&gt; None:
 </summary>
 <pre><code class="python">def test_dw_first_station(self):
     dw_test = dw.DataWindow(
-        config=dw.DataWindowConfig(
-            input_dir=self.input_dir, structured_layout=False, station_ids=[&#34;1637650010&#34;])
+        config=dw.DataWindowConfig(input_dir=self.input_dir, structured_layout=False, station_ids=[&#34;1637650010&#34;])
     )
     first_station = dw_test.first_station()
     self.assertEqual(&#34;1637650010&#34;, first_station.id())</code></pre>
@@ -380,7 +466,6 @@ def setUpClass(cls) -&gt; None:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_dw_with_start_end(self):
-    # with contextlib.redirect_stdout(None):
     dw_with_start_end = dw.DataWindow(
         config=dw.DataWindowConfig(
             input_dir=self.input_dir,
@@ -397,6 +482,98 @@ def setUpClass(cls) -&gt; None:
     loc_sensor = dw_with_start_end.get_station(&#34;0000000001&#34;)[0].location_sensor()
     self.assertIsNotNone(loc_sensor)
     self.assertEqual(loc_sensor.num_samples(), 4)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="redvox.tests.common.test_data_window.EventOriginTest"><code class="flex name class">
+<span>class <span class="ident">EventOriginTest</span></span>
+<span>(</span><span>methodName='runTest')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A class whose instances are single test cases.</p>
+<p>By default, the test code itself should be placed in a method named
+'runTest'.</p>
+<p>If the fixture may be used for many test cases, create as
+many test methods as are needed. When instantiating such a TestCase
+subclass, specify in the constructor arguments the name of the test method
+that the instance is to execute.</p>
+<p>Test authors should subclass TestCase for their own tests. Construction
+and deconstruction of the test's environment ('fixture') can be
+implemented by overriding the 'setUp' and 'tearDown' methods respectively.</p>
+<p>If it is necessary to override the <strong>init</strong> method, the base class
+<strong>init</strong> method must always be called. It is important that subclasses
+should not change the signature of their <strong>init</strong> method, since instances
+of the classes are instantiated automatically by parts of the framework
+in order to be run.</p>
+<p>When subclassing TestCase, you can set these attributes:
+* failureException: determines which exception will be raised when
+the instance's assertion methods fail; test methods raising this
+exception will be deemed to have 'failed' rather than 'errored'.
+* longMessage: determines whether long messages (including repr of
+objects used in assert methods) will be printed on failure in <em>addition</em>
+to any explicit message passed.
+* maxDiff: sets the maximum length of a diff in failure messages
+by assert methods using difflib. It is looked up as an instance
+attribute so can be configured by individual tests if required.</p>
+<p>Create an instance of the class that will use the named test
+method when executed. Raises a ValueError if the instance does
+not have a method with the specified name.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class EventOriginTest(unittest.TestCase):
+    def test_load_empty_origin(self):
+        ev_orig: dw.EventOrigin = dw.EventOrigin.from_dict({})
+        self.assertEqual(ev_orig.provider, &#34;UNKNOWN&#34;)
+        self.assertEqual(ev_orig.event_radius_m, 0.0)
+
+    def test_load_origin(self):
+        ev_orig: dw.EventOrigin = dw.EventOrigin.from_dict(
+            {&#34;provider&#34;: &#34;TEST&#34;, &#34;latitude&#34;: 19.75, &#34;longitude&#34;: -156.05, &#34;altitude&#34;: 23.48, &#34;event_radius_m&#34;: 1.0}
+        )
+        self.assertEqual(ev_orig.provider, &#34;TEST&#34;)
+        self.assertEqual(ev_orig.latitude, 19.75)
+        self.assertEqual(ev_orig.event_radius_m, 1.0)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>unittest.case.TestCase</li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="redvox.tests.common.test_data_window.EventOriginTest.test_load_empty_origin"><code class="name flex">
+<span>def <span class="ident">test_load_empty_origin</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_load_empty_origin(self):
+    ev_orig: dw.EventOrigin = dw.EventOrigin.from_dict({})
+    self.assertEqual(ev_orig.provider, &#34;UNKNOWN&#34;)
+    self.assertEqual(ev_orig.event_radius_m, 0.0)</code></pre>
+</details>
+</dd>
+<dt id="redvox.tests.common.test_data_window.EventOriginTest.test_load_origin"><code class="name flex">
+<span>def <span class="ident">test_load_origin</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_load_origin(self):
+    ev_orig: dw.EventOrigin = dw.EventOrigin.from_dict(
+        {&#34;provider&#34;: &#34;TEST&#34;, &#34;latitude&#34;: 19.75, &#34;longitude&#34;: -156.05, &#34;altitude&#34;: 23.48, &#34;event_radius_m&#34;: 1.0}
+    )
+    self.assertEqual(ev_orig.provider, &#34;TEST&#34;)
+    self.assertEqual(ev_orig.latitude, 19.75)
+    self.assertEqual(ev_orig.event_radius_m, 1.0)</code></pre>
 </details>
 </dd>
 </dl>
@@ -418,6 +595,12 @@ def setUpClass(cls) -&gt; None:
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
+<h4><code><a title="redvox.tests.common.test_data_window.DataWindowConfigTest" href="#redvox.tests.common.test_data_window.DataWindowConfigTest">DataWindowConfigTest</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.tests.common.test_data_window.DataWindowConfigTest.test_load_empty_config" href="#redvox.tests.common.test_data_window.DataWindowConfigTest.test_load_empty_config">test_load_empty_config</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="redvox.tests.common.test_data_window.DataWindowTest" href="#redvox.tests.common.test_data_window.DataWindowTest">DataWindowTest</a></code></h4>
 <ul class="">
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.setUpClass" href="#redvox.tests.common.test_data_window.DataWindowTest.setUpClass">setUpClass</a></code></li>
@@ -426,6 +609,13 @@ def setUpClass(cls) -&gt; None:
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_first_station" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_first_station">test_dw_first_station</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_invalid">test_dw_invalid</a></code></li>
 <li><code><a title="redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end" href="#redvox.tests.common.test_data_window.DataWindowTest.test_dw_with_start_end">test_dw_with_start_end</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="redvox.tests.common.test_data_window.EventOriginTest" href="#redvox.tests.common.test_data_window.EventOriginTest">EventOriginTest</a></code></h4>
+<ul class="">
+<li><code><a title="redvox.tests.common.test_data_window.EventOriginTest.test_load_empty_origin" href="#redvox.tests.common.test_data_window.EventOriginTest.test_load_empty_origin">test_load_empty_origin</a></code></li>
+<li><code><a title="redvox.tests.common.test_data_window.EventOriginTest.test_load_origin" href="#redvox.tests.common.test_data_window.EventOriginTest.test_load_origin">test_load_origin</a></code></li>
 </ul>
 </li>
 </ul>
