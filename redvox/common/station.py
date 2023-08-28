@@ -1514,18 +1514,7 @@ class Station:
             gps_timestamps = loc_sensor.get_gps_timestamps_data()
             gps_offsets = gps_timestamps - loc_sensor.data_timestamps() + GPS_LATENCY_MICROS
             if all(np.nan_to_num(gps_offsets) == 0.0):
-                self._errors.append("Location data is all invalid, cannot set GPS offset.")
-                return
-            self._gps_offset_model = OffsetModel(
-                np.empty(0), gps_offsets, gps_timestamps, gps_timestamps[0], gps_timestamps[-1]
-            )
-        else:
-            loc_sensor = None
-        if loc_sensor:
-            gps_timestamps = loc_sensor.get_gps_timestamps_data()
-            gps_offsets = gps_timestamps - loc_sensor.data_timestamps() + GPS_LATENCY_MICROS
-            if all(np.nan_to_num(gps_offsets) == 0.0):
-                self._errors.append("Location data is all invalid, cannot set GPS offset.")
+                self._errors.append(f"{self._id} Location data is all invalid, cannot set GPS offset.")
                 return
             self._gps_offset_model = OffsetModel(
                 np.empty(0), gps_offsets, gps_timestamps, gps_timestamps[0], gps_timestamps[-1]
