@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.6.3 (2023-8-29)
+* Updated lxml requirement to 4.9.3 to allow python 3.11 compatibility
+
 ### 3.6.2 (2023-8-29)
 * Added LocationSummary class to produce a simple summary of a Station's location
 * Updated LocalSessionModels class to better mimic cloud functions

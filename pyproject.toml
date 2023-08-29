@@ -17,7 +17,7 @@ dependencies = [
     "cython==0.29.34",
     "dataclasses-json==0.5.7",
     "fastkml==0.12",
-    "lxml==4.9.2",
+    "lxml==4.9.3",
     "lz4==4.3.2",
     "numpy==1.23.5",
     "pandas==2.0.1",
