@@ -1,6 +1,6 @@
 ## Changelog
 
-### 3.6.2 (2023-8-25)
+### 3.6.2 (2023-8-29)
 * Added LocationSummary class to produce a simple summary of a Station's location
 * Updated LocalSessionModels class to better mimic cloud functions
 
