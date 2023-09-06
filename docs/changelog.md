@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.6.4 (2023-9-5)
+* Fixed bug with invalid best latency index
+
 ### 3.6.3 (2023-8-29)
 * Updated lxml requirement to 4.9.3 to allow python 3.11 compatibility
 

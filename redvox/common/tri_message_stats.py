@@ -90,7 +90,7 @@ class TriMessageStats:
         if all(np.nan_to_num(self.latency1) == 0.0) or all(np.nan_to_num(self.latency3) == 0.0):
             # all latencies for one of the arrays is zero, the data is untrustworthy.  set the defaults
             self.best_latency = np.nan
-            self.best_latency_array_index = None
+            self.best_latency_array_index = 0
             self.best_latency_index = None
         else:
             # find value and index of minimum latency of nonzero, non-nan latencies

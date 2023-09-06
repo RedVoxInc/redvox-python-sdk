@@ -317,7 +317,7 @@ class TimeSync:
             # compute the rest of the statistics
             self._mean_offset = np.mean([*self._offsets[0], *self._offsets[1]])
             self._offset_std = np.std([*self._offsets[0], *self._offsets[1]])
-            self._best_latency_index = tse.best_latency_index
+            self._best_latency_index = tse.best_latency_index if tse.best_latency_index else np.nan
             self._best_msg_array_index = tse.best_latency_array_index
             self._best_latency = tse.best_latency
             self._best_offset = tse.best_offset
