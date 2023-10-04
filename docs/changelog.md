@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.6.5 (2023-10-4)
+* Fixed bugs when creating SessionModel from local data
+* Fixed bug when adding GPS data with duplicated timestamps
+
 ### 3.6.4 (2023-9-5)
 * Fixed bug with invalid best latency index
 

@@ -1512,7 +1512,18 @@ class Station:
         loc_sensor = self.find_loc_for_stats()
         if loc_sensor:
             gps_timestamps = loc_sensor.get_gps_timestamps_data()
-            gps_offsets = gps_timestamps - loc_sensor.data_timestamps() + GPS_LATENCY_MICROS
+            unique_gps = np.unique(gps_timestamps)
+            if len(unique_gps) != len(gps_timestamps):
+                keep_gps = []
+                for n in unique_gps:
+                    for k in range(len(gps_timestamps)):
+                        if n == gps_timestamps[k]:
+                            keep_gps.append(k)
+                            break
+                gps_offsets = gps_timestamps[keep_gps] - loc_sensor.data_timestamps()[keep_gps]
+            else:
+                gps_offsets = gps_timestamps - loc_sensor.data_timestamps()
+            gps_offsets += GPS_LATENCY_MICROS
             if all(np.nan_to_num(gps_offsets) == 0.0):
                 self._errors.append(f"{self._id} Location data is all invalid, cannot set GPS offset.")
                 return

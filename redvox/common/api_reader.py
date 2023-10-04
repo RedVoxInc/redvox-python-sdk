@@ -352,7 +352,6 @@ class ApiReader:
         :param station_id: the id to filter on
         :return: the list of packets with the requested id, or None if the id can't be found
         """
-
         result: List[api_m.RedvoxPacketM] = []
 
         # Iterate over the API 900 packets in a memory efficient way

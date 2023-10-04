@@ -175,13 +175,14 @@ def add_to_fst_buffer(buffer: List, buf_max_size: int, timestamp: float, value):
 
     * If the buffer is not full, the value is added automatically
     * If the buffer is full, the value is only added if it comes before the last element.
+    * Ignores adding any duplicate values
 
     :param buffer: the buffer to add the value to
     :param buf_max_size: the maximum size of the buffer
     :param timestamp: timestamp in microseconds since epoch UTC to add.
     :param value: value to add.  Must be the same type of data as the other elements in the queue.
     """
-    if len(buffer) < buf_max_size or timestamp < buffer[-1][0]:
+    if (len(buffer) < buf_max_size or timestamp < buffer[-1][0]) and timestamp not in [n[0] for n in buffer]:
         __ordered_insert(buffer, (timestamp, value))
         while len(buffer) > buf_max_size:
             buffer.pop()
@@ -193,26 +194,29 @@ def add_to_lst_buffer(buffer: List, buf_max_size: int, timestamp: float, value):
 
     * If the buffer is not full, the value is added automatically
     * If the buffer is full, the value is only added if it comes after the first element.
+    * Ignores adding any duplicate values
 
     :param buffer: the buffer to add the value to
     :param buf_max_size: the maximum size of the buffer
     :param timestamp: timestamp in microseconds since epoch UTC to add.
     :param value: value to add.  Must be the same type of data as the other elements in the queue.
     """
-    if len(buffer) < buf_max_size or timestamp > buffer[0][0]:
+    if (len(buffer) < buf_max_size or timestamp > buffer[0][0]) and timestamp not in [n[0] for n in buffer]:
         __ordered_insert(buffer, (timestamp, value))
         while len(buffer) > buf_max_size:
             buffer.pop(0)
 
 
-def get_local_timesync(packet: api_m.RedvoxPacketM) -> Optional[Tuple]:
+def get_local_timesync(packet: api_m.RedvoxPacketM) -> Tuple:
     """
-    if the data exists, the returning tuple looks like:
+    The returning tuple looks like:
 
     (start_timestamp, end_timestamp, num_exchanges, best_latency, best_offset, list of TimeSyncData)
 
+    num_exchanges, best_latency and best_offset default to 0.  list of TimeSyncData defaults to empty list.
+
     :param packet: packet to get timesync data from
-    :return: Timing object using data from packet or None
+    :return: Timing object using data from packet
     """
     ts = TimeSync().from_raw_packets([packet])
     if ts.num_tri_messages() > 0:
@@ -231,7 +235,14 @@ def get_local_timesync(packet: api_m.RedvoxPacketM) -> Optional[Tuple]:
             ts.best_offset(),
             _ts_data,
         )
-    return None
+    return (
+        ts.data_start_timestamp(),
+        ts.data_end_timestamp(),
+        0.0,
+        0.0,
+        0.0,
+        [],
+    )
 
 
 def add_to_welford(value: float, welford: Optional[sm.WelfordAggregator] = None) -> sm.WelfordAggregator:

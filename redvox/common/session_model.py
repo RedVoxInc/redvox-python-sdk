@@ -122,8 +122,6 @@ class SessionModel:
                 packet.timing_information.packet_end_mach_timestamp
                 - packet.timing_information.packet_start_mach_timestamp
             )
-            all_sensors = smu.get_all_sensors_in_packet(packet)
-            sensors = [cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])) for s in all_sensors]
             local_ts = smu.get_local_timesync(packet)
             if local_ts is None:
                 raise RedVoxError(
@@ -135,6 +133,8 @@ class SessionModel:
                 smu.add_to_fst_buffer(fst_lst.fst, fst_lst.fst_max_size, f.ts, f)
                 smu.add_to_lst_buffer(fst_lst.lst, fst_lst.lst_max_size, f.ts, f)
             timing = cloud_sm.Timing(local_ts[0], local_ts[1], local_ts[2], local_ts[3], local_ts[4], fst_lst)
+            all_sensors = smu.get_all_sensors_in_packet(packet)
+            sensors = [cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])) for s in all_sensors]
             result = SessionModel(
                 cloud_sm.Session(
                     id=packet.station_information.id,
@@ -311,12 +311,13 @@ class SessionModel:
             self.dynamic_sessions[key].temperature = smu.add_to_stats(
                 data["temperature"], self.dynamic_sessions[key].temperature
             )
-            for s in sub:
-                if s not in self.dynamic_sessions[key].sub:
-                    self.dynamic_sessions[key].sub.append(s)
-                child_key = f"{self.dynamic_sessions[key].session_key}:{s}"
-                if child_key in self.dynamic_sessions.keys():
-                    self._update_dynamic_session(s, data, self.dynamic_sessions[child_key].sub)
+            if self.dynamic_sessions[key].dur != HOURLY_SESSION_NAME:
+                for s in sub:
+                    if s not in self.dynamic_sessions[key].sub:
+                        self.dynamic_sessions[key].sub.append(s)
+                    child_key = f"{self.dynamic_sessions[key].session_key}:{s}"
+                    if child_key in self.dynamic_sessions.keys():
+                        self._update_dynamic_session(child_key, data, self.dynamic_sessions[child_key].sub)
 
     def sdk_version(self) -> str:
         """
