@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.6.6 (2023-10-6)
+* Fixed a bug when loading location data into SessionModel
+* Added functions to create SessionModel from directories
+
 ### 3.6.5 (2023-10-4)
 * Fixed bugs when creating SessionModel from local data
 * Fixed bug when adding GPS data with duplicated timestamps

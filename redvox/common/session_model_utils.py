@@ -296,7 +296,7 @@ def get_location_data(packet: api_m.RedvoxPacketM) -> List[Tuple[str, float, flo
     source = "UNKNOWN"
     num_pts = int(loc.timestamps.timestamp_statistics.count)
     # check for actual location values
-    if len(loc.location_providers) < 1:
+    if len(loc.location_providers) < 1 and num_pts > 0:
         lat = loc.latitude_samples.value_statistics.mean
         lon = loc.longitude_samples.value_statistics.mean
         alt = loc.altitude_samples.value_statistics.mean
@@ -325,13 +325,13 @@ def get_location_data(packet: api_m.RedvoxPacketM) -> List[Tuple[str, float, flo
         source = None
     elif loc.last_best_location is not None:
         ts = loc.last_best_location.latitude_longitude_timestamp.mach
-        source = loc.last_best_location.location_provider
+        source = COLUMN_TO_ENUM_FN["location_provider"](loc.last_best_location.location_provider)
         lat = loc.last_best_location.latitude
         lon = loc.last_best_location.longitude
         alt = loc.last_best_location.altitude
     elif loc.overall_best_location is not None:
         ts = loc.overall_best_location.latitude_longitude_timestamp.mach
-        source = loc.overall_best_location.location_provider
+        source = COLUMN_TO_ENUM_FN["location_provider"](loc.overall_best_location.location_provider)
         lat = loc.overall_best_location.latitude
         lon = loc.overall_best_location.longitude
         alt = loc.overall_best_location.altitude

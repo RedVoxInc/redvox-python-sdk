@@ -7,6 +7,7 @@ import numpy as np
 import redvox
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 import redvox.common.date_time_utils as dtu
+from redvox.common import io, api_conversions as ac
 import redvox.common.session_io as s_io
 import redvox.common.session_model_utils as smu
 from redvox.cloud import session_model_api as cloud_sm
@@ -176,6 +177,82 @@ class SessionModel:
             model.add_data_from_packet(p)
         data_stream.insert(0, p1)
         return model
+
+    @staticmethod
+    def create_from_dir(
+        in_dir: str,
+        station_id: str,
+        structured_dir: bool = True,
+        start_datetime: Optional[dtu.datetime] = None,
+        end_datetime: Optional[dtu.datetime] = None,
+    ) -> "SessionModel":
+        """
+        :param in_dir: input directory
+        :param station_id: station ID to get files for
+        :param structured_dir: if True, input directory is organized as per api1000/api900 specifications.  Default True
+        :param start_datetime: optional start datetime to get data from.  Default None
+        :param end_datetime: optional end datetime to get data until.  Default None
+        :return: the first SessionModel in the data
+        """
+        reader_filter = io.ReadFilter(station_ids={station_id}).with_start_dt(start_datetime).with_end_dt(end_datetime)
+        if structured_dir:
+            index = io.index_structured(in_dir, reader_filter)
+        else:
+            index = io.index_unstructured(in_dir, reader_filter)
+        return SessionModel().create_from_stream(SessionModel()._read_files_in_index(index))
+
+    @staticmethod
+    def read_all_from_dir(
+        in_dir: str,
+        structured_dir: bool = True,
+        station_ids: Optional[List[str]] = None,
+        start_datetime: Optional[dtu.datetime] = None,
+        end_datetime: Optional[dtu.datetime] = None,
+    ) -> List["SessionModel"]:
+        """
+        :param in_dir: input directory
+        :param structured_dir: if True, input directory is organized as per api1000/api900 specifications.  Default True
+        :param station_ids: optional list of station IDs to get files for.  Default None
+        :param start_datetime: optional start datetime to get data from.  Default None
+        :param end_datetime: optional end datetime to get data until.  Default None
+        :return: as many SessionModel as in the data
+        """
+        result = []
+        if station_ids:
+            station_ids = set(station_ids)
+        reader_filter = (
+            io.ReadFilter().with_start_dt(start_datetime).with_end_dt(end_datetime).with_station_ids(station_ids)
+        )
+        if structured_dir:
+            index = io.index_structured(in_dir, reader_filter)
+        else:
+            index = io.index_unstructured(in_dir, reader_filter)
+        all_index_ids = index.summarize().station_ids()
+        for station_id in all_index_ids:
+            result.append(
+                SessionModel().create_from_stream(
+                    SessionModel()._read_files_in_index(index.get_index_for_station_id(station_id))
+                )
+            )
+        return result
+
+    @staticmethod
+    def _read_files_in_index(indexf: io.Index) -> List[api_m.RedvoxPacketM]:
+        """
+        :return: list of RedvoxPacketM, converted from API 900 if necessary
+        """
+        result: List[api_m.RedvoxPacketM] = []
+        # Iterate over the API 900 packets in a memory efficient way and convert to API 1000
+        # noinspection PyTypeChecker
+        for packet_900 in indexf.stream_raw(io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_900})):
+            # noinspection Mypy
+            result.append(ac.convert_api_900_to_1000_raw(packet_900))
+        # Grab the API 1000 packets
+        # noinspection PyTypeChecker
+        for packet in indexf.stream_raw(io.ReadFilter.empty().with_api_versions({io.ApiVersion.API_1000})):
+            # noinspection Mypy
+            result.append(packet)
+        return result
 
     def add_data_from_packet(self, packet: api_m.RedvoxPacketM):
         """
