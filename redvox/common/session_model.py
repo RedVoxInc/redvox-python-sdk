@@ -187,6 +187,9 @@ class SessionModel:
         end_datetime: Optional[dtu.datetime] = None,
     ) -> "SessionModel":
         """
+        Since the return value is the first SessionModel to be found in the data, your results may not be what you
+        expected.  Adjust the input parameters as needed if so.
+
         :param in_dir: input directory
         :param station_id: station ID to get files for
         :param structured_dir: if True, input directory is organized as per api1000/api900 specifications.  Default True

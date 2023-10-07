@@ -1,6 +1,6 @@
 ## Changelog
 
-### 3.6.6 (2023-10-6)
+### 3.6.6 (2023-10-9)
 * Fixed a bug when loading location data into SessionModel
 * Added functions to create SessionModel from directories
 
@@ -58,7 +58,7 @@
 
 ### 3.3.7 (2022-9-20)
 
-* Added functions to update constants defined in offsetmodel.py
+* Added functions to update constants defined in offset_model.py
 * Updated api900 conversion functions to utilize sub_api to denote api900 files
 
 ### 3.3.6 (2022-9-13)
