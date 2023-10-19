@@ -10,6 +10,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 from redvox.api1000.wrapped_redvox_packet.sensors.location import LocationProvider
 from redvox.cloud import session_model_api as sm
 from redvox.common.timesync import TimeSync
+from redvox.common.offset_model import GPS_LATENCY_MICROS
 
 
 NUM_BUFFER_POINTS = 3  # number of data points to keep in a buffer
@@ -216,7 +217,7 @@ def get_local_timesync(packet: api_m.RedvoxPacketM) -> Tuple:
     num_exchanges, best_latency and best_offset default to 0.  list of TimeSyncData defaults to empty list.
 
     :param packet: packet to get timesync data from
-    :return: Timing object using data from packet
+    :return: Tuple with timing data from packet
     """
     ts = TimeSync().from_raw_packets([packet])
     if ts.num_tri_messages() > 0:
@@ -339,6 +340,72 @@ def get_location_data(packet: api_m.RedvoxPacketM) -> List[Tuple[str, float, flo
     if source is not None:
         locations.append((source, lat, lon, alt, ts))
     return locations
+
+
+def get_gps_timing(packet: api_m.RedvoxPacketM) -> Tuple:
+    """
+    The returning tuple looks like:
+
+    (start_timestamp, end_timestamp, num_samples, best_latency, best_offset)
+
+    num_samples, best_latency and best_offset default to 0.
+
+    :param packet: packet to get gps timesync data from
+    :return: Tuple with GPS timing data from packet
+    """
+    loc = packet.sensors.location
+    num_pts = int(loc.timestamps.timestamp_statistics.count)
+    if num_pts > 0:
+        gps_timestamps = np.array(loc.timestamps_gps.timestamps)
+        unique_gps = np.unique(gps_timestamps)
+        if len(unique_gps) != len(gps_timestamps):
+            keep_gps = []
+            for n in unique_gps:
+                instances = np.argwhere(gps_timestamps == n)
+                if len(instances) == 1:
+                    keep_gps.append(instances[0][0])
+            if len(keep_gps) < 1:
+                print(
+                    f"{packet.station_information.id} packet {packet.timing_information.packet_start_mach_timestamp} "
+                    f"has only invalid Location data, cannot set GPS offset for this packet."
+                )
+                return 0, 0, 0, 0, 0
+            gps_offsets = np.array([gps_timestamps[i] - loc.timestamps.timestamps[i] for i in keep_gps])
+            start_timestamp = gps_timestamps[min(keep_gps)]
+            end_timestamp = gps_timestamps[max(keep_gps)]
+        else:
+            gps_offsets = gps_timestamps - np.array(loc.timestamps.timestamps)
+            start_timestamp = gps_timestamps[0]
+            end_timestamp = gps_timestamps[-1]
+    else:
+        if loc.last_best_location is not None:
+            gps_offsets = np.array(
+                loc.last_best_location.latitude_longitude_timestamp.gps
+                - loc.last_best_location.latitude_longitude_timestamp.mach
+            )
+            start_timestamp = loc.last_best_location.latitude_longitude_timestamp.gps
+        elif loc.overall_best_location is not None:
+            gps_offsets = np.array(
+                loc.overall_best_location.latitude_longitude_timestamp.gps
+                - loc.overall_best_location.latitude_longitude_timestamp.mach
+            )
+            start_timestamp = loc.overall_best_location.latitude_longitude_timestamp.gps
+        else:
+            print(
+                f"{packet.station_information.id} packet {packet.timing_information.packet_start_mach_timestamp} "
+                f"has no Location data, cannot set GPS offset for this packet."
+            )
+            return 0, 0, 0, 0, 0
+        end_timestamp = start_timestamp
+        num_pts = 1
+    best_offset = np.mean(gps_offsets + GPS_LATENCY_MICROS)
+    if np.isnan(best_offset):
+        print(
+            f"{packet.station_information.id} packet {packet.timing_information.packet_start_mach_timestamp} "
+            f"has only invalid Location data, cannot set GPS offset for this packet."
+        )
+        return 0, 0, 0, 0, 0
+    return start_timestamp, end_timestamp, num_pts, GPS_LATENCY_MICROS, best_offset
 
 
 def get_dynamic_data(packet: api_m.RedvoxPacketM) -> Dict:

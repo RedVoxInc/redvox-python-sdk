@@ -365,11 +365,11 @@ class TimeSync:
                 return self._time_sync_exchanges_list[5][self._best_latency_index]
         return np.nan
 
-    def append_timesync_arrow(self, new_data: "TimeSync"):
+    def append_timesync(self, new_data: "TimeSync"):
         """
         adds timesync data from new_data to current
 
-        :param new_data: another TimeSyncArrow object
+        :param new_data: another TimeSync object
         """
         self._time_sync_exchanges_list[0] = np.append(
             self._time_sync_exchanges_list[0], new_data._time_sync_exchanges_list[0]

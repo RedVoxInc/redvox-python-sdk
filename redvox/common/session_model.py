@@ -32,6 +32,7 @@ class SessionModel:
     ):
         self.cloud_session: Optional[cloud_sm.Session] = session
         self.dynamic_sessions: Dict[str, cloud_sm.DynamicSession] = {} if dynamic is None else dynamic
+        self.gnss_timing: Optional[cloud_sm.Timing] = None
         self._sdk_version: str = redvox.VERSION
         self._errors: RedVoxExceptions = RedVoxExceptions("SessionModel")
 
@@ -161,6 +162,11 @@ class SessionModel:
                 )
             )
             result.cloud_session.sub = [result.add_dynamic_day(packet)]
+            local_gts = smu.get_gps_timing(packet)
+            fst_lst_gts = cloud_sm.FirstLastBufTimeSync([], 0, [], 0)
+            result.gnss_timing = cloud_sm.Timing(
+                local_gts[0], local_gts[1], local_gts[2], local_gts[3], local_gts[4], fst_lst_gts
+            )
         except Exception as e:
             raise e
         return result
@@ -304,6 +310,17 @@ class SessionModel:
             else:
                 self.cloud_session.sensors.append(cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])))
         self.add_dynamic_day(packet)
+        local_gts = smu.get_gps_timing(packet)
+        if local_gts[2] > 0:
+            g_timing = self.gnss_timing
+            g_timing.n_ex += local_gts[2]
+            g_timing.mean_off = (g_timing.mean_off * self.cloud_session.n_pkts + local_gts[4]) / (
+                self.cloud_session.n_pkts + 1
+            )
+            if local_gts[0] < g_timing.first_data_ts:
+                g_timing.first_data_ts = local_gts[0]
+            if local_gts[1] > g_timing.last_data_ts:
+                g_timing.last_data_ts = local_gts[1]
         self.cloud_session.n_pkts += 1
 
     def add_dynamic_hour(self, data: dict, packet_start: float, session_key: str) -> str:

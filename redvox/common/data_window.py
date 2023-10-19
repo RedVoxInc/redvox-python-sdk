@@ -804,10 +804,7 @@ class DataWindow:
         if there are no stations, creates a single error message declaring no data found
         """
         if len(self._stations) < 1 and self._config.station_ids:
-            if len(self._config.station_ids) > 1:
-                add_ids = f"for all stations {self._config.station_ids} "
-            else:
-                add_ids = ""
+            add_ids = f"for all stations {self._config.station_ids} " if len(self._config.station_ids) > 0 else ""
             self._errors.append(
                 f"No data matching criteria {add_ids}in {self._config.input_dir}"
                 f"\nPlease adjust parameters of DataWindow"

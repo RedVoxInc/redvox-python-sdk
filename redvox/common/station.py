@@ -412,7 +412,7 @@ class Station:
         for idx in indexes:
             pkts = idx.read_contents()
             self._packet_metadata.extend([st_utils.StationPacketMetadata(packet) for packet in pkts])
-            self._timesync_data.append_timesync_arrow(TimeSync().from_raw_packets(pkts))
+            self._timesync_data.append_timesync(TimeSync().from_raw_packets(pkts))
             self._event_data.read_from_packets_list(pkts)
             all_summaries.add_aggregate_summary(
                 ptp.stream_to_pyarrow(pkts, self._fs_writer.get_temp() if self.is_save_to_disk() else None)
@@ -634,7 +634,7 @@ class Station:
             self.append_station_data(new_station._data)
             self._packet_metadata.extend(new_station._packet_metadata)
             self._sort_metadata_packets()
-            self._timesync_data.append_timesync_arrow(new_station._timesync_data)
+            self._timesync_data.append_timesync(new_station._timesync_data)
             self._set_gps_offset()
             if not hasattr(self, "_event_data"):
                 self._event_data = EventStreams()
