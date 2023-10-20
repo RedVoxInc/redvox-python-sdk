@@ -262,7 +262,7 @@ def get_gps_timing(packet: api_m.RedvoxPacketM) -> Tuple:
     if num_pts > 0:
         gps_timestamps = np.array(loc.timestamps_gps.timestamps)
         unique_gps = np.unique(gps_timestamps)
-        if len(unique_gps) != len(gps_timestamps):
+        if len(unique_gps) != len(gps_timestamps) and not np.isnan(unique_gps):
             keep_gps = []
             for n in unique_gps:
                 instances = np.argwhere(gps_timestamps == n)

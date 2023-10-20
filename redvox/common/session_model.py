@@ -176,15 +176,19 @@ class SessionModel:
     @staticmethod
     def create_from_stream(data_stream: List[api_m.RedvoxPacketM]) -> "SessionModel":
         """
+        Raises an error if no packets are found
+
         :param data_stream: list of API M packets from a single station to read
         :return: SessionModel using the data packets from the stream
         """
-        p1 = data_stream.pop(0)
-        model = SessionModel.create_from_packet(p1)
-        for p in data_stream:
-            model.add_data_from_packet(p)
-        data_stream.insert(0, p1)
-        return model
+        if len(data_stream) > 0:
+            p1 = data_stream.pop(0)
+            model = SessionModel.create_from_packet(p1)
+            for p in data_stream:
+                model.add_data_from_packet(p)
+            data_stream.insert(0, p1)
+            return model
+        raise FileNotFoundError("Unable to find data files for a model.")
 
     @staticmethod
     def create_from_dir(
@@ -198,6 +202,8 @@ class SessionModel:
         Since the return value is the first SessionModel to be found in the data, your results may not be what you
         expected.  Adjust the input parameters as needed if so.
 
+        Raises an error if files are not found for the specified ID
+
         :param in_dir: input directory
         :param station_id: station ID to get files for
         :param structured_dir: if True, input directory is organized as per api1000/api900 specifications.  Default True
@@ -210,7 +216,9 @@ class SessionModel:
             index = io.index_structured(in_dir, reader_filter)
         else:
             index = io.index_unstructured(in_dir, reader_filter)
-        return SessionModel().create_from_stream(SessionModel()._read_files_in_index(index))
+        if len(index.entries) > 0:
+            return SessionModel().create_from_stream(SessionModel()._read_files_in_index(index))
+        raise FileNotFoundError(f"Unable to find data files with ID {station_id} for a model.")
 
     @staticmethod
     def read_all_from_dir(
