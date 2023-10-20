@@ -155,6 +155,7 @@ class Session:
     sensors: List[Sensor]
     n_pkts: int
     timing: Timing
+    gnss_timing: Timing
     sub: List[str]
 
     def session_key(self) -> str:
@@ -163,9 +164,7 @@ class Session:
         """
         return f"{self.id}:{self.uuid}:{self.start_ts}"
 
-    def query_dynamic_session(
-        self, client: "CloudClient", sub: str
-    ) -> "DynamicSessionModelResp":
+    def query_dynamic_session(self, client: "CloudClient", sub: str) -> "DynamicSessionModelResp":
         """
         Queries a dynamic session that is associated with this session.
         :param client: An instance of the cloud client.
@@ -173,9 +172,7 @@ class Session:
         :return: A DynamicSessionModelResp.
         """
         ts_parts: List[int] = list(map(int, sub.split(":")))
-        return client.request_dynamic_session_model(
-            self.session_key(), ts_parts[0], ts_parts[1]
-        )
+        return client.request_dynamic_session_model(self.session_key(), ts_parts[0], ts_parts[1])
 
 
 @dataclass_json
@@ -235,9 +232,7 @@ class DynamicSession:
     dur: str
     sub: List[str]
 
-    def query_dynamic_session(
-        self, client: "CloudClient", sub: str
-    ) -> "DynamicSessionModelResp":
+    def query_dynamic_session(self, client: "CloudClient", sub: str) -> "DynamicSessionModelResp":
         """
         Queries a dynamic session that is associated with this session.
         :param client: An instance of the cloud client.
@@ -245,9 +240,7 @@ class DynamicSession:
         :return: A DynamicSessionModelResp.
         """
         ts_parts: List[int] = list(map(int, sub.split(":")))
-        return client.request_dynamic_session_model(
-            self.session_key, ts_parts[0], ts_parts[1]
-        )
+        return client.request_dynamic_session_model(self.session_key, ts_parts[0], ts_parts[1])
 
     # TODO
     def query_packet(self, client: "CloudClient", sub: str):
@@ -347,9 +340,7 @@ def request_session(
     :return: An instance of the SessionModelResp.
     """
     # noinspection Mypy
-    handle_resp: Callable[
-        [requests.Response], SessionModelResp
-    ] = lambda resp: SessionModelResp.from_dict(resp.json())
+    handle_resp: Callable[[requests.Response], SessionModelResp] = lambda resp: SessionModelResp.from_dict(resp.json())
     return post_req(
         redvox_config,
         RoutesV3.SESSION_MODEL,
@@ -375,9 +366,9 @@ def request_sessions(
     :return: An instance of the SessionModelsResp.
     """
     # noinspection Mypy
-    handle_resp: Callable[
-        [requests.Response], SessionModelsResp
-    ] = lambda resp: SessionModelsResp.from_dict(resp.json())
+    handle_resp: Callable[[requests.Response], SessionModelsResp] = lambda resp: SessionModelsResp.from_dict(
+        resp.json()
+    )
     return post_req(
         redvox_config,
         RoutesV3.SESSION_MODELS,
@@ -423,11 +414,7 @@ def session_key_from_packet(packet: WrappedRedvoxPacketM) -> str:
     :return: A session key.
     """
     station_info: StationInformation = packet.get_station_information()
-    if (
-        station_info is None
-        or station_info.get_id() == ""
-        or station_info.get_uuid() == ""
-    ):
+    if station_info is None or station_info.get_id() == "" or station_info.get_uuid() == "":
         raise RedVoxError("Missing required station information")
     timing_info: TimingInformation = packet.get_timing_information()
     if timing_info is None or timing_info.get_app_start_mach_timestamp() == 0:

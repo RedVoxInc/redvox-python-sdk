@@ -125,7 +125,7 @@ class SessionModel:
                 - packet.timing_information.packet_start_mach_timestamp
             )
             local_ts = smu.get_local_timesync(packet)
-            if local_ts is None:
+            if local_ts[2] == 0:
                 raise RedVoxError(
                     f"Unable to find timing data for station {packet.station_information.id}.\n"
                     f"Timing is required to complete SessionModel.\nNow Quitting."
@@ -135,6 +135,14 @@ class SessionModel:
                 smu.add_to_fst_buffer(fst_lst.fst, fst_lst.fst_max_size, f.ts, f)
                 smu.add_to_lst_buffer(fst_lst.lst, fst_lst.lst_max_size, f.ts, f)
             timing = cloud_sm.Timing(local_ts[0], local_ts[1], local_ts[2], local_ts[3], local_ts[4], fst_lst)
+            local_gts = smu.get_gps_timing(packet)
+            fst_lst_gts = cloud_sm.FirstLastBufTimeSync([], smu.NUM_BUFFER_POINTS, [], smu.NUM_BUFFER_POINTS)
+            for f in local_gts[5]:
+                smu.add_to_fst_buffer(fst_lst_gts.fst, fst_lst_gts.fst_max_size, f.ts, f)
+                smu.add_to_lst_buffer(fst_lst_gts.lst, fst_lst_gts.lst_max_size, f.ts, f)
+            gnss_timing = cloud_sm.Timing(
+                local_gts[0], local_gts[1], local_gts[2], local_gts[3], local_gts[4], fst_lst_gts
+            )
             all_sensors = smu.get_all_sensors_in_packet(packet)
             sensors = [cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])) for s in all_sensors]
             result = SessionModel(
@@ -158,15 +166,11 @@ class SessionModel:
                     sensors=sensors,
                     n_pkts=1,
                     timing=timing,
+                    gnss_timing=gnss_timing,
                     sub=[],
                 )
             )
             result.cloud_session.sub = [result.add_dynamic_day(packet)]
-            local_gts = smu.get_gps_timing(packet)
-            fst_lst_gts = cloud_sm.FirstLastBufTimeSync([], 0, [], 0)
-            result.gnss_timing = cloud_sm.Timing(
-                local_gts[0], local_gts[1], local_gts[2], local_gts[3], local_gts[4], fst_lst_gts
-            )
         except Exception as e:
             raise e
         return result
@@ -281,12 +285,7 @@ class SessionModel:
             )
             return
         local_ts = smu.get_local_timesync(packet)
-        if local_ts is None:
-            self._errors.append(
-                f"Timesync doesn't exist in packet starting at "
-                f"{packet.timing_information.packet_start_mach_timestamp}."
-            )
-        else:
+        if local_ts[2] > 0:
             timing = self.cloud_session.timing
             for f in local_ts[5]:
                 smu.add_to_fst_buffer(timing.fst_lst.fst, timing.fst_lst.fst_max_size, f.ts, f)
@@ -302,17 +301,17 @@ class SessionModel:
                 timing.first_data_ts = local_ts[0]
             if local_ts[1] > timing.last_data_ts:
                 timing.last_data_ts = local_ts[1]
-        all_sensors = smu.get_all_sensors_in_packet(packet)
-        for s in all_sensors:
-            sensor = self.get_sensor(s[0], s[1])
-            if sensor is not None:
-                sensor.sample_rate_stats = smu.add_to_stats(s[2], sensor.sample_rate_stats)
-            else:
-                self.cloud_session.sensors.append(cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])))
-        self.add_dynamic_day(packet)
+        else:
+            self._errors.append(
+                f"Timesync doesn't exist in packet starting at "
+                f"{packet.timing_information.packet_start_mach_timestamp}."
+            )
         local_gts = smu.get_gps_timing(packet)
         if local_gts[2] > 0:
-            g_timing = self.gnss_timing
+            g_timing = self.cloud_session.gnss_timing
+            for f in local_gts[5]:
+                smu.add_to_fst_buffer(g_timing.fst_lst.fst, g_timing.fst_lst.fst_max_size, f.ts, f)
+                smu.add_to_lst_buffer(g_timing.fst_lst.lst, g_timing.fst_lst.lst_max_size, f.ts, f)
             g_timing.n_ex += local_gts[2]
             g_timing.mean_off = (g_timing.mean_off * self.cloud_session.n_pkts + local_gts[4]) / (
                 self.cloud_session.n_pkts + 1
@@ -321,6 +320,19 @@ class SessionModel:
                 g_timing.first_data_ts = local_gts[0]
             if local_gts[1] > g_timing.last_data_ts:
                 g_timing.last_data_ts = local_gts[1]
+        else:
+            self._errors.append(
+                f"GNSS timesync doesn't exist in packet starting at "
+                f"{packet.timing_information.packet_start_mach_timestamp}."
+            )
+        all_sensors = smu.get_all_sensors_in_packet(packet)
+        for s in all_sensors:
+            sensor = self.get_sensor(s[0], s[1])
+            if sensor is not None:
+                sensor.sample_rate_stats = smu.add_to_stats(s[2], sensor.sample_rate_stats)
+            else:
+                self.cloud_session.sensors.append(cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])))
+        self.add_dynamic_day(packet)
         self.cloud_session.n_pkts += 1
 
     def add_dynamic_hour(self, data: dict, packet_start: float, session_key: str) -> str:
