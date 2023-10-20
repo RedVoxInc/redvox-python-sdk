@@ -32,7 +32,6 @@ class SessionModel:
     ):
         self.cloud_session: Optional[cloud_sm.Session] = session
         self.dynamic_sessions: Dict[str, cloud_sm.DynamicSession] = {} if dynamic is None else dynamic
-        self.gnss_timing: Optional[cloud_sm.Timing] = None
         self._sdk_version: str = redvox.VERSION
         self._errors: RedVoxExceptions = RedVoxExceptions("SessionModel")
 
@@ -120,12 +119,9 @@ class SessionModel:
         :return: Session using the data from the packet
         """
         try:
-            duration = (
-                packet.timing_information.packet_end_mach_timestamp
-                - packet.timing_information.packet_start_mach_timestamp
-            )
             local_ts = smu.get_local_timesync(packet)
-            if local_ts[2] == 0:
+            local_gts = smu.get_gps_timing(packet)
+            if local_ts[2] == local_gts[2] == 0:
                 raise RedVoxError(
                     f"Unable to find timing data for station {packet.station_information.id}.\n"
                     f"Timing is required to complete SessionModel.\nNow Quitting."
@@ -135,7 +131,7 @@ class SessionModel:
                 smu.add_to_fst_buffer(fst_lst.fst, fst_lst.fst_max_size, f.ts, f)
                 smu.add_to_lst_buffer(fst_lst.lst, fst_lst.lst_max_size, f.ts, f)
             timing = cloud_sm.Timing(local_ts[0], local_ts[1], local_ts[2], local_ts[3], local_ts[4], fst_lst)
-            local_gts = smu.get_gps_timing(packet)
+
             fst_lst_gts = cloud_sm.FirstLastBufTimeSync([], smu.NUM_BUFFER_POINTS, [], smu.NUM_BUFFER_POINTS)
             for f in local_gts[5]:
                 smu.add_to_fst_buffer(fst_lst_gts.fst, fst_lst_gts.fst_max_size, f.ts, f)
@@ -143,6 +139,7 @@ class SessionModel:
             gnss_timing = cloud_sm.Timing(
                 local_gts[0], local_gts[1], local_gts[2], local_gts[3], local_gts[4], fst_lst_gts
             )
+
             all_sensors = smu.get_all_sensors_in_packet(packet)
             sensors = [cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])) for s in all_sensors]
             result = SessionModel(
@@ -162,7 +159,8 @@ class SessionModel:
                     app_ver=packet.station_information.app_version,
                     owner=packet.station_information.auth_id,
                     private=packet.station_information.is_private,
-                    packet_dur=duration,
+                    packet_dur=packet.timing_information.packet_end_mach_timestamp
+                    - packet.timing_information.packet_start_mach_timestamp,
                     sensors=sensors,
                     n_pkts=1,
                     timing=timing,
@@ -322,7 +320,7 @@ class SessionModel:
                 g_timing.last_data_ts = local_gts[1]
         else:
             self._errors.append(
-                f"GNSS timesync doesn't exist in packet starting at "
+                f"GNSS time data doesn't exist in packet starting at "
                 f"{packet.timing_information.packet_start_mach_timestamp}."
             )
         all_sensors = smu.get_all_sensors_in_packet(packet)

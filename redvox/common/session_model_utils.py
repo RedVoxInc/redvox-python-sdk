@@ -266,41 +266,36 @@ def get_gps_timing(packet: api_m.RedvoxPacketM) -> Tuple:
             keep_gps = []
             for n in unique_gps:
                 instances = np.argwhere(gps_timestamps == n)
-                if len(instances) == 1:
+                if len(instances[0]) == 1:
                     keep_gps.append(instances[0][0])
             if len(keep_gps) < 1:
                 return 0, 0, 0, 0, 0, []
-            gps_offsets = np.array([gps_timestamps[i] - loc.timestamps.timestamps[i] for i in keep_gps])
+            gps_offsets = (
+                np.array([gps_timestamps[i] - loc.timestamps.timestamps[i] for i in keep_gps]) + GPS_LATENCY_MICROS
+            )
             timestamps = [loc.timestamps.timestamps[i] for i in keep_gps]
             start_timestamp = gps_timestamps[min(keep_gps)]
             end_timestamp = gps_timestamps[max(keep_gps)]
         else:
             timestamps = loc.timestamps.timestamps
-            gps_offsets = gps_timestamps - np.array(timestamps)
+            gps_offsets = gps_timestamps - np.array(timestamps) + GPS_LATENCY_MICROS
             start_timestamp = gps_timestamps[0]
             end_timestamp = gps_timestamps[-1]
         _ts_data = [sm.TimeSyncData(timestamps[i], GPS_LATENCY_MICROS, gps_offsets[i]) for i in range(len(timestamps))]
     else:
         if loc.last_best_location is not None:
-            gps_offsets = (
-                loc.last_best_location.latitude_longitude_timestamp.gps
-                - loc.last_best_location.latitude_longitude_timestamp.mach
-            )
-            start_timestamp = loc.last_best_location.latitude_longitude_timestamp.gps
-            timestamps = loc.last_best_location.latitude_longitude_timestamp.mach
+            bl = loc.last_best_location
         elif loc.overall_best_location is not None:
-            gps_offsets = (
-                loc.overall_best_location.latitude_longitude_timestamp.gps
-                - loc.overall_best_location.latitude_longitude_timestamp.mach
-            )
-            start_timestamp = loc.overall_best_location.latitude_longitude_timestamp.gps
-            timestamps = loc.overall_best_location.latitude_longitude_timestamp.mach
+            bl = loc.overall_best_location
         else:
             return 0, 0, 0, 0, 0, []
+        gps_offsets = bl.latitude_longitude_timestamp.gps - bl.latitude_longitude_timestamp.mach + GPS_LATENCY_MICROS
+        start_timestamp = bl.latitude_longitude_timestamp.gps
+        timestamps = bl.latitude_longitude_timestamp.mach
         end_timestamp = start_timestamp
         num_pts = 1
         _ts_data = [sm.TimeSyncData(timestamps, GPS_LATENCY_MICROS, gps_offsets)]
-    best_offset = np.mean(gps_offsets + GPS_LATENCY_MICROS)
+    best_offset = np.mean(gps_offsets)
     if np.isnan(best_offset):
         return 0, 0, 0, 0, 0, []
     return start_timestamp, end_timestamp, num_pts, GPS_LATENCY_MICROS, best_offset, _ts_data
