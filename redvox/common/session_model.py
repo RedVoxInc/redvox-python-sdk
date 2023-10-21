@@ -218,7 +218,7 @@ class SessionModel:
             index = io.index_unstructured(in_dir, reader_filter)
         if len(index.entries) > 0:
             return SessionModel().create_from_stream(SessionModel()._read_files_in_index(index))
-        raise FileNotFoundError(f"Unable to find data files with ID {station_id} for a model.")
+        raise FileNotFoundError(f"Unable to find files in path {in_dir} with ID {station_id}.")
 
     @staticmethod
     def read_all_from_dir(

@@ -243,7 +243,7 @@ class ApiReader:
                         stats = SessionModel().create_from_stream(self.read_files_in_index(id_index))
                         checked_index = self._reset_index(stats.cloud_session)
                         self.session_models.add_local_session(stats)
-                    except (ValueError, Exception):
+                    except (FileNotFoundError, ValueError, Exception):
                         checked_index = [id_index]
 
             # add the updated list of files to the index
