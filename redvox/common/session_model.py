@@ -14,7 +14,7 @@ from redvox.cloud import session_model_api as cloud_sm
 from redvox.common.errors import RedVoxError, RedVoxExceptions
 
 
-SESSION_VERSION = "2023-08-16"  # Version of the SessionModel
+SESSION_VERSION = "2023-10-23"  # Version of the SessionModel
 CLIENT_NAME = "redvox-sdk/session_model"  # Name of the client used to create the SessionModel
 CLIENT_VERSION = SESSION_VERSION  # Version of the client used to create the SessionModel
 APP_NAME = "RedVox"  # Default name of the app
@@ -188,7 +188,7 @@ class SessionModel:
                 model.add_data_from_packet(p)
             data_stream.insert(0, p1)
             return model
-        raise FileNotFoundError("Unable to find data files for a model.")
+        raise RedVoxError("Unable to find data files for a model.")
 
     @staticmethod
     def create_from_dir(
@@ -218,7 +218,13 @@ class SessionModel:
             index = io.index_unstructured(in_dir, reader_filter)
         if len(index.entries) > 0:
             return SessionModel().create_from_stream(SessionModel()._read_files_in_index(index))
-        raise FileNotFoundError(f"Unable to find files in path {in_dir} with ID {station_id}.")
+        err_m = f"{station_id}"
+        if start_datetime:
+            err_m += f" with start_datetime {start_datetime}"
+        if end_datetime:
+            err_m += " and" if start_datetime else " with"
+            err_m += f" end_datetime {end_datetime}"
+        raise RedVoxError(f"Unable to find files in path {in_dir} with ID {err_m}.")
 
     @staticmethod
     def read_all_from_dir(

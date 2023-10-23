@@ -18,7 +18,7 @@ from redvox.common.parallel_utils import maybe_parallel_map
 from redvox.common.station import Station
 from redvox.common.reader_session_model import ModelsContainer
 from redvox.common.session_model import SessionModel
-from redvox.common.errors import RedVoxExceptions
+from redvox.common.errors import RedVoxExceptions, RedVoxError
 from redvox.cloud.client import cloud_client
 from redvox.cloud.session_model_api import Session
 from redvox.cloud.errors import CloudApiError
@@ -243,7 +243,7 @@ class ApiReader:
                         stats = SessionModel().create_from_stream(self.read_files_in_index(id_index))
                         checked_index = self._reset_index(stats.cloud_session)
                         self.session_models.add_local_session(stats)
-                    except (FileNotFoundError, ValueError, Exception):
+                    except (RedVoxError, Exception):
                         checked_index = [id_index]
 
             # add the updated list of files to the index

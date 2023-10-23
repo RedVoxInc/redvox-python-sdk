@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.7 (2023-20-23)
+* Added GNSS timing to SessionModel
+* Fixed bugs when creating SessionModel
+
 ### 3.6.6 (2023-10-9)
 * Fixed a bug when loading location data into SessionModel
 * Added functions to create SessionModel from directories
