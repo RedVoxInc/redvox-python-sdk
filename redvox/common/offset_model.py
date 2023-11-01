@@ -375,12 +375,11 @@ def get_bins_per_5min(start_time: float, end_time: float) -> int:
     """
     Calculates number of bins needed for roughly 5 minute bins.
         k_bins = int((end_time - start_time) / (300 * 1e6) + 1)
-    :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
 
+    :param start_time: the time used to compute the intercept (offset) and time bins; use start time of first packet
     :param end_time: the time used to compute the time bins; use start time of last packet + packet duration
     :return: number of bins to use for offset model
     """
-
     # Divide the duration by 5 minutes
     return int((end_time - start_time) / (1e6 * 300) + 1)
 

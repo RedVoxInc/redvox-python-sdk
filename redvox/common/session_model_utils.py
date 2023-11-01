@@ -14,6 +14,8 @@ from redvox.common.offset_model import GPS_LATENCY_MICROS
 
 
 NUM_BUFFER_POINTS = 3  # number of data points to keep in a buffer
+NUM_BUFFER_TS_POINTS = 8  # number of data points to keep in a timesync buffer
+NUM_BUFFER_LOC_POINTS = 3  # number of data points to keep in a location buffer
 COLUMN_TO_ENUM_FN = {"location_provider": lambda l: LocationProvider(l).name}
 
 # These are used for checking if a field is present or not
@@ -422,7 +424,7 @@ def add_to_location(
     :return: updated or new LocationStat object
     """
     if loc_stat is None:
-        fst_lst = sm.FirstLastBufLocation([], NUM_BUFFER_POINTS, [], NUM_BUFFER_POINTS)
+        fst_lst = sm.FirstLastBufLocation([], NUM_BUFFER_LOC_POINTS, [], NUM_BUFFER_LOC_POINTS)
         add_to_fst_buffer(fst_lst.fst, fst_lst.fst_max_size, timestamp, sm.Location(lat, lon, alt))
         add_to_lst_buffer(fst_lst.lst, fst_lst.lst_max_size, timestamp, sm.Location(lat, lon, alt))
         return sm.LocationStat(fst_lst, add_to_stats(lat), add_to_stats(lon), add_to_stats(alt))
