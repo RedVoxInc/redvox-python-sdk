@@ -415,7 +415,7 @@ def offset_weighted_linear_regression(
     if all(np.isnan(latencies)):
         return 0.0, 0.0
     else:
-        # remove nan values for sklearn sake
+        # remove nan values
         times = times[~np.isnan(latencies)]
         offsets = offsets[~np.isnan(latencies)]
         latencies = latencies[~np.isnan(latencies)]

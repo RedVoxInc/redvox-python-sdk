@@ -1,6 +1,10 @@
 ## Changelog
 
-### 3.7 (2023-20-23)
+### 3.8.0 (2023-11-2)
+* Replaced sklearn LinearRegression with a scipy version
+* Various bug fixes and code improvements
+
+### 3.7.0 (2023-10-23)
 * Added GNSS timing to SessionModel
 * Fixed bugs when creating SessionModel
 
