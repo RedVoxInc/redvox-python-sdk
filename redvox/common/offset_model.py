@@ -26,11 +26,7 @@ GPS_LATENCY_MICROS = 60000  # estimated latency for GPS communications
 
 
 __MIN_VALID_LATENCY_MICROS: Optional[float] = MIN_VALID_LATENCY_MICROS
-
-
 __MIN_SAMPLES: Optional[float] = MIN_SAMPLES
-
-
 __MIN_TIMESYNC_DURATION_MIN: Optional[float] = MIN_TIMESYNC_DURATION_MIN
 
 
@@ -292,10 +288,8 @@ class OffsetModel:
     @staticmethod
     def from_dict(data: dict) -> "OffsetModel":
         """
-        create OffsetModel from a dictionary
-
         :param data: dictionary to read
-        :return: OffsetModel
+        :return: OffsetModel from the dictionary
         """
         result = OffsetModel.empty_model()
         result.start_time = data["start_time"]
@@ -481,7 +475,6 @@ def get_binned_df(full_df: pd.DataFrame, bin_times: np.ndarray, n_samples: float
     :param n_samples: number of samples to take per bin
     :return: binned_df
     """
-
     # Initialize the data frame
     binned_df = pd.DataFrame()
 
@@ -526,7 +519,6 @@ def timesync_quality_check(
     :param min_samples: minimum number of samples per bin
     :return: True if timesync data passes all quality checks, False otherwise
     """
-
     if min_timesync_dur_mins is None:
         min_timesync_dur_mins = get_min_timesync_dur()
 
@@ -584,7 +576,6 @@ def compute_offsets(station_stats: List["StationStat"]) -> Optional[TimingOffset
     :param station_stats: Statistics to compute offsets from.
     :return: Timing offset information or None if there are no offsets or there is an error.
     """
-
     # Preallocate the data arrays.
     latencies: np.ndarray = np.zeros(len(station_stats), float)
     offsets: np.ndarray = np.zeros(len(station_stats), float)
