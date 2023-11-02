@@ -6,12 +6,14 @@ import numpy as np
 
 import redvox
 import redvox.api1000.proto.redvox_api_m_pb2 as api_m
+from redvox.cloud import session_model_api as cloud_sm
+import redvox.common.api_conversions as ac
 import redvox.common.date_time_utils as dtu
-from redvox.common import io, api_conversions as ac
+from redvox.common.errors import RedVoxError, RedVoxExceptions
+from redvox.common import io
+from redvox.common.offset_model import OffsetModel
 import redvox.common.session_io as s_io
 import redvox.common.session_model_utils as smu
-from redvox.cloud import session_model_api as cloud_sm
-from redvox.common.errors import RedVoxError, RedVoxExceptions
 
 
 SESSION_VERSION = "2023-10-23"  # Version of the SessionModel
@@ -126,7 +128,7 @@ class SessionModel:
                     f"Unable to find timing data for station {packet.station_information.id}.\n"
                     f"Timing is required to complete SessionModel.\nNow Quitting."
                 )
-            fst_lst = cloud_sm.FirstLastBufTimeSync([], smu.NUM_BUFFER_POINTS, [], smu.NUM_BUFFER_POINTS)
+            fst_lst = cloud_sm.FirstLastBufTimeSync([], smu.NUM_BUFFER_TS_POINTS, [], smu.NUM_BUFFER_TS_POINTS)
             for f in local_ts[5]:
                 smu.add_to_fst_buffer(fst_lst.fst, fst_lst.fst_max_size, f.ts, f)
                 smu.add_to_lst_buffer(fst_lst.lst, fst_lst.lst_max_size, f.ts, f)
@@ -302,13 +304,13 @@ class SessionModel:
             for f in local_ts[5]:
                 smu.add_to_fst_buffer(timing.fst_lst.fst, timing.fst_lst.fst_max_size, f.ts, f)
                 smu.add_to_lst_buffer(timing.fst_lst.lst, timing.fst_lst.lst_max_size, f.ts, f)
-            timing.n_ex += local_ts[2]
-            timing.mean_lat = (timing.mean_lat * self.cloud_session.n_pkts + local_ts[3]) / (
+            timing.mean_lat = (timing.mean_lat * self.cloud_session.n_pkts + local_ts[4]) / (
                 self.cloud_session.n_pkts + 1
             )
             timing.mean_off = (timing.mean_off * self.cloud_session.n_pkts + local_ts[4]) / (
                 self.cloud_session.n_pkts + 1
             )
+            timing.n_ex += local_ts[2]
             if local_ts[0] < timing.first_data_ts:
                 timing.first_data_ts = local_ts[0]
             if local_ts[1] > timing.last_data_ts:
@@ -490,6 +492,27 @@ class SessionModel:
         :return: all hour-long dynamic sessions in the Session
         """
         return [n for n in self.dynamic_sessions.values() if n.dur == HOURLY_SESSION_NAME]
+
+    def get_timesync_offset_model(self) -> Optional[OffsetModel]:
+        """
+        :return: OffsetModel defined by the timesync data points in the SessionModel or None if not enough data
+        """
+        timesync = self.cloud_session.timing.fst_lst
+        latencies = [i[1].lat for i in timesync.fst]
+        latencies.extend([i[1].lat for i in timesync.lst])
+        offsets = [i[1].off for i in timesync.fst]
+        offsets.extend([i[1].off for i in timesync.lst])
+        timestamps = [i[1].ts for i in timesync.fst]
+        timestamps.extend([i[1].ts for i in timesync.lst])
+        if len(timestamps) > 2:
+            return OffsetModel(
+                np.array(latencies),
+                np.array(offsets),
+                np.array(timestamps),
+                timestamps[0],
+                timestamps[-1],
+            )
+        return None
 
     def print_errors(self):
         """

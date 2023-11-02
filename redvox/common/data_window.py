@@ -782,6 +782,10 @@ class DataWindow:
                 np.max([t.last_data_timestamp() for t in self._stations]) + 1
             )
 
+        if self._errors.get_num_errors() > 0:
+            print("Errors encountered while creating DataWindow:")
+            self.print_errors()
+
         # If the pool was created by this function, then it needs to managed by this function.
         if pool is None:
             _pool.close()
@@ -965,6 +969,12 @@ class DataWindow:
                 sensor.sort_by_data_timestamps(_arrow)
         else:
             self._errors.append(f"Data window for {station_id} {sensor.type().name} " f"sensor has no data points!")
+
+    def errors(self) -> RedVoxExceptions:
+        """
+        :return: errors from the DataWindow
+        """
+        return self._errors
 
     def print_errors(self):
         """
