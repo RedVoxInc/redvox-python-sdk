@@ -782,10 +782,6 @@ class DataWindow:
                 np.max([t.last_data_timestamp() for t in self._stations]) + 1
             )
 
-        if self._errors.get_num_errors() > 0:
-            print("Errors encountered while creating DataWindow:")
-            self.print_errors()
-
         # If the pool was created by this function, then it needs to managed by this function.
         if pool is None:
             _pool.close()
