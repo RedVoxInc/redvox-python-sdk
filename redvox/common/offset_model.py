@@ -11,7 +11,7 @@ from typing import Tuple, Optional, List, TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from dataclasses import dataclass
-from sklearn.linear_model import LinearRegression
+from scipy.optimize import curve_fit
 
 if TYPE_CHECKING:
     from redvox.common.file_statistics import StationStat
@@ -126,8 +126,6 @@ class OffsetModel:
 
         intercept: float, the offset at start_time
 
-        score: float, R2 value of the model; 1.0 is best, 0.0 is worst
-
         mean_latency: float, mean latency
 
         std_dev_latency: float, latency standard deviation
@@ -209,7 +207,7 @@ class OffsetModel:
                 binned_df = full_df.sort_values(by=["times"])
 
             # Compute the weighted linear regression
-            self.slope, zero_intercept, self.score = offset_weighted_linear_regression(
+            self.slope, zero_intercept = offset_weighted_linear_regression(
                 latencies=binned_df["latencies"].values,
                 offsets=binned_df["offsets"].values,
                 times=binned_df["times"].values,
@@ -230,7 +228,6 @@ class OffsetModel:
             use_model = self.slope != 0.0
         # if data or model is not sufficient, use the offset corresponding to the lowest latency:
         if not use_model:
-            self.score = 0.0
             self.slope = 0.0
             if all(np.nan_to_num(latencies) == 0.0):
                 self.intercept = 0.0
@@ -250,7 +247,6 @@ class OffsetModel:
             f"n_samples: {self.n_samples}, "
             f"slope: {self.slope}, "
             f"intercept: {self.intercept}, "
-            f"score: {self.score}, "
             f"mean_latency: {self.mean_latency}, "
             f"std_dev_latency: {self.std_dev_latency}, "
             f"min_valid_latency_micros: {self.min_valid_latency_micros}, "
@@ -267,7 +263,6 @@ class OffsetModel:
             f"n_samples: {self.n_samples}, "
             f"slope: {self.slope}, "
             f"intercept: {self.intercept}, "
-            f"score: {self.score}, "
             f"mean_latency: {self.mean_latency}, "
             f"std_dev_latency: {self.std_dev_latency}, "
             f"min_valid_latency_micros: {self.min_valid_latency_micros}, "
@@ -286,7 +281,6 @@ class OffsetModel:
             "n_samples": self.n_samples,
             "slope": self.slope,
             "intercept": self.intercept,
-            "score": self.score,
             "mean_latency": self.mean_latency,
             "std_dev_latency": self.std_dev_latency,
             "min_valid_latency_micros": self.min_valid_latency_micros,
@@ -310,7 +304,6 @@ class OffsetModel:
         result.n_samples = data["n_samples"]
         result.slope = data["slope"]
         result.intercept = data["intercept"]
-        result.score = data["score"]
         result.mean_latency = data["mean_latency"]
         result.std_dev_latency = data["std_dev_latency"]
         result.min_valid_latency_micros = data["min_valid_latency_micros"]
@@ -395,46 +388,32 @@ def minmax_scale(data: np.ndarray) -> np.ndarray:
     return (data - np.nanmin(data)) / (np.nanmax(data) - np.nanmin(data))
 
 
-# The score for Weighted Linear Regression Function
-def get_wlr_score(model: LinearRegression, offsets: np.ndarray, times: np.ndarray, weights: np.ndarray) -> float:
+def linear_function(var_array: np.array, scalar: float, shifter: float) -> np.array:
     """
-    Computes and returns a R2 score for the weighted linear regression using sklearn's score method.
-    The best value is 1.0, and 0.0 corresponds to a function with no slope.
-    Negative values are also adjusted to be 0.0.
-
-    :param model: The linear regression model
-    :param offsets: array of offsets corresponding to the best latencies per packet
-    :param times: array of device times corresponding to the best latencies per packet
-    :param weights: weights used to compute the weighted linear regression
-    :return: score
+    :param var_array: the input values (data)
+    :param scalar: constant that scales the variable
+    :param shifter: constant that shifts the output
+    :return: result of the linear function
     """
-    # Get predicted offsets of the model
-    predicted_offsets = model.predict(X=times.reshape(-1, 1))
-
-    # Compute the score
-    score = model.score(X=predicted_offsets, y=offsets, sample_weight=weights)
-
-    # Adjust the score so negative values are cast to 0.0
-    return np.max([score, 0.0])
+    return scalar * var_array + shifter
 
 
 # The Weighted Linear Regression Function for offsets
 def offset_weighted_linear_regression(
     latencies: np.ndarray, offsets: np.ndarray, times: np.ndarray
-) -> Tuple[float, float, float]:
+) -> Tuple[float, float]:
     """
     Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
     The intercept is based on first UTC time 0, all units are in microseconds
-    The function uses sklearn's LinearRegression with sample weights, and also returns the R2 score.
+    The function uses scipy's curve_fit with sample weights.
 
     :param latencies: array of the best latencies per packet
     :param offsets: array of offsets corresponding to the best latencies per packet
     :param times: array of device times corresponding to the best latencies per packet
-    :return:  slope, intercept, score
+    :return: slope, intercept
     """
-
     if all(np.isnan(latencies)):
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0
     else:
         # remove nan values for sklearn sake
         times = times[~np.isnan(latencies)]
@@ -443,21 +422,12 @@ def offset_weighted_linear_regression(
 
     # Compute the weights for the linear regression by the latencies
     latencies_ms = latencies / 1e3
-    weights = latencies_ms**-2
-    if np.all(weights == weights[0]):
-        norm_weights = None
-    else:
-        norm_weights = minmax_scale(weights)
 
     # Set up the weighted linear regression
-    wls = LinearRegression()
-    wls.fit(X=times.reshape(-1, 1), y=offsets.reshape(-1, 1), sample_weight=norm_weights)
-
-    # get the score of the model
-    score = get_wlr_score(model=wls, offsets=offsets, times=times, weights=norm_weights)
+    parameters = curve_fit(linear_function, xdata=times, ydata=offsets, sigma=latencies_ms)
 
     # return the slope and intercept
-    return wls.coef_[0][0], wls.intercept_[0], score
+    return parameters[0][0], parameters[0][1]
 
 
 def simple_offset_weighted_linear_regression(offsets: np.ndarray, times: np.ndarray) -> Tuple[float, float]:
@@ -465,23 +435,20 @@ def simple_offset_weighted_linear_regression(offsets: np.ndarray, times: np.ndar
     Computes and returns the slope and intercept for the offset function (offset = slope * time + intercept)
     for GPS timestamps vs device timestamps
     The intercept is based on first UTC time 0, all units are in microseconds
-    The function uses sklearn's LinearRegression with no weights.
+    The function uses scipy's curve_fit with no weights.
 
     :param offsets: array of offsets
     :param times: array of device times used to get the offsets
     :return: slope of the model line, offset intercept at UTC 0
     """
-    # Set up the linear regression
-    wls = LinearRegression()
-    wls.fit(X=times.reshape(-1, 1), y=offsets.reshape(-1, 1))
+    # set up linear regression
+    parameters = curve_fit(linear_function, xdata=times, ydata=offsets)
     intercept = get_offset_at_new_time(
-        new_time=times[0],
-        slope=wls.coef_[0][0],
-        intercept=wls.intercept_[0],
-        model_time=0,
+        new_time=times[0], slope=parameters[0][0], intercept=parameters[0][1], model_time=0
     )
+
     # return the slope and intercept
-    return wls.coef_[0][0], intercept
+    return parameters[0][0], intercept
 
 
 # Function to correct the intercept value

@@ -32,9 +32,8 @@ class OffsetModelTest(unittest.TestCase):
 
     def test_empty_model(self):
         model = om.OffsetModel.empty_model()
-        self.assertEqual(model.intercept, 0.)
-        self.assertEqual(model.slope, 0.)
-        self.assertEqual(model.score, 0.)
+        self.assertEqual(model.intercept, 0.0)
+        self.assertEqual(model.slope, 0.0)
         self.assertEqual(model.k_bins, 1)
         self.assertEqual(model.n_samples, 3)
         self.assertEqual(model.mean_latency, 0.0)
