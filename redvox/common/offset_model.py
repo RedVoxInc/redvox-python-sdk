@@ -203,6 +203,7 @@ class OffsetModel:
                 binned_df = full_df.sort_values(by=["times"])
 
             # Compute the weighted linear regression
+            self.score = 0.0
             self.slope, zero_intercept = offset_weighted_linear_regression(
                 latencies=binned_df["latencies"].values,
                 offsets=binned_df["offsets"].values,
@@ -224,6 +225,7 @@ class OffsetModel:
             use_model = self.slope != 0.0
         # if data or model is not sufficient, use the offset corresponding to the lowest latency:
         if not use_model:
+            self.score = 0.0
             self.slope = 0.0
             if all(np.nan_to_num(latencies) == 0.0):
                 self.intercept = 0.0

@@ -2,6 +2,8 @@
 
 ### 3.8.0 (2023-11-2)
 * Replaced sklearn LinearRegression with a scipy version
+* Removed sklearn from requirements
+* Deprecated score property in OffsetModel
 * Various bug fixes and code improvements
 
 ### 3.7.0 (2023-10-23)
@@ -704,7 +706,7 @@
 
 ### 2.9.0 (2020-06-05)
 
-* Add full fledged cloud based API client. This client seamlessly manages authentication tokens behind the scenes.
+* Add full-fledged cloud based API client. This client seamlessly manages authentication tokens behind the scenes.
 * Update CLI data request methods to make use of new cloud based client.
 
 ### 2.8.7 (2020-06-03)
