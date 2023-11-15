@@ -194,6 +194,9 @@ print(s_model.audio_sample_rate_nominal_hz())
 # Print time synchronization information
 print(s_model.cloud_session.timing)
 
+# Print gnss time synchronization information
+print(s_model.cloud_session.gnss_timing)
+
 # Print day-long dynamic sessions
 print(s for s in s_model.get_daily_dynamic_sessions())
 
@@ -237,6 +240,7 @@ For your reference, the properties of the `Session` are:
 * `sensors`: list of Sensor, the name, description, and sample rate associated with each sensor.
 * `n_pkts`: int, number of files used to create the model.
 * `timing`: Timing, the timing information for the Session.
+* `gnss_timing`: Timing, the GNSS timing information for the Session.
 * `sub`: List of string, the keys to the dynamic sessions associated with the Session.
 
 Session has one function:
