@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.8.1 (2023-11-17)
+* Update to pyarrow requirement to fix security issue
+
 ### 3.8.0 (2023-11-2)
 * Replaced sklearn LinearRegression with a scipy version
 * Removed sklearn from requirements
