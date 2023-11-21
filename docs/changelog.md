@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.8.2 (2023-11-21)
+* Fixed a bug preventing the correct amount of data from being read
+
 ### 3.8.1 (2023-11-17)
 * Update to pyarrow requirement to fix security issue
 

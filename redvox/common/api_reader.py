@@ -193,18 +193,16 @@ class ApiReader:
             .with_end_dt_buf(dtu.timedelta(seconds=0))
         )
         # update the start and end times for the filter by the mean offset and the packet duration
+        off_adjustment = abs(model.timing.mean_off)
+        delta_fix = timedelta(microseconds=(off_adjustment + model.packet_dur))
         if self.filter.start_dt is not None:
-            if timedelta(microseconds=abs(model.timing.mean_off)) > self.filter.start_dt_buf:
+            if timedelta(microseconds=off_adjustment) > self.filter.start_dt_buf:
                 insufficient_str += "start "
-            new_filter.with_start_dt(
-                self.filter.start_dt + timedelta(microseconds=(model.timing.mean_off - model.packet_dur))
-            )
+            new_filter.with_start_dt(self.filter.start_dt - delta_fix)
         if self.filter.end_dt is not None:
-            if timedelta(microseconds=abs(model.timing.mean_off)) > self.filter.end_dt_buf:
+            if timedelta(microseconds=off_adjustment) > self.filter.end_dt_buf:
                 insufficient_str += "end"
-            new_filter.with_end_dt(
-                self.filter.end_dt + timedelta(microseconds=(model.timing.mean_off + model.packet_dur))
-            )
+            new_filter.with_end_dt(self.filter.end_dt + delta_fix)
 
         if len(insufficient_str) > 0:
             self.errors.append(f"Required more data for {model.id} at: {insufficient_str}")
