@@ -153,6 +153,9 @@ class ApiReader:
     def _get_cloud_models(self, ids: List[str]):
         """
         saves the cloud models from the server that match the list of ids given to the ApiReader's session_models.
+        Refer to https://github.com/RedVoxInc/redvox-python-sdk/tree/master/docs/python_sdk/cloud#authenticating-with-redvox-cloud-services
+        for more information about how to store credentials on your machine.
+
         :param ids: station ids to get models for
         """
         try:
@@ -175,7 +178,7 @@ class ApiReader:
         except Exception as e:
             self.errors.append(f"An error occurred.  Error message: {e}")
 
-    def _reset_index(self, model: Session) -> List[io.Index]:
+    def _reset_index(self, model: Session) -> io.Index:
         """
         reset the filter used to get files, then get the updated list of files
 
@@ -196,17 +199,17 @@ class ApiReader:
         off_adjustment = abs(model.timing.mean_off)
         delta_fix = timedelta(microseconds=(off_adjustment + model.packet_dur))
         if self.filter.start_dt is not None:
-            if timedelta(microseconds=off_adjustment) > self.filter.start_dt_buf:
+            if timedelta(microseconds=off_adjustment) > self.filter.start_dt_buf and model.timing.mean_off < 0:
                 insufficient_str += "start "
             new_filter.with_start_dt(self.filter.start_dt - delta_fix)
         if self.filter.end_dt is not None:
-            if timedelta(microseconds=off_adjustment) > self.filter.end_dt_buf:
+            if timedelta(microseconds=off_adjustment) > self.filter.end_dt_buf and model.timing.mean_off > 0:
                 insufficient_str += "end"
             new_filter.with_end_dt(self.filter.end_dt + delta_fix)
 
         if len(insufficient_str) > 0:
             self.errors.append(f"Required more data for {model.id} at: {insufficient_str}")
-        return [self._apply_filter(new_filter)]
+        return self._apply_filter(new_filter)
 
     def _get_all_files(self, pool: Optional[multiprocessing.pool.Pool] = None) -> List[io.Index]:
         """
@@ -226,7 +229,7 @@ class ApiReader:
         for station_id in all_index_ids:
             # if start and end are both not defined, just use what we got
             if self.filter.start_dt is None and self.filter.end_dt is None:
-                checked_index = [all_index.get_index_for_station_id(station_id)]
+                checked_index = all_index.get_index_for_station_id(station_id)
             # if we need to update the start or end, use the first session model from cloud if it exists
             elif station_id in resp_ids:
                 checked_index = self._reset_index(self.session_models.get_model_by_partial_key(station_id))
@@ -234,18 +237,18 @@ class ApiReader:
             else:
                 id_index = all_index.get_index_for_station_id(station_id)
                 if len(id_index.entries) < 1:
-                    checked_index = []
-                else:
-                    # attempt to make a session model using local data.  if failure, use what we got initially.
-                    try:
-                        stats = SessionModel().create_from_stream(self.read_files_in_index(id_index))
-                        checked_index = self._reset_index(stats.cloud_session)
-                        self.session_models.add_local_session(stats)
-                    except (RedVoxError, Exception):
-                        checked_index = [id_index]
+                    continue  # if nothing found, just skip the index
+                # attempt to make a session model using local data.  if failure, use what we got initially.
+                try:
+                    stats = SessionModel().create_from_stream(self.read_files_in_index(id_index))
+                    checked_index = self._reset_index(stats.cloud_session)
+                    self.session_models.add_local_session(stats)
+                except (RedVoxError, Exception):
+                    checked_index = id_index
 
             # add the updated list of files to the index
-            index.extend(checked_index)
+            if len(checked_index.entries) > 0:
+                index.append(checked_index)
 
         if pool is None:
             _pool.close()

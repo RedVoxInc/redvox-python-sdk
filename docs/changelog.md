@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.8.3 (2024-02-07)
+* Fixed a bug that prevented data window creation from properly forming
+* Updated data window creation to improve data collation
+
 ### 3.8.2 (2023-11-21)
 * Fixed a bug preventing the correct amount of data from being read
 

@@ -99,7 +99,7 @@ class ApiReaderDw(ApiReader):
         :return: List of all stations in the ApiReader, without building the data from parquet
         """
         if settings.is_parallelism_enabled() and len(self.files_index) > 1:
-            return list(maybe_parallel_map(pool, self._station_by_index, self.files_index, chunk_size=1))
+            return list(maybe_parallel_map(pool, self._station_by_index, iter(self.files_index), chunk_size=1))
         return list(map(self._station_by_index, self.files_index))
 
     def get_station_by_id(self, get_id: str) -> Optional[List[Station]]:

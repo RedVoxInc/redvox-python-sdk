@@ -733,9 +733,9 @@ class DataWindow:
 
         # get the data to convert into a window
         a_r = ApiReaderDw(
-            self._config.input_dir,
-            self._config.structured_layout,
-            r_f,
+            base_dir=self._config.input_dir,
+            structured_dir=self._config.structured_layout,
+            read_filter=r_f,
             correct_timestamps=self._config.apply_correction,
             use_model_correction=self._config.use_model_correction,
             dw_base_dir=self.save_dir(),
@@ -932,20 +932,22 @@ class DataWindow:
                 else:
                     end_sample_interval = dtu.seconds_to_microseconds(sensor.sample_interval_s())
                     start_sample_interval = -end_sample_interval
-                    if self._config.end_datetime:
-                        end_samples_to_add = int(
+                    end_samples_to_add = (
+                        int(
                             (dtu.datetime_to_epoch_microseconds_utc(self._config.end_datetime) - slice_end)
                             / end_sample_interval
                         )
-                    else:
-                        end_samples_to_add = 0
-                    if self._config.start_datetime:
-                        start_samples_to_add = int(
+                        if self._config.end_datetime
+                        else 0
+                    )
+                    start_samples_to_add = (
+                        int(
                             (slice_start - dtu.datetime_to_epoch_microseconds_utc(self._config.start_datetime))
                             / end_sample_interval
                         )
-                    else:
-                        start_samples_to_add = 0
+                        if self._config.start_datetime
+                        else 0
+                    )
                 # add to end
                 _arrow = gpu.add_data_points_to_df(
                     data_table=_arrow,
