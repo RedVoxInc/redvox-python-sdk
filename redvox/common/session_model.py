@@ -12,6 +12,7 @@ import redvox.common.date_time_utils as dtu
 from redvox.common.errors import RedVoxError, RedVoxExceptions
 from redvox.common import io
 from redvox.common.offset_model import OffsetModel
+from redvox.common.station import STATION_ID_LENGTH
 import redvox.common.session_io as s_io
 import redvox.common.session_model_utils as smu
 
@@ -22,6 +23,17 @@ CLIENT_VERSION = SESSION_VERSION  # Version of the client used to create the Ses
 APP_NAME = "RedVox"  # Default name of the app
 DAILY_SESSION_NAME = "Day"  # Identifier for day-long dynamic sessions
 HOURLY_SESSION_NAME = "Hour"  # Identifier for hour-long dynamic sessions
+
+
+def _get_session_key_from_packet(packet: api_m.RedvoxPacketM) -> str:
+    """
+    :param packet: packet to create session key from
+    :return: session key
+    """
+    return (
+        f"{packet.station_information.id.zfill(STATION_ID_LENGTH)}:{packet.station_information.uuid}:"
+        f"{int(packet.timing_information.app_start_mach_timestamp)}"
+    )
 
 
 class SessionModel:
@@ -146,7 +158,7 @@ class SessionModel:
             sensors = [cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])) for s in all_sensors]
             result = SessionModel(
                 cloud_sm.Session(
-                    id=packet.station_information.id,
+                    id=packet.station_information.id.zfill(STATION_ID_LENGTH),
                     uuid=packet.station_information.uuid,
                     desc=packet.station_information.description,
                     start_ts=int(packet.timing_information.app_start_mach_timestamp),
@@ -288,15 +300,9 @@ class SessionModel:
 
         :param packet: packet to add
         """
-        if (
-            self.cloud_session.session_key() != f"{packet.station_information.id}:{packet.station_information.uuid}:"
-            f"{int(packet.timing_information.app_start_mach_timestamp)}"
-        ):
-            self._errors.append(
-                "Attempted to add packet with invalid key: "
-                f"{packet.station_information.id}:{packet.station_information.uuid}:"
-                f"{int(packet.timing_information.app_start_mach_timestamp)}"
-            )
+        session_key = _get_session_key_from_packet(packet)
+        if self.cloud_session.session_key() != session_key:
+            self._errors.append(f"Attempted to add packet with invalid key: {session_key}")
             return
         local_ts = smu.get_local_timesync(packet)
         if local_ts[2] > 0:
@@ -393,10 +399,7 @@ class SessionModel:
         day_end_ts = int(dtu.datetime_to_epoch_microseconds_utc(day_start_dt + dtu.timedelta(days=1)))
         day_start_ts = int(dtu.datetime_to_epoch_microseconds_utc(day_start_dt))
         dynamic_key = f"{day_start_ts}:{day_end_ts}"
-        session_key = (
-            f"{packet.station_information.id}:{packet.station_information.uuid}:"
-            f"{int(packet.timing_information.app_start_mach_timestamp)}"
-        )
+        session_key = _get_session_key_from_packet(packet)
         key = f"{session_key}:{dynamic_key}"
         hourly_key = self.add_dynamic_hour(data, packet.timing_information.packet_start_mach_timestamp, session_key)
         if key in self.dynamic_sessions.keys():
@@ -557,10 +560,7 @@ class LocalSessionModels:
         :param packet: packet of data to add.
         :return: key of new or updated packet
         """
-        key = (
-            f"{packet.station_information.id}:{packet.station_information.uuid}:"
-            f"{int(packet.timing_information.app_start_mach_timestamp)}"
-        )
+        key = _get_session_key_from_packet(packet)
         for s in self.sessions:
             if key == s.cloud_session.session_key():
                 s.add_data_from_packet(packet)

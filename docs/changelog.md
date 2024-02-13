@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.8.4 (2024-02-13)
+* Fixed a bug that prevented some stations from generating properly when creating a data window
+
 ### 3.8.3 (2024-02-07)
 * Fixed a bug that prevented data window creation from properly forming
 * Updated data window creation to improve data collation
