@@ -2,7 +2,7 @@
 Read Redvox data from a single directory
 Data files can be either API 900 or API 1000 data formats
 """
-from typing import List, Optional
+from typing import List, Optional, Set
 from datetime import timedelta, datetime
 import multiprocessing
 import multiprocessing.pool
@@ -15,7 +15,7 @@ import redvox.api1000.proto.redvox_api_m_pb2 as api_m
 import redvox.common.date_time_utils as dtu
 from redvox.common import io, api_conversions as ac
 from redvox.common.parallel_utils import maybe_parallel_map
-from redvox.common.station import Station
+from redvox.common.station import Station, STATION_ID_LENGTH
 from redvox.common.reader_session_model import ModelsContainer
 from redvox.common.session_model import SessionModel
 from redvox.common.errors import RedVoxExceptions, RedVoxError
@@ -49,6 +49,29 @@ meta_py_stct = pa.struct(
 
 
 PERCENT_FREE_MEM_USE = 0.8  # Percentage of total free memory to use when creating stations (1. is 100%)
+
+
+def zfill_ids(ids_set: Set) -> Set:
+    """
+    :param ids_set: set of string ids to zero pad to 10 characters long
+    :return: the list of ids with zero padded versions added
+    """
+    s_ids = ids_set.copy()
+    for f in ids_set:
+        if f and len(f) < STATION_ID_LENGTH:
+            s_ids.add(f.zfill(STATION_ID_LENGTH))
+    return s_ids
+
+
+def strip_leading_zero_ids(ids_set: Set) -> Set:
+    """
+    :param ids_set: set of string ids
+    :return: the list of ids with any leading 0's removed
+    """
+    s_ids = ids_set.copy()
+    for f in ids_set:
+        s_ids.add(f.lstrip("0"))
+    return s_ids
 
 
 class ApiReader:
@@ -96,7 +119,11 @@ class ApiReader:
         if read_filter:
             self.filter: io.ReadFilter = read_filter
             if self.filter.station_ids:
-                self.filter.station_ids = set(self.filter.station_ids)
+                # add leading 0s to shorter ids
+                long_ids = zfill_ids(self.filter.station_ids)
+                # remove leading 0s from input ids
+                short_ids = strip_leading_zero_ids(self.filter.station_ids)
+                self.filter.station_ids = long_ids.union(short_ids)
         else:
             self.filter = io.ReadFilter()
         self.base_dir: str = base_dir
@@ -191,7 +218,7 @@ class ApiReader:
             io.ReadFilter()
             .with_extensions(self.filter.extensions)
             .with_api_versions(self.filter.api_versions)
-            .with_station_ids({model.id})
+            .with_station_ids(zfill_ids({model.id}))
             .with_start_dt_buf(dtu.timedelta(seconds=0))
             .with_end_dt_buf(dtu.timedelta(seconds=0))
         )
@@ -252,6 +279,9 @@ class ApiReader:
 
         if pool is None:
             _pool.close()
+
+        if len(all_index_ids) > 0:
+            self.filter.station_ids = set(all_index_ids)
 
         return index
 

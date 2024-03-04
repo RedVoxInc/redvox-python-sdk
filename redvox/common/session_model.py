@@ -12,7 +12,6 @@ import redvox.common.date_time_utils as dtu
 from redvox.common.errors import RedVoxError, RedVoxExceptions
 from redvox.common import io
 from redvox.common.offset_model import OffsetModel
-from redvox.common.station import STATION_ID_LENGTH
 import redvox.common.session_io as s_io
 import redvox.common.session_model_utils as smu
 
@@ -31,7 +30,7 @@ def _get_session_key_from_packet(packet: api_m.RedvoxPacketM) -> str:
     :return: session key
     """
     return (
-        f"{packet.station_information.id.zfill(STATION_ID_LENGTH)}:{packet.station_information.uuid}:"
+        f"{packet.station_information.id}:{packet.station_information.uuid}:"
         f"{int(packet.timing_information.app_start_mach_timestamp)}"
     )
 
@@ -158,7 +157,7 @@ class SessionModel:
             sensors = [cloud_sm.Sensor(s[0], s[1], smu.add_to_stats(s[2])) for s in all_sensors]
             result = SessionModel(
                 cloud_sm.Session(
-                    id=packet.station_information.id.zfill(STATION_ID_LENGTH),
+                    id=packet.station_information.id,
                     uuid=packet.station_information.uuid,
                     desc=packet.station_information.description,
                     start_ts=int(packet.timing_information.app_start_mach_timestamp),
@@ -302,7 +301,10 @@ class SessionModel:
         """
         session_key = _get_session_key_from_packet(packet)
         if self.cloud_session.session_key() != session_key:
-            self._errors.append(f"Attempted to add packet with invalid key: {session_key}")
+            self._errors.append(
+                f"Attempted to add packet with invalid key: {session_key}!\n"
+                f"Valid key is: {self.cloud_session.session_key()}"
+            )
             return
         local_ts = smu.get_local_timesync(packet)
         if local_ts[2] > 0:
@@ -558,7 +560,7 @@ class LocalSessionModels:
         add a packet to one of the models, or make a new one
 
         :param packet: packet of data to add.
-        :return: key of new or updated packet
+        :return: session key of new or updated session model
         """
         key = _get_session_key_from_packet(packet)
         for s in self.sessions:

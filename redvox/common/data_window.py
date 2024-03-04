@@ -924,6 +924,7 @@ class DataWindow:
                 # add in the data points at the edges of the window if there are defined start and/or end times
                 slice_start = _arrow["timestamps"].to_numpy()[0]
                 slice_end = _arrow["timestamps"].to_numpy()[-1]
+                # add endpoints matching the audio endpoints to the non-audio sensors.
                 if not is_audio:
                     end_sample_interval = end_date_timestamp - slice_end
                     end_samples_to_add = 1

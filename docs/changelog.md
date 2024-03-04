@@ -1,5 +1,8 @@
 ## Changelog
 
+### 3.8.5 (2024-03-04)
+* Updated file search when creating stations with ids less than 10 digits long
+
 ### 3.8.4 (2024-02-13)
 * Fixed a bug that prevented some stations from generating properly when creating a data window
 
