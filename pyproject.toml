@@ -19,7 +19,7 @@ dependencies = [
     "fastkml==0.12",
     "lxml==5.2.2",
     "lz4==4.3.3",
-    "numpy==1.26.4",
+    "numpy==1.24.4",
     "pandas==2.2.2",
     "protobuf==4.25.3",
     "psutil==6.0.0",
