@@ -1,5 +1,9 @@
 ## Changelog
 
+### 3.8.6 (2024-07-09)
+* Updated dependencies for cython, dataclasses-json, numpy, pandas, protobuf, psutil, pyarrow, pyserde, requests, 
+  scipy, websocket-client and matplotlib
+
 ### 3.8.5 (2024-03-04)
 * Updated file search when creating stations with ids less than 10 digits long
 
